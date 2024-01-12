@@ -184,6 +184,7 @@ Node* node_new_num(int val) {
 Node* expr();
 Node* mul();
 Node* prim();
+Node* unary();
 
 // parser语法分析：表达式 `expr = mul ("+" mul | "-" mul)*`
 Node* expr() {
@@ -198,14 +199,14 @@ Node* expr() {
         }
     }
 }
-// parser语法分析：表达式 `mul = prim ("*" prim | "/" prim)*`
+// parser语法分析：表达式 `mul = unary ("*" unary | "/" unary)*`
 Node* mul() {
-    Node *node = prim();
+    Node *node = unary();
     while(true) {
         if(consume('*')) {
-            node = node_new_binary(ND_MUL, node, prim());
+            node = node_new_binary(ND_MUL, node, unary());
         }else if(consume('/')) {
-            node = node_new_binary(ND_DIV, node, prim());
+            node = node_new_binary(ND_DIV, node, unary());
         }else {
             return node;
         }
@@ -219,6 +220,15 @@ Node* prim() {
         return node;
     }
     return node_new_num(expect_number());
+}
+// parser语法分析：表达式 `unary = ("+" | "-")? prim`
+Node* unary() {
+    if(consume('+')) {
+        return prim();
+    }else if(consume('-')) {
+        return node_new_binary(ND_SUB, node_new_num(0), prim());
+    }
+    return prim();
 }
 
 // parser语法分析：生成汇编代码

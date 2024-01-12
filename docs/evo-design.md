@@ -66,3 +66,12 @@ mul  = prim ("*" prim | "/" prim)*
 prim = num | "(" expr ")"
 num  = [0-9]+
 ```
+
+## Step 6: 一元运算符
+```ebnf
+expr = mul ("+" mul | "-" mul)*
+mul  = unary ("*" unary | "/" unary)*
+unary = ("+" | "-")? prim
+prim = num | "(" expr ")"
+num  = [0-9]+
+```
