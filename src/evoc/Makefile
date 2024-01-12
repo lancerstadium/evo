@@ -6,8 +6,7 @@ all:
 run:
 	./evoc 123 > tmp.s
 	cc tmp.s -o tmp
-	./tmp
-	echo $?
+	./tmp && echo $?
 
 test:
 	bash -x ./evoc-test.sh
@@ -16,4 +15,6 @@ testq:
 	./evoc-test.sh
 
 clean:
-	rm -f evoc *.s tmp
+	rm -f evoc *.s *.o tmp*
+
+.PHONY: run test testq clean
