@@ -1,8 +1,15 @@
 add_rules("mode.debug", "mode.release")
 
+
+target("utils")
+    set_kind("static")
+    add_files("src/utils/*.c")
+    add_includedirs("src/utils")
+
 target("evoc")
     set_kind("binary")
     add_files("src/evoc/*.c")
+    add_includedirs("src/utils")
 
 
 --
