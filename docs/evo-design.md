@@ -75,3 +75,37 @@ unary = ("+" | "-")? prim
 prim = num | "(" expr ")"
 num  = [0-9]+
 ```
+
+## Step 7: 比较运算符
+运算符优先级：
+```
+1. ==, !=
+2. <, <=, >, >=
+3. +, -
+4. *, /
+5. +, - (solo)
+6. ()
+
+```
+
+表达式：
+```ebnf
+expr     = equality
+equality = relation ("==" relation | "!=" relation)*
+relation = add ("<" add | "<=" add | ">" add | ">=" add)*
+add      = mul ("+" mul | "-" mul)*
+mul      = unary ("*" unary | "/" unary)*
+unary    = ("+" | "-")? prim
+prim     = num | "(" expr ")"
+num      = [0-9]+
+
+```
+
+比较汇编，`al`位于rax低八位：
+```
+pop rdi
+pop rax
+cmp rax, rdi
+sete al
+movzb rax, al
+```

@@ -29,13 +29,17 @@ void evoc_err(char *loc, char *fmt, ...) {
     va_end(ap);                                 // 释放ap
     fprintf(stderr,"\n");                       // 换行
 }
+// 判断字符串是否以q开头
+bool str_start_with(char* p, char* q) {
+    return strncmp(p, q, strlen(q)) == 0;
+}
 
 // ==================================================================================== //
 //                                    evoc: lexer
 // ==================================================================================== //
 
 // ==================================================================================== //
-//                                    Data: token
+//                                    Data: Token
 // ==================================================================================== //
 
 // lexer词法分析：识别令牌
@@ -47,19 +51,20 @@ typedef enum {
 // lexer词法分析：令牌结构体
 typedef struct Token Token;
 struct Token {
-    TokenType type;         // 令牌类型
-    Token *next;            // 下一个令牌
-    int val;                // 令牌值
-    char *str;              // 令牌字符串
+    TokenType type;                         // 令牌类型
+    Token *next;                            // 下一个令牌
+    int val;                                // 令牌值
+    char *str;                              // 令牌字符串
+    int len;                                // 令牌字符串长度
 };
-
-Token *token;               // 现在的令牌
+Token *token;                               // 现在的令牌
 
 // lexer词法分析：创建新令牌
-Token* token_new(TokenType type, Token *cur, char *str) {
+Token* token_new(TokenType type, Token *cur, char *str, int len) {
     Token *tok = calloc(1, sizeof(Token));
     tok->type = type;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
 }
@@ -71,22 +76,36 @@ Token* token_identify(char *p) {
     Token *cur = &head;                     // 当前令牌
 
     while(*p) {
-        if(isspace(*p)) {                   // 如果是空格，跳过
+        // 如果是空格，跳过
+        if(isspace(*p)) {                  
             p++;
             continue;
         }
-        if(strchr("+-*/()", *p)) {        // 如果是加号或减号
-            cur = token_new(TK_RESERVED, cur, p++);
+        // 如果是多长度运算符
+        if(str_start_with(p, "==") || 
+           str_start_with(p, "!=") ||
+           str_start_with(p, "<=") || 
+           str_start_with(p, ">=")) {          
+            cur = token_new(TK_RESERVED, cur, p, 2);
+            p += 2;
             continue;
         }
-        if(isdigit(*p)) {                   // 如果是数字
-            cur = token_new(TK_NUM, cur, p);
+        // 如果是单长度运算符
+        if(strchr("+-*/()<>", *p)) {
+            cur = token_new(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+        // 如果是数字
+        if(isdigit(*p)) {                   
+            cur = token_new(TK_NUM, cur, p, 0);
+            char *q = p;
             cur->val = strtol(p, &p, 10);
+            cur->len = p - q;
             continue;
         }
         log_error("invalid token: %c", *p); break;
     }
-    cur = token_new(TK_END, cur, p);
+    cur = token_new(TK_END, cur, p, 0);
     return head.next;
 }
 
@@ -96,8 +115,8 @@ Token* token_identify(char *p) {
 
 
 // lexer词法分析：尝试消费下一个令牌
-bool consume(char op) {
-    if(token->type == TK_END || token->str[0] != op) {
+bool consume(char* op) {
+    if(token->type == TK_END || strlen(op) != token->len || memcmp(token->str, op, token->len)) {
         // 如果是结束令牌，或者不是期望的令牌，返回false
         // log_error("expect `%c`, but got `%c`", op, token->str[0]);
         return false;
@@ -107,8 +126,8 @@ bool consume(char op) {
     return true;
 }
 // lexer词法分析：期望下一个令牌
-void expect(char op) {
-    if(token->type != TK_RESERVED || token->str[0] != op) {
+void expect(char* op) {
+    if(token->type != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) {
         log_error("expect `%c`, but got `%c`", op, token->str[0]);
     }
     token = token->next;
@@ -143,6 +162,12 @@ typedef enum {
     ND_SUB,                 // -
     ND_MUL,                 // *
     ND_DIV,                 // /
+    ND_EQU,                 // ==
+    ND_NEQ,                 // !=
+    ND_LSS,                 // <
+    ND_GTR,                 // >
+    ND_LEQ,                 // <=
+    ND_GEQ,                 // >=
     ND_NUM                  // 整数
 } NodeType;
 
@@ -182,30 +207,68 @@ Node* node_new_num(int val) {
 // ==================================================================================== //
 
 Node* expr();
+Node* equality();
+Node* relation();
+Node* add();
 Node* mul();
 Node* prim();
 Node* unary();
 
-// parser语法分析：表达式 `expr = mul ("+" mul | "-" mul)*`
+// parser语法分析：表达式 `expr = equality`
 Node* expr() {
+    return equality();
+}
+// parser语法分析：表达式 `equality = relation ("==" relation | "!=" relation)*`
+Node* equality() {
+    Node *node = relation();
+    while(true) {
+        if(consume("==")) {
+            node = node_new_binary(ND_EQU, node, relation());
+        }else if(consume("!=")) {
+            node = node_new_binary(ND_NEQ, node, relation());
+        }else {
+            return node;
+        }
+    }
+}
+// parser语法分析：表达式 `relation = add ("<" add | ">" add | "<=" add | ">=" add)*`
+Node* relation() {
+    Node *node = add();
+    while(true) {
+        if(consume("<")) {
+            node = node_new_binary(ND_LSS, node, add());
+        }else if(consume(">")) {
+            node = node_new_binary(ND_GTR, node, add());
+        }else if(consume("<=")) {
+            node = node_new_binary(ND_LEQ, node, add());
+        }else if(consume(">=")) {
+            node = node_new_binary(ND_GEQ, node, add());
+        }else {
+            return node;
+        }
+    }
+}
+// parser语法分析：表达式 `add = mul ("+" mul | "-" mul)*`
+Node* add() {
     Node *node = mul();
     while(true) {
-        if(consume('+')) {
+        if(consume("+")) {
             node = node_new_binary(ND_ADD, node, mul());
-        }else if(consume('-')) {
+        }else if(consume("-")) {
             node = node_new_binary(ND_SUB, node, mul());
         }else {
             return node;
         }
     }
 }
+
 // parser语法分析：表达式 `mul = unary ("*" unary | "/" unary)*`
 Node* mul() {
     Node *node = unary();
     while(true) {
-        if(consume('*')) {
+        if(consume("*")) {
             node = node_new_binary(ND_MUL, node, unary());
-        }else if(consume('/')) {
+        }else if(consume("/")) {
             node = node_new_binary(ND_DIV, node, unary());
         }else {
             return node;
@@ -214,18 +277,18 @@ Node* mul() {
 }
 // parser语法分析：表达式 `prim = num | "(" expr ")"`
 Node* prim() {
-    if(consume('(')) {
+    if(consume("(")) {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
     return node_new_num(expect_number());
 }
 // parser语法分析：表达式 `unary = ("+" | "-")? prim`
 Node* unary() {
-    if(consume('+')) {
+    if(consume("+")) {
         return prim();
-    }else if(consume('-')) {
+    }else if(consume("-")) {
         return node_new_binary(ND_SUB, node_new_num(0), prim());
     }
     return prim();
@@ -251,8 +314,31 @@ void gen(Node *node) {
             printf("  imul rax, rdi\n"); break;     // rax *= rdi
         case ND_DIV:                                // 如果为`/`
             printf("  cqo\n");                      // cqo ：rax = rdx:rax
-            printf("  idiv rdi\n");                 // rax /= rdi ... rdx
-            break;
+            printf("  idiv rdi\n"); break;          // rax /= rdi ... rdx
+        case ND_EQU:                                // 如果为`==`
+            printf("  cmp rax, rdi\n");             // rax == rdi
+            printf("  sete al\n");                  // al = rax == rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
+        case ND_NEQ:                                // 如果为`!=`
+            printf("  cmp rax, rdi\n");             // rax != rdi
+            printf("  setne al\n");                 // al = rax != rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
+        case ND_LSS:                                // 如果为`<`
+            printf("  cmp rax, rdi\n");             // rax < rdi
+            printf("  setl al\n");                  // al = rax < rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
+        case ND_GTR:                                // 如果为`>`
+            printf("  cmp rax, rdi\n");             // rax > rdi
+            printf("  setg al\n");                  // al = rax > rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
+        case ND_LEQ:                                // 如果为`<=`
+            printf("  cmp rax, rdi\n");             // rax <= rdi
+            printf("  setle al\n");                 // al = rax <= rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
+        case ND_GEQ:                                // 如果为`>=`
+            printf("  cmp rax, rdi\n");             // rax >= rdi
+            printf("  setge al\n");                 // al = rax >= rdi
+            printf("  movzb rax, al\n"); break;     // rax = al
     }
 
     printf("  push rax\n");                         // 入栈：结果
