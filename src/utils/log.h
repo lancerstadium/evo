@@ -69,9 +69,9 @@ void log_log(int level, const char *file, int line, const char *fmt, ...);
     do{ \
         if (expr) { \
             log_log(LOG_LEVEL_ASSERT_TRUE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_GREEN) " " __VA_ARGS__); \
-            exit(-1); \
         } else { \
             log_log(LOG_LEVEL_ASSERT_FALSE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_RED) " " __VA_ARGS__); \
+            exit(-1); \
         } \
     } while(0)
 
