@@ -1,13 +1,21 @@
 # C编译选项
+CC = gcc
 CFLAGS = --std=c11 -g -static
+LDFLAGS = -L../utils
 # C头文件目录
-INC_DIR = -I. -I../utils
+INCDIR = -I. -I../utils
+SRCS=$(wildcard *.c ../utils/*.c)
+# OBJS=$(SRCS:.c=.o)
+EXES=../utils/utils-test.c
+OBJS=$(patsubst %.c, %.o, $(filter-out $(EXES), $(SRCS)))
 
-SRC_FILES = evoc.c
-SRC_FILES += ../utils/log.c
 
-all:
-	cc $(CFLAGS) $(INC_DIR) $(SRC_FILES) -o evoc 
+all: $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o evoc
+
+$(OBJS): %.o: %.c
+	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
+
 
 run:
 	./evoc 123 > tmp.s
@@ -22,6 +30,6 @@ testa:
 	bash -x ./evoc-test.sh
 
 clean:
-	rm -f evoc *.s *.o tmp*
+	rm -f evoc *.o tmp tmp.s ../utils/*.o
 
 .PHONY: run test testa clean
