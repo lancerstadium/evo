@@ -45,7 +45,7 @@ struct Token {
 ## Step 4: 改进错误信息
 ```c
 // 编译器错误打印
-void evoc_err(char *loc, char *fmt, ...) {
+void evoc_err_at(char *loc, char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);                          // 初始化ap
     int pos = loc - user_input;                 // 错误位置
@@ -108,4 +108,156 @@ pop rax
 cmp rax, rdi
 sete al
 movzb rax, al
+```
+
+## Step 8: C多文件
+
+
+
+
+
+## Step 9: 标识符
+
+```ebnf
+program  = stmt*
+stmt     = expr ";"
+expr     = assign
+assign   = equality ("=" assign)*
+equality = relation ("==" relation | "!=" relation)*
+relation = add ("<" add | "<=" add | ">" add | ">=" add)*
+add      = mul ("+" mul | "-" mul)*
+mul      = unary ("*" unary | "/" unary)*
+unary    = ("+" | "-")? unary | prim
+prim     = num | "(" expr ")"
+num      = [0-9]+
+
+```
+
+
+## Step 10: 返回值
+
+```
+program = stmt*
+stmt    = expr ";"
+        | "return" expr ";"
+...
+```
+
+
+## Step 11: 控制流
+
+```
+program = stmt*
+stmt    = expr ";"
+        | "if" "(" expr ")" stmt ("else" stmt)?
+        | "while" "(" expr ")" stmt
+        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+        | "return" expr ";"
+        | ...
+```
+
+```c
+if(A) B
+
+  // A: 
+  pop rax
+  cmp rax, 0
+  je  .LendXXX
+  // B:
+.LendXXX:
+
+  if (A == 0)
+    goto end;
+  B;
+end:
+```
+
+```c
+if(A) B else C
+
+  // A: 
+  pop rax
+  cmp rax, 0
+  je  .LendXXX
+  // B:
+  jmp .LendXXX
+.LeleseXXX
+  // C:
+.LendXXX
+
+
+  if (A == 0)
+    goto els;
+  B;
+  goto end;
+else:
+  C;
+end:
+
+```
+
+```c
+while (A) B
+
+.LbeginXXX:
+  // A:
+  pop rax
+  cmp rax, 0
+  je  .LendXXX
+  // B:
+  jmp .LbeginXXX
+.LendXXX:
+
+
+begin:
+  if (A == 0)
+    goto end;
+  B;
+  goto begin;
+end:
+```
+
+
+```c
+for (A; B; C) D
+
+  // A:
+.LbeginXXX:
+  // B:
+  pop rax
+  cmp rax, 0
+  je  .LendXXX
+  // D:
+  // C:
+  jmp .LbeginXXX
+.LendXXX:
+
+  A;
+begin:
+  if (B == 0)
+    goto end;
+  D;
+  C;
+  goto begin;
+end:
+
+```
+
+
+## Step 12: 代码块
+
+```
+program = stmt*
+stmt    = expr ";"
+        | "{" stmt* "}"
+        | ...
+```
+
+
+## Step 13：无参函数
+
+```
+primary = num
+        | "(" expr ")"
+        | ident "(" ")"?
 ```
