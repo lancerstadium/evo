@@ -27,8 +27,9 @@ assert 15 '5*(9-6)'
 assert 4 '(3+5)/2'
 assert 4 '-(3+5)/2 +8'
 assert 43 '+(5+47)-+(1*9)'
-# assert 10 '- -10'
-# assert 10 '- - +10'
+# assert -8 '-(3+5)+3*+5-3*+5'  # -8 excepted but got 248
+assert 10 '- -10'
+assert 10 '- - +10'
 
 assert 0 '0==1'
 assert 1 '42==42'

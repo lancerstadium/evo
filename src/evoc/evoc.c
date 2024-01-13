@@ -103,7 +103,8 @@ Token* token_identify(char *p) {
             cur->len = p - q;
             continue;
         }
-        log_error("invalid token: %c", *p); break;
+        // log_error("invalid token: %c", *p); break;
+        evoc_err(p, "invalid token: %c", *p); break;
     }
     cur = token_new(TK_END, cur, p, 0);
     return head.next;
@@ -128,7 +129,8 @@ bool consume(char* op) {
 // lexer词法分析：期望下一个令牌
 void expect(char* op) {
     if(token->type != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) {
-        log_error("expect `%c`, but got `%c`", op, token->str[0]);
+        // log_error("expect `%c`, but got `%c`", op, token->str[0]);
+        evoc_err(token->str, "expect `%c`", op);
     }
     token = token->next;
 }
@@ -211,8 +213,8 @@ Node* equality();
 Node* relation();
 Node* add();
 Node* mul();
-Node* prim();
 Node* unary();
+Node* prim();
 
 // parser语法分析：表达式 `expr = equality`
 Node* expr() {
@@ -275,6 +277,16 @@ Node* mul() {
         }
     }
 }
+// parser语法分析：表达式 `unary = ("+" | "-")? unary | prim`
+Node* unary() {
+    if(consume("+")) {
+        return unary();
+    }else if(consume("-")) {
+        return node_new_binary(ND_SUB, node_new_num(0), unary());
+    }
+    return prim();
+}
+
 // parser语法分析：表达式 `prim = num | "(" expr ")"`
 Node* prim() {
     if(consume("(")) {
@@ -283,15 +295,6 @@ Node* prim() {
         return node;
     }
     return node_new_num(expect_number());
-}
-// parser语法分析：表达式 `unary = ("+" | "-")? prim`
-Node* unary() {
-    if(consume("+")) {
-        return prim();
-    }else if(consume("-")) {
-        return node_new_binary(ND_SUB, node_new_num(0), prim());
-    }
-    return prim();
 }
 
 // parser语法分析：生成汇编代码

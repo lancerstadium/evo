@@ -95,7 +95,7 @@ equality = relation ("==" relation | "!=" relation)*
 relation = add ("<" add | "<=" add | ">" add | ">=" add)*
 add      = mul ("+" mul | "-" mul)*
 mul      = unary ("*" unary | "/" unary)*
-unary    = ("+" | "-")? prim
+unary    = ("+" | "-")? unary | prim
 prim     = num | "(" expr ")"
 num      = [0-9]+
 
