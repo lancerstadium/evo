@@ -109,8 +109,12 @@ static Node *compound_stmt(Token **rest, Token *tok) {
     *rest = tok->next;
     return node;
 }
-// expr-stmt = expr ";"
+// expr-stmt = expr? ";"
 static Node *expr_stmt(Token **rest, Token *tok) {
+    if (token_equal(tok, ";")) {
+        *rest = tok->next;
+        return node_new(ND_BLOCK);
+    }
     Node *node = node_new_unary(ND_EXPR_STMT, expr(&tok, tok));
     *rest = token_skip(tok, ";");
     return node;
@@ -245,13 +249,9 @@ static Node *prim(Token **rest, Token *tok) {
 
 // parser语法分析：解析
 Func* evoc_parse(Token *tok) {
-    Node head = {};
-    Node *cur = &head;
-    while(tok->type != TK_EOF) {
-        cur = cur->next = stmt(&tok, tok);
-    }
+    tok = token_skip(tok, "{");
     Func *prog = calloc(1, sizeof(Func));
-    prog->body = head.next;
+    prog->body = compound_stmt(&tok, tok);
     prog->local_vars = local_vars;
     return prog;
 }
