@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     // 解析用户输入
     Token *tok = evoc_tokenize(argv[1]);
-    Node *node = evoc_parse(tok);
-    evoc_codegen(node); 
+    Func *prog = evoc_parse(tok);
+    evoc_codegen(prog); 
     return 0;
 }

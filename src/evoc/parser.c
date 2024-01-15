@@ -6,7 +6,32 @@
 #include "evoc.h"
 
 // ==================================================================================== //
-//                                    Pri API: parser
+//                                    Pri Data: parser Var
+// ==================================================================================== //
+
+// 本地变量链表
+Var* local_vars;
+// var变量：新建变量
+static Var* var_new(char* name) {
+    Var* var = (Var*)calloc(1, sizeof(Var));
+    var->name = name;
+    var->next = local_vars;
+    local_vars = var;
+    return var;
+}
+// var变量：查找变量
+static Var* var_find(Token *tok) {
+    for(Var *var = local_vars; var; var = var->next) {
+        // 如果长度相等，且名字相等，则返回变量指针，否则返回NULL
+        if(strlen(var->name) == tok->len && !strcmp(var->name, tok->loc)) {
+            return var;
+        }
+    }
+    return NULL;
+}
+
+// ==================================================================================== //
+//                                    Pri API: parser Node
 // ==================================================================================== //
 
 // parser语法分析：创建新节点
@@ -34,11 +59,22 @@ static Node* node_new_num(int val) {
     node->val = val;
     return node;
 }
+// parser语法分析：创建变量节点
+static Node* node_new_var(Var* var) {
+    Node* node = node_new(ND_VAR);
+    node->var = var;
+    return node;
+}
+
+
+// ==================================================================================== //
+//                                    Pri API: parser AST
+// ==================================================================================== //
 
 static Node* stmt(Token **rest, Token *tok);
 static Node* expr_stmt(Token **rest, Token *tok);
 static Node* expr(Token **rest, Token *tok);
-// static Node* assign(Token **rest, Token *tok);
+static Node* assign(Token **rest, Token *tok);
 static Node* equality(Token **rest, Token *tok);
 static Node* relational(Token **rest, Token *tok);
 static Node* add(Token **rest, Token *tok);
@@ -46,8 +82,13 @@ static Node* mul(Token **rest, Token *tok);
 static Node* unary(Token **rest, Token *tok);
 static Node* prim(Token **rest, Token *tok);
 
-// stmt = expr-stmt
+// stmt = "return" expr ";" | expr-stmt
 static Node *stmt(Token **rest, Token *tok) {
+    if(token_equal(tok, "return")) {
+        Node *node = node_new_unary(ND_RETURN, expr(&tok, tok->next));
+        *rest = token_skip(tok, ";");
+        return node;
+    }
     return expr_stmt(rest, tok);
 }
 // expr-stmt = expr ";"
@@ -56,9 +97,18 @@ static Node *expr_stmt(Token **rest, Token *tok) {
     *rest = token_skip(tok, ";");
     return node;
 }
-// expr = equality
+// expr = assign
 static Node *expr(Token **rest, Token *tok) {
-    return equality(rest, tok);
+    return assign(rest, tok);
+}
+// assign = equality ("=" assign)?
+static Node *assign(Token **rest, Token *tok) {
+    Node *node = equality(&tok, tok);
+    if(token_equal(tok, "=")) {
+        node = node_new_binary(ND_ASSIGN, node, assign(&tok, tok->next));
+    }
+    *rest = tok;
+    return node;
 }
 // equality = relational ("==" relational | "!=" relational)*
 static Node *equality(Token **rest, Token *tok) {
@@ -143,12 +193,20 @@ static Node *unary(Token **rest, Token *tok) {
     *rest = tok;
     return prim(rest, tok);                 // prim
 }
-// prim = "(" expr ")" | num
+// prim = "(" expr ")" | ident | num
 static Node *prim(Token **rest, Token *tok) {
     if(token_equal(tok, "(")) {              // "(" expr ")"
         Node *node = expr(&tok, tok->next);
         *rest = token_skip(tok, ")");
         return node;
+    }
+    if(tok->type == TK_IDENT) {              // ident
+        Var* var = var_find(tok);
+        if(!var) {
+            var = var_new(strndup(tok->loc, tok->len));
+        }
+        *rest = tok->next;
+        return node_new_var(var);
     }
     if(tok->type == TK_NUM) {               // num
         Node *node = node_new_num(tok->val);
@@ -165,13 +223,16 @@ static Node *prim(Token **rest, Token *tok) {
 
 
 // parser语法分析：解析
-Node* evoc_parse(Token *tok) {
+Func* evoc_parse(Token *tok) {
     Node head = {};
     Node *cur = &head;
     while(tok->type != TK_EOF) {
         cur = cur->next = stmt(&tok, tok);
     }
-    return head.next;
+    Func *prog = calloc(1, sizeof(Func));
+    prog->body = head.next;
+    prog->local_vars = local_vars;
+    return prog;
 }
 
 

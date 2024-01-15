@@ -24,23 +24,57 @@ static void pop(char *reg) {
     printf("  pop %s\n", reg);                          // 出栈：变量
     depth--;                                            // 深度减一
 }
+// 将`n`向最接近的`align`的倍数取整。
+// 例如，align_to(5, 8)返回8，align_to(11, 8)返回16。
+static int align_to(int n, int align) {
+    return (n + align - 1) / align * align;
+}
+// 对齐本地变量的偏移量
+static void assign_local_vars_offset(Func *prog) {
+    int offset = 0;
+    for(Var *var = prog->local_vars; var; var = var->next) {
+        offset += 8;
+        var->offset = offset;
+    }
+    prog->stack_size = align_to(offset, 16);            // 栈大小为16倍数
+}
+
+// 生成地址：计算给定节点的绝对地址。
+// 如果给定节点不在内存中，则属于错误。
+static void gen_addr(Node *node) {
+    if(node->type == ND_VAR) {                          // 如果为变量
+        // rax = rbp - offset
+        printf("  lea rax, [rbp - %d]\n", node->var->offset);      
+        return;
+    }
+    evoc_err("not an lvalue");
+}
+
 // 生成表达式
 static void gen_expr(Node *node) {
+    // 处理符号和数字
     switch(node->type) {
         case ND_NUM:                                    // 如果为数字
             printf("  mov rax, %d\n", node->val);       // rax = 数字
             return;
         case ND_NEG:                                    // 如果为unary -
             gen_expr(node->lhs);                        // 生成表达式
-            printf("  neg rax\n");                      // rax = -rax
-            return;
+            printf("  neg rax\n"); return;              // rax = -rax
+        case ND_VAR:                                    // 如果为变量
+            gen_addr(node);                             // 生成地址
+            printf("  mov rax, [rax]\n"); return;       // rax = [rax]
+        case ND_ASSIGN:                                 // 如果为赋值
+            gen_addr(node->lhs);                        // 生成左表达式地址
+            push();                                     // 入栈：rax
+            gen_expr(node->rhs);                        // 生成右表达式
+            pop("rdi");                                 // 出栈：rdi
+            printf("  mov [rax], rdi\n"); return;       // [rax] = rdi
     }
-
     gen_expr(node->rhs);                                // 生成右表达式
     push();                                             // 入栈：rax
     gen_expr(node->lhs);                                // 生成左表达式
     pop("rdi");                                         // 出栈：rdi
-
+    // 处理运算
     switch(node->type) {
         case ND_ADD:                                    // 如果为`+`
             printf("  add rax, rdi\n"); return;         // rax += rdi
@@ -80,9 +114,13 @@ static void gen_expr(Node *node) {
 }
 // 生成语句
 static void gen_stmt(Node *node) {
-    if (node->type == ND_EXPR_STMT) {
-        gen_expr(node->lhs);
-        return;
+    switch(node->type) {
+        case ND_RETURN:                                 // 如果为return
+            gen_expr(node->lhs);                        // 生成表达式
+            printf("  jmp .L.return\n"); return;        // return
+        case ND_EXPR_STMT:                              // 如果为表达式语句
+            gen_expr(node->lhs);                        // 生成表达式
+            return;
     }
     log_error("invalid statement");
 }
@@ -94,82 +132,24 @@ static void gen_stmt(Node *node) {
 // ==================================================================================== //
 
 // codegen：生成汇编代码
-// void codegen(Node *node) {
-//     if(node->type == ND_RETURN) {
-//         codegen(node->lhs);
-//         printf("  pop rax\n");                      // 出栈：返回值
-//         printf("  mov rsp, rbp\n");                 // rsp = rbp
-//         printf("  pop rbp\n");                      // 出栈：rbp
-//         printf("  ret\n");                          // 返回
-//     }
-//     switch(node->type) {
-//         case ND_NUM:                                // 如果为数字
-//             printf("  push %d\n", node->val);       // 入栈：数字
-//             break;
-//         case ND_VAR:                                // 如果为变量
-//             gen_val(node);                          // 生成变量节点
-//             printf("  push rax\n");                 // 入栈：变量
-//             printf("  mov rax, [rax]\n");           // 变量取值：rax = [rax]
-//             printf("  push rax\n");                 // 入栈：变量值
-//             break;
-//         case ND_ASSIGN:                             // 如果为赋值
-//             gen_val(node->lhs);                     // 生成左变量节点
-//             gen_val(node->rhs);                     // 生成右变量节点
-//             printf("  pop rdi\n");                  // 出栈：右操作数
-//             printf("  pop rax\n");                  // 出栈：左操作数
-//             printf("  mov [rax], rdi\n");           // 变量赋值
-//             printf("  push rdi\n");                 // 入栈：变量值
-//             break;
-//     }
-//     codegen(node->lhs);
-//     codegen(node->rhs);
-//     printf("  pop rdi\n");
-//     printf("  pop rax\n");
-//     switch(node->type) {
-//         case ND_ADD:                                // 如果为`+`
-//             printf("  add rax, rdi\n"); break;      // rax += rdi
-//         case ND_SUB:                                // 如果为`-`
-//             printf("  sub rax, rdi\n"); break;      // rax -= rdi
-//         case ND_MUL:                                // 如果为`*`
-//             printf("  imul rax, rdi\n"); break;     // rax *= rdi
-//         case ND_DIV:                                // 如果为`/`
-//             printf("  cqo\n");                      // cqo ：rax = rdx:rax
-//             printf("  idiv rdi\n"); break;          // rax /= rdi ... rdx
-//         case ND_EQU:                                // 如果为`==`
-//             printf("  cmp rax, rdi\n");             // rax == rdi
-//             printf("  sete al\n");                  // al = rax == rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//         case ND_NEQ:                                // 如果为`!=`
-//             printf("  cmp rax, rdi\n");             // rax != rdi
-//             printf("  setne al\n");                 // al = rax != rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//         case ND_LSS:                                // 如果为`<`
-//             printf("  cmp rax, rdi\n");             // rax < rdi
-//             printf("  setl al\n");                  // al = rax < rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//         case ND_GTR:                                // 如果为`>`
-//             printf("  cmp rax, rdi\n");             // rax > rdi
-//             printf("  setg al\n");                  // al = rax > rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//         case ND_LEQ:                                // 如果为`<=`
-//             printf("  cmp rax, rdi\n");             // rax <= rdi
-//             printf("  setle al\n");                 // al = rax <= rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//         case ND_GEQ:                                // 如果为`>=`
-//             printf("  cmp rax, rdi\n");             // rax >= rdi
-//             printf("  setge al\n");                 // al = rax >= rdi
-//             printf("  movzb rax, al\n"); break;     // rax = al
-//     }
+void evoc_codegen(Func *prog) {
+    assign_local_vars_offset(prog);                 // 对齐本地变量的偏移量
 
-//     printf("  push rax\n");                         // 入栈：结果
-// }
-void evoc_codegen(Node *node) {
     printf(".intel_syntax noprefix\n");             // 设置汇编语法格式：INTEL，无前缀
     printf(".globl main\n");                        // 定义全局变量：main
     printf("main:\n");                              // 定义main函数
-    for (Node *n = node; n; n = n->next) {
+
+    // 初始化栈：大小为208
+    printf("  push rbp\n");                         // 入栈：rbp
+    printf("  mov rbp, rsp\n");                     // rbp = rsp
+    printf("  sub rsp, %d\n", prog->stack_size);    // rsp -= 栈大小
+    for (Node *n = prog->body; n; n = n->next) {
         gen_stmt(n);
         // log_assert(depth == 0);                     // 检查栈深度
     }
+
+    printf(".L.return:\n");                         // return
+    printf("  mov rsp, rbp\n");                     // rsp = rbp
+    printf("  pop rbp\n");                          // 出栈：rbp
     printf("  ret\n");                              // 返回
 }
