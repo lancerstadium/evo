@@ -74,7 +74,8 @@ typedef enum {
     ND_LEQ,                                 // <=
     ND_GEQ,                                 // >=
     ND_ASSIGN,                              // =
-    ND_RETURN,                              // return
+    ND_RETURN,                              // `return`
+    ND_BLOCK,                               // { ... }
     ND_VAR,                                 // variable
     ND_EXPR_STMT,                           // expression statement
     ND_NUM                                  // integer
@@ -86,6 +87,7 @@ struct Node {
     NodeType type;                          // 节点类型
     Node *lhs, *rhs;                        // 左右子节点
     Node* next;                             // 下一个节点
+    Node* body;                             // 代码块主体
     int val;                                // 节点值：ND_NUM
     Var *var;                               // 变量：ND_VAR
 };

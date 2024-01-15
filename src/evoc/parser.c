@@ -72,6 +72,7 @@ static Node* node_new_var(Var* var) {
 // ==================================================================================== //
 
 static Node* stmt(Token **rest, Token *tok);
+static Node* compound_stmt(Token **rest, Token *tok);
 static Node* expr_stmt(Token **rest, Token *tok);
 static Node* expr(Token **rest, Token *tok);
 static Node* assign(Token **rest, Token *tok);
@@ -82,14 +83,31 @@ static Node* mul(Token **rest, Token *tok);
 static Node* unary(Token **rest, Token *tok);
 static Node* prim(Token **rest, Token *tok);
 
-// stmt = "return" expr ";" | expr-stmt
+// stmt = "return" expr ";" 
+//      | "{" compound-stmt 
+//      | expr-stmt
 static Node *stmt(Token **rest, Token *tok) {
     if(token_equal(tok, "return")) {
         Node *node = node_new_unary(ND_RETURN, expr(&tok, tok->next));
         *rest = token_skip(tok, ";");
         return node;
     }
+    if(token_equal(tok, "{")) {
+        return compound_stmt(rest, tok->next);
+    }
     return expr_stmt(rest, tok);
+}
+// compound-stmt = stmt* "}"
+static Node *compound_stmt(Token **rest, Token *tok) {
+    Node head = {};
+    Node *cur = &head;
+    while(!token_equal(tok, "}")) {
+        cur = cur->next = stmt(&tok, tok);
+    }
+    Node *node = node_new(ND_BLOCK);
+    node->body = head.next;
+    *rest = tok->next;
+    return node;
 }
 // expr-stmt = expr ";"
 static Node *expr_stmt(Token **rest, Token *tok) {
@@ -182,7 +200,8 @@ static Node *mul(Token **rest, Token *tok) {
         return node;
     }
 }
-// unary = ("+" | "-")? unary | prim
+// unary = ("+" | "-")? unary 
+//       | prim
 static Node *unary(Token **rest, Token *tok) {
     if(token_equal(tok, "+")) {             // + unary
         return unary(rest, tok->next);
@@ -193,7 +212,9 @@ static Node *unary(Token **rest, Token *tok) {
     *rest = tok;
     return prim(rest, tok);                 // prim
 }
-// prim = "(" expr ")" | ident | num
+// prim = "(" expr ")" 
+//      | ident 
+//      | num
 static Node *prim(Token **rest, Token *tok) {
     if(token_equal(tok, "(")) {              // "(" expr ")"
         Node *node = expr(&tok, tok->next);

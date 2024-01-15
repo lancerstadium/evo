@@ -115,6 +115,11 @@ static void gen_expr(Node *node) {
 // 生成语句
 static void gen_stmt(Node *node) {
     switch(node->type) {
+        case ND_BLOCK:                                  // 如果为代码块
+            for(Node *n = node->body; n; n = n->next) { // 遍历代码块
+                gen_stmt(n);
+            }
+            return;
         case ND_RETURN:                                 // 如果为return
             gen_expr(node->lhs);                        // 生成表达式
             printf("  jmp .L.return\n"); return;        // return
@@ -122,7 +127,7 @@ static void gen_stmt(Node *node) {
             gen_expr(node->lhs);                        // 生成表达式
             return;
     }
-    log_error("invalid statement");
+    log_error("invalid statement: %d", node->type);
 }
 
 
@@ -143,10 +148,9 @@ void evoc_codegen(Func *prog) {
     printf("  push rbp\n");                         // 入栈：rbp
     printf("  mov rbp, rsp\n");                     // rbp = rsp
     printf("  sub rsp, %d\n", prog->stack_size);    // rsp -= 栈大小
-    for (Node *n = prog->body; n; n = n->next) {
-        gen_stmt(n);
-        // log_assert(depth == 0);                     // 检查栈深度
-    }
+    
+    gen_stmt(prog->body);                           // 生成代码
+    // log_assert(depth == 0);                         // 检查栈深度
 
     printf(".L.return:\n");                         // return
     printf("  mov rsp, rbp\n");                     // rsp = rbp
