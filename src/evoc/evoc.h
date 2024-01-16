@@ -78,6 +78,7 @@ typedef enum {
     ND_GEQ,                                 // >=
     ND_ASSIGN,                              // =
     ND_IF,                                  // `if`
+    ND_FOR,                                 // `for`
     ND_RETURN,                              // `return`
     ND_BLOCK,                               // { ... }
     ND_VAR,                                 // variable
@@ -97,8 +98,8 @@ struct Node {
     Var *var;   
     // 代码块主体：ND_BLOCK
     Node* body;  
-    // `if`语句：ND_IF
-    Node* cond, *then, *els;   
+    // `if`或`for`语句：ND_IF、ND_FOR
+    Node* cond, *then, *els, *init, *inc;   
 
 };
 

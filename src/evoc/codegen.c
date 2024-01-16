@@ -121,7 +121,7 @@ static void gen_expr(Node *node) {
 // 生成语句
 static void gen_stmt(Node *node) {
     switch(node->type) {
-        case ND_IF:                                     // 如果为`if`
+        case ND_IF: {                                   // 如果为`if`
             int c = count();                            // 计数
             printf("  cmp rax, 0\n");                   // rax == 0
             printf("  je .L.else.%d\n", c);             // if rax == 0 goto .L.else
@@ -132,17 +132,38 @@ static void gen_stmt(Node *node) {
                 gen_stmt(node->els);                    // 生成else
             }
             printf(".L.end.%d:\n", c); return;          // .L.end
-        case ND_BLOCK:                                  // 如果为代码块
+        }
+        case ND_FOR: {                                  // 如果为`for`
+            int c = count();
+            gen_stmt(node->init);
+            printf(".L.begin.%d:\n", c);                // .L.begin
+            if(node->cond) {
+                gen_expr(node->cond);                   // condition
+                printf("  cmp rax, 0\n");               // rax == 0
+                printf("  je .L.end.%d\n", c);          // goto .L.end
+            }
+            gen_stmt(node->then);                       // then
+            if(node->inc) {                             // inc
+                gen_expr(node->inc);
+            }
+            printf("  jmp .L.begin.%d\n", c);           // goto .L.begin
+            printf(".L.end.%d:\n", c);                  // .L.end
+            return;
+        }
+        case ND_BLOCK: {                                // 如果为代码块
             for(Node *n = node->body; n; n = n->next) { // 遍历代码块
                 gen_stmt(n);
             }
             return;
-        case ND_RETURN:                                 // 如果为return
+        }
+        case ND_RETURN: {                               // 如果为return
             gen_expr(node->lhs);                        // 生成表达式
             printf("  jmp .L.return\n"); return;        // return
-        case ND_EXPR_STMT:                              // 如果为表达式语句
+        }
+        case ND_EXPR_STMT: {                            // 如果为表达式语句
             gen_expr(node->lhs);                        // 生成表达式
             return;
+        }
     }
     log_error("invalid statement: %d", node->type);
 }

@@ -85,6 +85,7 @@ static Node* prim(Token **rest, Token *tok);
 
 // stmt = "return" expr ";"
 //      | "if" "(" expr ")" stmt ("else" stmt)? 
+//      | "for" "(" expr-stmt? ";" expr? ")" stmt
 //      | "{" compound-stmt 
 //      | expr-stmt
 static Node *stmt(Token **rest, Token *tok) {
@@ -103,6 +104,23 @@ static Node *stmt(Token **rest, Token *tok) {
             node->els = stmt(&tok, tok->next);
         }
         *rest = tok;
+        return node;
+    }
+    if(token_equal(tok, "for")) {
+        Node* node = node_new(ND_FOR);
+        tok = token_skip(tok->next, "(");
+        node->init = expr_stmt(&tok, tok);
+        if(!token_equal(tok, ";")) {
+            node->cond = expr(&tok, tok);
+        }
+        tok = token_skip(tok, ";");
+        
+        if(!token_equal(tok, ")")) {
+            node->inc = expr(&tok, tok);
+        }
+        tok = token_skip(tok, ")");
+
+        node->then = stmt(rest, tok);
         return node;
     }
     if(token_equal(tok, "{")) {
