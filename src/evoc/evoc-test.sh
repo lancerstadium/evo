@@ -90,21 +90,24 @@ assert 0 '{ return 1>=2; }'
 
 assert 0 '{ return 1>=2;;;;; }'
 assert 3 '{ ;;;;return 3; }'
-# assert 4 '{ a = 4; return a; }'
 
-# assert 3 '{ a=3; return a; }'
-# assert 8 '{ a=3; z=5; return a+z; }'
+assert 4 '{ a = 4; return a; }'
+assert 8 '{ a=3; z=5; return a+z; }'
+assert 6 '{ a=b=3; return a+b; }'
+assert 3 '{ foo=3; return foo; }'
+assert 8 '{ foo123=3; bar=5; return foo123+bar; }'
 
-# assert 3 '{ a=3; return a; }'
-# assert 8 '{ a=3; z=5; return a+z; }'
-# assert 6 '{ a=b=3; return a+b; }'
-# assert 3 '{ foo=3; return foo; }'
-# assert 8 '{ foo123=3; bar=5; return foo123+bar; }'
-
-# assert 1 '{ return 1; 2; 3; }'
-# assert 2 '{ 1; return 2; 3; }'
-# assert 3 '{ 1; 2; return 3; }'
+assert 1 '{ return 1; 2; 3; }'
+assert 2 '{ 1; return 2; 3; }'
+assert 3 '{ 1; 2; return 3; }'
 
 # assert 3 '{ {1; {2;} return 3;} }'
+
+# assert 3 '{ if (0) return 2; return 3; }'
+# assert 3 '{ if (1-1) return 2; return 3; }'
+# assert 2 '{ if (1) return 2; return 3; }'
+# assert 2 '{ if (2-1) return 2; return 3; }'
+# assert 4 '{ if (0) { 1; 2; return 3; } else { return 4; } }'
+# assert 3 '{ if (1) { 1; 2; return 3; } else { return 4; } }
 
 echo "OK"

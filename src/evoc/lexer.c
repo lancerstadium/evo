@@ -35,12 +35,23 @@ static Token* token_new(TokenType type, char* start, char* end) {
     tok->len = end - start;
     return tok;
 }
+// lexer词法分析：判断令牌是否是关键词
+static bool token_is_keyword(Token *tok) {
+    static char * kw[] = {
+        "return", "if", "else",
+    };
+    for(int i = 0; i < sizeof(kw) / sizeof(kw[0]); i++) {
+        if(token_equal(tok, kw[i])) {
+            return true;
+        }
+    }
+    return false;
+}
 // lexer词法分析：转换关键字
 static Token* token_convert_keywords(Token *tok) {
     for(Token *t = tok; t->type != TK_EOF; t = t->next) {
-        if(token_equal(t, "return")) {
+        if(token_is_keyword(t)) {
             t->type = TK_KEYWORD;
-            break;
         }
     }
 }

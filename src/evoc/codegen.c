@@ -24,6 +24,12 @@ static void pop(char *reg) {
     printf("  pop %s\n", reg);                          // 出栈：变量
     depth--;                                            // 深度减一
 }
+
+static int count(void) {
+    static int i = 1;
+    return i++;
+}
+
 // 将`n`向最接近的`align`的倍数取整。
 // 例如，align_to(5, 8)返回8，align_to(11, 8)返回16。
 static int align_to(int n, int align) {
@@ -115,6 +121,17 @@ static void gen_expr(Node *node) {
 // 生成语句
 static void gen_stmt(Node *node) {
     switch(node->type) {
+        case ND_IF:                                     // 如果为`if`
+            int c = count();                            // 计数
+            printf("  cmp rax, 0\n");                   // rax == 0
+            printf("  je .L.else.%d\n", c);             // if rax == 0 goto .L.else
+            gen_stmt(node->then);                       // 生成then
+            printf("  jmp .L.end.%d\n", c);             // goto .L.end
+            printf(".L.else.%d:\n", c);                 // .L.else
+            if(node->els) {
+                gen_stmt(node->els);                    // 生成else
+            }
+            printf(".L.end.%d:\n", c); return;          // .L.end
         case ND_BLOCK:                                  // 如果为代码块
             for(Node *n = node->body; n; n = n->next) { // 遍历代码块
                 gen_stmt(n);

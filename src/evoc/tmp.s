@@ -3,8 +3,14 @@
 main:
   push rbp
   mov rbp, rsp
-  sub rsp, 0
-  mov rax, 3
+  sub rsp, 16
+  lea rax, [rbp - 8]
+  push rax
+  mov rax, 4
+  pop rdi
+  mov [rax], rdi
+  lea rax, [rbp - 8]
+  mov rax, [rax]
   jmp .L.return
 .L.return:
   mov rsp, rbp

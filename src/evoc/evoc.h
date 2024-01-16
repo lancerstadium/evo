@@ -6,6 +6,9 @@
 //                                       Include
 // ==================================================================================== //
 
+#define _POSIX_C_SOURCE 200809L
+#define EVOC_PARSER_MAX_NODE 1024
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -18,8 +21,8 @@
 //                                       Define
 // ==================================================================================== //
 
-#define _POSIX_C_SOURCE 200809L
-#define EVOC_PARSER_MAX_NODE 1024
+
+
 
 // ==================================================================================== //
 //                                 evoc Pub Type: Token
@@ -74,6 +77,7 @@ typedef enum {
     ND_LEQ,                                 // <=
     ND_GEQ,                                 // >=
     ND_ASSIGN,                              // =
+    ND_IF,                                  // `if`
     ND_RETURN,                              // `return`
     ND_BLOCK,                               // { ... }
     ND_VAR,                                 // variable
@@ -86,10 +90,16 @@ typedef struct Node Node;
 struct Node {
     NodeType type;                          // 节点类型
     Node *lhs, *rhs;                        // 左右子节点
-    Node* next;                             // 下一个节点
-    Node* body;                             // 代码块主体
-    int val;                                // 节点值：ND_NUM
-    Var *var;                               // 变量：ND_VAR
+    Node* next;                             // 下一个节点                    
+    // 节点值：ND_NUM
+    int val;
+    // 变量：ND_VAR                                
+    Var *var;   
+    // 代码块主体：ND_BLOCK
+    Node* body;  
+    // `if`语句：ND_IF
+    Node* cond, *then, *els;   
+
 };
 
 // ==================================================================================== //

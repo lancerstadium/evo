@@ -23,7 +23,7 @@ static Var* var_new(char* name) {
 static Var* var_find(Token *tok) {
     for(Var *var = local_vars; var; var = var->next) {
         // 如果长度相等，且名字相等，则返回变量指针，否则返回NULL
-        if(strlen(var->name) == tok->len && !strcmp(var->name, tok->loc)) {
+        if(strlen(var->name) == tok->len && !strncmp(var->name, tok->loc, tok->len)) {
             return var;
         }
     }
@@ -83,13 +83,26 @@ static Node* mul(Token **rest, Token *tok);
 static Node* unary(Token **rest, Token *tok);
 static Node* prim(Token **rest, Token *tok);
 
-// stmt = "return" expr ";" 
+// stmt = "return" expr ";"
+//      | "if" "(" expr ")" stmt ("else" stmt)? 
 //      | "{" compound-stmt 
 //      | expr-stmt
 static Node *stmt(Token **rest, Token *tok) {
     if(token_equal(tok, "return")) {
         Node *node = node_new_unary(ND_RETURN, expr(&tok, tok->next));
         *rest = token_skip(tok, ";");
+        return node;
+    }
+    if(token_equal(tok, "if")) {
+        Node *node = node_new(ND_IF);
+        *rest = token_skip(tok, "(");
+        node->cond = expr(&tok, tok);
+        *rest = token_skip(tok, ")");
+        node->then = stmt(&tok, tok);
+        if(token_equal(tok, "else")) {
+            node->els = stmt(&tok, tok->next);
+        }
+        *rest = tok;
         return node;
     }
     if(token_equal(tok, "{")) {
