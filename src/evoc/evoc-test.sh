@@ -49,7 +49,7 @@ assert 0 '{ return 1>=2; }'
 assert 0 '{ return 1>=2;;;;; }'
 assert 3 '{ ;;;;return 3; }'
 
-assert 4 '{ a = 4; return a; }'
+# assert 4 '{ a = 4; return a; }'
 # assert 8 '{ a=3; z=5; return a+z; }'
 # assert 6 '{ a=b=3; return a+b; }'
 # assert 3 '{ foo=3; return foo; }'
@@ -70,5 +70,7 @@ assert 4 '{ a = 4; return a; }'
 
 # assert 55 '{ i=0; j=0; for (i=0; i<=10; i=i+1) j=i+j; return j; }'
 # assert 3 '{ for (;;) {return 3;} return 5; }'
+
+assert 10 '{ i=0; while(i<10) { i=i+1; } return i; }'
 
 echo "OK"

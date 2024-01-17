@@ -90,8 +90,12 @@ typedef enum {
 typedef struct Node Node;
 struct Node {
     NodeType type;                          // 节点类型
+    Node* next;                             // 下一个节点 
+
+    Token *tok;                             // 代表令牌
+     
     Node *lhs, *rhs;                        // 左右子节点
-    Node* next;                             // 下一个节点                    
+                      
     // 节点值：ND_NUM
     int val;
     // 变量：ND_VAR                                

@@ -53,7 +53,7 @@ static void gen_addr(Node *node) {
         printf("  lea rax, [rbp - %d]\n", node->var->offset);      
         return;
     }
-    evoc_err("not an lvalue");
+    evoc_err_tok(node->tok, "not a local variable");
 }
 
 // 生成表达式
@@ -116,7 +116,7 @@ static void gen_expr(Node *node) {
             printf("  setge al\n");                     // al = rax >= rdi
             printf("  movzb rax, al\n"); return;        // rax = al
     }
-    log_error("invalid expression");
+    evoc_err_tok(node->tok, "invalid expression");
 }
 // 生成语句
 static void gen_stmt(Node *node) {
@@ -167,7 +167,7 @@ static void gen_stmt(Node *node) {
             return;
         }
     }
-    log_error("invalid statement: %d", node->type);
+    evoc_err_tok(node->tok, "invalid statement");
 }
 
 
