@@ -15,6 +15,15 @@ static int depth;                                       // 栈深度
 //                                   Pri API: codegen
 // ==================================================================================== //
 
+static void push(void);
+static void pop(char *reg);
+static int count(void);
+static int align_to(int n, int align);
+static void assign_local_vars_offset(Func *prog);
+static void gen_addr(Node *node);
+static void gen_expr(Node *node);
+static void gen_stmt(Node *node);
+
 static void push(void) {
     printf("  push rax\n");                             // 入栈：变量
     depth++;                                            // 深度加一
@@ -48,10 +57,14 @@ static void assign_local_vars_offset(Func *prog) {
 // 生成地址：计算给定节点的绝对地址。
 // 如果给定节点不在内存中，则属于错误。
 static void gen_addr(Node *node) {
-    if(node->type == ND_VAR) {                          // 如果为变量
-        // rax = rbp - offset
-        printf("  lea rax, [rbp - %d]\n", node->var->offset);      
-        return;
+    switch (node->type) {                               
+        case ND_VAR:                                    // 如果为变量
+            // rax = rbp - offset
+            printf("  lea rax, [rbp - %d]\n", node->var->offset);      
+            return;
+        case ND_DEREF:                                  // 如果解引用
+            gen_expr(node->lhs);
+            return;
     }
     evoc_err_tok(node->tok, "not a local variable");
 }
@@ -68,13 +81,19 @@ static void gen_expr(Node *node) {
             printf("  neg rax\n"); return;              // rax = -rax
         case ND_VAR:                                    // 如果为变量
             gen_addr(node);                             // 生成地址
-            printf("  mov rax, [rax]\n"); return;       // rax = [rax]
+            printf("  mov rax, [rax]\n"); return;       // 取值：rax = [rax]
         case ND_ASSIGN:                                 // 如果为赋值
             gen_addr(node->lhs);                        // 生成左表达式地址
             push();                                     // 入栈：rax
             gen_expr(node->rhs);                        // 生成右表达式
             pop("rdi");                                 // 出栈：rdi
-            printf("  mov [rax], rdi\n"); return;       // [rax] = rdi
+            printf("  mov [rdi], rax\n"); return;       // [rdi] = rax
+        case ND_ADDR:                                   // 如果为地址
+            gen_addr(node->lhs);                        // 生成地址
+            return;
+        case ND_DEREF:                                  // 如果为解引用
+            gen_addr(node->lhs);                        // 生成地址
+            printf("  mov rax, [rax]\n"); return;       // 取值：rax = [rax]
     }
     gen_expr(node->rhs);                                // 生成右表达式
     push();                                             // 入栈：rax

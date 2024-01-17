@@ -251,7 +251,7 @@ static Node *mul(Token **rest, Token *tok) {
         return node;
     }
 }
-// unary = ("+" | "-")? unary 
+// unary = ("+" | "-" | "*" | "&" )? unary 
 //       | prim
 static Node *unary(Token **rest, Token *tok) {
     if(token_equal(tok, "+")) {             // + unary
@@ -259,6 +259,12 @@ static Node *unary(Token **rest, Token *tok) {
     }
     if(token_equal(tok, "-")) {             // - unary
         return node_new_unary(ND_NEG, unary(rest, tok->next), tok);
+    }
+    if(token_equal(tok, "*")) {             // * unary
+        return node_new_unary(ND_DEREF, unary(rest, tok->next), tok);
+    }
+    if(token_equal(tok, "&")) {             // & unary
+        return node_new_unary(ND_ADDR, unary(rest, tok->next), tok);
     }
     *rest = tok;
     return prim(rest, tok);                 // prim
