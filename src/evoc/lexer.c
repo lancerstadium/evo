@@ -38,7 +38,7 @@ static Token* token_new(TokenType type, char* start, char* end) {
 // lexer词法分析：判断令牌是否是关键词
 static bool token_is_keyword(Token *tok) {
     static char * kw[] = {
-        "return", "if", "else", "for",
+        "return", "if", "else", "for", "while"
     };
     for(int i = 0; i < sizeof(kw) / sizeof(kw[0]); i++) {
         if(token_equal(tok, kw[i])) {

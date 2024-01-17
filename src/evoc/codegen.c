@@ -133,9 +133,11 @@ static void gen_stmt(Node *node) {
             }
             printf(".L.end.%d:\n", c); return;          // .L.end
         }
-        case ND_FOR: {                                  // 如果为`for`
+        case ND_LOOP: {                                 // 如果为`for`或`while`
             int c = count();
-            gen_stmt(node->init);
+            if(node->init) {                            // for(init; cond; inc)
+                gen_stmt(node->init);
+            }
             printf(".L.begin.%d:\n", c);                // .L.begin
             if(node->cond) {
                 gen_expr(node->cond);                   // condition
