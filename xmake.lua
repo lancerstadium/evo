@@ -11,10 +11,9 @@ add_rules("mode.debug", "mode.release")
 --     add_files("src/evoc/*.c")
 --     add_includedirs("src/utils")
 
-target("core")
-    set_kind("binary")
-    add_files("src/core/*.c")
-
+-- target("evo")
+--     set_kind("binary")
+--     add_files("src/evo.c")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

@@ -10,8 +10,8 @@
  * 
  */
 
-#ifndef UTILS_COLOR_H
-#define UTILS_COLOR_H
+#ifndef UTIL_COLOR_H
+#define UTIL_COLOR_H
 
 #define ANSI_RESET "\x1b[0m"
 #define ANSI_BOLD "\x1b[1m"
@@ -75,4 +75,4 @@
 
 
 
-#endif // UTILS_COLOR_H
+#endif // UTIL_COLOR_H

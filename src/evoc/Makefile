@@ -1,12 +1,12 @@
 # C编译选项
 CC = gcc
 CFLAGS = --std=c11 -g -static
-LDFLAGS = -L../utils
+LDFLAGS = -L../core -L../util
 # C头文件目录
-INCDIR = -I. -I../utils
-SRCS=$(wildcard *.c ../utils/*.c)
+INCDIR = -I. -I../core -I../util
+SRCS=$(wildcard *.c ../core/*.c ../util/*.c)
 # OBJS=$(SRCS:.c=.o)
-EXES=../utils/utils-test.c
+EXES=../util/util-test.c
 OBJS=$(patsubst %.c, %.o, $(filter-out $(EXES), $(SRCS)))
 
 
@@ -30,6 +30,6 @@ testa:
 	bash -x ./evoc-test.sh
 
 clean:
-	rm -f evoc *.o tmp tmp.s ../utils/*.o
+	rm -f evoc *.o tmp tmp.s ../util/*.o ../core/*.o
 
 .PHONY: run test testa clean

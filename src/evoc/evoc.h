@@ -9,13 +9,8 @@
 #define _POSIX_C_SOURCE 200809L
 #define EVOC_PARSER_MAX_NODE 1024
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include "../utils/utils.h"
+#include "../core/core.h"
+
 
 // ==================================================================================== //
 //                                       Define

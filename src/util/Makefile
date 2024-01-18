@@ -10,12 +10,12 @@ SRC_FILES = $(wildcard *.c)
 
 
 all:
-	ar rc libutils.a $(SRC_FILES)
+	ar rc libutil.a $(SRC_FILES)
 
 test:
-	cc $(CFLAGS) $(INC_DIR) $(SRC_FILES) -o utils-test
-	./utils-test
+	cc $(CFLAGS) $(INC_DIR) $(SRC_FILES) -o util-test
+	./util-test
 
 clean:
-	rm -f utils
+	rm -f libutil.a *.o util-test
 
