@@ -5,6 +5,23 @@
 ALLOC_DEF_METHOD(Str)
 
 
+bool char_is_delim(char c, const char *delims) {
+    int len = strlen(delims);
+    for (int i = 0; i < len; i++)
+    {
+        if (c == delims[i])
+            return true;
+    }
+
+    return false;
+}
+
+char* char_display(char c) {
+    char* p = malloc(2);
+    p[0] = c;
+    p[1] = '\0';
+    return p;
+}
 
 // ==================================================================================== //
 //                                    utils API: str

@@ -4,16 +4,21 @@
 //                                    util: util
 // ==================================================================================== //
 
-#ifndef UTILS_UTILS_H
-#define UTILS_UTILS_H
+#ifndef UTIL_UTIL_H
+#define UTIL_UTIL_H
 
 // ==================================================================================== //
 //                                     Include
 // ==================================================================================== //
 
+#include "vector.h"
+#include "buffer.h"
+#include "fio.h"
+#include "pos.h"
 #include "utf8.h"
 #include "log.h"
 #include "str.h"
+
 
 
 

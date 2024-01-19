@@ -3,11 +3,10 @@
 #ifndef CORE_EVM_H
 #define CORE_EVM_H
 
-#include "etype.h"
+#include "eval.h"
 
 
 typedef struct Evm {
-    EValue_alloc_t *stack;
     /// TODO:
 } Evm;
 

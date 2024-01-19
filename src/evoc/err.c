@@ -21,9 +21,9 @@ void evoc_err(char *fmt, ...) {
 }
 // 编译器错误打印：打印字符位置
 void evoc_verr_at(char *loc, char *fmt, va_list ap) {
-    int pos = loc - current_input;              // 错误位置
+    int position = loc - current_input;         // 错误位置
     fprintf(stderr, "%s\n", current_input);     // 打印用户输入字符串
-    fprintf(stderr, "%*s", pos, "");            // 打印错误位置
+    fprintf(stderr, "%*s", position, "");       // 打印错误位置
     fprintf(stderr, "^ ");                      // 打印错误位置
     vfprintf(stderr, fmt, ap);                  // 打印错误信息
     fprintf(stderr, "\n");                      // 换行

@@ -21,7 +21,7 @@ static char* log_level_color[] = {ANSI_BRIGHT_BLUE, ANSI_CYAN, ANSI_GREEN, ANSI_
 // ==================================================================================== //
 
 // log日志打印：打印原型
-void log_log(int level, const char *file, int line, const char *fmt, ...) {
+void log_msg(int level, const char *file, int line, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     // 输出到错误信息里

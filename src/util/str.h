@@ -10,7 +10,7 @@
 #include "gtype.h"
 #include "alloc.h"
 
-typedef struct {
+typedef struct str {
     char* s;
     u32 len;
 } Str;
@@ -18,6 +18,10 @@ typedef struct {
 ALLOC_DEC_TYPE(Str)
 
 
+// 判断c是否是delim
+bool char_is_delim(char c, const char *delims);
+
+char* char_display(char c);
 
 // ==================================================================================== //
 //                                    utils API: str

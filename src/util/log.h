@@ -14,6 +14,19 @@
 #include "color.h"
 #include <stdlib.h>
 
+
+// ==================================================================================== //
+//                                     Define
+// ==================================================================================== //
+
+#define UTIL_LOG_ENABLE
+#define LOG_DEBUG_INFO
+#define LOG_FUNC_INFO
+
+#define LOG_INIT_SIZE 8
+
+
+
 // ==================================================================================== //
 //                                  Pub Enum: LogLevel
 // ==================================================================================== //
@@ -30,37 +43,46 @@ typedef enum {
     LOG_LEVEL_ASSERT_FALSE
 } LogLevel;
 
+typedef struct {
+    const char* file;
+} logger;
+
+// logger* logger_get(const char* file, const char* func);
+// void logger_kill(logger* logger);
+// void logger_free();
+
+
 // ==================================================================================== //
 //                                  Pri API: log
 // ==================================================================================== //
 
-void log_log(int level, const char *file, int line, const char *fmt, ...);
+void log_msg(int level, const char *file, int line, const char *fmt, ...);
 
 
 // ==================================================================================== //
 //                                  Pub API: log
 // ==================================================================================== //
 
-#ifndef UTILS_LOG_DISABLE
+#ifdef UTIL_LOG_ENABLE
 // log日志打印：打印调试信息
-#define log_trace(...) log_log(LOG_LEVEL_TRACE, __FILE__, __LINE__, __VA_ARGS__)
+#define log_trace(...) log_msg(LOG_LEVEL_TRACE, __FILE__, __LINE__, __VA_ARGS__)
 
 // log日志打印：打印调试信息
-#define log_debug(...) log_log(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define log_debug(...) log_msg(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 // log日志打印：打印信息
-#define log_info(...) log_log(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define log_info(...) log_msg(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
 
 // log日志打印：打印警告
-#define log_warn(...) log_log(LOG_LEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
+#define log_warn(...) log_msg(LOG_LEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
 
 // log日志打印：打印错误
-#define log_error(...) log_log(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define log_error(...) log_msg(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
 // log日志打印：打印严重错误
 #define log_fatal(...) \
     do{ \
-        log_log(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__); \
+        log_msg(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__); \
         exit(-1); \
     } while(0)
 
@@ -68,12 +90,14 @@ void log_log(int level, const char *file, int line, const char *fmt, ...);
 #define log_assert(expr, ...) \
     do{ \
         if (expr) { \
-            log_log(LOG_LEVEL_ASSERT_TRUE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_GREEN) " " __VA_ARGS__); \
+            log_msg(LOG_LEVEL_ASSERT_TRUE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_GREEN) " " __VA_ARGS__); \
         } else { \
-            log_log(LOG_LEVEL_ASSERT_FALSE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_RED) " " __VA_ARGS__); \
+            log_msg(LOG_LEVEL_ASSERT_FALSE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_RED) " " __VA_ARGS__); \
             exit(-1); \
         } \
     } while(0)
+
+#define LOG_TAG log_debug("%s is called", __func__);
 
 #else
 // log日志打印：不打印

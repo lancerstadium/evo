@@ -8,28 +8,31 @@
 #ifndef UTIL_FIO_H
 #define UTIL_FIO_H
 
-#include "str.h"
-#include <stdio.h>
-
-
-typedef struct {
-    char *filename;
-    Str *buffer;
-    FILE *file;
-    u64 filelen;
-} FIO;
-
-ALLOC_DEC_TYPE(FIO)
-
+#include "vector.h"
 
 // ==================================================================================== //
 //                                    Pub API: FIO
 // ==================================================================================== //
 
-FIO *fio_open(const char *filename, const char *mode);
-void fio_close(FIO *fio);
-void fio_write(FIO *fio, Str *data);
-void fio_flush(FIO *fio);
+typedef struct {
+    // The file pointer
+    FILE* fp;
+    // The file path
+    const char* path;
+    // The file size
+    size_t size;
+    // Vector of characters in the file.
+    Vector* vec;
+} FIO;
+
+// Opens the file
+FIO* fio_open(const char* filename);
+// Closes the file
+void fio_close(FIO* fio);
+// Pops the next character
+char fio_peek(FIO* fio);
+// Reads until the given string is found
+Vector* fio_read_until(FIO* fio, const char* delims);
 
 
 #endif // UTIL_FIO_H
