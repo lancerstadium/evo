@@ -7,6 +7,7 @@
 #include "token.h"
 #include "compiler.h"
 
+
 typedef enum {
     LEXER_ANALYSIS_OK,          // 词法分析成功
     LEXER_ANALYSIS_ERROR        // 词法分析失败
@@ -42,5 +43,6 @@ LexProcess* lex_process_create(CompileProcess* cproc, void* priv);
 Vector* lex_process_tokens(LexProcess* lproc);
 void* lex_process_private(LexProcess* lproc);
 void lex_process_free(LexProcess* lproc);
+Token* lexer_read_next_token(LexProcess* lproc);
 
 #endif // CORE_LEXER_H

@@ -18,6 +18,10 @@ typedef struct str {
 ALLOC_DEC_TYPE(Str)
 
 
+#define STR_EQ(str1, str2) \
+    strcmp(str1, str2) == 0
+
+
 // 判断c是否是delim
 bool char_is_delim(char c, const char *delims);
 

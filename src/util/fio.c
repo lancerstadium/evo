@@ -1,6 +1,7 @@
 
 #include "fio.h"
 #include "str.h"
+#include "log.h"
 
 
 // ==================================================================================== //
@@ -27,21 +28,28 @@ FIO* fio_open(const char* filename) {
         err = -1;
         goto out;
     }
+    fseek(f, 0, SEEK_SET);
     fio = malloc(sizeof(FIO));
     if(!fio) {
         err = -1;
         goto out;
     }
-    fio->path = (char*)malloc(strlen(filename) + 1);
-    strcpy(fio->path, filename);
+    char* in_path = (char*)malloc(strlen(filename) + 1);
+    if(!in_path) {
+        err = -1;
+        goto out;
+    }
+    strcpy(in_path, filename);
     *fio = (FIO){
         .fp = f,
         .size = sz,
-        .vec = vec
+        .vec = vec,
+        .path = in_path
     };
 
 out:
     if(err < 0) {
+        log_error("Open file: %s failed!", filename);
         if(vec) {
             vector_free(vec);
         }

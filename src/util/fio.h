@@ -18,7 +18,7 @@ typedef struct {
     // The file pointer
     FILE* fp;
     // The file path
-    const char* path;
+    char* path;
     // The file size
     size_t size;
     // Vector of characters in the file.

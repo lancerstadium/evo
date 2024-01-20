@@ -11,8 +11,8 @@ typedef enum {
 } CompileProcessStatus;
 
 typedef struct {
-    int flags;    // 编译标志
-    FIO cfile;                  // 编译目标文件
+    int flags;                  // 编译标志
+    FIO* cfile;                 // 编译目标文件
     FILE* ofile;                // 目标储存地址
 } CompileProcess;
 

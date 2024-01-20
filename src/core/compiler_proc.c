@@ -18,11 +18,10 @@ CompileProcess* compile_process_create(const char* filename, const char* out_fil
             return NULL;
         }
     }
-
     CompileProcess* cproc = malloc(sizeof(CompileProcess));
     *cproc = (CompileProcess){
         .flags = flags,
-        .cfile = *in_file,
+        .cfile = in_file,
         .ofile = out_file
     };
 
@@ -32,7 +31,7 @@ CompileProcess* compile_process_create(const char* filename, const char* out_fil
 
 void compile_process_free(CompileProcess* process) {
     LOG_TAG
-    fio_close(&process->cfile);
+    fio_close(process->cfile);
     if (process->ofile) {
         fclose(process->ofile);
     }

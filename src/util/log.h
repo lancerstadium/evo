@@ -22,6 +22,8 @@
 #define UTIL_LOG_ENABLE
 #define LOG_DEBUG_INFO
 #define LOG_FUNC_INFO
+// #define LOG_DATA_INFO
+// #define LOG_ASSERT_INFO
 
 #define LOG_INIT_SIZE 8
 
@@ -97,7 +99,9 @@ void log_msg(int level, const char *file, int line, const char *fmt, ...);
         } \
     } while(0)
 
-#define LOG_TAG log_debug("%s is called", __func__);
+#ifdef LOG_FUNC_INFO
+#define LOG_TAG log_info(ANSI_FMT("%s", ANSI_BRIGHT_BLUE) "() is called", __func__);
+#endif
 
 #else
 // log日志打印：不打印
@@ -108,6 +112,7 @@ void log_msg(int level, const char *file, int line, const char *fmt, ...);
 #define log_error(...)
 #define log_fatal(...)
 #define log_assert(expr, ...)
+#define LOG_TAG
 #endif
 
 

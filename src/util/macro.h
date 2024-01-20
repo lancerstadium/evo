@@ -14,6 +14,8 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
+#define GET_ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
+
 #define UNUSED __attribute__((unused))
 
 
