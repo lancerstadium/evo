@@ -5,10 +5,7 @@
 Token tmp_token;
 
 static inline void token_pos_read(Buffer* buf,  struct pos* pos) {
-    buffer_printf(buf, "  Read token pos: \n");
-    buffer_printf(buf, "    file   : %s\n", pos->filename);
-    buffer_printf(buf, "    line   : %d\n", pos->line);
-    buffer_printf(buf, "    col    : %d\n", pos->col);
+    buffer_printf(buf, "    Position         : %s:%d:%d\n", pos->filename, pos->line, pos->col);
     log_debug("%s", buf->data);
 }
 
@@ -44,6 +41,9 @@ void token_read(Token *tok) {
         case TOKEN_TYPE_COMMENT:
             buffer_printf(buf, "    type             : comment\n");
             buffer_printf(buf, "    value            : %s\n", tok->sval);
+            break;
+        case TOKEN_TYPE_EOF:
+            buffer_printf(buf, "    type             : EOF\n");
             break;
     };
     buffer_printf(buf, "    whitespace       : %s\n", tok->whitespace ? "true" : "false");

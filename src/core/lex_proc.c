@@ -73,7 +73,7 @@
 static const char* lex_keyword[] = {
     "unsigned", "signed", "char", "int",
     "double", "long", "void", "struct",
-    "union", "static"
+    "union", "static", "if", "else"
 };
 
 static const char lex_single_op[] = {
@@ -128,9 +128,7 @@ static inline bool is_binary_operator(const char* op) {
 }
 
 static inline bool is_valid_operator(const char* op) {
-    bool is_valid = false;
-    is_valid = is_single_operator(*op);
-    is_valid = is_binary_operator(op);
+    return is_single_operator(*op) || is_binary_operator(op);
 }
 
 // ==================================================================================== //
@@ -343,7 +341,7 @@ char lex_process_next_char(LexProcess* lproc) {
     CompileProcess* cproc = lproc->compile_proc;
     char c = getc(cproc->cfile->fp);
     char* str = char_display(c);
-    log_debug("get char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
+    log_trace("get char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
     free(str);
 
     // 更新 pos
@@ -368,7 +366,7 @@ char lex_process_peek_char(LexProcess* lproc) {
     }
     // 输出
     char* str = char_display(c);
-    log_debug("peek char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
+    log_trace("peek char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
     free(str);
 
     return c;
@@ -378,7 +376,7 @@ void lex_process_push_char(LexProcess* lproc, char c) {
 
     // 输出
     char* str = char_display(c);
-    log_debug("push char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
+    log_trace("push char `%s` (line %d col %d)", str, lproc->pos.line, lproc->pos.col);
     free(str);
 
     // 将字符 c 替换当前字符，并退一位

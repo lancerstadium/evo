@@ -20,8 +20,9 @@
 // ==================================================================================== //
 
 #define UTIL_LOG_ENABLE
-#define LOG_DEBUG_INFO
+// #define LOG_TRACE_INFO
 #define LOG_FUNC_INFO
+#define LOG_DEBUG_INFO
 // #define LOG_DATA_INFO
 // #define LOG_ASSERT_INFO
 
@@ -66,11 +67,20 @@ void log_msg(int level, const char *file, int line, const char *fmt, ...);
 // ==================================================================================== //
 
 #ifdef UTIL_LOG_ENABLE
+
+#ifdef LOG_TRACE_INFO
 // log日志打印：打印调试信息
 #define log_trace(...) log_msg(LOG_LEVEL_TRACE, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define log_trace(...)
+#endif
 
 // log日志打印：打印调试信息
+#ifdef LOG_DEBUG_INFO
 #define log_debug(...) log_msg(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define log_debug(...)
+#endif
 
 // log日志打印：打印信息
 #define log_info(...) log_msg(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
@@ -88,19 +98,28 @@ void log_msg(int level, const char *file, int line, const char *fmt, ...);
         exit(-1); \
     } while(0)
 
+
+#ifdef LOG_ASSERT_INFO
+#define log_assert_true(expr, ...) log_msg(LOG_LEVEL_ASSERT_TRUE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_GREEN) " " __VA_ARGS__);
+#else
+#define log_assert_true(expr, ...)
+#endif
+
 // log日志打印：断言
 #define log_assert(expr, ...) \
     do{ \
-        if (expr) { \
-            log_msg(LOG_LEVEL_ASSERT_TRUE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_GREEN) " " __VA_ARGS__); \
-        } else { \
+        if (!(expr)) { \
             log_msg(LOG_LEVEL_ASSERT_FALSE, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_RED) " " __VA_ARGS__); \
             exit(-1); \
+        } else { \
+            log_assert_true(expr, __VA_ARGS__) \
         } \
     } while(0)
 
 #ifdef LOG_FUNC_INFO
 #define LOG_TAG log_info(ANSI_FMT("%s", ANSI_BRIGHT_BLUE) "() is called", __func__);
+#else
+#define LOG_TAG
 #endif
 
 #else
