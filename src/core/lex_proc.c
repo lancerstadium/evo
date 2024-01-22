@@ -148,7 +148,7 @@ static inline const char* lexer_read_operator(LexProcess* lproc) {
     
     const char* buf_ptr = buffer_ptr(buf);
     if(!is_valid_operator(buf_ptr)) {
-        log_error("Invalid operator: %s", buf_ptr);
+        lexer_error("Invalid operator: `%s`", buf_ptr);
     }
     return buf_ptr;
 }
@@ -268,7 +268,7 @@ static inline Token* lexer_make_mutiline_comment(LexProcess* lproc) {
     while(1) {
         LEX_GETC_IF(lproc, buf, c, c != '\n' && c != EOF);
         if(c == EOF) {
-            log_error("EOF reached whilst in a multi-line comment. The comment was not terminated! \"%s\" \n", buffer_ptr(buf));
+            lexer_error("EOF reached whilst in a multi-line comment. The comment was not terminated! \"%s\" \n", buffer_ptr(buf));
             exit(LEXER_ANALYSIS_ERROR);
         } else if(c == '*') {
             lproc->next_char(lproc);
@@ -303,7 +303,6 @@ static inline Token* lexer_handle_comment(LexProcess* lproc) {
 }
 
 static inline Token* lexer_read_token_special(LexProcess* lproc) {
-    LOG_TAG
     char c = lproc->peek_char(lproc);
     if(isalpha(c) || c == '_') {
         return lexer_make_ident_or_keyword(lproc);
@@ -417,14 +416,18 @@ void lex_process_free(LexProcess* lproc) {
     if(!lproc) {
         return;
     }
+    buffer_free(lproc->parenthesis_buffer);
     vector_free(lproc->token_vec);
+    free(lproc->priv);
+    if(lproc->next_char) lproc->next_char = NULL;
+    if(lproc->peek_char) lproc->peek_char = NULL;
+    if(lproc->push_char) lproc->push_char = NULL;
     free(lproc);
 }
 
 
 
-Token* lexer_read_next_token(LexProcess* lproc) {
-    LOG_TAG
+Token* lex_process_next_token(LexProcess* lproc) {
     Token* tok = NULL;
     char c = lproc->peek_char(lproc);
     tok = lexer_handle_comment(lproc);
@@ -453,7 +456,7 @@ Token* lexer_read_next_token(LexProcess* lproc) {
         case ' ':
         case '\t':
             lproc->next_char(lproc);
-            tok = lexer_read_next_token(lproc);
+            tok = lex_process_next_token(lproc);
             break;
         case EOF:
             tok = lexer_make_EOF(lproc);
@@ -461,7 +464,7 @@ Token* lexer_read_next_token(LexProcess* lproc) {
         default:
             tok = lexer_read_token_special(lproc);
             if(!tok) {
-                log_error("Invalid token char: `%c`\n", c);
+                lexer_error("Invalid token char: `%c`\n", c);
                 exit(LEXER_ANALYSIS_ERROR);
             }
             break;

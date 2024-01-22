@@ -2,7 +2,6 @@
 #define UTIL_BUFFER_H
 
 #include "gtype.h"
-#include <stddef.h>
 
 #define BUFFER_REALLOC_AMOUNT 2000
 typedef struct buffer

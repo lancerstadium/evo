@@ -5,6 +5,9 @@
 
 #include "eval.h"
 
+#define compiler_error(...) log_error( _bmag("[Compiler]") " " __VA_ARGS__)
+
+
 typedef enum {
     COMPILER_FILE_OK,           // 编译成功
     COMPILER_FILE_ERROR         // 编译出错
@@ -20,7 +23,7 @@ typedef struct {
 // compiler.c
 int compile_file(const char* filename, const char* out_filename, int flags);
 
-// compiler_proc.c
+// compile_proc.c
 CompileProcess* compile_process_create(const char* filename, const char* out_filename, int flags);
 void compile_process_free(CompileProcess* process);
 

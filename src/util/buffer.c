@@ -90,6 +90,7 @@ char buffer_peek(Buffer* buffer)
 
 void buffer_free(Buffer* buffer)
 {
+    if(!buffer) return;
     free(buffer->data);
     free(buffer);
 }

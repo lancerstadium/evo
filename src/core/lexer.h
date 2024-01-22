@@ -3,21 +3,23 @@
 #ifndef CORE_LEXER_H
 #define CORE_LEXER_H
 
-
 #include "token.h"
 #include "compiler.h"
 
-
-typedef enum {
-    LEXER_ANALYSIS_OK,          // 词法分析成功
-    LEXER_ANALYSIS_ERROR        // 词法分析失败
-} LexerAnalysisResult;
+#define lexer_error(...) log_error( _bmag("[Lexer]") " " __VA_ARGS__)
 
 typedef struct lex_process LexProcess;
-typedef char (*LEX_PROCESS_NEXT_CHAR)(LexProcess* process);
-typedef char (*LEX_PROCESS_PEEK_CHAR)(LexProcess* process);
-typedef void (*LEX_PROCESS_PUSH_CHAR)(LexProcess* process, char c);
+typedef char (*LEX_PROCESS_NEXT_CHAR)(LexProcess* lproc);
+typedef char (*LEX_PROCESS_PEEK_CHAR)(LexProcess* lproc);
+typedef void (*LEX_PROCESS_PUSH_CHAR)(LexProcess* lproc, char c);
 
+// 词法分析结果的状态
+typedef enum {
+    LEXER_ANALYSIS_OK,                  // 词法分析成功
+    LEXER_ANALYSIS_ERROR                // 词法分析失败
+} LexerAnalysisResult;
+
+// lexer进程
 struct lex_process {
 
     Pos pos;                            // 当前字符位置
@@ -40,9 +42,9 @@ int lex(LexProcess* lex_proc);
 
 // lex_proc.c
 LexProcess* lex_process_create(CompileProcess* cproc, void* priv);
+void lex_process_free(LexProcess* lproc);
 Vector* lex_process_tokens(LexProcess* lproc);
 void* lex_process_private(LexProcess* lproc);
-void lex_process_free(LexProcess* lproc);
-Token* lexer_read_next_token(LexProcess* lproc);
+Token* lex_process_next_token(LexProcess* lproc);
 
 #endif // CORE_LEXER_H

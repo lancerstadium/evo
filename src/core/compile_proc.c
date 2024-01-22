@@ -2,7 +2,6 @@
 
 #include "compiler.h"
 
-
 CompileProcess* compile_process_create(const char* filename, const char* out_filename, int flags) {
     LOG_TAG
     FIO* in_file = fio_open(filename);
@@ -29,11 +28,11 @@ CompileProcess* compile_process_create(const char* filename, const char* out_fil
 }
 
 
-void compile_process_free(CompileProcess* process) {
+void compile_process_free(CompileProcess* cproc) {
     LOG_TAG
-    fio_close(process->cfile);
-    if (process->ofile) {
-        fclose(process->ofile);
+    fio_close(cproc->cfile);
+    if (cproc->ofile) {
+        fclose(cproc->ofile);
     }
-    free(process);
+    free(cproc);
 }

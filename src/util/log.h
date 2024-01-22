@@ -22,12 +22,11 @@
 #define UTIL_LOG_ENABLE
 // #define LOG_TRACE_INFO
 #define LOG_FUNC_INFO
-#define LOG_DEBUG_INFO
+// #define LOG_DEBUG_INFO
 // #define LOG_DATA_INFO
 // #define LOG_ASSERT_INFO
 
 #define LOG_INIT_SIZE 8
-
 
 
 // ==================================================================================== //

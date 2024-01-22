@@ -14,5 +14,7 @@ typedef struct pos {
     const char* filename;
 } Pos;
 
+void pos_free(Pos* pos);
+
 
 #endif // UTIL_POS_H

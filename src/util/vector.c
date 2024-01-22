@@ -64,6 +64,7 @@ Vector*vector_create(size_t esize)
 
 void vector_free(Vector* vector)
 {
+    if(!vector) return;
     free(vector->data);
     free(vector);
 }
