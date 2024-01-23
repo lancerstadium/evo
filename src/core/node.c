@@ -13,7 +13,7 @@ void node_read(Node* nd) {
             break;
         case NODE_TYPE_FUNCTION:
             buffer_printf(buf, "   type          : function\n");
-            buffer_printf(buf, "   func datatype : %s\n", nd->func.type->type_str);
+            buffer_printf(buf, "   func return   : %s\n", nd->func.rtype->type_str);
             break;
         case NODE_TYPE_NUMBER:
             buffer_printf(buf, "   type          : number\n");
@@ -27,8 +27,11 @@ void node_read(Node* nd) {
             buffer_printf(buf, "   type          : identifier\n");
             buffer_printf(buf, "   ident name    : %s\n", nd->sval);
             break;
+        case NODE_TYPE_BODY:
+            buffer_printf(buf, "   type          : body\n");
+            // buffer_printf(buf, "   ident name    : %s\n");
         default:
             break;
     }
-    log_info(buffer_ptr(buf));
+    log_debug(buffer_ptr(buf));
 }

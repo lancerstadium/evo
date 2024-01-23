@@ -11,7 +11,8 @@
 
 typedef enum {
     DATA_TYPE_FLAG_IS_SIGNED = 0b00000001,
-    DATA_TYPE_FLAG_IS_STATIC = 0b00000010
+    DATA_TYPE_FLAG_IS_STATIC = 0b00000010,
+    DATA_TYPE_FLAG_IS_CONST  = 0b00000100
 } DataTypeFlag;
 
 typedef enum {
@@ -45,6 +46,7 @@ typedef struct {
     DataTypeFlag flags;
     DataTypeEnum type;          // 标识类型
     const char* type_str;   // 该类型的等价字符串：不包括无符号或有符号关键字
+    size_t size;
 } DataType;
 
 #endif // CORE_DATA_TYPE_H

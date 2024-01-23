@@ -37,12 +37,7 @@
     case '=':                           \
     case '~':                           \
     case '|':                           \
-    case '&':                           \
-    case '(':                           \
-    case '[':                           \
-    case ',':                           \
-    case '.':                           \
-    case '?'
+    case '&'
 
 #define CASE_NUMERIC \
     case '0':        \
@@ -59,12 +54,16 @@
 #define CASE_SYMBOL \
     case '{':       \
     case '}':       \
+    case '.':       \
     case ':':       \
     case ';':       \
-    case '#':       \
-    case '\\':      \
+    case '(':       \
     case ')':       \
-    case ']'
+    case '[':       \
+    case ']':       \
+    case ',':       \
+    case '#':       \
+    case '\\'
 
 // ==================================================================================== //
 //                                  lexer: String Identity
@@ -76,13 +75,12 @@ static const char* lex_keyword[] = {
     "union", "static", "if", "else", 
     "while", "for", "do", "break", 
     "continue", "switch", "case",
-    "default", "goto"
+    "default", "goto", "return"
 };
 
 static const char lex_single_op[] = {
     '+', '-', '/', '*', '=', '>', '<',
-    '|', '&', '^', '%', '~', '!', '(',
-    '[', ',', '.', '~', '?'
+    '|', '&', '^', '%', '~', '!'
 };
 
 static const char* lex_binary_op[] = {

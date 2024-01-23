@@ -13,7 +13,8 @@ typedef enum {
     NODE_TYPE_NUMBER,                   // 数字
     NODE_TYPE_IDENTIFIER,               // 标识符
     NODE_TYPE_VARIABLE,                 // 变量
-    NODE_TYPE_FUNCTION                  // 函数
+    NODE_TYPE_FUNCTION,                 // 函数
+    NODE_TYPE_BODY                      // 代码体
 } NodeType;
 
 // AST节点
@@ -39,8 +40,15 @@ struct node {
         } expr;
         // 函数
         struct func {
-            DataType* type;
+            DataType* rtype;
+            const char* name;
+            Vector* argv;
+            Node* body;
         } func;
+        // 代码主体
+        struct body {
+            Vector* statements;
+        } body;
         // 变量
         struct var {
             DataType* type;

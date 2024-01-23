@@ -8,11 +8,9 @@ Token tmp_token;
 
 static inline void token_pos_read(Buffer* buf,  struct pos* pos) {
     buffer_printf(buf, "    Position         : %s:%d:%d\n", pos->filename, pos->line, pos->col);
-    log_debug("%s", buf->data);
 }
 
 char* token_get_type_str(Token* tok) {
-    if(!tok->type) return "";
     switch(tok->type) {
         case TOKEN_TYPE_IDENTIFIER: return "identifier";
         case TOKEN_TYPE_KEYWORD:    return "keyword";
@@ -64,14 +62,21 @@ void token_read(Token *tok) {
         case TOKEN_TYPE_EOF:
             buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
             break;
+        case TOKEN_TYPE_NEWLINE:
+            buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
+            buffer_printf(buf, "    value            : \\n\n");
+            break;
         default:
             break;
     };
     buffer_printf(buf, "    whitespace       : %s\n", tok->whitespace ? "true" : "false");
-    buffer_printf(buf, "    between_brackets : %s\n", tok->between_brackets);
+    if(tok->between_brackets) {
+        buffer_printf(buf, "    between_brackets : %s\n", tok->between_brackets);
+    }
 
     token_pos_read(buf, &tok->pos);
     // 打印buf信息
+    log_debug("%s", buf->data);
     buffer_free(buf);
 }
 

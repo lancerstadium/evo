@@ -1,1 +1,4 @@
-int hello = 3;
+
+int main(int argc) {
+    int a = 3;
+}

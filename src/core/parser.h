@@ -5,7 +5,11 @@
 #include "lexer.h"
 #include "node.h"
 
-#define parser_error(...) log_error( _bmag("[Parser]") " " __VA_ARGS__)
+#define parser_error(...) \
+    do { \
+    log_error( _bmag("[Parser]") " " __VA_ARGS__); \
+    exit(-1); \
+    } while(0)
 
 // 类型声明
 typedef struct parse_process ParseProcess;
