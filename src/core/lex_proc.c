@@ -73,12 +73,16 @@
 static const char* lex_keyword[] = {
     "unsigned", "signed", "char", "int",
     "double", "long", "void", "struct",
-    "union", "static", "if", "else"
+    "union", "static", "if", "else", 
+    "while", "for", "do", "break", 
+    "continue", "switch", "case",
+    "default", "goto"
 };
 
 static const char lex_single_op[] = {
     '+', '-', '/', '*', '=', '>', '<',
-    '|', '&', '^', '%', '~', '!'
+    '|', '&', '^', '%', '~', '!', '(',
+    '[', ',', '.', '~', '?'
 };
 
 static const char* lex_binary_op[] = {

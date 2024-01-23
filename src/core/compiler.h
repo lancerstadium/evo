@@ -3,7 +3,7 @@
 #ifndef CORE_COMPILER_H
 #define CORE_COMPILER_H
 
-#include "eval.h"
+#include "data.h"
 
 #define compiler_error(...) log_error( _bmag("[Compiler]") " " __VA_ARGS__)
 

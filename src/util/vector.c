@@ -395,6 +395,11 @@ int vector_insert(Vector*vector_dst, Vector*vector_src, int dst_index)
 
 void vector_pop(Vector* vector)
 {
+    // here
+    if(vector_empty) {
+        fprintf(stderr, "Vector empty!\n");
+        return;
+    }
 
     // Popping from the vector will just decrement the index, no need to free memory
     // the next push will overwrite it.

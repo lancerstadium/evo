@@ -70,9 +70,9 @@ void fio_close(FIO* fio) {
 }
 // Pops the next character
 char fio_peek(FIO* fio) {
-    char c = (char)vector_peek(fio->vec);
+    char* c = (char*)vector_peek(fio->vec);
     vector_pop(fio->vec);
-    return c;
+    return *c;
 }
 // Reads until the given string is found
 Vector* fio_read_until(FIO* fio, const char* delims) {

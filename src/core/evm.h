@@ -3,7 +3,7 @@
 #ifndef CORE_EVM_H
 #define CORE_EVM_H
 
-#include "eval.h"
+#include "data.h"
 
 
 typedef struct Evm {

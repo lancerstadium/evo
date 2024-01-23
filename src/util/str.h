@@ -42,6 +42,8 @@ void str_free(Str* p);
 // 判断字符串是否以q开头
 bool str_start_with(char* p, char* q);
 
+int str_matches(const char *input, const char *input2, char delim);
+
 
 
 #endif // UTIL_STR_H

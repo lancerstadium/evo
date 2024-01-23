@@ -3,19 +3,11 @@
 #define CORE_PARSER_H
 
 #include "lexer.h"
+#include "node.h"
 
 #define parser_error(...) log_error( _bmag("[Parser]") " " __VA_ARGS__)
 
-// AST节点类型
-typedef enum {
-    NODE_TYPE_EXPRESSION,               // 表达式
-    NODE_TYPE_NUMBER,                   // 数字
-    NODE_TYPE_IDENTIFIER                // 标识符
-} NodeType;
-
-
 // 类型声明
-typedef struct node Node;
 typedef struct parse_process ParseProcess;
 typedef Token* (*PARSE_PROCESS_NEXT_TK)(ParseProcess* pproc);
 typedef Token* (*PARSE_PROCESS_PEEK_TK)(ParseProcess* pproc);
@@ -25,28 +17,6 @@ typedef Node* (*PARSE_PROCESS_POP_ND)(ParseProcess* pproc);
 typedef void (*PARSE_PROCESS_PUSH_ND)(ParseProcess* pproc, Node* node);
 typedef Node* (*PARSE_PROCESS_CREATE_ND)(ParseProcess* pproc, Node* _node);
 
-// AST节点
-struct node {
-    NodeType type;                      // AST节点类型
-
-    // 存储每个节点类型的值
-    union {
-        char cval;
-        const char* sval;
-        unsigned int inum;
-        unsigned long lnum;
-        unsigned long long llnum;
-    };
-
-    // 存储每个节点类型单独的结构
-    union {
-        struct expr {
-            Node* left;
-            Node* right;
-            const char* op;
-        } expr;
-    };
-};
 
 // 语法分析结果的状态
 typedef enum {

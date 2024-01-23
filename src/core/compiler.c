@@ -3,6 +3,7 @@
 #include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
+#include "codegen.h"
 
 
 int compile_file(const char* filename, const char* out_filename, int flags) {
@@ -21,6 +22,14 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     ParseProcess* pproc = parse_process_create(lproc);
     if (!pproc) {
         lex_process_free(lproc);
+        compile_process_free(cproc);
+        return COMPILER_FILE_ERROR;
+    }
+    CodegenProcess* cgproc = codegen_process_create(pproc);
+    if (!cgproc) {
+        parse_process_free(pproc);
+        lex_process_free(lproc);
+        compile_process_free(cproc);
         return COMPILER_FILE_ERROR;
     }
 
@@ -40,9 +49,16 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     }
 
     /// TODO: Perform Code Generation
-
+    if(codegen(cgproc) != CODE_GENERATOR_OK) {
+        codegen_process_free(cgproc);
+        parse_process_free(pproc);
+        lex_process_free(lproc);
+        compile_process_free(cproc);
+        return COMPILER_FILE_ERROR;
+    }
 
     // Step-1: Free memory
+    codegen_process_free(cgproc);
     parse_process_free(pproc);
     lex_process_free(lproc);
     compile_process_free(cproc);

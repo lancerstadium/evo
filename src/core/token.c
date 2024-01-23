@@ -12,7 +12,7 @@ static inline void token_pos_read(Buffer* buf,  struct pos* pos) {
 }
 
 char* token_get_type_str(Token* tok) {
-    if(!tok->type) return;
+    if(!tok->type) return "";
     switch(tok->type) {
         case TOKEN_TYPE_IDENTIFIER: return "identifier";
         case TOKEN_TYPE_KEYWORD:    return "keyword";
@@ -21,7 +21,7 @@ char* token_get_type_str(Token* tok) {
         case TOKEN_TYPE_NUMBER:     return "number";
         case TOKEN_TYPE_STRING:     return "string";
         case TOKEN_TYPE_COMMENT:    return "comment";
-        case TOKEN_TYPE_NEWLINE:    return "\\n";
+        case TOKEN_TYPE_NEWLINE:    return "newline";
         case TOKEN_TYPE_EOF:        return "EOF";
         default:                    return "unknown";
     };

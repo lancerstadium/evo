@@ -12,7 +12,7 @@
 // log日志打印：日志等级字符串
 static const char* log_level_str[] = {"TRAC", "DEBU", "INFO", "WARN", "ERRO", "FATA", "ASSE", "ASSE"};
 // log日志打印：日志等级颜色
-static const char* log_level_color[] = {ANSI_BRIGHT_BLUE, ANSI_CYAN, ANSI_GREEN, ANSI_YELLOW, ANSI_RED, ANSI_MAGENTA, ANSI_BRIGHT_GREEN, ANSI_BRIGHT_RED};
+static const char* log_level_color[] = {ANSI_BRIGHT_BLUE, ANSI_CYAN, ANSI_BRIGHT_GREEN, ANSI_BRIGHT_YELLOW, ANSI_BRIGHT_RED, ANSI_MAGENTA, ANSI_BRIGHT_GREEN, ANSI_BRIGHT_RED};
 
 
 
