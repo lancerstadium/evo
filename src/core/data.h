@@ -43,10 +43,11 @@ typedef enum {
 } DataTypeEnum;
 
 typedef struct {
-    DataTypeFlag flags;
+    int flags;
     DataTypeEnum type;          // 标识类型
-    const char* type_str;   // 该类型的等价字符串：不包括无符号或有符号关键字
-    size_t size;
+    const char* type_str;       // 该类型的等价字符串：不包括无符号或有符号关键字
+    size_t size;                // 数据大小
+    int ptr_depth;              // 指针深度
 } DataType;
 
 #endif // CORE_DATA_TYPE_H

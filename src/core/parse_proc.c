@@ -6,9 +6,35 @@
 //                               parser Pri Data
 // ==================================================================================== //
 
-static const char* op_precedence[] = {
-    "*", "/", "%%", "+", "-"
+#define PARSE_MAX_OPS_IN_GROUP 12
+
+typedef enum {
+    PARSE_OPERATOR_ASSOC_LEFT2RIGHT,
+    PARSE_OPERATOR_ASSOC_RIGHT2LEFT
+} OperatorAssociativity;
+
+typedef struct {
+    char* ops[PARSE_MAX_OPS_IN_GROUP];
+    OperatorAssociativity asc;
+} OpGroup;
+
+static OpGroup op_precedence[] = {
+    {.ops = {"++", "--", "()", "(", "[", "]", ".", "->", NULL},                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"*", "/", "%%", NULL},                                                         .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"+", "-", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"<<", ">>", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"<", "<=", ">", ">=", NULL},                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"==", "!=", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"&", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"^", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"|", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"&&", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"||", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+    {.ops = {"?", ":", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
+    {.ops = {"=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", NULL},      .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
+    {.ops = {",", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
 };
+
 
 static const char* keyword_variable_modified[] = {
     "unsigned", "signed", "static"
@@ -127,12 +153,13 @@ static inline void parser_make_var_node(ParseProcess* pproc, DataType* dt, Token
 }
 
 static inline void parser_make_func_node(ParseProcess* pproc, DataType* dt, const char* name, Vector* argv, Node* body) {
+    LOG_TAG
     pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_FUNCTION,
         .func.rtype = dt,
         .func.name = name,
         .func.argv = argv,
-        .func.body = body
+        .func.body_nd = body
     });
 }
 
@@ -281,7 +308,7 @@ static inline void parser_variable_full(ParseProcess* pproc) {
     DataType dt;
     parser_datatype_modifiers(pproc, &dt);
     parser_datatype_type(pproc, &dt);
-
+    LOG_TAG
     Token* name_tok = pproc->next_token(pproc);
     parser_variable(pproc, &dt, name_tok);
 }
@@ -356,6 +383,7 @@ static inline void parser_function(ParseProcess* pproc, DataType* dt, Token* nam
         parser_function_body(pproc);
         Node* body_nd = pproc->pop_node(pproc);
         parser_make_func_node(pproc, dt, name_tok->sval, argv, body_nd);
+        LOG_TAG
         return;
     }
 
@@ -375,6 +403,7 @@ static inline void parser_variable_or_function(ParseProcess* pproc) {
     if(parser_next_token_is_symbol(pproc, '(')) {
         LOG_TAG
         parser_function(pproc, &dt, name_tok);
+        LOG_TAG
         return;
     }
     LOG_TAG
@@ -387,6 +416,7 @@ static inline void parser_keyword(ParseProcess* pproc) {
     Token* tok = pproc->peek_token(pproc);
     if(is_keyword_variable_modified(tok->sval) || is_keyword_variable_datatype(tok->sval)) {
         parser_variable_or_function(pproc);
+        LOG_TAG
         return;
     }
     parser_error("Unexpected keyword `%s`\n", tok->sval);
@@ -396,8 +426,8 @@ static inline void parser_keyword(ParseProcess* pproc) {
 static inline void parser_stmt(ParseProcess* pproc) {
     LOG_TAG
     if(pproc->peek_token(pproc)->type == TOKEN_TYPE_KEYWORD) {
-        log_info("keyword: %s", pproc->peek_token(pproc)->sval);
         parser_keyword(pproc);
+        LOG_TAG
         return;
     }
     parser_expressionable(pproc);
@@ -453,8 +483,8 @@ Node* parse_process_pop_node(ParseProcess* pproc) {
 }
 
 void parse_process_push_node(ParseProcess* pproc, Node* node) {
-    vector_push(pproc->node_vec, &node);
     node_read(node);
+    vector_push(pproc->node_vec, &node);
 }
 
 Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {

@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "node.h"
+#include "scope.h"
 
 #define parser_error(...) \
     do { \
@@ -33,7 +34,13 @@ struct parse_process {
 
     Vector* node_tree_vec;              // 包含指向树根的指针
     Vector* node_vec;                   // 用于存储解析所有节点：可以被弹出以形成其他更大的节点，例如表达式
+    Vector* symbol_tbl;                 // 保存函数名称、全局变量等内容的符号表，数据可以指向有问题的节点以及其他相关信息
     LexProcess* lex_proc;               // 指向 lex_process 的指针
+
+    struct {
+        Scope* root;
+        Scope* cur;
+    } scope;
 
     PARSE_PROCESS_NEXT_TK next_token;   // 移到下一个 token
     PARSE_PROCESS_PEEK_TK peek_token;   // 查看下一个 token
