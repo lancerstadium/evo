@@ -1,6 +1,11 @@
 
 #include "node.h"
 
+void node_append_size(Node* nd, size_t *var_size) {
+    if(nd->type == NODE_TYPE_VARIABLE) {
+        *var_size += nd->var.type->size;
+    }
+}
 
 void node_read(Node* nd) {
     if(!nd) return;

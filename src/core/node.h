@@ -54,13 +54,13 @@ struct node {
 
         // 括号表达式：(expr)
         struct parenthesis {
-            Node* expr;
+            Node* expr_nd;
         } parenthesis;
 
         // 单式
         struct unary {
             const char* op;
-            Node* operand;
+            Node* op_nd;
             union {
                 struct indirection {
                     int depth;
@@ -104,13 +104,14 @@ struct node {
         // 语句
         union stmt {
             struct return_stmt {
-                Node* expr;
+                Node* expr_nd;
             } ret;
         } stmt;
     };
 };
 
 
+void node_append_size(Node* nd, size_t *var_size);
 void node_read(Node* nd);
 
 

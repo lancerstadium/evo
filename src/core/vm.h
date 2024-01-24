@@ -6,12 +6,12 @@
 #include "data.h"
 
 
-typedef struct Evm {
+typedef struct vm {
     /// TODO:
-} Evm;
+} VM;
 
-Evm* evm_new();
-void evm_init(Evm *vm);
+VM* vm_new();
+void vm_init(VM *vm);
 
 
 
