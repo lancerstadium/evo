@@ -10,12 +10,22 @@
 #define LEX_NEXTC(lex) (lex->next_char(lex))
 #define LEX_PEEKC(lex) (lex->peek_char(lex))
 
-#define LEX_GETC_IF(lex, buffer, c, EXP)                             \
-    do{                                                              \
-        for (c = lex->peek_char(lex); EXP; c = lex->peek_char(lex)){ \
-            buffer_write(buffer, c);                                 \
-            lex->next_char(lex);                                     \
-        }                                                            \
+#define LEX_GETC_IF(lex, buffer, c, EXPR)                             \
+    do{                                                               \
+        for (c = lex->peek_char(lex); EXPR; c = lex->peek_char(lex)){ \
+            buffer_write(buffer, c);                                  \
+            lex->next_char(lex);                                      \
+        }                                                             \
+    } while (0)
+
+#define LEX_GETC_IF_NO_WS(lex, buffer, c, EXPR)                       \
+    do{                                                               \
+        for (c = lex->peek_char(lex); EXPR; c = lex->peek_char(lex)){ \
+            if(c != ' ' || c != '\t') {                               \
+                buffer_write(buffer, c);                              \
+                lex->next_char(lex);                                  \
+            }                                                         \
+        }                                                             \
     } while (0)
 
 #define LEX_ASSERT_NEXTC(lex, ec)     \
@@ -70,12 +80,11 @@
 // ==================================================================================== //
 
 static const char* lex_keyword[] = {
-    "unsigned", "signed", "char", "int",
-    "double", "long", "void", "struct",
-    "union", "static", "if", "else", 
-    "while", "for", "do", "break", 
-    "continue", "switch", "case",
-    "default", "goto", "return"
+    "mod", "use", "scope", "def", "impl",
+    "fn", "self", "pub", "pri", "let",
+    "if", "else", "while", 
+    "for", "do", "break", "continue",
+    "switch", "case", "default", "return"
 };
 
 static const char lex_single_op[] = {
@@ -133,6 +142,14 @@ static inline bool is_valid_operator(const char* op) {
     return is_single_operator(*op) || is_binary_operator(op);
 }
 
+
+static inline bool is_alpha(const char c) {
+    if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') {
+        return true;
+    }
+    return false;
+}
+
 // ==================================================================================== //
 //                                  lexer: Read String
 // ==================================================================================== //
@@ -176,10 +193,11 @@ static inline unsigned long long lexer_read_number(LexProcess* lproc) {
 // ==================================================================================== //
 
 static inline Token* lexer_create_token(LexProcess* lproc, Token* _token) {
-    token_create(_token);
-    tmp_token.pos = lproc->pos;
-    token_read(&tmp_token);
-    return &tmp_token;
+    _token->whitespace = false;
+    memcpy(&lproc->tmp_tok, _token, sizeof(Token));
+    lproc->tmp_tok.pos = lproc->pos;
+    token_read(&lproc->tmp_tok);
+    return &lproc->tmp_tok;
 }
 
 static inline Token* lexer_make_string(LexProcess* lproc) {
@@ -265,10 +283,11 @@ static inline Token* lexer_make_one_line_comment(LexProcess* lproc) {
 }
 
 static inline Token* lexer_make_mutiline_comment(LexProcess* lproc) {
+    LOG_TAG
     Buffer *buf = buffer_create();
     char c = 0;
     while(1) {
-        LEX_GETC_IF(lproc, buf, c, c != '\n' && c != EOF);
+        LEX_GETC_IF(lproc, buf, c, c != '*' && c != EOF && c != '\n');
         if(c == EOF) {
             lexer_error("EOF reached whilst in a multi-line comment. The comment was not terminated! \"%s\" \n", buffer_ptr(buf));
             exit(LEXER_ANALYSIS_ERROR);
@@ -278,30 +297,14 @@ static inline Token* lexer_make_mutiline_comment(LexProcess* lproc) {
                 lproc->next_char(lproc);
                 break;
             }
+        } else if(c == '\n') {
+            lproc->next_char(lproc);
         }
     }
     return lexer_create_token(lproc, &(Token){
         .type = TOKEN_TYPE_COMMENT,
         .sval = buffer_ptr(buf)
     });
-}
-
-static inline Token* lexer_handle_comment(LexProcess* lproc) {
-    char c = lproc->peek_char(lproc);
-    if(c == '/') {
-        lproc->next_char(lproc);
-        if(lproc->peek_char(lproc) == '/') {                // `//`
-            lproc->next_char(lproc);
-            return lexer_make_one_line_comment(lproc);
-        } else if(lproc->peek_char(lproc) == '*') {         // `/**/`
-            lproc->next_char(lproc);
-            return lexer_make_mutiline_comment(lproc);
-        } else {
-            lproc->push_char(lproc, '/');                   // `/`
-            return lexer_make_operator(lproc);
-        }
-    }
-    return NULL;
 }
 
 static inline Token* lexer_read_token_special(LexProcess* lproc) {
@@ -332,6 +335,92 @@ static inline Token* lexer_make_EOF(LexProcess* lproc) {
 }
 
 
+// ==================================================================================== //
+//                                 lexer : preprocess
+// ==================================================================================== //
+
+
+static inline Token* lexer_handle_comment(LexProcess* lproc) {
+    char c = lproc->peek_char(lproc);
+    if(c == '/') {
+        lproc->next_char(lproc);
+        if(lproc->peek_char(lproc) == '/') {                // `//`
+            lproc->next_char(lproc);
+            return lexer_make_one_line_comment(lproc);
+        } else if(lproc->peek_char(lproc) == '*') {         // `/**/`
+            lproc->next_char(lproc);
+            return lexer_make_mutiline_comment(lproc);
+        } else {
+            lproc->push_char(lproc, '/');                   // `/`
+            return lexer_make_operator(lproc);
+        }
+    }
+    return NULL;
+}
+
+
+
+static inline Token* lexer_make_connect_string(LexProcess* lproc) {
+    Buffer *buf = buffer_create();
+    if(&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_IDENTIFIER) {
+        buffer_printf(buf, "%s", lproc->tmp_tok.sval);
+        vector_pop(lproc->token_vec);
+        Token* pop_tok = (Token*)vector_back(lproc->token_vec);
+        lproc->tmp_tok = *pop_tok;
+    }
+    char c = 0;
+    LEX_GETC_IF(lproc, buf, c, c != '\n' && c != EOF);
+    return lexer_create_token(lproc, &(Token) {
+        .type = TOKEN_TYPE_STRING,
+        .sval = buffer_ptr(buf)
+    });
+}
+
+UNUSED static inline Token* lexer_make_feature_scope(LexProcess* lproc) {
+
+}
+
+static inline Token* lexer_make_macro_string(LexProcess* lproc) {
+    Buffer *buf = buffer_create();
+    char c = 0;
+    LEX_GETC_IF_NO_WS(lproc, buf, c, c != '\n' && c != EOF);
+    return lexer_create_token(lproc, &(Token){
+        .type = TOKEN_TYPE_STRING,
+        .sval = buffer_ptr(buf)
+    });
+}
+static inline Token* lexer_make_macro_scope(LexProcess* lproc) {
+    return lexer_make_macro_string(lproc);
+}
+
+static inline Token* lexer_handle_macro(LexProcess* lproc) {
+    char c = lproc->peek_char(lproc);
+    if(c == '#') {
+        lproc->next_char(lproc);
+        if(lproc->peek_char(lproc) == '#') {                // `##`
+            lproc->next_char(lproc);
+            return lexer_make_connect_string(lproc);
+        } else if(lproc->peek_char(lproc) == '[') {         // `#[`
+            lproc->next_char(lproc);
+            return lexer_make_feature_scope(lproc);
+        } else if(is_alpha(lproc->peek_char(lproc))) {      // `#alpha`
+            return lexer_make_macro_scope(lproc);
+        } else {                                            // `#`
+            return lexer_make_macro_string(lproc);
+        }
+    }
+    return NULL;
+}
+
+static inline Token* lexer_preprocess_token(LexProcess* lproc) {
+    Token* tok = NULL;
+    if(tok = lexer_handle_comment(lproc)){
+        return tok;
+    }else if(tok = lexer_handle_macro(lproc)) {
+        return tok;
+    }
+    return tok;
+}
 
 
 // ==================================================================================== //
@@ -395,7 +484,6 @@ LexProcess* lex_process_create(CompileProcess* cproc, void* priv) {
         .pos = (Pos){.col = 1, .line = 1, .filename = cproc->cfile->path},
         .token_vec = vector_create(sizeof(Token)),
         .priv = priv,
-
         .next_char = lex_process_next_char,
         .peek_char = lex_process_peek_char,
         .push_char = lex_process_push_char
@@ -432,7 +520,7 @@ void lex_process_free(LexProcess* lproc) {
 Token* lex_process_next_token(LexProcess* lproc) {
     Token* tok = NULL;
     char c = lproc->peek_char(lproc);
-    tok = lexer_handle_comment(lproc);
+    tok = lexer_preprocess_token(lproc);
     if(tok) {               // comment
         return tok;
     }

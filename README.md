@@ -2,7 +2,7 @@
 
 - `evo` is designed to be an evolvable programming language. 
 
-- `.ev` is the extension of evo. 
+- `.ec` is the extension of evo code file. 
 
 - The tool chain of evo contains modules as follows:
     - `evoc` ==> evo's compiler

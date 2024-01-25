@@ -79,10 +79,3 @@ void token_read(Token *tok) {
     log_debug("%s", buf->data);
     buffer_free(buf);
 }
-
-
-Token* token_create(Token* _token) {
-    _token->whitespace = false;
-    memcpy(&tmp_token, _token, sizeof(Token));
-    return &tmp_token;
-}

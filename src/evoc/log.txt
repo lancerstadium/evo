@@ -1,0 +1,2252 @@
+[23:04:12] [92mINFO [0m[0m[30mevoc.c:21: [0m[0m[94mmain[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/compiler.c:11: [0m[0m[94mcompile_file[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/compile_proc.c:6: [0m[0m[94mcompile_process_create[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/lex_proc.c:405: [0m[0m[94mlex_process_create[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/codegen_proc.c:23: [0m[0m[94mcodegen_process_create[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/lexer.c:8: [0m[0m[94mlex[0m() is called
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  .ec: evo code file
+    whitespace       : false
+    Position         : demo_01.ec:1:22
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:2:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:3:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  file package
+    whitespace       : false
+    Position         : demo_01.ec:3:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:4:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : mod
+    whitespace       : false
+    Position         : demo_01.ec:4:4
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : evo
+    whitespace       : false
+    Position         : demo_01.ec:4:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:4:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : demo
+    whitespace       : false
+    Position         : demo_01.ec:4:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:4:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:5:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:6:1
+
+[23:04:12] [92mINFO [0m[0m[30m../core/lex_proc.c:267: [0m[0m[94mlexer_make_mutiline_comment[0m() is called
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  nihao woshi shuaige .
+    whitespace       : false
+    Position         : demo_01.ec:8:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:9:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:10:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  import libs
+    whitespace       : false
+    Position         : demo_01.ec:10:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:11:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : use
+    whitespace       : false
+    Position         : demo_01.ec:11:4
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : std
+    whitespace       : false
+    Position         : demo_01.ec:11:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:11:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:11:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : io
+    whitespace       : false
+    Position         : demo_01.ec:11:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:11:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : str
+    whitespace       : false
+    Position         : demo_01.ec:11:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:11:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : *
+    whitespace       : false
+    Position         : demo_01.ec:11:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:11:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:11:21
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:12:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:13:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:14:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  Macros with feature
+    whitespace       : false
+    Position         : demo_01.ec:14:23
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:15:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : #
+    whitespace       : false
+    Position         : demo_01.ec:15:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : def
+    whitespace       : false
+    Position         : demo_01.ec:15:5
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : MAX_NUM
+    whitespace       : false
+    Position         : demo_01.ec:15:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : number
+    value            : 12
+    whitespace       : false
+    Position         : demo_01.ec:15:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:16:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:17:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  Macros with `!`
+    whitespace       : false
+    Position         : demo_01.ec:17:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:18:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : #
+    whitespace       : false
+    Position         : demo_01.ec:18:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : def
+    whitespace       : false
+    Position         : demo_01.ec:18:5
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : ADD
+    whitespace       : false
+    Position         : demo_01.ec:18:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:18:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:18:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:18:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : b
+    whitespace       : false
+    Position         : demo_01.ec:18:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:18:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:18:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:19:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:19:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : +
+    whitespace       : false
+    Position         : demo_01.ec:19:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : b
+    whitespace       : false
+    Position         : demo_01.ec:19:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:20:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:20:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:21:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:22:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:23:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  Super Class
+    whitespace       : false
+    Position         : demo_01.ec:23:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:24:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : def
+    whitespace       : false
+    Position         : demo_01.ec:24:4
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Animal
+    whitespace       : false
+    Position         : demo_01.ec:24:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:24:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:25:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : pub
+    whitespace       : false
+    Position         : demo_01.ec:25:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:25:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:26:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:26:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:26:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : str
+    whitespace       : false
+    Position         : demo_01.ec:26:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:26:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:27:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : age
+    whitespace       : false
+    Position         : demo_01.ec:27:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:27:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : i32
+    whitespace       : false
+    Position         : demo_01.ec:27:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:27:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:28:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:28:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:28:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:29:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:30:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  Class Or Struct with featrue
+    whitespace       : false
+    Position         : demo_01.ec:30:32
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:31:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : #
+    whitespace       : false
+    Position         : demo_01.ec:31:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : [
+    whitespace       : false
+    Position         : demo_01.ec:31:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : extend
+    whitespace       : false
+    Position         : demo_01.ec:31:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:31:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Animal
+    whitespace       : false
+    Position         : demo_01.ec:31:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:31:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ]
+    whitespace       : false
+    Position         : demo_01.ec:31:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:32:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : def
+    whitespace       : false
+    Position         : demo_01.ec:32:4
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:32:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:32:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:33:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : pub
+    whitespace       : false
+    Position         : demo_01.ec:33:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:33:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:34:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : fn
+    whitespace       : false
+    Position         : demo_01.ec:34:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : get_len
+    whitespace       : false
+    Position         : demo_01.ec:34:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:34:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : self
+    whitespace       : false
+    Position         : demo_01.ec:34:24
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:34:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:34:29
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:34:30
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:34:32
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : i32
+    whitespace       : false
+    Position         : demo_01.ec:34:36
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:34:38
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:35:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : self
+    whitespace       : false
+    Position         : demo_01.ec:35:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:35:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : len
+    whitespace       : false
+    Position         : demo_01.ec:35:21
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  return self.len;
+    whitespace       : false
+    Position         : demo_01.ec:35:60
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:36:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:36:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:37:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:38:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : fn
+    whitespace       : false
+    Position         : demo_01.ec:38:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : set_name
+    whitespace       : false
+    Position         : demo_01.ec:38:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:38:21
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : self
+    whitespace       : false
+    Position         : demo_01.ec:38:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:38:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:38:30
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:38:31
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:38:36
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:38:37
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : str
+    whitespace       : false
+    Position         : demo_01.ec:38:41
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:38:42
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:38:44
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : none
+    whitespace       : false
+    Position         : demo_01.ec:38:49
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:38:50
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:39:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:40:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : pri
+    whitespace       : false
+    Position         : demo_01.ec:40:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:40:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:41:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : len
+    whitespace       : false
+    Position         : demo_01.ec:41:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:41:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : f32
+    whitespace       : false
+    Position         : demo_01.ec:41:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:41:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:42:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:42:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:42:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:43:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:44:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  append method
+    whitespace       : false
+    Position         : demo_01.ec:44:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:45:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : impl
+    whitespace       : false
+    Position         : demo_01.ec:45:5
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:45:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:45:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:46:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : pub
+    whitespace       : false
+    Position         : demo_01.ec:46:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : fn
+    whitespace       : false
+    Position         : demo_01.ec:46:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : set_name
+    whitespace       : false
+    Position         : demo_01.ec:46:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:46:21
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : self
+    whitespace       : false
+    Position         : demo_01.ec:46:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:46:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:46:30
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:46:31
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:46:36
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:46:37
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : str
+    whitespace       : false
+    Position         : demo_01.ec:46:41
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:46:42
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:46:44
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : none
+    whitespace       : false
+    Position         : demo_01.ec:46:49
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:46:51
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:47:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : self
+    whitespace       : false
+    Position         : demo_01.ec:47:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:47:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:47:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:47:20
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:47:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:47:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:48:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:48:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:49:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:49:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:49:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:50:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:51:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : def
+    whitespace       : false
+    Position         : demo_01.ec:51:4
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Vec
+    whitespace       : false
+    Position         : demo_01.ec:51:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : <
+    whitespace       : false
+    Position         : demo_01.ec:51:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : T
+    whitespace       : false
+    Position         : demo_01.ec:51:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : >
+    whitespace       : false
+    Position         : demo_01.ec:51:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:51:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:52:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : data
+    whitespace       : false
+    Position         : demo_01.ec:52:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:52:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : T
+    whitespace       : false
+    Position         : demo_01.ec:52:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : [
+    whitespace       : false
+    Position         : demo_01.ec:52:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ]
+    whitespace       : false
+    Position         : demo_01.ec:52:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:52:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:53:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : len
+    whitespace       : false
+    Position         : demo_01.ec:53:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:53:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : i32
+    whitespace       : false
+    Position         : demo_01.ec:53:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:53:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:54:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:54:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:54:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:55:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:56:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  This is main function.
+    whitespace       : false
+    Position         : demo_01.ec:56:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:57:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : fn
+    whitespace       : false
+    Position         : demo_01.ec:57:3
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : main
+    whitespace       : false
+    Position         : demo_01.ec:57:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:57:9
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:57:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:57:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:58:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : let
+    whitespace       : false
+    Position         : demo_01.ec:58:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:58:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:58:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:58:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:58:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:59:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:59:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:59:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:59:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : Alice
+    whitespace       : false
+    Position         : demo_01.ec:59:24
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:59:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:60:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:60:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : age
+    whitespace       : false
+    Position         : demo_01.ec:60:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:60:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : number
+    value            : 8
+    whitespace       : false
+    Position         : demo_01.ec:60:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:61:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:61:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:61:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  mutable Dog a
+    whitespace       : false
+    Position         : demo_01.ec:61:41
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:62:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : let
+    whitespace       : false
+    Position         : demo_01.ec:62:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : b
+    whitespace       : false
+    Position         : demo_01.ec:62:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:62:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:62:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Dog
+    whitespace       : false
+    Position         : demo_01.ec:62:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:62:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:63:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:63:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:63:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:63:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : 李华
+    whitespace       : false
+    Position         : demo_01.ec:63:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:63:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:64:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:64:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : age
+    whitespace       : false
+    Position         : demo_01.ec:64:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:64:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : number
+    value            : 6
+    whitespace       : false
+    Position         : demo_01.ec:64:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:65:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:65:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:65:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : comment
+    value            :  const Dog b
+    whitespace       : false
+    Position         : demo_01.ec:65:39
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:66:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:66:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:66:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : set_name
+    whitespace       : false
+    Position         : demo_01.ec:66:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:66:16
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : WuKong
+    whitespace       : false
+    Position         : demo_01.ec:66:24
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:66:25
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:66:26
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:67:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:68:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : io
+    whitespace       : false
+    Position         : demo_01.ec:68:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:68:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : fmt
+    whitespace       : false
+    Position         : demo_01.ec:68:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : !
+    whitespace       : false
+    Position         : demo_01.ec:68:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:68:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : {}'s name is {}
+    whitespace       : false
+    Position         : demo_01.ec:68:30
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:68:31
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:68:33
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:68:34
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : name
+    whitespace       : false
+    Position         : demo_01.ec:68:38
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:68:39
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : a
+    whitespace       : false
+    Position         : demo_01.ec:68:41
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : .
+    whitespace       : false
+    Position         : demo_01.ec:68:42
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : get_len
+    whitespace       : false
+    Position         : demo_01.ec:68:49
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:68:50
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:68:51
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:68:52
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:68:53
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:69:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:70:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : let
+    whitespace       : false
+    Position         : demo_01.ec:70:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : *
+    whitespace       : false
+    Position         : demo_01.ec:70:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : pc
+    whitespace       : false
+    Position         : demo_01.ec:70:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : =
+    whitespace       : false
+    Position         : demo_01.ec:70:14
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : Str
+    whitespace       : false
+    Position         : demo_01.ec:70:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:70:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : new
+    whitespace       : false
+    Position         : demo_01.ec:70:22
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:70:23
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : hello, world!
+    whitespace       : false
+    Position         : demo_01.ec:70:38
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:70:39
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:70:40
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:71:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:72:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : keyword
+    value            : scope
+    whitespace       : false
+    Position         : demo_01.ec:72:10
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : exit
+    whitespace       : false
+    Position         : demo_01.ec:72:15
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : {
+    whitespace       : false
+    Position         : demo_01.ec:72:17
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:73:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:74:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:74:6
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:75:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:76:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:77:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : io
+    whitespace       : false
+    Position         : demo_01.ec:77:7
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : :
+    whitespace       : false
+    Position         : demo_01.ec:77:8
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : fmt
+    whitespace       : false
+    Position         : demo_01.ec:77:11
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : operator
+    value            : !
+    whitespace       : false
+    Position         : demo_01.ec:77:12
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : (
+    whitespace       : false
+    Position         : demo_01.ec:77:13
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : string
+    value            : {&}
+    whitespace       : false
+    Position         : demo_01.ec:77:18
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ,
+    whitespace       : false
+    Position         : demo_01.ec:77:19
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : identifier
+    value            : pc
+    whitespace       : false
+    Position         : demo_01.ec:77:22
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : )
+    whitespace       : false
+    Position         : demo_01.ec:77:23
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : ;
+    whitespace       : false
+    Position         : demo_01.ec:77:24
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:78:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : symbol
+    value            : }
+    whitespace       : false
+    Position         : demo_01.ec:78:2
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : newline
+    value            : \n
+    whitespace       : false
+    Position         : demo_01.ec:79:1
+
+[23:04:12] [36mDEBU [0m[0m[30m../core/token.c:79: [0m
+  Read token: 
+    type             : EOF
+    whitespace       : false
+    Position         : demo_01.ec:79:1
+
+[23:04:12] [92mINFO [0m[0m[30m../core/parser.c:12: [0m[0m[94mparse[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/codegen_proc.c:35: [0m[0m[94mcodegen_process_free[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/parse_proc.c:353: [0m[0m[94mparse_process_free[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/lex_proc.c:431: [0m[0m[94mlex_process_free[0m() is called
+[23:04:12] [92mINFO [0m[0m[30m../core/compile_proc.c:32: [0m[0m[94mcompile_process_free[0m() is called
+[23:04:12] [92mINFO [0m[0m[30mevoc.c:26: [0mCompile success!

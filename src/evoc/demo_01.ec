@@ -1,17 +1,21 @@
+// .ec: evo code file
+
 // file package
 mod evo:demo;
 
+/* nihao 
+woshi shuaige .
+*/
 
 // import libs
 use std:{io, str:*};
 
 
 // Macros with feature
-#[macro]
-def MAX_NUM 12
+#def MAX_NUM 12
 
 // Macros with `!`
-def ADD!(a, b) {
+#def ADD(a, b) {
     a+b
 }
 
@@ -64,6 +68,11 @@ fn main() {
     io:fmt!("{}'s name is {}", a.name, a.get_len());
 
     let *pc = Str:new("hello, world!");
+
+    scope exit {
+        
+    }
+
     
     io:fmt!("{&}", pc);
 }

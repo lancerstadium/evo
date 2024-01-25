@@ -4,6 +4,7 @@
 #define CORE_LEXER_H
 
 #include "token.h"
+#include "scope.h"
 #include "compiler.h"
 
 #define lexer_error(...) log_error( _bmag("[Lexer]") " " __VA_ARGS__)
@@ -24,11 +25,14 @@ struct lex_process {
 
     Pos pos;                            // 当前字符位置
     Pos last_pos;                       // 上一个字符的位置
+    Token tmp_tok;                      // 用于存储上一个 token
     Vector* token_vec;                  // 用于储存生成的 token
     CompileProcess* compile_proc;       // 指向 compile_process 的指针
 
     int cur_expr_depth;                 // 记录当前处于几层括号夹层内
     Buffer* parenthesis_buffer;         // 用于记录括号之间的字符串
+
+    Scope* root_scoop;                  // 根域
 
     LEX_PROCESS_NEXT_CHAR next_char;    // 读取下一字符，进一位
     LEX_PROCESS_PEEK_CHAR peek_char;    // 读取下一字符，留在原地

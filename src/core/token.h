@@ -40,7 +40,6 @@ extern Token tmp_token;
 
 char* token_get_type_str(Token* tok);
 void token_read(Token *tok);
-Token* token_create(Token* _token);
 
 
 #endif // CORE_TOKEN_H
