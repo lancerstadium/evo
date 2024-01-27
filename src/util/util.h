@@ -11,6 +11,7 @@
 //                                     Include
 // ==================================================================================== //
 
+#include "hashmap.h"
 #include "vector.h"
 #include "buffer.h"
 #include "fio.h"

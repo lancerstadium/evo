@@ -8,11 +8,12 @@
 typedef enum {
     SCOPE_TYPE_PROC,            // 进程域
     SCOPE_TYPE_MOD,             // 模块域
-    SCOPE_TYPE_macro,           // 宏域
+    SCOPE_TYPE_MARCO,           // 宏域
     SCOPE_TYPE_DEF,             // 定义域
     SCOPE_TYPE_ENUM,            // 枚举域
     SCOPE_TYPE_IMPL,            // 应用域
     SCOPE_TYPE_FN,              // 函数域
+    SCOPE_TYPE_COND,            // 控制域
     SCOPE_TYPE_NAME,            // 命名域
     SCOPE_TYPE_BASE,            // 基本域
 } ScopeType;

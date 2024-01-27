@@ -32,6 +32,11 @@ struct lex_process {
     int cur_expr_depth;                 // 记录当前处于几层括号夹层内
     Buffer* parenthesis_buffer;         // 用于记录括号之间的字符串
 
+    struct {
+        bool macro_def;                 // 是否在宏定义
+        HashMap* macro_sym_tbl;         // 存储宏的 hashmap
+    } pre;
+
     Scope* root_scoop;                  // 根域
 
     LEX_PROCESS_NEXT_CHAR next_char;    // 读取下一字符，进一位

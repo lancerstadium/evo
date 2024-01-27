@@ -396,7 +396,7 @@ int vector_insert(Vector*vector_dst, Vector*vector_src, int dst_index)
 void vector_pop(Vector* vector)
 {
     // here
-    if(vector_empty) {
+    if(vector_empty(vector)) {
         fprintf(stderr, "Vector empty!\n");
         return;
     }

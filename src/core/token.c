@@ -12,16 +12,17 @@ static inline void token_pos_read(Buffer* buf,  struct pos* pos) {
 
 char* token_get_type_str(Token* tok) {
     switch(tok->type) {
-        case TOKEN_TYPE_IDENTIFIER: return "identifier";
-        case TOKEN_TYPE_KEYWORD:    return "keyword";
-        case TOKEN_TYPE_OPERATOR:   return "operator";
-        case TOKEN_TYPE_SYMBOL:     return "symbol";
-        case TOKEN_TYPE_NUMBER:     return "number";
-        case TOKEN_TYPE_STRING:     return "string";
-        case TOKEN_TYPE_COMMENT:    return "comment";
-        case TOKEN_TYPE_NEWLINE:    return "newline";
-        case TOKEN_TYPE_EOF:        return "EOF";
-        default:                    return "unknown";
+        case TOKEN_TYPE_IDENTIFIER:     return "identifier";
+        case TOKEN_TYPE_KEYWORD:        return "keyword";
+        case TOKEN_TYPE_OPERATOR:       return "operator";
+        case TOKEN_TYPE_SYMBOL:         return "symbol";
+        case TOKEN_TYPE_NUMBER:         return "number";
+        case TOKEN_TYPE_STRING:         return "string";
+        case TOKEN_TYPE_COMMENT:        return "comment";
+        case TOKEN_TYPE_NEWLINE:        return "newline";
+        case TOKEN_TYPE_PRE_KEYWORD:    return "pre-keyword";
+        case TOKEN_TYPE_EOF:            return "EOF";
+        default:                        return "unknown";
     };
 }
 
@@ -59,6 +60,10 @@ void token_read(Token *tok) {
             buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
             buffer_printf(buf, "    value            : %s\n", tok->sval);
             break;
+        case TOKEN_TYPE_PRE_KEYWORD:
+            buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
+            buffer_printf(buf, "    value            : %s\n", tok->sval);
+            break;
         case TOKEN_TYPE_EOF:
             buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
             break;
@@ -69,7 +74,7 @@ void token_read(Token *tok) {
         default:
             break;
     };
-    buffer_printf(buf, "    whitespace       : %s\n", tok->whitespace ? "true" : "false");
+    buffer_printf(buf, "    whitespace       : %s\n", (tok->whitespace == false) ? "false" : "true");
     if(tok->between_brackets) {
         buffer_printf(buf, "    between_brackets : %s\n", tok->between_brackets);
     }
