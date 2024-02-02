@@ -10,7 +10,6 @@ typedef struct node Node;
 // AST节点类型
 typedef enum {
     NODE_TYPE_EXPRESSION,               // 表达式
-    NODE_TYPE_EXPRESSION_PARENTHESIS,   // 
     NODE_TYPE_NUMBER,                   // 数字
     NODE_TYPE_IDENTIFIER,               // 标识符
     NODE_TYPE_VARIABLE,                 // 变量

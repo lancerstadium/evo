@@ -21,6 +21,7 @@ char* token_get_type_str(Token* tok) {
         case TOKEN_TYPE_COMMENT:        return "comment";
         case TOKEN_TYPE_NEWLINE:        return "newline";
         case TOKEN_TYPE_PRE_KEYWORD:    return "pre-keyword";
+        case TOKEN_TYPE_DATATYPE:       return "datatype";
         case TOKEN_TYPE_EOF:            return "EOF";
         default:                        return "unknown";
     };
@@ -61,6 +62,10 @@ void token_read(Token *tok) {
             buffer_printf(buf, "    value            : %s\n", tok->sval);
             break;
         case TOKEN_TYPE_PRE_KEYWORD:
+            buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
+            buffer_printf(buf, "    value            : %s\n", tok->sval);
+            break;
+        case TOKEN_TYPE_DATATYPE:
             buffer_printf(buf, "    type             : %s\n", token_get_type_str(tok));
             buffer_printf(buf, "    value            : %s\n", tok->sval);
             break;

@@ -41,8 +41,9 @@ typedef enum {
     DATA_TYPE_STR,
     DATA_TYPE_STRUCT,
     DATA_TYPE_UNION,
-    DATA_TYPE_USER_DEFINED,
+    DATA_TYPE_DEFINED,
     DATA_TYPE_ANY,
+    DATA_TYPE_NONE
 } DataTypeEnum;
 
 typedef struct {

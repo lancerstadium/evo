@@ -81,29 +81,65 @@
 //                                  lexer: String Identity
 // ==================================================================================== //
 
+/** 关键字 */
 static const char* lex_keyword[] = {
     "mod", "use", "scope", "def", "undef",
-    "impl", "fn", "self", "pub", "pri", "let",
-    "if", "else", "elif", "end", "while",
-    "for", "do", "break", "continue",
+    "impl", "fn", "self", "pub", "pri", 
+    "let", "mut", "if", "else", "elif", "end", 
+    "while", "for", "do", "break", "continue",
     "switch", "case", "default", "return"
 };
-
+/** 数据类型 */
+static const char* lex_datatype[] = {
+    [DATA_TYPE_U8]          = "u8", 
+    [DATA_TYPE_U16]         = "u16", 
+    [DATA_TYPE_U32]         = "u32", 
+    [DATA_TYPE_U64]         = "u64", 
+    [DATA_TYPE_I8]          = "i8",  
+    [DATA_TYPE_I16]         = "i16", 
+    [DATA_TYPE_I32]         = "i32", 
+    [DATA_TYPE_I64]         = "i64",
+    [DATA_TYPE_F32]         = "f32", 
+    [DATA_TYPE_F64]         = "f64", 
+    [DATA_TYPE_CHAR]        = "char", 
+    [DATA_TYPE_BOOL]        = "bool",
+    [DATA_TYPE_SHORT]       = "short",
+    [DATA_TYPE_INT]         = "int",
+    [DATA_TYPE_LONG]        = "lint",
+    [DATA_TYPE_LONG_LONG]   = "llint",
+    [DATA_TYPE_UINT]        = "uint",
+    [DATA_TYPE_ULONG]       = "ulint",
+    [DATA_TYPE_ULONG_LONG]  = "ullint",
+    [DATA_TYPE_FLOAT]       = "float",
+    [DATA_TYPE_DOUBLE]      = "double",
+    [DATA_TYPE_STR]         = "string",
+    [DATA_TYPE_STRUCT]      = "struct",
+    [DATA_TYPE_UNION]       = "union",
+    [DATA_TYPE_DEFINED]     = "defined",
+    [DATA_TYPE_ANY]         = "any",
+    [DATA_TYPE_NONE]        = "none"
+};
+/** 单元运算符 */
 static const char lex_single_op[] = {
     '+', '-', '/', '*', '=', '>', '<',
     '|', '&', '^', '%', '~', '!'
 };
-
+/** 二元运算符 */
 static const char* lex_binary_op[] = {
     "+=", "-=", "*=", "/=", ">>", "<<",
     ">=", "<=", "||", "&&", "++", "--",
     "==", "!=", "!=", "->"
 };
+/** 三元运算符 */
+static const char* lex_ternary_op[] = {
+    "<=>"
+};
 
-#define LEX_KEYWORD_NUM    GET_ARR_LEN(lex_keyword)
-#define LEX_SINGLE_OP_NUM  GET_ARR_LEN(lex_single_op)
-#define LEX_BINARY_OP_NUM  GET_ARR_LEN(lex_binary_op)
-
+#define LEX_KEYWORD_NUM     GET_ARR_LEN(lex_keyword)
+#define LEX_DATATYPE_NUM    GET_ARR_LEN(lex_datatype)
+#define LEX_SINGLE_OP_NUM   GET_ARR_LEN(lex_single_op)
+#define LEX_BINARY_OP_NUM   GET_ARR_LEN(lex_binary_op)
+#define LEX_TERNARY_OP_NUM  GET_ARR_LEN(lex_ternary_op)
 
 // ==================================================================================== //
 //                                     lexer: declare
@@ -138,6 +174,18 @@ static inline int get_keyword_idx(const char* str) {
     return -1;
 }
 
+static inline bool is_datatype(const char* str) {
+    bool is_data = false;
+    int i;
+    for(i = 0; i < LEX_DATATYPE_NUM; i++) {
+        if(STR_EQ(str, lex_datatype[i])){
+            is_data = true;
+            return is_data;
+        }
+    }
+    return is_data;
+}
+
 static inline bool is_single_operator(char op) {
     bool is_single = false;
     int i;
@@ -162,10 +210,21 @@ static inline bool is_binary_operator(const char* op) {
     return is_binary;
 }
 
-static inline bool is_valid_operator(const char* op) {
-    return is_single_operator(*op) || is_binary_operator(op);
+static inline bool is_ternary_operator(const char* op) {
+    bool is_ternary = false;
+    int i;
+    for(i = 0; i < LEX_TERNARY_OP_NUM; i++) {
+        if(STR_EQ(op, lex_ternary_op[i])){
+            is_ternary = true;
+            return is_ternary;
+        }
+    }
+    return is_ternary;
 }
 
+static inline bool is_valid_operator(const char* op) {
+    return is_single_operator(*op) || is_binary_operator(op) || is_ternary_operator(op);
+}
 
 static inline bool is_alpha(const char c) {
     if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') {
@@ -183,12 +242,16 @@ static inline const char* lexer_read_operator(LexProcess* lproc) {
     Buffer* buf = buffer_create();
     buffer_write(buf, op);
     op = lproc->peek_char(lproc);
-    if(is_single_operator(op)) {
+    if(is_single_operator(op)) {        // 二元运算符
         buffer_write(buf, op);
         lproc->next_char(lproc);
+        op = lproc->peek_char(lproc);
+        if(is_single_operator(op)) {    // 三元运算符
+            buffer_write(buf, op);
+            lproc->next_char(lproc);
+        }
     }
-    buffer_write(buf, 0x00);    // 结束符号
-    
+    buffer_write(buf, 0x00);            // 结束符号
     const char* buf_ptr = buffer_ptr(buf);
     if(!is_valid_operator(buf_ptr)) {
         lexer_error("Invalid operator: `%s`", buf_ptr);
@@ -290,6 +353,11 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
             .type = TOKEN_TYPE_KEYWORD,
             .sval = buffer_ptr(buf)
         });
+    } else if(is_datatype(buffer_ptr(buf))) {       // 返回datatype
+        return lexer_create_token(lproc, &(Token){
+            .type = TOKEN_TYPE_DATATYPE,
+            .sval = buffer_ptr(buf)
+        });
     } else {
         // 检查是否在宏定义：`#def`
         if(&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_PRE_KEYWORD && STR_EQ(lproc->tmp_tok.sval, "def")) {
@@ -305,7 +373,6 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
             Buffer* buf2 = buffer_create();
             LEX_GETC_IF_NO_WS(lproc, buf2, c, c != '\n' && c != EOF);
             hashmap_set(lproc->pre.macro_sym_tbl, buffer_ptr(buf), buffer_ptr(buf2));
-            log_info("key: %s, value: %s", buffer_ptr(buf), hashmap_get(lproc->pre.macro_sym_tbl, buffer_ptr(buf)));
             return lex_process_next_token(lproc);
         }
         return lexer_create_token(lproc, &(Token){   // 返回ident

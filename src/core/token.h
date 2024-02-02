@@ -13,9 +13,10 @@ typedef enum {
     TOKEN_TYPE_SYMBOL,          // 符号
     TOKEN_TYPE_NUMBER,          // 数字
     TOKEN_TYPE_STRING,          // 字符串
+    TOKEN_TYPE_DATATYPE,        // 数据类型
     TOKEN_TYPE_COMMENT,         // 注释
     TOKEN_TYPE_NEWLINE,         // 换行
-    TOKEN_TYPE_PRE_KEYWORD,   // 预处理关键词
+    TOKEN_TYPE_PRE_KEYWORD,     // 预处理关键词
 } TokenType;
 
 typedef struct token {

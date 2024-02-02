@@ -72,54 +72,6 @@ static inline bool is_unary_operator(const char *op) {
     return STR_EQ(op, "-") || STR_EQ(op, "!") || STR_EQ(op, "~");
 }
 
-
-static const char* keyword_variable_modified[] = {
-    "unsigned", "signed", "static"
-};
-
-static const char* keyword_variable_datatype[] = {
-    [DATA_TYPE_ANY]   = "void",
-    [DATA_TYPE_CHAR]  = "char",
-    [DATA_TYPE_SHORT] = "short",
-    [DATA_TYPE_INT]   = "int",
-    [DATA_TYPE_LONG]  = "long",
-    [DATA_TYPE_FLOAT] = "float",
-    [DATA_TYPE_DOUBLE]= "double",
-};
-
-#define PARSE_KEYWORD_VAR_MODIFIED_NUM  GET_ARR_LEN(keyword_variable_modified)
-
-#define PARSE_KEYWORD_VAR_DATATYPE_NUM  GET_ARR_LEN(keyword_variable_datatype)
-
-static inline bool is_keyword_variable_modified(const char* str) {
-    bool is_key_mod = false;
-    int i;
-    for(i = 0; i < PARSE_KEYWORD_VAR_MODIFIED_NUM; i++) {
-        if(keyword_variable_modified[i] && STR_EQ(str, keyword_variable_modified[i])){
-            is_key_mod = true;
-            return is_key_mod;
-        }
-    }
-    return is_key_mod;
-}
-
-static inline bool is_keyword_variable_datatype(const char* str) {
-    bool is_key_type = false;
-    int i;
-    for(i = 0; i < PARSE_KEYWORD_VAR_DATATYPE_NUM; i++) {
-        if(keyword_variable_datatype[i] && STR_EQ(str, keyword_variable_datatype[i])){
-            is_key_type = true;
-            return is_key_type;
-        }
-    }
-    return is_key_type;
-}
-
-static inline bool is_datatype_struct_or_union(Node* nd) {
-    if(!nd) return false;
-    return (nd->type == DATA_TYPE_STRUCT) || (nd->type == DATA_TYPE_UNION);
-}
-
 // ==================================================================================== //
 //                            parser: Token -> Node
 // ==================================================================================== //
@@ -185,16 +137,30 @@ static inline bool parser_next_token_is_keyword(ParseProcess* pproc, const char*
     return tok && tok->type == TOKEN_TYPE_KEYWORD && STR_EQ(tok->sval, kw);
 }
 
+static inline bool parser_next_token_is_datatype(ParseProcess* pproc, const char* dt) {
+    Token* tok = pproc->peek_token(pproc);
+    return tok && tok->type == TOKEN_TYPE_DATATYPE && STR_EQ(tok->sval, dt);
+}
+
 static inline bool parser_next_token_is_symbol(ParseProcess* pproc, char sym) {
-    LOG_TAG
     Token* tok = pproc->peek_token(pproc);
     return tok && tok->type == TOKEN_TYPE_SYMBOL && tok->cval == sym;
 }
 
+// ==================================================================================== //
+//                             parser: AST Consturct
+// ==================================================================================== //
 
-// ==================================================================================== //
-//                               parser: Make Node
-// ==================================================================================== //
+// stmt = "{" compound-stmt
+//      | expr-stmt
+// static inline void parser_make_stmt(ParseProcess* pproc) {
+//     if(parser_next_token_is_symbol(pproc, '{')) {
+//         parser_make_compound_stmt(pproc);
+//         return;
+//     }
+//     parser_make_expr_stmt(pproc);
+//     return;
+// }
 
 static inline void parser_make_expr_node(ParseProcess* pproc, Node* nd_l, Node* nd_r, const char* op) {
     pproc->create_node(pproc, &(Node){
@@ -205,21 +171,6 @@ static inline void parser_make_expr_node(ParseProcess* pproc, Node* nd_l, Node* 
     });
 }
 
-static inline void parser_make_expr_parentheses_node(ParseProcess* pproc, Node* expr_nd) {
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_EXPRESSION_PARENTHESIS,
-        .parenthesis.expr_nd = expr_nd
-    });
-}
-
-static inline void parser_make_struct_node(ParseProcess* pproc, const char* stc_name, Node* body_nd) {
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_STRUCT,
-        .stc.name = stc_name,
-        .stc.body_nd = body_nd
-    });
-}
-
 static inline void parser_make_unary_node(ParseProcess* pproc, const char* unary_op, Node* op_nd) {
     pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_UNARY,
@@ -227,43 +178,6 @@ static inline void parser_make_unary_node(ParseProcess* pproc, const char* unary
         .unary.op_nd = op_nd
     });
 }
-
-static inline void parser_make_return_node(ParseProcess* pproc, Node* expr_nd) {
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_STATEMENT_RETURN,
-        .stmt.ret.expr_nd = expr_nd
-    });
-}
-
-static inline void parser_make_var_node(ParseProcess* pproc, DataType* dt, Token* name_nd, Node* val_nd) {
-    LOG_TAG
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_VARIABLE,
-        .var.type = dt,
-        .var.name = name_nd->sval,
-        .var.val = val_nd
-    });
-}
-
-static inline void parser_make_func_node(ParseProcess* pproc, DataType* dt, const char* name, Vector* argv, Node* body) {
-    LOG_TAG
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_FUNCTION,
-        .func.rtype = dt,
-        .func.name = name,
-        .func.argv = argv,
-        .func.body_nd = body
-    });
-}
-
-static inline void parser_make_body_node(ParseProcess* pproc, Vector* body_vec, size_t var_size) {
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_BODY,
-        .body.statements = body_vec,
-        .body.variable_size = var_size
-    });
-}
-
 
 
 // ==================================================================================== //
@@ -337,12 +251,13 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
         .lex_proc = lproc,
         .node_vec = vector_create(sizeof(Node)),
         .node_tree_vec = vector_create(sizeof(Node)),
-        .next_token = parse_process_next_token,
-        .peek_token = parse_process_peek_token,
-        .excp_token = parse_process_excp_token,
-        .peek_node  = parse_process_peek_node,
-        .pop_node   = parse_process_pop_node,
-        .push_node  = parse_process_push_node,
+        .symbol_tbl  = hashmap_create(),
+        .next_token  = parse_process_next_token,
+        .peek_token  = parse_process_peek_token,
+        .excp_token  = parse_process_excp_token,
+        .peek_node   = parse_process_peek_node,
+        .pop_node    = parse_process_pop_node,
+        .push_node   = parse_process_push_node,
         .create_node = parse_process_create_node
     };
 
@@ -356,16 +271,16 @@ void parse_process_free(ParseProcess* pproc) {
     }
     vector_free(pproc->node_tree_vec);
     vector_free(pproc->node_vec);
-    if(pproc->next_token) pproc->next_token = NULL;
-    if(pproc->peek_token) pproc->peek_token = NULL;
-    if(pproc->excp_token) pproc->excp_token = NULL;
-    if(pproc->peek_node) pproc->peek_node = NULL;
-    if(pproc->pop_node) pproc->pop_node = NULL;
-    if(pproc->push_node) pproc->push_node = NULL;
-    if(pproc->create_node) pproc->create_node = NULL;
+    hashmap_destroy(pproc->symbol_tbl);
+    if(pproc->next_token)   pproc->next_token = NULL;
+    if(pproc->peek_token)   pproc->peek_token = NULL;
+    if(pproc->excp_token)   pproc->excp_token = NULL;
+    if(pproc->peek_node)    pproc->peek_node = NULL;
+    if(pproc->pop_node)     pproc->pop_node = NULL;
+    if(pproc->push_node)    pproc->push_node = NULL;
+    if(pproc->create_node)  pproc->create_node = NULL;
     free(pproc);
 }
-
 
 int parse_process_next(ParseProcess* pproc) {
     LOG_TAG
