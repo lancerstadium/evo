@@ -280,9 +280,6 @@ static inline unsigned long long lexer_read_number(LexProcess* lproc) {
 // ==================================================================================== //
 
 static inline Token* lexer_create_token(LexProcess* lproc, Token* _token) {
-    if(_token->whitespace != false) {
-        _token->whitespace = true;
-    }
     memcpy(&lproc->tmp_tok, _token, sizeof(Token));
     lproc->tmp_tok.pos = lproc->pos;
     return &lproc->tmp_tok;
@@ -502,7 +499,6 @@ static inline Token* lexer_make_connect_ident_or_string(LexProcess* lproc) {
             return lexer_create_token(lproc, &(Token) {
                 .type = TOKEN_TYPE_STRING,
                 .sval = buffer_ptr(buf),
-                .whitespace = false
             });
         }
     }else if (&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_IDENTIFIER) {
@@ -518,7 +514,6 @@ static inline Token* lexer_make_connect_ident_or_string(LexProcess* lproc) {
     return lexer_create_token(lproc, &(Token) {
         .type = TOKEN_TYPE_IDENTIFIER,
         .sval = buffer_ptr(buf),
-        .whitespace = false
     });
 }
 
@@ -533,7 +528,6 @@ static inline Token* lexer_make_macro_string(LexProcess* lproc) {
     return lexer_create_token(lproc, &(Token){
         .type = TOKEN_TYPE_STRING,
         .sval = buffer_ptr(buf),
-        .whitespace = false
     });
 }
 static inline Token* lexer_make_macro_keyword(LexProcess* lproc) {
@@ -551,7 +545,6 @@ static inline Token* lexer_make_macro_keyword(LexProcess* lproc) {
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_STRING,
             .sval = buffer_ptr(buf),
-            .whitespace = false
         });
     }
 }

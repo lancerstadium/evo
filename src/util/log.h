@@ -90,6 +90,14 @@ void log_msg(int level, const char *file, int line, const char *fmt, ...);
 // log日志打印：打印错误
 #define log_error(...) log_msg(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
+#define log_error_if(expr, ...) \
+    do { \
+        if((expr)) { \
+            log_msg(LOG_LEVEL_ERROR, __FILE__, __LINE__, ANSI_FMT(#expr, ANSI_BRIGHT_RED) " "  __VA_ARGS__); \
+            exit(-1); \
+        } \
+    } while(0)
+
 // log日志打印：打印严重错误
 #define log_fatal(...) \
     do{ \

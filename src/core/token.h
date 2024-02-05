@@ -32,8 +32,6 @@ typedef struct token {
         void* any;
     };
 
-    bool whitespace;
-    const char* between_brackets;   // 在括号中间的内容
     Pos pos;
 } Token;
 

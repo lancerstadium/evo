@@ -14,6 +14,8 @@
 #include "hashmap.h"
 #include "vector.h"
 #include "buffer.h"
+#include "toml.h"
+#include "widget.h"
 #include "fio.h"
 #include "pos.h"
 #include "utf8.h"
