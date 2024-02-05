@@ -32,6 +32,10 @@ typedef struct token {
         void* any;
     };
 
+    int edep;
+    int ldep;
+    int sdep;
+
     Pos pos;
 } Token;
 

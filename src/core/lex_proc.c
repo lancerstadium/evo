@@ -281,6 +281,9 @@ static inline unsigned long long lexer_read_number(LexProcess* lproc) {
 
 static inline Token* lexer_create_token(LexProcess* lproc, Token* _token) {
     memcpy(&lproc->tmp_tok, _token, sizeof(Token));
+    lproc->tmp_tok.edep = lproc->cur_expr_depth;
+    lproc->tmp_tok.ldep = lproc->cur_list_depth;
+    lproc->tmp_tok.sdep = lproc->cur_scope_depth;
     lproc->tmp_tok.pos = lproc->pos;
     return &lproc->tmp_tok;
 }
@@ -341,10 +344,42 @@ static inline Token* lexer_make_number(LexProcess* lproc) {
     });
 }
 
+static inline Token* lexer_make_ident(LexProcess* lproc, const char* buf1) {
+    char c = lproc->peek_char(lproc);
+    // 检查上一个token是否为宏定义：`#def`
+    if(&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_PRE_KEYWORD && STR_EQ(lproc->tmp_tok.sval, "def")) {
+        lproc->pre.macro_def = true;
+        if(lproc->pre.macro_sym_tbl == NULL) {
+            lproc->pre.macro_sym_tbl = hashmap_create();
+        }
+        // 推掉`def`
+        vector_pop(lproc->token_vec);
+        Token* pop_tok = (Token*)vector_back(lproc->token_vec);
+        lproc->tmp_tok = *pop_tok;
+        c = 0;
+        Buffer* buf2 = buffer_create();
+        LEX_GETC_IF_NO_WS(lproc, buf2, c, c != '\n' && c != EOF);
+        hashmap_set(lproc->pre.macro_sym_tbl, buf1, buffer_ptr(buf2));
+        return lex_process_next_token(lproc);
+    } else if(lproc->pre.macro_sym_tbl != NULL && hashmap_contains(lproc->pre.macro_sym_tbl, buf1)) {
+        const char* macro_buf = hashmap_get(lproc->pre.macro_sym_tbl, buf1);
+        return lexer_create_token(lproc, &(Token){
+            .type = TOKEN_TYPE_IDENTIFIER,
+            .sval = macro_buf
+        });
+    } else {        // 返回ident
+        return lexer_create_token(lproc, &(Token){   
+            .type = TOKEN_TYPE_IDENTIFIER,
+            .sval = buf1
+        });
+    }
+}
+
 static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
     Buffer* buf = buffer_create();
     char c = lproc->peek_char(lproc);
     LEX_GETC_IF(lproc, buf, c, (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_');
+
     if(is_keyword(buffer_ptr(buf))) {               // 返回keyword
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_KEYWORD,
@@ -356,31 +391,20 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
             .sval = buffer_ptr(buf)
         });
     } else {
-        // 检查是否在宏定义：`#def`
-        if(&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_PRE_KEYWORD && STR_EQ(lproc->tmp_tok.sval, "def")) {
-            lproc->pre.macro_def = true;
-            if(lproc->pre.macro_sym_tbl == NULL) {
-                lproc->pre.macro_sym_tbl = hashmap_create();
-            }
-            // 推掉``
-            vector_pop(lproc->token_vec);
-            Token* pop_tok = (Token*)vector_back(lproc->token_vec);
-            lproc->tmp_tok = *pop_tok;
-            c = 0;
-            Buffer* buf2 = buffer_create();
-            LEX_GETC_IF_NO_WS(lproc, buf2, c, c != '\n' && c != EOF);
-            hashmap_set(lproc->pre.macro_sym_tbl, buffer_ptr(buf), buffer_ptr(buf2));
-            return lex_process_next_token(lproc);
-        }
-        return lexer_create_token(lproc, &(Token){   // 返回ident
-            .type = TOKEN_TYPE_IDENTIFIER,
-            .sval = buffer_ptr(buf)
-        });
+        return lexer_make_ident(lproc, buffer_ptr(buf));
     }
 }
 
 static inline Token* lexer_make_symbol(LexProcess* lproc) {
     char c = lproc->next_char(lproc);
+    switch(c) {
+        case '(' :  lproc->cur_expr_depth++;  break;
+        case ')' :  lproc->cur_expr_depth--;  break;
+        case '[' :  lproc->cur_list_depth++;  break;
+        case ']' :  lproc->cur_list_depth--;  break;
+        case '{' :  lproc->cur_scope_depth++; break;
+        case '}' :  lproc->cur_scope_depth--; break;
+    }
     return lexer_create_token(lproc, &(Token){   
         .type = TOKEN_TYPE_SYMBOL,
         .cval = c
@@ -477,42 +501,34 @@ static inline Token* lexer_handle_comment(LexProcess* lproc) {
 static inline Token* lexer_make_connect_ident_or_string(LexProcess* lproc) {
     Buffer *buf = buffer_create();
     char c = 0;
-    if (&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_STRING) {
-        buffer_printf(buf, "%s", lproc->tmp_tok.sval);
-        vector_pop(lproc->token_vec);
-        Token* pop_tok = (Token*)vector_back(lproc->token_vec);
-        lproc->tmp_tok = *pop_tok;
-        c = lproc->peek_char(lproc);
-        for(;c == ' ' || c == '\t' || c == '\n'; ) {
-            c = lproc->next_char(lproc);
-            log_info("%c", c);
-        }
-        if(c == '"') {
-            char c = lproc->next_char(lproc);
-            for(; c!= '"' && c != EOF; c = lproc->next_char(lproc)) {
-                if(c == '\\') { // 转义字符
-                    lproc->next_char(lproc);
-                }
-                buffer_write(buf, c);
+    TokenType last_type = lproc->tmp_tok.type;
+    buffer_printf(buf, "%s", lproc->tmp_tok.sval);
+    vector_pop(lproc->token_vec);
+    Token* pop_tok = (Token*)vector_back(lproc->token_vec);
+    lproc->tmp_tok = *pop_tok;
+    c = lproc->peek_char(lproc);
+    for(;c == ' ' || c == '\t' || c == '\n'; ) {
+        c = lproc->next_char(lproc);
+        log_info("%c", c);
+    }
+    if(c == '"') {              // 如果有 ""，默认将前面转化为 string
+        char c = lproc->next_char(lproc);
+        for(; c!= '"' && c != EOF; c = lproc->next_char(lproc)) {
+            if(c == '\\') { // 转义字符
+                lproc->next_char(lproc);
             }
-            buffer_write(buf, 0x00);
-            return lexer_create_token(lproc, &(Token) {
-                .type = TOKEN_TYPE_STRING,
-                .sval = buffer_ptr(buf),
-            });
+            buffer_write(buf, c);
         }
-    }else if (&lproc->tmp_tok && lproc->tmp_tok.type == TOKEN_TYPE_IDENTIFIER) {
-        LOG_TAG
-        buffer_printf(buf, "%s", lproc->tmp_tok.sval);
-        vector_pop(lproc->token_vec);
-        Token* pop_tok = (Token*)vector_back(lproc->token_vec);
-        lproc->tmp_tok = *pop_tok;
-        for(;c == ' ' || c == '\t' || c == '\n'; c = lproc->next_char(lproc)){}
+        buffer_write(buf, 0x00);
+        return lexer_create_token(lproc, &(Token) {
+            .type = TOKEN_TYPE_STRING,
+            .sval = buffer_ptr(buf),
+        });
     }
     LOG_TAG
     LEX_GETC_IF_NO_WS(lproc, buf, c,  c != '\n' && c != EOF);
     return lexer_create_token(lproc, &(Token) {
-        .type = TOKEN_TYPE_IDENTIFIER,
+        .type = last_type,
         .sval = buffer_ptr(buf),
     });
 }
@@ -524,24 +540,29 @@ UNUSED static inline Token* lexer_make_feature_scope(LexProcess* lproc) {
 static inline Token* lexer_make_macro_string(LexProcess* lproc) {
     Buffer *buf = buffer_create();
     char c = 0;
-    LEX_GETC_IF_NO_WS(lproc, buf, c, c != '\n' && c != EOF);
+    LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '#' &&  c != '\n' && c != EOF);
     return lexer_create_token(lproc, &(Token){
         .type = TOKEN_TYPE_STRING,
         .sval = buffer_ptr(buf),
     });
 }
 static inline Token* lexer_make_macro_keyword(LexProcess* lproc) {
-    LOG_TAG
     Buffer *buf = buffer_create();
     char c = 0;
-    LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '\n' && c != EOF);
+    LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '#' && c != '\n' && c != EOF);
     if(is_keyword(buffer_ptr(buf))) {
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_PRE_KEYWORD,
             .sval = buffer_ptr(buf)
         });
+    } else if(lproc->pre.macro_sym_tbl != NULL && hashmap_contains(lproc->pre.macro_sym_tbl, buffer_ptr(buf))){
+        const char* macro_buf = hashmap_get(lproc->pre.macro_sym_tbl, buffer_ptr(buf));
+        return lexer_create_token(lproc, &(Token){
+            .type = TOKEN_TYPE_STRING,
+            .sval = macro_buf
+        });
     } else {
-        LEX_GETC_IF_NO_WS(lproc, buf, c, c != '\n' && c != EOF);
+        LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '\n' && c != EOF);
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_STRING,
             .sval = buffer_ptr(buf),
@@ -553,6 +574,9 @@ static inline Token* lexer_handle_macro(LexProcess* lproc) {
     char c = lproc->peek_char(lproc);
     if(c == '#') {
         lproc->next_char(lproc);
+        while(lproc->peek_char(lproc) == ' ') {
+            lproc->next_char(lproc);
+        }
         if(lproc->peek_char(lproc) == '#') {                // `##`
             lproc->next_char(lproc);
             return lexer_make_connect_ident_or_string(lproc);
@@ -637,6 +661,9 @@ LexProcess* lex_process_create(CompileProcess* cproc, void* priv) {
     LexProcess* lproc = malloc(sizeof(LexProcess));
     *lproc = (LexProcess){
         .compile_proc = cproc,
+        .cur_expr_depth = 0,
+        .cur_list_depth = 0,
+        .cur_scope_depth = 0,
         .pos = (Pos){.col = 1, .line = 1, .filename = cproc->cfile->path},
         .token_vec = vector_create(sizeof(Token)),
         .priv = priv,
@@ -662,7 +689,6 @@ void lex_process_free(LexProcess* lproc) {
     if(!lproc) {
         return;
     }
-    buffer_free(lproc->parenthesis_buffer);
     vector_free(lproc->token_vec);
     free(lproc->priv);
     if(lproc->next_char) lproc->next_char = NULL;
@@ -677,7 +703,7 @@ Token* lex_process_next_token(LexProcess* lproc) {
     Token* tok = NULL;
     char c = lproc->peek_char(lproc);
     tok = lexer_preprocess_token(lproc);
-    if(tok) {               // comment
+    if(tok) {               // comment or macro
         return tok;
     }
     switch (c) {

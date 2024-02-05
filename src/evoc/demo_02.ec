@@ -11,11 +11,13 @@ mod evo:demo;
 #if WUHU
 #def MAX_NUM 12.38
 #else
-#def MAX_NUM
+#def MAX_NUM 15.32
 #end
 
 asdasd ## world
 
-asdasdasd ## "asd"
+MAX_NUM ## "asd"
+
+#WUHU## "sof"## # mk
 
 "wuhu" ## "lsds"

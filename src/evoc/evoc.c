@@ -59,7 +59,7 @@ const char *eq()
 }
 
 const char *eq2() {
-    return "━"; // ─
+    return "─"; // ━
 }
 
 const char *eq3() {
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
     }
 
     toml_parse_test("sample.toml");
-    widget_test();
+    // widget_test();
 
 
     LOG_TAG

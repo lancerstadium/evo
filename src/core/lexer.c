@@ -11,6 +11,7 @@ int lex(LexProcess* lproc) {
         vector_push(lproc->token_vec, tok);
         tok = lex_process_next_token(lproc);
     }
+    vector_push(lproc->token_vec, tok);
     int i = 0;
     for(int i = 0; i < lproc->token_vec->count; i++) {
         tok = vector_at(lproc->token_vec, i);

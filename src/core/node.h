@@ -9,14 +9,14 @@ typedef struct node Node;
 
 // AST节点类型
 typedef enum {
-    NODE_TYPE_EXPRESSION,               // 表达式
-    NODE_TYPE_NUMBER,                   // 数字
-    NODE_TYPE_IDENTIFIER,               // 标识符
-    NODE_TYPE_VARIABLE,                 // 变量
-    NODE_TYPE_FUNCTION,                 // 函数
+    NODE_TYPE_EXPR,                     // 表达式
+    NODE_TYPE_NUM,                      // 数字
+    NODE_TYPE_IDENT,                    // 标识符
+    NODE_TYPE_VAR,                      // 变量
+    NODE_TYPE_FUNC,                     // 函数
     NODE_TYPE_BODY,                     // 代码体
-    NODE_TYPE_STATEMENT_RETURN,         // 返回语句
-    NODE_TYPE_UNARY,                    // 单
+    NODE_TYPE_STMT,                     // 语句
+    NODE_TYPE_UNARY,                    // 单语句
     NODE_TYPE_STRUCT                    // 结构体
 } NodeType;
 
@@ -112,6 +112,6 @@ struct node {
 
 void node_append_size(Node* nd, size_t *var_size);
 void node_read(Node* nd);
-
+void node_swap(Node** nd1, Node** nd2);
 
 #endif

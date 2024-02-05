@@ -31,6 +31,7 @@ void token_read(Token *tok) {
     Buffer *buf = buffer_create();
     buffer_printf(buf, "\n  Read token: \n");
     buffer_printf(buf, "    Type        : %s\n", token_get_type_str(tok));
+    buffer_printf(buf, "    Depth       : (%d) [%d] {%d}\n", tok->edep, tok->ldep, tok->sdep);
 
     switch(tok->type) {
 

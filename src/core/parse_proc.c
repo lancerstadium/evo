@@ -82,13 +82,13 @@ static inline void parser_single_token2node(ParseProcess* pproc) {
     switch(tok->type) {
         case TOKEN_TYPE_NUMBER:
             nd = pproc->create_node(pproc, &(Node){
-                .type = NODE_TYPE_NUMBER,
+                .type = NODE_TYPE_NUM,
                 .llnum = tok->llnum
             });
             break;
         case TOKEN_TYPE_IDENTIFIER:
             nd = pproc->create_node(pproc, &(Node){
-                .type = NODE_TYPE_IDENTIFIER,
+                .type = NODE_TYPE_IDENT,
                 .sval = tok->sval
             });
             break;
@@ -152,34 +152,51 @@ static inline bool parser_next_token_is_symbol(ParseProcess* pproc, char sym) {
 // ==================================================================================== //
 
 
-static inline Node* parser_make_stmt(ParseProcess* pproc);
-static inline Node* parser_make_expr_stmt(ParseProcess* pproc);
-static inline Node* parser_make_compound_stmt(ParseProcess* pproc);
+static inline void parser_make_stmt(ParseProcess* pproc);
+static inline void parser_make_expr_stmt(ParseProcess* pproc);
+static inline void parser_make_compound_stmt(ParseProcess* pproc);
 
 // stmt = "{" compound-stmt
 //      | expr-stmt
-static inline Node* parser_make_stmt(ParseProcess* pproc) {
+static inline void parser_make_stmt(ParseProcess* pproc) {
     if(parser_next_token_is_symbol(pproc, '{')) {
-        return parser_make_compound_stmt(pproc);
+        parser_make_compound_stmt(pproc);
     }
-    return parser_make_expr_stmt(pproc);
+    parser_make_expr_stmt(pproc);
 }
 // compound-stmt = stmt* "}"
-static inline Node* parser_make_compound_stmt(ParseProcess* pproc) {
-    return NULL;
+static inline void parser_make_compound_stmt(ParseProcess* pproc) {
+
 }
 // expr-stmt = expr? ";"
-static inline Node* parser_make_expr_stmt(ParseProcess* pproc) {
-    return NULL;
+static inline void parser_make_expr_stmt(ParseProcess* pproc) {
+
 }
 
 static inline void parser_make_expr_node(ParseProcess* pproc, Node* nd_l, Node* nd_r, const char* op) {
     pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_EXPRESSION,
+        .type = NODE_TYPE_EXPR,
         .expr.op = op,
         .expr.left = nd_l,
         .expr.right = nd_r
     });
+}
+
+
+// 处理 keyword：
+// 
+static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
+    LOG_TAG
+    if(STR_EQ(kw, "use")) {
+        pproc->next_token(pproc);
+        pproc->push_node(pproc, &(Node){
+            .type = NODE_TYPE_EXPR,
+        });
+    }else if(STR_EQ(kw, "def")) {
+        pproc->next_token(pproc);
+    }else if(STR_EQ(kw, "fn")) {
+        pproc->next_token(pproc);
+    } 
 }
 
 // ==================================================================================== //
@@ -206,15 +223,12 @@ Token* parse_process_excp_token(ParseProcess* pproc, NodeType type) {
     return token;
 };
 
+
 // ==================================================================================== //
 //                            parser: Node Operations
 // ==================================================================================== //
 
-static inline void parser_swap_node(Node** nd1, Node** nd2) {
-    Node* tmp_nd = *nd1;
-    *nd1 = *nd2;
-    *nd2 = tmp_nd;
-}
+
 
 Node* parse_process_peek_node(ParseProcess* pproc) {
     return vector_back_ptr_or_null(pproc->node_vec);
@@ -293,14 +307,23 @@ int parse_process_next(ParseProcess* pproc) {
     int res = 0;
     switch(tok->type) {
         case TOKEN_TYPE_NUMBER:
+            break;
         case TOKEN_TYPE_IDENTIFIER:
+            break;
         case TOKEN_TYPE_OPERATOR:
+            break;
         case TOKEN_TYPE_SYMBOL:
+            break;
         case TOKEN_TYPE_KEYWORD:
-            parser_make_stmt(pproc);
+            parser_handle_keyword(pproc, tok->sval);
+            break;
         case TOKEN_TYPE_COMMENT:
+            break;
         case TOKEN_TYPE_NEWLINE:
+            break;
         case TOKEN_TYPE_EOF:
+            res = -1;
+            break;
         default:
             parser_error("Unexpected token type: %s", token_get_type_str(tok));
             // token_read(tok);
