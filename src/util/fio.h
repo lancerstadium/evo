@@ -33,6 +33,8 @@ void fio_close(FIO* fio);
 char fio_peek(FIO* fio);
 // Reads until the given string is found
 Vector* fio_read_until(FIO* fio, const char* delims);
+// Get bare filename
+char* fio_get_bare_filename(FIO* fio);
 
 
 #endif // UTIL_FIO_H

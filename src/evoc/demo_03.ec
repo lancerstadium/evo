@@ -1,4 +1,4 @@
-mod modname {
+mod {
     submod1 : "path/to/mod1"
     submod2 : "path/to/mod2"
 }

@@ -213,8 +213,11 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
     if(STR_EQ(kw, "mod")) {
         pproc->next_token(pproc);
         tok = pproc->peek_token(pproc);
-        if(tok->type = TOKEN_TYPE_IDENTIFIER) {
+        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
             pproc->root->prog.main_mod->mod.name = tok->sval;
+            pproc->next_token(pproc);
+        } else {
+            pproc->root->prog.main_mod->mod.name = pproc->root->prog.name;
             pproc->next_token(pproc);
         }
     }else if(STR_EQ(kw, "use")) {
@@ -317,12 +320,12 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
     Node* mprog = parse_process_create_node(pproc, &(Node){
         .type = NODE_TYPE_PROG,
         .depth = 0,
-        .prog.name = "main",
+        .prog.name = fio_get_bare_filename(pproc->lex_proc->compile_proc->cfile),
     });
 
     Node* mmod = parse_process_create_node(pproc, &(Node){
         .type = NODE_TYPE_MOD,
-        .depth = 1
+        .depth = 1,
     });
 
     pproc->root = vector_at(pproc->node_vec, 0);

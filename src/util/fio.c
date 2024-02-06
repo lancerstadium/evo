@@ -84,3 +84,14 @@ Vector* fio_read_until(FIO* fio, const char* delims) {
     }
     return vec;
 }
+
+char* fio_get_bare_filename(FIO* fio) {
+    char* bare_fname = (char*)malloc(strlen(fio->path) + 1);
+    strcpy(bare_fname, fio->path);
+    char *dot = strrchr(bare_fname, '.'); // 寻找最后一个点的位置
+    
+    if (dot != NULL) {
+        *dot = '\0'; // 将最后一个点及其后的部分置为字符串结束符
+    }
+    return bare_fname;
+}
