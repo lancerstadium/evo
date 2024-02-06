@@ -9,11 +9,13 @@ typedef struct node Node;
 
 // AST节点类型
 typedef enum {
+    NODE_TYPE_PROG,                     // 程序
+    NODE_TYPE_EOF,                      // 结束
+    NODE_TYPE_FUNC,                     // 函数
     NODE_TYPE_EXPR,                     // 表达式
     NODE_TYPE_NUM,                      // 数字
     NODE_TYPE_IDENT,                    // 标识符
     NODE_TYPE_VAR,                      // 变量
-    NODE_TYPE_FUNC,                     // 函数
     NODE_TYPE_BODY,                     // 代码体
     NODE_TYPE_STMT,                     // 语句
     NODE_TYPE_UNARY,                    // 单语句
@@ -31,6 +33,7 @@ typedef enum {
 struct node {
     
     NodeType type;                      // AST节点类型
+    Node* pnd;                          // 父节点
     int flags;                          // 节点标志
 
     // 存储每个节点类型的值
@@ -46,15 +49,10 @@ struct node {
     union {
         // 表达式
         struct expr {
-            Node* left;
-            Node* right;
+            Node* lnd;                          // 左子节点
+            Node* rnd;                          // 右子节点
             const char* op;
         } expr;
-
-        // 括号表达式：(expr)
-        struct parenthesis {
-            Node* expr_nd;
-        } parenthesis;
 
         // 单式
         struct unary {

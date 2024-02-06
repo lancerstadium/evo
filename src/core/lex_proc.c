@@ -49,7 +49,9 @@
     case '=':                           \
     case '~':                           \
     case '|':                           \
-    case '&'
+    case '&':                           \
+    case '.':                           \
+    case ':'                                            
 
 #define CASE_NUMERIC \
     case '0':        \
@@ -66,8 +68,6 @@
 #define CASE_SYMBOL \
     case '{':       \
     case '}':       \
-    case '.':       \
-    case ':':       \
     case ';':       \
     case '(':       \
     case ')':       \
@@ -83,12 +83,17 @@
 
 /** 关键字 */
 static const char* lex_keyword[] = {
-    "mod", "use", "scope", "def", "undef",
-    "impl", "fn", "self", "pub", "pri", 
-    "let", "mut", "if", "else", "elif", "end", 
+    "mod", "use", "type", "impl", "fn", 
+    "var", "const", "if", "else", "elif", 
     "while", "for", "do", "break", "continue",
-    "switch", "case", "default", "return"
+    "switch", "case", "default", "return",
+    "self", "pub", "pri"
 };
+
+static const char* lex_pre_keyword[] = {
+    "def", "udf"
+};
+
 /** 数据类型 */
 static const char* lex_datatype[] = {
     [DATA_TYPE_U8]          = "u8", 
@@ -112,7 +117,7 @@ static const char* lex_datatype[] = {
     [DATA_TYPE_ULONG_LONG]  = "ullint",
     [DATA_TYPE_FLOAT]       = "float",
     [DATA_TYPE_DOUBLE]      = "double",
-    [DATA_TYPE_STR]         = "string",
+    [DATA_TYPE_STR]         = "str",
     [DATA_TYPE_STRUCT]      = "struct",
     [DATA_TYPE_UNION]       = "union",
     [DATA_TYPE_DEFINED]     = "defined",
@@ -122,24 +127,27 @@ static const char* lex_datatype[] = {
 /** 单元运算符 */
 static const char lex_single_op[] = {
     '+', '-', '/', '*', '=', '>', '<',
-    '|', '&', '^', '%', '~', '!'
+    '|', '&', '^', '%', '~', '!', '.',
+    ':'
 };
 /** 二元运算符 */
 static const char* lex_binary_op[] = {
     "+=", "-=", "*=", "/=", ">>", "<<",
     ">=", "<=", "||", "&&", "++", "--",
-    "==", "!=", "!=", "->"
+    "==", "!=", "!=", ":=", "~=", "->",
+    ".*"
 };
 /** 三元运算符 */
 static const char* lex_ternary_op[] = {
     "<=>"
 };
 
-#define LEX_KEYWORD_NUM     GET_ARR_LEN(lex_keyword)
-#define LEX_DATATYPE_NUM    GET_ARR_LEN(lex_datatype)
-#define LEX_SINGLE_OP_NUM   GET_ARR_LEN(lex_single_op)
-#define LEX_BINARY_OP_NUM   GET_ARR_LEN(lex_binary_op)
-#define LEX_TERNARY_OP_NUM  GET_ARR_LEN(lex_ternary_op)
+#define LEX_KEYWORD_NUM         GET_ARR_LEN(lex_keyword)
+#define LEX_PRE_KEYWORD_NUM     GET_ARR_LEN(lex_pre_keyword)
+#define LEX_DATATYPE_NUM        GET_ARR_LEN(lex_datatype)
+#define LEX_SINGLE_OP_NUM       GET_ARR_LEN(lex_single_op)
+#define LEX_BINARY_OP_NUM       GET_ARR_LEN(lex_binary_op)
+#define LEX_TERNARY_OP_NUM      GET_ARR_LEN(lex_ternary_op)
 
 // ==================================================================================== //
 //                                     lexer: declare
@@ -172,6 +180,18 @@ static inline int get_keyword_idx(const char* str) {
         }
     }
     return -1;
+}
+
+static inline bool is_pre_keyword(const char* str) {
+    bool is_pkw = false;
+    int i;
+    for(i = 0; i < LEX_PRE_KEYWORD_NUM; i++) {
+        if(STR_EQ(str, lex_pre_keyword[i])){
+            is_pkw = true;
+            return is_pkw;
+        }
+    }
+    return is_pkw;
 }
 
 static inline bool is_datatype(const char* str) {
@@ -223,7 +243,12 @@ static inline bool is_ternary_operator(const char* op) {
 }
 
 static inline bool is_valid_operator(const char* op) {
-    return is_single_operator(*op) || is_binary_operator(op) || is_ternary_operator(op);
+    switch(strlen(op)) {
+        case 1: return is_single_operator(*op);
+        case 2: return is_binary_operator(op);
+        case 3: return is_ternary_operator(op);
+        default: return false;
+    }
 }
 
 static inline bool is_alpha(const char c) {
@@ -251,10 +276,9 @@ static inline const char* lexer_read_operator(LexProcess* lproc) {
             lproc->next_char(lproc);
         }
     }
-    buffer_write(buf, 0x00);            // 结束符号
     const char* buf_ptr = buffer_ptr(buf);
     if(!is_valid_operator(buf_ptr)) {
-        lexer_error("Invalid operator: `%s`", buf_ptr);
+        lexer_error("Invalid operator: `%s` at %s:%d:%d", buf_ptr, lproc->pos.filename, lproc->pos.line, lproc->pos.col);
     }
     return buf_ptr;
 }
@@ -525,8 +549,7 @@ static inline Token* lexer_make_connect_ident_or_string(LexProcess* lproc) {
             .sval = buffer_ptr(buf),
         });
     }
-    LOG_TAG
-    LEX_GETC_IF_NO_WS(lproc, buf, c,  c != '\n' && c != EOF);
+    LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '\n' && c != EOF);
     return lexer_create_token(lproc, &(Token) {
         .type = last_type,
         .sval = buffer_ptr(buf),
@@ -550,7 +573,7 @@ static inline Token* lexer_make_macro_keyword(LexProcess* lproc) {
     Buffer *buf = buffer_create();
     char c = 0;
     LEX_GETC_IF(lproc, buf, c, c != ' ' && c != '#' && c != '\n' && c != EOF);
-    if(is_keyword(buffer_ptr(buf))) {
+    if(is_pre_keyword(buffer_ptr(buf))) {
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_PRE_KEYWORD,
             .sval = buffer_ptr(buf)
@@ -723,8 +746,8 @@ Token* lex_process_next_token(LexProcess* lproc) {
             tok = lexer_make_string(lproc);
             break;
         case '\n':
-            // tok = lexer_make_newline(lproc);
-            // break;
+            tok = lexer_make_newline(lproc);
+            break;
         case ' ':
         case '\t':
             lproc->next_char(lproc);

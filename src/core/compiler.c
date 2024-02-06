@@ -12,21 +12,25 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     // Step0: Initial
     CompileProcess* cproc = compile_process_create(filename, out_filename, flags);
     if (!cproc) {
+        compiler_error("compile process create fail!");
         return COMPILER_FILE_ERROR;
     }
     LexProcess* lproc = lex_process_create(cproc, NULL);
     if (!lproc) {
+        compiler_error("lex process create fail!");
         compile_process_free(cproc);
         return COMPILER_FILE_ERROR;
     }
     ParseProcess* pproc = parse_process_create(lproc);
     if (!pproc) {
+        compiler_error("parse process create fail!");
         lex_process_free(lproc);
         compile_process_free(cproc);
         return COMPILER_FILE_ERROR;
     }
     CodegenProcess* cgproc = codegen_process_create(pproc);
     if (!cgproc) {
+        compiler_error("codegen process create fail!");
         parse_process_free(pproc);
         lex_process_free(lproc);
         compile_process_free(cproc);

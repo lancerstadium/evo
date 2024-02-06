@@ -7,7 +7,11 @@
 #include "scope.h"
 #include "compiler.h"
 
-#define lexer_error(...) log_error( _bmag("[Lexer]") " " __VA_ARGS__)
+#define lexer_error(...)                              \
+    do {                                              \
+        log_error( _bmag("[Lexer]") " " __VA_ARGS__); \
+        exit(-1);                                     \
+    } while(0)
 
 typedef struct lex_process LexProcess;
 typedef char (*LEX_PROCESS_NEXT_CHAR)(LexProcess* lproc);

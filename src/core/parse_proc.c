@@ -92,6 +92,11 @@ static inline void parser_single_token2node(ParseProcess* pproc) {
                 .sval = tok->sval
             });
             break;
+        case TOKEN_TYPE_EOF:
+            nd = pproc->create_node(pproc, &(Node){
+                .type = NODE_TYPE_EOF,
+            });
+            break;
         default:
             parser_error("Problem converting token to node. No valid node exists for token of type %i\n", tok->type);
             break;
@@ -111,6 +116,14 @@ static inline void parser_excp_keyword(ParseProcess* pproc, char* kw) {
     if(next_token == NULL || next_token->type != TOKEN_TYPE_KEYWORD || !STR_EQ(next_token->sval, kw)) {
         parser_error("Expecting the keyword `%s` but `%s` was provided in %s:%d:%d", 
         kw, next_token->sval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }
+}
+
+static inline void parser_excp_ident(ParseProcess* pproc, char* ident) {
+    Token* next_token = pproc->next_token(pproc);
+    if(next_token == NULL || next_token->type != TOKEN_TYPE_IDENTIFIER || !STR_EQ(next_token->sval, ident)) {
+        parser_error("Expecting the ident `%s` but `%s` was provided in %s:%d:%d", 
+        ident, next_token->sval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }
 }
 
@@ -135,6 +148,11 @@ static inline bool parser_next_token_is_operator(ParseProcess* pproc, const char
 static inline bool parser_next_token_is_keyword(ParseProcess* pproc, const char* kw) {
     Token* tok = pproc->peek_token(pproc);
     return tok && tok->type == TOKEN_TYPE_KEYWORD && STR_EQ(tok->sval, kw);
+}
+
+static inline bool parser_next_token_is_ident(ParseProcess* pproc, const char* ident) {
+    Token* tok = pproc->peek_token(pproc);
+    return tok && tok->type == TOKEN_TYPE_IDENTIFIER && STR_EQ(tok->sval, ident);
 }
 
 static inline bool parser_next_token_is_datatype(ParseProcess* pproc, const char* dt) {
@@ -176,27 +194,42 @@ static inline void parser_make_expr_stmt(ParseProcess* pproc) {
 static inline void parser_make_expr_node(ParseProcess* pproc, Node* nd_l, Node* nd_r, const char* op) {
     pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_EXPR,
-        .expr.op = op,
-        .expr.left = nd_l,
-        .expr.right = nd_r
+        .expr.op = op
     });
 }
 
 
+
+
 // 处理 keyword：
-// 
+// keyword = "mod" ident "{" (ident ":" newline)* "}"
+//         | "use" 
+//         | "type" --> handle type
+//         | "fn"   --> handle fn
 static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
     LOG_TAG
-    if(STR_EQ(kw, "use")) {
+    Token* tok;
+    if(STR_EQ(kw, "mod")) {
         pproc->next_token(pproc);
+
+    }else if(STR_EQ(kw, "use")) {
+        pproc->next_token(pproc);
+        if(parser_next_token_is_symbol(pproc, '{')) {
+            pproc->next_token(pproc);
+            while(pproc->next_token(pproc)->type = TOKEN_TYPE_IDENTIFIER) {
+
+            }
+        }
         pproc->push_node(pproc, &(Node){
             .type = NODE_TYPE_EXPR,
         });
-    }else if(STR_EQ(kw, "def")) {
+    }else if(STR_EQ(kw, "type")) {
         pproc->next_token(pproc);
     }else if(STR_EQ(kw, "fn")) {
         pproc->next_token(pproc);
-    } 
+    }else {
+        parser_error("TODO handle keyword `%s`", kw);
+    }
 }
 
 // ==================================================================================== //
@@ -228,17 +261,15 @@ Token* parse_process_excp_token(ParseProcess* pproc, NodeType type) {
 //                            parser: Node Operations
 // ==================================================================================== //
 
-
-
 Node* parse_process_peek_node(ParseProcess* pproc) {
     return vector_back_ptr_or_null(pproc->node_vec);
 }
 
 Node* parse_process_pop_node(ParseProcess* pproc) {
-    Node* last_node = (Node*)vector_back_ptr(pproc->node_vec);
+    Node* last_node = (Node*)vector_back_ptr_or_null(pproc->node_vec);
     Node* last_node_root = (Node*)vector_back_ptr_or_null(pproc->node_tree_vec);
     vector_pop(pproc->node_vec);
-    if(last_node == last_node_root) {
+    if(last_node && last_node == last_node_root) {
         vector_pop(pproc->node_tree_vec);
     }
     return last_node;
@@ -262,6 +293,7 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
 // ==================================================================================== //
 
 ParseProcess* parse_process_create(LexProcess* lproc) {
+    LOG_TAG
     ParseProcess* pproc = malloc(sizeof(ParseProcess));
     *pproc = (ParseProcess) {
         .lex_proc = lproc,
@@ -276,6 +308,12 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
         .push_node   = parse_process_push_node,
         .create_node = parse_process_create_node
     };
+
+    Node* nd = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_PROG,
+    });
+
+    node_read(nd);
 
     return pproc;
 }
