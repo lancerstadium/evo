@@ -10,6 +10,7 @@ typedef struct node Node;
 // AST节点类型
 typedef enum {
     NODE_TYPE_PROG,                     // 程序
+    NODE_TYPE_MOD,                      // 模块
     NODE_TYPE_EOF,                      // 结束
     NODE_TYPE_FUNC,                     // 函数
     NODE_TYPE_EXPR,                     // 表达式
@@ -33,6 +34,7 @@ typedef enum {
 struct node {
     
     NodeType type;                      // AST节点类型
+    int depth;                          // 节点在AST树中的深度
     Node* pnd;                          // 父节点
     int flags;                          // 节点标志
 
@@ -47,6 +49,16 @@ struct node {
 
     // 存储每个节点类型单独的结构
     union {
+        // 程序：prog
+        struct prog {
+            const char* name;                   // 程序名
+            Node* main_mod;                     // 主模块
+        } prog;
+
+        // 模块：mod
+        struct mod {
+            const char* name;                   // 模块名
+        } mod;
         // 表达式
         struct expr {
             Node* lnd;                          // 左子节点

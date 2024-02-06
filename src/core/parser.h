@@ -31,6 +31,7 @@ typedef enum {
 // parser进程
 struct parse_process {
 
+    Node* root;                         // 主程序节点
     Vector* node_tree_vec;              // 包含指向树根的指针
     Vector* node_vec;                   // 用于存储解析所有节点：可以被弹出以形成其他更大的节点，例如表达式
     HashMap* symbol_tbl;                // 保存函数名称、全局变量等内容的符号表，数据可以指向有问题的节点以及其他相关信息

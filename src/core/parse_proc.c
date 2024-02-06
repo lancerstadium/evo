@@ -76,6 +76,7 @@ static inline bool is_unary_operator(const char *op) {
 //                            parser: Token -> Node
 // ==================================================================================== //
 
+
 static inline void parser_single_token2node(ParseProcess* pproc) {
     Token* tok = pproc->next_token(pproc);
     Node* nd = NULL;
@@ -211,7 +212,11 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
     Token* tok;
     if(STR_EQ(kw, "mod")) {
         pproc->next_token(pproc);
-
+        tok = pproc->peek_token(pproc);
+        if(tok->type = TOKEN_TYPE_IDENTIFIER) {
+            pproc->root->prog.main_mod->mod.name = tok->sval;
+            pproc->next_token(pproc);
+        }
     }else if(STR_EQ(kw, "use")) {
         pproc->next_token(pproc);
         if(parser_next_token_is_symbol(pproc, '{')) {
@@ -276,8 +281,7 @@ Node* parse_process_pop_node(ParseProcess* pproc) {
 }
 
 void parse_process_push_node(ParseProcess* pproc, Node* node) {
-    node_read(node);
-    vector_push(pproc->node_vec, &node);
+    vector_push(pproc->node_vec, node);
 }
 
 Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
@@ -309,11 +313,22 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
         .create_node = parse_process_create_node
     };
 
-    Node* nd = pproc->create_node(pproc, &(Node){
+    
+    Node* mprog = parse_process_create_node(pproc, &(Node){
         .type = NODE_TYPE_PROG,
+        .depth = 0,
+        .prog.name = "main",
     });
 
-    node_read(nd);
+    Node* mmod = parse_process_create_node(pproc, &(Node){
+        .type = NODE_TYPE_MOD,
+        .depth = 1
+    });
+
+    pproc->root = vector_at(pproc->node_vec, 0);
+    pproc->root->prog.main_mod = vector_at(pproc->node_vec, 1);
+
+    log_info("root: %p", pproc->root);
 
     return pproc;
 }

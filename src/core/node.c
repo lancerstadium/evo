@@ -4,6 +4,7 @@
 
 static const char* node_type_str[] = {
     [NODE_TYPE_PROG] = "prog",
+    [NODE_TYPE_MOD]  = "mod",
     [NODE_TYPE_EXPR] = "expr",
     [NODE_TYPE_BODY] = "body",
     [NODE_TYPE_EOF]  = "EOF",
@@ -29,8 +30,16 @@ void node_read(Node* nd) {
     if(!nd) return;
     Buffer* buf = buffer_create();
     buffer_printf(buf, "\n Read Node: \n");
-    buffer_printf(buf, "   type          : %d\n", nd->type);
+    buffer_printf(buf, "   type          : %s\n", node_get_type_str(nd));
+    buffer_printf(buf, "   depth         : %d\n", nd->depth);
+    buffer_printf(buf, "   addr          : %p\n", nd);
     switch(nd->type) {
+        case NODE_TYPE_PROG:
+            buffer_printf(buf, "   prog name     : %s\n", nd->prog.name);
+            break;
+        case NODE_TYPE_MOD:
+            buffer_printf(buf, "   mod name      : %s\n", nd->mod.name);
+            break;
         case NODE_TYPE_EXPR:
             buffer_printf(buf, "   expr op       : %s\n", nd->expr.op);
             break;
