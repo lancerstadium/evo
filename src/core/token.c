@@ -26,6 +26,38 @@ char* token_get_type_str(Token* tok) {
     return (char*)(token_type_str[tok->type] ? token_type_str[tok->type] : "Unknown");
 }
 
+void token_write_buffer(Token *tok, Buffer* buf) {
+    if(!tok) return;
+    switch(tok->type) {
+        case TOKEN_TYPE_SYMBOL:
+            buffer_printf(buf, "%c", tok->cval);
+            break;
+        case TOKEN_TYPE_NUMBER:
+            buffer_printf(buf, "%d", tok->inum);
+            break;
+        case TOKEN_TYPE_IDENTIFIER:
+        case TOKEN_TYPE_OPERATOR:
+        case TOKEN_TYPE_COMMENT:
+        case TOKEN_TYPE_PRE_KEYWORD:
+        case TOKEN_TYPE_DATATYPE:
+            buffer_printf(buf, "%s", tok->sval);
+            break;
+        case TOKEN_TYPE_STRING:
+            buffer_printf(buf, "\"%s\"", tok->sval);
+            break;
+        case TOKEN_TYPE_KEYWORD:
+            buffer_printf(buf, "%s ", tok->sval);
+            break;
+        case TOKEN_TYPE_EOF:
+            break;
+        case TOKEN_TYPE_NEWLINE:
+            buffer_printf(buf, "\n");
+            break;
+        default:
+            break;
+    };
+}
+
 void token_read(Token *tok) {
     if(!tok) return;
     Buffer *buf = buffer_create();

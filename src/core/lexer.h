@@ -13,6 +13,8 @@
         exit(-1);                                     \
     } while(0)
 
+#define lexer_assert(expr, ...) log_assert(expr, _bmag("[Lexer]") " " __VA_ARGS__);
+
 typedef struct lex_process LexProcess;
 typedef char (*LEX_PROCESS_NEXT_CHAR)(LexProcess* lproc);
 typedef char (*LEX_PROCESS_PEEK_CHAR)(LexProcess* lproc);
@@ -33,11 +35,18 @@ struct lex_process {
     Vector* token_vec;                  // 用于储存生成的 token
     CompileProcess* compile_proc;       // 指向 compile_process 的指针
 
+    bool paren_unclose;                 // 上个括号未闭合
+    Vector* parens_vec;                 // 括号堆栈 token
     int cur_expr_depth;                 // 记录当前处于几层括号`()`夹层内
     int cur_list_depth;                 // 记录当前处于几层括号`[]`夹层内
     int cur_scope_depth;                // 记录当前处于几层括号`{}`夹层内
 
     struct {
+        enum {
+            LEX_NEWLINE_DISABLE,        // 关闭newline
+            LEX_NEWLINE_ENABLE,         // 开启newline
+            LEX_NEWLINE_DIVIDE,         // 转化为分割符`,`
+        } newline_status;               // 换行状态
         bool macro_def;                 // 是否在宏定义
         HashMap* macro_sym_tbl;         // 存储宏的 hashmap
     } pre;

@@ -431,7 +431,7 @@ void *vector_back_or_null(Vector* vector)
 {
     // We can't go back or we will access an invalid element
     // out of bounds...
-    if (!vector_in_bounds_for_at(vector, vector->rindex - 1))
+    if (vector_empty(vector) || !vector_in_bounds_for_at(vector, vector->rindex - 1))
     {
         return NULL;
     }

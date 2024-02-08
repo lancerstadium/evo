@@ -330,11 +330,31 @@ static inline Token* lexer_make_string(LexProcess* lproc) {
     });
 }
 
+static inline int lexer_check_newline_status(LexProcess* lproc) {
+    char c = lproc->peek_char(lproc);
+    Token* last_parens_tok = vector_back_or_null(lproc->parens_vec);
+    if(lproc->paren_unclose && last_parens_tok->cval == '(') {
+        if(lproc->tmp_tok.type == TOKEN_TYPE_STRING) {
+            return lproc->pre.newline_status = LEX_NEWLINE_DIVIDE;
+        } else {
+            return lproc->pre.newline_status = LEX_NEWLINE_DISABLE;
+        }
+    }else if(lproc->paren_unclose && last_parens_tok->cval == '{') {
+        return lproc->pre.newline_status = LEX_NEWLINE_ENABLE;
+    }else {
+        return lproc->pre.newline_status = LEX_NEWLINE_DISABLE;
+    }
+}
+
 static inline Token* lexer_make_newline(LexProcess* lproc) {
     LEX_ASSERT_NEXTC(lproc, '\n');
-    return lexer_create_token(lproc, &(Token){
-        .type = TOKEN_TYPE_NEWLINE
-    });
+    lexer_check_newline_status(lproc);
+    switch(lproc->pre.newline_status) {
+        case LEX_NEWLINE_ENABLE:    return lexer_create_token(lproc, &(Token){ .type = TOKEN_TYPE_NEWLINE });
+        case LEX_NEWLINE_DIVIDE:    return lexer_create_token(lproc, &(Token){ .type = TOKEN_TYPE_SYMBOL, .cval = ',' });
+        case LEX_NEWLINE_DISABLE:   
+        default:                    return lex_process_next_token(lproc);
+    }
 }
 
 static inline Token* lexer_make_operator_from_value(LexProcess* lproc, char* val) {
@@ -421,18 +441,84 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
 
 static inline Token* lexer_make_symbol(LexProcess* lproc) {
     char c = lproc->next_char(lproc);
-    switch(c) {
-        case '(' :  lproc->cur_expr_depth++;  break;
-        case ')' :  lproc->cur_expr_depth--;  break;
-        case '[' :  lproc->cur_list_depth++;  break;
-        case ']' :  lproc->cur_list_depth--;  break;
-        case '{' :  lproc->cur_scope_depth++; break;
-        case '}' :  lproc->cur_scope_depth--; break;
-    }
-    return lexer_create_token(lproc, &(Token){   
+
+    Token* last_parens_tok;
+    Token* tok = lexer_create_token(lproc, &(Token){
         .type = TOKEN_TYPE_SYMBOL,
         .cval = c
     });
+
+    // token_read(tok);
+
+    switch(c) {
+        case '(' :  lproc->cur_expr_depth++; vector_push(lproc->parens_vec, tok); lproc->paren_unclose = true; break;
+        case ')' :  
+            last_parens_tok = vector_back_or_null(lproc->parens_vec);
+            if(last_parens_tok && last_parens_tok->cval == '(') {
+                lproc->cur_expr_depth--; vector_pop(lproc->parens_vec); lproc->paren_unclose = (lproc->cur_expr_depth + lproc->cur_list_depth + lproc->cur_scope_depth == 0) ? false : true; break;
+            } else if(last_parens_tok) {
+                lexer_error("extra `%c` at %s:%d:%d, unclosed `%c` for %s:%d:%d",
+                c,
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col,
+                last_parens_tok->cval,
+                last_parens_tok->pos.filename, 
+                last_parens_tok->pos.line, 
+                last_parens_tok->pos.col);
+            } else {
+                lexer_error("extra `%c` at %s:%d:%d", 
+                c, 
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col);
+            }
+        case '[' :  lproc->cur_list_depth++;  vector_push(lproc->parens_vec, tok); lproc->paren_unclose = true; break;
+        case ']' :  
+            last_parens_tok = vector_back_or_null(lproc->parens_vec);
+            if(last_parens_tok && last_parens_tok->cval == '[') {
+                lproc->cur_list_depth--; vector_pop(lproc->parens_vec); lproc->paren_unclose = (lproc->cur_expr_depth + lproc->cur_list_depth + lproc->cur_scope_depth == 0) ? false : true; break;
+            } else if(last_parens_tok) {
+                lexer_error("extra `%c` at %s:%d:%d, unclosed `%c` for %s:%d:%d",
+                c,
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col,
+                last_parens_tok->cval,
+                last_parens_tok->pos.filename, 
+                last_parens_tok->pos.line, 
+                last_parens_tok->pos.col);
+            } else {
+                lexer_error("extra `%c` at %s:%d:%d", 
+                c, 
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col);
+            }
+        case '{' : lproc->cur_scope_depth++; vector_push(lproc->parens_vec, tok); lproc->paren_unclose = true; break;
+        case '}' :  
+            last_parens_tok = vector_back_or_null(lproc->parens_vec);
+            if(last_parens_tok && last_parens_tok->cval == '{') {
+                lproc->cur_scope_depth--; vector_pop(lproc->parens_vec); lproc->paren_unclose = (lproc->cur_expr_depth + lproc->cur_list_depth + lproc->cur_scope_depth == 0) ? false : true; break;
+            } else if(last_parens_tok) {
+                lexer_error("extra `%c` at %s:%d:%d, unclosed `%c` for %s:%d:%d",
+                c,
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col,
+                last_parens_tok->cval,
+                last_parens_tok->pos.filename, 
+                last_parens_tok->pos.line, 
+                last_parens_tok->pos.col);
+            } else {
+                lexer_error("extra `%c` at %s:%d:%d", 
+                c, 
+                lproc->pos.filename, 
+                lproc->pos.line, 
+                lproc->pos.col);
+            }
+    }
+    return tok;
 }
 
 static inline Token* lexer_make_one_line_comment(LexProcess* lproc) {
@@ -689,6 +775,9 @@ LexProcess* lex_process_create(CompileProcess* cproc, void* priv) {
         .cur_scope_depth = 0,
         .pos = (Pos){.col = 1, .line = 1, .filename = cproc->cfile->path},
         .token_vec = vector_create(sizeof(Token)),
+        .paren_unclose = false,
+        .parens_vec = vector_create(sizeof(Token)),
+        .pre.newline_status = LEX_NEWLINE_DISABLE,
         .priv = priv,
         .next_char = lex_process_next_char,
         .peek_char = lex_process_peek_char,
@@ -713,6 +802,7 @@ void lex_process_free(LexProcess* lproc) {
         return;
     }
     vector_free(lproc->token_vec);
+    vector_free(lproc->parens_vec);
     free(lproc->priv);
     if(lproc->next_char) lproc->next_char = NULL;
     if(lproc->peek_char) lproc->peek_char = NULL;

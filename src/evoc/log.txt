@@ -1,30 +1,9 @@
-[02:04:40] [92mINFO [0m[0m[30mevoc.c:112: [0m[0m[94mmain[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/compiler.c:11: [0m[0m[94mcompile_file[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/compile_proc.c:6: [0m[0m[94mcompile_process_create[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/lex_proc.c:683: [0m[0m[94mlex_process_create[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parse_proc.c:303: [0m[0m[94mparse_process_create[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parse_proc.c:334: [0mroot: 0x55fba944e1b0
-[02:04:40] [92mINFO [0m[0m[30m../core/codegen_proc.c:23: [0m[0m[94mcodegen_process_create[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/lexer.c:8: [0m[0m[94mlex[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parser.c:12: [0m[0m[94mparse[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parse_proc.c:358: [0m[0m[94mparse_process_next[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parse_proc.c:211: [0m[0m[94mparser_handle_keyword[0m() is called
-[02:04:40] [36mDEBU [0m[0m[30m../core/node.c:63: [0m
- Read Node: 
-   type          : prog
-   depth         : 0
-   addr          : 0x55fba944e1b0
-   prog name     : demo_03.ec
-
-[02:04:40] [36mDEBU [0m[0m[30m../core/node.c:63: [0m
- Read Node: 
-   type          : mod
-   depth         : 1
-   addr          : 0x55fba944e1f0
-   mod name      : demo_03.ec
-
-[02:04:40] [92mINFO [0m[0m[30m../core/codegen_proc.c:35: [0m[0m[94mcodegen_process_free[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/parse_proc.c:340: [0m[0m[94mparse_process_free[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/lex_proc.c:711: [0m[0m[94mlex_process_free[0m() is called
-[02:04:40] [92mINFO [0m[0m[30m../core/compile_proc.c:32: [0m[0m[94mcompile_process_free[0m() is called
-[02:04:40] [92mINFO [0m[0m[30mevoc.c:117: [0mCompile success!
+[21:43:39] [92mINFO [0m[0m[30mevoc.c:112: [0m[0m[94mmain[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/compiler.c:11: [0m[0m[94mcompile_file[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/compile_proc.c:6: [0m[0m[94mcompile_process_create[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/lex_proc.c:683: [0m[0m[94mlex_process_create[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/parse_proc.c:303: [0m[0m[94mparse_process_create[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/parse_proc.c:334: [0mroot: 0x563dc028c1b0
+[21:43:39] [92mINFO [0m[0m[30m../core/codegen_proc.c:23: [0m[0m[94mcodegen_process_create[0m() is called
+[21:43:39] [92mINFO [0m[0m[30m../core/lexer.c:8: [0m[0m[94mlex[0m() is called
+[21:43:39] [91mASSE [0m[0m[30m../core/lex_proc.c:430: [0m[0m[91mlproc->last_parentheses == '{'[0m 
