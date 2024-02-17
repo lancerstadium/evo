@@ -1,12 +1,13 @@
+
 mod hello (
-    submod1 : "path/to/mod1"
-    submod2 : "path/to/mod2"
+    submod1 = "path/to/mod1"
+    submod2 = "path/to/mod2"
 )
 
 use (
-    texc : "github.com/lancerstadium/texc"
-    core : "../core/core.h"
-    io   : std.io.*
+    texc = "github.com/lancerstadium/texc"
+    core = "../core/core.h"
+    io   = std.io.*
 )
 
 #def MC dog
@@ -20,7 +21,7 @@ enum AnimalType {
     BIRD
 }
 
-type Animal {
+struct Animal {
     *Obj                        // 匿名结构体，表示继承Obj类型的属性和方法
     type       : AnimalType
     MC##_name  : str
@@ -29,17 +30,17 @@ type Animal {
     fn getNo() : i32 {
         self.dog_no;
     }
-    fn getName(T)(T num) : str
+    fn getName(T)(num : T) : str
 }
 
-fn (Animal)getName(T)(num : T) : str {
-    self.dog_name;
-}
+// fn Animal.getName(T)(num : T) : str {
+//     self.dog_name;
+// }
 
 fn main(argc : int, argv : str) {
     d1 := Animal (              // var d1 = Animal
-        dog_name : "John"
-        dog_no   : 12
+        dog_name = "John"
+        dog_no   = 12
     )
     d2 ~= Animal( "Alice", 13 ) // const d2 = Animal
     d1.getName(wuhu)

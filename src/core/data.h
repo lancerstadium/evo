@@ -43,7 +43,8 @@ typedef enum {
     DATA_TYPE_UNION,
     DATA_TYPE_DEFINED,
     DATA_TYPE_ANY,
-    DATA_TYPE_NONE
+    DATA_TYPE_NONE,
+    DATA_TYPE_UNKNOW = -1
 } DataTypeEnum;
 
 typedef struct {
@@ -53,5 +54,10 @@ typedef struct {
     size_t size;                // 数据大小
     int ptr_depth;              // 指针深度
 } DataType;
+
+extern const char* datatype_str[];
+extern const int datatype_str_num;
+
+int get_datatype_idx(const char* str);
 
 #endif // CORE_DATA_TYPE_H

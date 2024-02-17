@@ -94,36 +94,6 @@ static const char* lex_pre_keyword[] = {
     "def", "udf"
 };
 
-/** 数据类型 */
-static const char* lex_datatype[] = {
-    [DATA_TYPE_U8]          = "u8", 
-    [DATA_TYPE_U16]         = "u16", 
-    [DATA_TYPE_U32]         = "u32", 
-    [DATA_TYPE_U64]         = "u64", 
-    [DATA_TYPE_I8]          = "i8",  
-    [DATA_TYPE_I16]         = "i16", 
-    [DATA_TYPE_I32]         = "i32", 
-    [DATA_TYPE_I64]         = "i64",
-    [DATA_TYPE_F32]         = "f32", 
-    [DATA_TYPE_F64]         = "f64", 
-    [DATA_TYPE_CHAR]        = "char", 
-    [DATA_TYPE_BOOL]        = "bool",
-    [DATA_TYPE_SHORT]       = "short",
-    [DATA_TYPE_INT]         = "int",
-    [DATA_TYPE_LONG]        = "lint",
-    [DATA_TYPE_LONG_LONG]   = "llint",
-    [DATA_TYPE_UINT]        = "uint",
-    [DATA_TYPE_ULONG]       = "ulint",
-    [DATA_TYPE_ULONG_LONG]  = "ullint",
-    [DATA_TYPE_FLOAT]       = "float",
-    [DATA_TYPE_DOUBLE]      = "double",
-    [DATA_TYPE_STR]         = "str",
-    [DATA_TYPE_STRUCT]      = "struct",
-    [DATA_TYPE_UNION]       = "union",
-    [DATA_TYPE_DEFINED]     = "defined",
-    [DATA_TYPE_ANY]         = "any",
-    [DATA_TYPE_NONE]        = "none"
-};
 /** 单元运算符 */
 static const char lex_single_op[] = {
     '+', '-', '/', '*', '=', '>', '<',
@@ -144,7 +114,6 @@ static const char* lex_ternary_op[] = {
 
 #define LEX_KEYWORD_NUM         GET_ARR_LEN(lex_keyword)
 #define LEX_PRE_KEYWORD_NUM     GET_ARR_LEN(lex_pre_keyword)
-#define LEX_DATATYPE_NUM        GET_ARR_LEN(lex_datatype)
 #define LEX_SINGLE_OP_NUM       GET_ARR_LEN(lex_single_op)
 #define LEX_BINARY_OP_NUM       GET_ARR_LEN(lex_binary_op)
 #define LEX_TERNARY_OP_NUM      GET_ARR_LEN(lex_ternary_op)
@@ -197,8 +166,8 @@ static inline bool is_pre_keyword(const char* str) {
 static inline bool is_datatype(const char* str) {
     bool is_data = false;
     int i;
-    for(i = 0; i < LEX_DATATYPE_NUM; i++) {
-        if(STR_EQ(str, lex_datatype[i])){
+    for(i = 0; i < datatype_str_num; i++) {
+        if(STR_EQ(str, datatype_str[i])){
             is_data = true;
             return is_data;
         }
@@ -330,31 +299,11 @@ static inline Token* lexer_make_string(LexProcess* lproc) {
     });
 }
 
-static inline int lexer_check_newline_status(LexProcess* lproc) {
-    char c = lproc->peek_char(lproc);
-    Token* last_parens_tok = vector_back_or_null(lproc->parens_vec);
-    if(lproc->paren_unclose && last_parens_tok->cval == '(') {
-        if(lproc->tmp_tok.type == TOKEN_TYPE_STRING) {
-            return lproc->pre.newline_status = LEX_NEWLINE_DIVIDE;
-        } else {
-            return lproc->pre.newline_status = LEX_NEWLINE_DISABLE;
-        }
-    }else if(lproc->paren_unclose && last_parens_tok->cval == '{') {
-        return lproc->pre.newline_status = LEX_NEWLINE_ENABLE;
-    }else {
-        return lproc->pre.newline_status = LEX_NEWLINE_DISABLE;
-    }
-}
-
 static inline Token* lexer_make_newline(LexProcess* lproc) {
     LEX_ASSERT_NEXTC(lproc, '\n');
-    lexer_check_newline_status(lproc);
-    switch(lproc->pre.newline_status) {
-        case LEX_NEWLINE_ENABLE:    return lexer_create_token(lproc, &(Token){ .type = TOKEN_TYPE_NEWLINE });
-        case LEX_NEWLINE_DIVIDE:    return lexer_create_token(lproc, &(Token){ .type = TOKEN_TYPE_SYMBOL, .cval = ',' });
-        case LEX_NEWLINE_DISABLE:   
-        default:                    return lex_process_next_token(lproc);
-    }
+    return lexer_create_token(lproc, &(Token){ 
+        .type = TOKEN_TYPE_NEWLINE 
+    });
 }
 
 static inline Token* lexer_make_operator_from_value(LexProcess* lproc, char* val) {
@@ -432,7 +381,7 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
     } else if(is_datatype(buffer_ptr(buf))) {       // 返回datatype
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_DATATYPE,
-            .sval = buffer_ptr(buf)
+            .inum = get_datatype_idx(buffer_ptr(buf))
         });
     } else {
         return lexer_make_ident(lproc, buffer_ptr(buf));
@@ -777,7 +726,6 @@ LexProcess* lex_process_create(CompileProcess* cproc, void* priv) {
         .token_vec = vector_create(sizeof(Token)),
         .paren_unclose = false,
         .parens_vec = vector_create(sizeof(Token)),
-        .pre.newline_status = LEX_NEWLINE_DISABLE,
         .priv = priv,
         .next_char = lex_process_next_char,
         .peek_char = lex_process_peek_char,

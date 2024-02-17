@@ -26,7 +26,8 @@ typedef struct token {
     union {
         char cval;
         const char* sval;
-        unsigned int inum;
+        int inum;
+        unsigned int unum;
         unsigned long lnum;
         unsigned long long llnum;
         void* any;

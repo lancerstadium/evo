@@ -35,12 +35,15 @@ void token_write_buffer(Token *tok, Buffer* buf) {
         case TOKEN_TYPE_NUMBER:
             buffer_printf(buf, "%d", tok->inum);
             break;
+        case TOKEN_TYPE_COMMENT:
+            break;
         case TOKEN_TYPE_IDENTIFIER:
         case TOKEN_TYPE_OPERATOR:
-        case TOKEN_TYPE_COMMENT:
         case TOKEN_TYPE_PRE_KEYWORD:
+            buffer_printf(buf, "%s ", tok->sval);
+            break;
         case TOKEN_TYPE_DATATYPE:
-            buffer_printf(buf, "%s", tok->sval);
+            buffer_printf(buf, "%s ", datatype_str[tok->inum]);
             break;
         case TOKEN_TYPE_STRING:
             buffer_printf(buf, "\"%s\"", tok->sval);
@@ -79,8 +82,10 @@ void token_read(Token *tok) {
         case TOKEN_TYPE_OPERATOR:
         case TOKEN_TYPE_COMMENT:
         case TOKEN_TYPE_PRE_KEYWORD:
-        case TOKEN_TYPE_DATATYPE:
             buffer_printf(buf, "    Val         : %s\n", tok->sval);
+            break;
+        case TOKEN_TYPE_DATATYPE:
+            buffer_printf(buf, "    Val         : %s\n", datatype_str[tok->inum]);
             break;
         case TOKEN_TYPE_EOF:
             break;

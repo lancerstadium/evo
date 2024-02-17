@@ -42,11 +42,6 @@ struct lex_process {
     int cur_scope_depth;                // 记录当前处于几层括号`{}`夹层内
 
     struct {
-        enum {
-            LEX_NEWLINE_DISABLE,        // 关闭newline
-            LEX_NEWLINE_ENABLE,         // 开启newline
-            LEX_NEWLINE_DIVIDE,         // 转化为分割符`,`
-        } newline_status;               // 换行状态
         bool macro_def;                 // 是否在宏定义
         HashMap* macro_sym_tbl;         // 存储宏的 hashmap
     } pre;

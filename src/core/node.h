@@ -58,6 +58,7 @@ struct node {
         // 模块：mod
         struct mod {
             const char* name;                   // 模块名
+            HashMap* sym_tbl;                   // 符号表
         } mod;
         // 表达式
         struct expr {
@@ -84,10 +85,10 @@ struct node {
 
         // 函数
         struct func {
-            DataType* rtype;
-            const char* name;
-            Vector* argv;
-            Node* body_nd;
+            const char* name;                   // 函数名
+            DataType* rtype;                    // 返回类型
+            Vector* argv;                       // 传入参数表
+            Node* fn_body;                      // 函数体
         } func;
 
         // 代码主体
@@ -117,6 +118,7 @@ struct node {
             } ret;
         } stmt;
     };
+
 };
 
 

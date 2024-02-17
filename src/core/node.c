@@ -6,6 +6,7 @@ static const char* node_type_str[] = {
     [NODE_TYPE_PROG] = "prog",
     [NODE_TYPE_MOD]  = "mod",
     [NODE_TYPE_EXPR] = "expr",
+    [NODE_TYPE_FUNC] = "func",
     [NODE_TYPE_BODY] = "body",
     [NODE_TYPE_EOF]  = "EOF",
 };
@@ -44,7 +45,8 @@ void node_read(Node* nd) {
             buffer_printf(buf, "   expr op       : %s\n", nd->expr.op);
             break;
         case NODE_TYPE_FUNC:
-            buffer_printf(buf, "   func return   : %s\n", nd->func.rtype->type_str);
+            buffer_printf(buf, "   func name     : %s\n", nd->func.name);
+            buffer_printf(buf, "   func return   : %d\n", nd->func.rtype->type);
             break;
         case NODE_TYPE_NUM:
             buffer_printf(buf, "   number data   : %lld\n", nd->llnum);
