@@ -13,7 +13,7 @@ use (
 #def MC dog
 #udf MC
 
-type MyInt int
+type MyInt : int
 
 enum AnimalType {
     CAT
@@ -30,14 +30,14 @@ struct Animal {
     fn getNo() : i32 {
         self.dog_no;
     }
-    fn getName(T)(num : T) : str
+    fn getName(num : i32) : str
 }
 
-// fn Animal.getName(T)(num : T) : str {
+// fn Animal.getName(T)(num : i32) : str {
 //     self.dog_name;
 // }
 
-fn main(argc : int, argv : str) {
+fn main(argc : int, argv : str) : i32 {
     d1 := Animal (              // var d1 = Animal
         dog_name = "John"
         dog_no   = 12

@@ -46,7 +46,11 @@ void node_read(Node* nd) {
             break;
         case NODE_TYPE_FUNC:
             buffer_printf(buf, "   func name     : %s\n", nd->func.name);
-            buffer_printf(buf, "   func return   : %d\n", nd->func.rtype->type);
+            buffer_printf(buf, "   func return   : (%s)", datatype_str[nd->func.rtype.type]);
+            switch (nd->func.rtype.type) {
+                default: buffer_printf(buf, " None");
+            }
+            buffer_printf(buf, "\n");
             break;
         case NODE_TYPE_NUM:
             buffer_printf(buf, "   number data   : %lld\n", nd->llnum);

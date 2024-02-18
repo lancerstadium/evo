@@ -106,7 +106,13 @@ static inline void parser_single_token2node(ParseProcess* pproc) {
 
 static inline void parser_excp_operator(ParseProcess* pproc, char* op) {
     Token* next_token = pproc->next_token(pproc);
-    if(next_token == NULL || next_token->type != TOKEN_TYPE_OPERATOR || !STR_EQ(next_token->sval, op)) {
+    if(next_token == NULL) {
+        parser_error("Expecting the symbol `%s` but `None` was provided in %s:%d:%d", 
+        op, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }else if(next_token->type != TOKEN_TYPE_OPERATOR) {
+        parser_error("Expecting the symbol `%s` but type `%s` was provided in %s:%d:%d", 
+        op, token_get_type_str(next_token), next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }else if(!STR_EQ(next_token->sval, op)) {
         parser_error("Expecting the symbol `%s` but `%s` was provided in %s:%d:%d", 
         op, next_token->sval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }
@@ -248,7 +254,7 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
         // ":" Datatype
         int rtype_enum = DATA_TYPE_I32;
         const char* rtype_str = datatype_str[DATA_TYPE_I32];
-        if(parser_next_token_is_symbol(pproc, ':')) {
+        if(parser_next_token_is_operator(pproc, ":")) {
             pproc->next_token(pproc);
             tok = pproc->peek_token(pproc);
             if(tok->type == TOKEN_TYPE_DATATYPE) {
@@ -259,8 +265,10 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
         }
         pproc->create_node(pproc, &(Node){
             .type = NODE_TYPE_FUNC,
+            .pnd = pproc->tmp_nd,
+            .depth = pproc->tmp_nd->depth + 1,
             .func.name = func_name,
-            .func.rtype = &(DataType) {
+            .func.rtype = (DataType) {
                 .type = rtype_enum,
                 .type_str = rtype_str
             }
@@ -323,7 +331,8 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
     Node* node = malloc(sizeof(Node));
     memcpy(node, _node, sizeof(Node));
     pproc->push_node(pproc, node);
-    return vector_back(pproc->node_vec);
+    pproc->tmp_nd = vector_back(pproc->node_vec);
+    return pproc->tmp_nd;
 }
 
 
@@ -358,8 +367,9 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
 
     pproc->root->prog.main_mod = parse_process_create_node(pproc, &(Node){
         .type = NODE_TYPE_MOD,
-        .depth = 1,
-        .pnd = pproc->root,
+        .pnd = pproc->tmp_nd,
+        .depth = pproc->tmp_nd->depth + 1,
+        .mod.name = pproc->root->prog.name,
         .mod.sym_tbl = hashmap_create()
     });
 

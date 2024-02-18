@@ -28,33 +28,62 @@ char* token_get_type_str(Token* tok) {
 
 void token_write_buffer(Token *tok, Buffer* buf) {
     if(!tok) return;
+    const char* tmp_str = &buf->data[buf->len - 4];
     switch(tok->type) {
         case TOKEN_TYPE_SYMBOL:
-            buffer_printf(buf, "%c", tok->cval);
+            if(STR_EQ(tmp_str, "    ")) {
+                switch(tok->cval) {
+                    case ']': 
+                    case ')': 
+                    case '}': buf->len -= 4; break;
+                }
+            }
+            switch(tok->cval) {
+                case ',': buffer_printf(buf, "%c ", tok->cval); break;
+                default : buffer_printf(buf, "%c", tok->cval); break;
+            }
             break;
         case TOKEN_TYPE_NUMBER:
-            buffer_printf(buf, "%d", tok->inum);
+            buffer_printf(buf, _cyan("%d"), tok->inum);
             break;
         case TOKEN_TYPE_COMMENT:
             break;
         case TOKEN_TYPE_IDENTIFIER:
+            buffer_printf(buf, _bblue("%s"), tok->sval);
+            break;
         case TOKEN_TYPE_OPERATOR:
+            buffer_printf(buf, _bred(" %s "), tok->sval);
+            break;
         case TOKEN_TYPE_PRE_KEYWORD:
             buffer_printf(buf, "%s ", tok->sval);
             break;
         case TOKEN_TYPE_DATATYPE:
-            buffer_printf(buf, "%s ", datatype_str[tok->inum]);
+            if(buf->data[buf->len - 1] == '\n' || STR_EQ(tmp_str, "    ")) {
+                buffer_printf(buf, _mag("%s "), datatype_str[tok->inum]);
+            }else {
+                buffer_printf(buf, _mag("%s"), datatype_str[tok->inum]);
+            }
             break;
         case TOKEN_TYPE_STRING:
-            buffer_printf(buf, "\"%s\"", tok->sval);
+            buffer_printf(buf, _green("\"%s\""), tok->sval);
             break;
         case TOKEN_TYPE_KEYWORD:
-            buffer_printf(buf, "%s ", tok->sval);
+            if(buf->data[buf->len - 1] == '\n' || STR_EQ(tmp_str, "    ")) {
+                buffer_printf(buf, _yellow("%s "), tok->sval);
+            }else {
+                buffer_printf(buf, _yellow("%s"), tok->sval);
+            }
             break;
         case TOKEN_TYPE_EOF:
             break;
         case TOKEN_TYPE_NEWLINE:
-            buffer_printf(buf, "\n");
+            if(buf->data[buf->len - 1] != '\n') {
+                buffer_printf(buf, "\n");
+                int sum_depth = tok->edep + tok->ldep + tok->sdep;
+                for(int i = 0; i < sum_depth; i++) {
+                    buffer_printf(buf, "    ");
+                }
+            }
             break;
         default:
             break;

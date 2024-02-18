@@ -86,7 +86,7 @@ struct node {
         // 函数
         struct func {
             const char* name;                   // 函数名
-            DataType* rtype;                    // 返回类型
+            DataType rtype;                    // 返回类型
             Vector* argv;                       // 传入参数表
             Node* fn_body;                      // 函数体
         } func;

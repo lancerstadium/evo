@@ -114,10 +114,12 @@
 #define _green(s) ANSI_FMT(s, ANSI_GREEN)
 #define _blue(s) ANSI_FMT(s, ANSI_BLUE)
 #define _yellow(s) ANSI_FMT(s, ANSI_YELLOW)
+#define _cyan(s) ANSI_FMT(s, ANSI_CYAN)
 #define _red(s) ANSI_FMT(s, ANSI_RED)
 #define _mag(s) ANSI_FMT(s, ANSI_MAGENTA)
 #define _bblue(s) ANSI_FMT(s, ANSI_BRIGHT_BLUE)
 #define _bmag(s) ANSI_FMT(s, ANSI_BRIGHT_MAGENTA)
+#define _bred(s) ANSI_FMT(s, ANSI_BRIGHT_RED)
 
 #define _bold(s) ANSI_FMT(s, ANSI_BOLD ANSI_WHITE)
 #define _boldu(s) ANSI_FMT(s, ANSI_UNDERLINE ANSI_BOLD ANSI_WHITE)

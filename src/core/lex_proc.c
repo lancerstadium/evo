@@ -373,6 +373,11 @@ static inline Token* lexer_make_ident_or_keyword(LexProcess* lproc) {
     char c = lproc->peek_char(lproc);
     LEX_GETC_IF(lproc, buf, c, (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_');
 
+    bool is_last_sym = false;
+    if((lproc->tmp_tok.type == TOKEN_TYPE_OPERATOR) && STR_EQ(lproc->tmp_tok.sval, ":")){
+        is_last_sym = true;
+    }
+
     if(is_keyword(buffer_ptr(buf))) {               // 返回keyword
         return lexer_create_token(lproc, &(Token){
             .type = TOKEN_TYPE_KEYWORD,

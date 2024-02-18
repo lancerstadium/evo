@@ -21,6 +21,7 @@ int lex(LexProcess* lproc) {
     }
     // 3. 打印输出 token
     Buffer* buf = buffer_create();
+    buffer_printf(buf, "\n");
     for(int i = 0; i < lproc->token_vec->count; i++) {
         tok = vector_at(lproc->token_vec, i);
         // token_read(tok);
