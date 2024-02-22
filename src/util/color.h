@@ -118,6 +118,8 @@
 #define _red(s) ANSI_FMT(s, ANSI_RED)
 #define _mag(s) ANSI_FMT(s, ANSI_MAGENTA)
 #define _bblue(s) ANSI_FMT(s, ANSI_BRIGHT_BLUE)
+#define _bgreen(s) ANSI_FMT(s, ANSI_BRIGHT_GREEN)
+#define _bcyan(s) ANSI_FMT(s, ANSI_BRIGHT_CYAN)
 #define _bmag(s) ANSI_FMT(s, ANSI_BRIGHT_MAGENTA)
 #define _bred(s) ANSI_FMT(s, ANSI_BRIGHT_RED)
 

@@ -44,7 +44,7 @@ void token_write_buffer(Token *tok, Buffer* buf) {
             }
             break;
         case TOKEN_TYPE_NUMBER:
-            buffer_printf(buf, _cyan("%d"), tok->inum);
+            buffer_printf(buf, _bcyan("%d"), tok->inum);
             break;
         case TOKEN_TYPE_COMMENT:
             break;
@@ -65,7 +65,7 @@ void token_write_buffer(Token *tok, Buffer* buf) {
             }
             break;
         case TOKEN_TYPE_STRING:
-            buffer_printf(buf, _green("\"%s\""), tok->sval);
+            buffer_printf(buf, _bgreen("\"%s\""), tok->sval);
             break;
         case TOKEN_TYPE_KEYWORD:
             if(buf->data[buf->len - 1] == '\n' || STR_EQ(tmp_str, "    ")) {

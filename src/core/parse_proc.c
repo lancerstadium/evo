@@ -77,7 +77,7 @@ static inline bool is_unary_operator(const char *op) {
 // ==================================================================================== //
 
 
-static inline void parser_single_token2node(ParseProcess* pproc) {
+static inline Node* parser_single_token2node(ParseProcess* pproc) {
     Token* tok = pproc->next_token(pproc);
     Node* nd = NULL;
     switch(tok->type) {
@@ -99,21 +99,22 @@ static inline void parser_single_token2node(ParseProcess* pproc) {
             });
             break;
         default:
-            parser_error("Problem converting token to node. No valid node exists for token of type %i\n", tok->type);
+            parser_error("Problem converting token to node. No valid token type `%s`\n", token_get_type_str(tok));
             break;
     }
+    return nd;
 }
 
 static inline void parser_excp_operator(ParseProcess* pproc, char* op) {
     Token* next_token = pproc->next_token(pproc);
     if(next_token == NULL) {
-        parser_error("Expecting the symbol `%s` but `None` was provided in %s:%d:%d", 
+        parser_error("Expecting the operator `%s` but `None` was provided in %s:%d:%d", 
         op, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }else if(next_token->type != TOKEN_TYPE_OPERATOR) {
-        parser_error("Expecting the symbol `%s` but type `%s` was provided in %s:%d:%d", 
+        parser_error("Expecting the operator `%s` but type `%s` was provided in %s:%d:%d", 
         op, token_get_type_str(next_token), next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }else if(!STR_EQ(next_token->sval, op)) {
-        parser_error("Expecting the symbol `%s` but `%s` was provided in %s:%d:%d", 
+        parser_error("Expecting the operator `%s` but `%s` was provided in %s:%d:%d", 
         op, next_token->sval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }
 }
@@ -136,9 +137,26 @@ static inline void parser_excp_ident(ParseProcess* pproc, char* ident) {
 
 static inline void parser_excp_symbol(ParseProcess* pproc, char c) {
     Token* next_token = pproc->next_token(pproc);
-    if(next_token == NULL || next_token->type != TOKEN_TYPE_SYMBOL || next_token->cval != c) {
+    if(next_token == NULL) {
         parser_error("Expecting the symbol `%c` but `%c` was provided in %s:%d:%d", 
         c, next_token->cval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }else if(next_token->type != TOKEN_TYPE_SYMBOL) {
+        parser_error("Expecting the symbol `%c` but type `%s` was provided in %s:%d:%d", 
+        c, token_get_type_str(next_token), next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }else if(next_token->cval != c) {
+        parser_error("Expecting the symbol `%c` but `%c` was provided in %s:%d:%d", 
+        c, next_token->cval, next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }
+}
+
+static inline void parser_excp_newline(ParseProcess* pproc) {
+    Token* next_token = pproc->next_token(pproc);
+    if(next_token == NULL) {
+        parser_error("Expecting the newline `\\n` but `None` was provided in %s:%d:%d", 
+        next_token->pos.filename, next_token->pos.line, next_token->pos.col);
+    }else if(next_token->type != TOKEN_TYPE_NEWLINE) {
+        parser_error("Expecting the newline `\\n` but type `%s` was provided in %s:%d:%d", 
+        token_get_type_str(next_token), next_token->pos.filename, next_token->pos.line, next_token->pos.col);
     }
 }
 
@@ -176,42 +194,186 @@ static inline bool parser_next_token_is_symbol(ParseProcess* pproc, char sym) {
 //                             parser: AST Consturct
 // ==================================================================================== //
 
+static inline Node* parser_make_expr_node(ParseProcess* pproc);
 
-static inline void parser_make_stmt(ParseProcess* pproc);
-static inline void parser_make_expr_stmt(ParseProcess* pproc);
-static inline void parser_make_compound_stmt(ParseProcess* pproc);
-
-// stmt = "{" compound-stmt
-//      | expr-stmt
-static inline void parser_make_stmt(ParseProcess* pproc) {
-    if(parser_next_token_is_symbol(pproc, '{')) {
-        parser_make_compound_stmt(pproc);
+// prim = "(" expr ")" 
+//      | num
+//      | ident
+static inline Node* parser_make_prim_node(ParseProcess* pproc) {
+    Node* node;
+    Token* tok = pproc->peek_token(pproc);
+    // ( expr )
+    if(parser_next_token_is_symbol(pproc, '(')) {
+        tok = pproc->next_token(pproc);
+        node = parser_make_expr_node(pproc);
+        parser_excp_symbol(pproc, ')');
+        return node;
+    } else if(tok->type == TOKEN_TYPE_NUMBER) {
+        node = parser_single_token2node(pproc);
+        return node;
+    } else if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+        node = parser_single_token2node(pproc);
+        return node;
     }
-    parser_make_expr_stmt(pproc);
-}
-// compound-stmt = stmt* "}"
-static inline void parser_make_compound_stmt(ParseProcess* pproc) {
 
-}
-// expr-stmt = expr? ";"
-static inline void parser_make_expr_stmt(ParseProcess* pproc) {
-
+    parser_error("Unexpect expression at %s:%d:%d!", tok->pos.filename, tok->pos.line, tok->pos.col);
+    return NULL;
 }
 
-static inline void parser_make_expr_node(ParseProcess* pproc, Node* nd_l, Node* nd_r, const char* op) {
-    pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_EXPR,
-        .expr.op = op
-    });
+// unary = ("+" | "-" | "*" | "&" )? unary 
+//       | prim
+static inline Node* parser_make_unary_node(ParseProcess* pproc) {
+    Token* tok;
+    if(parser_next_token_is_operator(pproc, "+")){
+        tok = pproc->next_token(pproc);
+        parser_make_unary_node(pproc);
+    }else if( 
+       parser_next_token_is_operator(pproc, "-")  || 
+       parser_next_token_is_operator(pproc, "*")  || 
+       parser_next_token_is_operator(pproc, "&")) {
+        tok = pproc->next_token(pproc);
+        return pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_EXPR,
+            .expr.lnd = parser_make_unary_node(pproc),
+            .expr.rnd = NULL,
+            .expr.op  = tok ? tok->sval : ""
+        });
+    } else {
+        return parser_make_prim_node(pproc);
+    }
 }
 
-// assgin = (ident ":" newline)*
-static inline void parser_make_assign_node(ParseProcess* pproc) {
-    while(!parser_next_token_is_symbol(pproc, ')')) {
+// mul = unary ("*" unary | "/" unary)*
+static inline Node* parser_make_mul_node(ParseProcess* pproc) {
+    Node* node = parser_make_unary_node(pproc);
+    Token* tok;
+    for(;;) {
+        if(parser_next_token_is_operator(pproc, "*")  || 
+           parser_next_token_is_operator(pproc, "/")) {
+            tok = pproc->next_token(pproc);
+            node = pproc->create_node(pproc, &(Node){
+                .type = NODE_TYPE_EXPR,
+                .expr.lnd = node,
+                .expr.rnd = parser_make_unary_node(pproc),
+                .expr.op  = tok ? tok->sval : ""
+            });
+            continue;
+        }
+        return node;
+    }
+}
+
+// add = mul ("+" mul | "-" mul)*
+static inline Node* parser_make_add_node(ParseProcess* pproc) {
+    Node* node = parser_make_mul_node(pproc);
+    Token* tok;
+    for(;;) {
+        if(parser_next_token_is_operator(pproc, "+")  || 
+           parser_next_token_is_operator(pproc, "-")) {
+            tok = pproc->next_token(pproc);
+            node = pproc->create_node(pproc, &(Node){
+                .type = NODE_TYPE_EXPR,
+                .expr.lnd = node,
+                .expr.rnd = parser_make_mul_node(pproc),
+                .expr.op  = tok ? tok->sval : ""
+            });
+            continue;
+        }
+        return node;
+    }
+}
+
+// relat = add ("<" add | "<=" add | ">" add | ">=" add)*
+static inline Node* parser_make_relat_node(ParseProcess* pproc) {
+    Node* node = parser_make_add_node(pproc);
+    Token* tok;
+    for(;;) {
+        if(parser_next_token_is_operator(pproc, "<")  || 
+           parser_next_token_is_operator(pproc, "<=") ||
+           parser_next_token_is_operator(pproc, ">")  ||
+           parser_next_token_is_operator(pproc, ">=")) {
+            tok = pproc->next_token(pproc);
+            node = pproc->create_node(pproc, &(Node){
+                .type = NODE_TYPE_EXPR,
+                .expr.lnd = node,
+                .expr.rnd = parser_make_add_node(pproc),
+                .expr.op  = tok ? tok->sval : ""
+            });
+            continue;
+        }
+        return node;
+    }
+}
+
+// equal = relat ("==" relat | "!=" relat)*
+static inline Node* parser_make_equal_node(ParseProcess* pproc) {
+    Node* node = parser_make_relat_node(pproc);
+    Token* tok;
+    for(;;) {
+        if(parser_next_token_is_operator(pproc, "==") || parser_next_token_is_operator(pproc, "!=")) {
+            tok = pproc->next_token(pproc);
+            node = pproc->create_node(pproc, &(Node){
+                .type = NODE_TYPE_EXPR,
+                .expr.lnd = node,
+                .expr.rnd = parser_make_relat_node(pproc),
+                .expr.op  = tok ? tok->sval : ""
+            });
+            continue;
+        }
+        return node;
+    }
+}
+
+// assgin = equal ("=" assign | ":=" assign | "~=" assign)?
+static inline Node* parser_make_assign_node(ParseProcess* pproc) {
+
+    Node* node = parser_make_equal_node(pproc);
+    Token* tok;
+    if(parser_next_token_is_operator(pproc, "=") || parser_next_token_is_operator(pproc, ":=") || parser_next_token_is_operator(pproc, "~=")) {
+        tok = pproc->next_token(pproc);
+        node = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_EXPR,
+            .expr.lnd = node,
+            .expr.rnd = parser_make_assign_node(pproc),
+            .expr.op  = tok ? tok->sval : ""
+        });
+    }
+    return node;
+}
+
+// expr = assign
+static inline Node* parser_make_expr_node(ParseProcess* pproc) {
+    Token* next_tok = pproc->peek_token(pproc);
+
+    return parser_make_assign_node(pproc);
+
+    // // num 1
+    // if(next_tok->type == TOKEN_TYPE_NUMBER) {
+    //     lnd = parser_single_token2node(pproc);
+    // }
+    // // "+"
+    // parser_excp_operator(pproc, "+");
+    // // num 2
+    // if(next_tok->type == TOKEN_TYPE_NUMBER) {
+    //     lnd = parser_single_token2node(pproc);
+    // }
+    // ...
+
+}
+
+// body = "{" expr "}"
+static inline Node* parser_make_body_node(ParseProcess* pproc) {
+    parser_excp_symbol(pproc, '{');
+    Node* node = parser_make_expr_node(pproc);
+    while(!parser_next_token_is_symbol(pproc, '}')) {
         pproc->next_token(pproc);
     }
+    parser_excp_symbol(pproc, '}');
+    return pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = node
+    });
 }
-
 
 // 处理 keyword：
 // keyword = "mod" ident* "(" assgin ")"
@@ -249,7 +411,9 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
         }
         // "(" assgin ")"
         parser_excp_symbol(pproc, '(');
-        parser_make_assign_node(pproc);
+        while(!parser_next_token_is_symbol(pproc, ')')) {
+            pproc->next_token(pproc);
+        }
         parser_excp_symbol(pproc, ')');
         // ":" Datatype
         int rtype_enum = DATA_TYPE_I32;
@@ -263,15 +427,15 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
                 pproc->next_token(pproc);
             }
         }
+        
         pproc->create_node(pproc, &(Node){
             .type = NODE_TYPE_FUNC,
-            .pnd = pproc->tmp_nd,
-            .depth = pproc->tmp_nd->depth + 1,
             .func.name = func_name,
             .func.rtype = (DataType) {
                 .type = rtype_enum,
                 .type_str = rtype_str
-            }
+            },
+            .func.fn_body = parser_make_body_node(pproc)
         });
     }else if(STR_EQ(kw, "self")) {
         pproc->next_token(pproc);
@@ -328,11 +492,51 @@ void parse_process_push_node(ParseProcess* pproc, Node* node) {
 }
 
 Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
+
+    if(!pproc->tmp_nd) 
+        pproc->tmp_nd = pproc->root;
+    
+    switch (_node->type) {
+        case NODE_TYPE_BODY:
+        case NODE_TYPE_NUM:
+        case NODE_TYPE_IDENT:
+        case NODE_TYPE_EXPR:
+            _node->pnd = pproc->tmp_nd;
+            _node->depth = pproc->tmp_nd->depth;
+            break;
+        case NODE_TYPE_FUNC:
+            _node->pnd = pproc->tmp_nd;
+            _node->depth = pproc->tmp_nd->depth + 1;
+            pproc->tmp_nd = pproc->tmp_nd->pnd;
+            break;
+        case NODE_TYPE_MOD:
+            _node->pnd = pproc->tmp_nd;
+            _node->depth = pproc->tmp_nd->depth + 1;
+            break;
+        case NODE_TYPE_PROG:
+        default: break;
+    }
     Node* node = malloc(sizeof(Node));
     memcpy(node, _node, sizeof(Node));
     pproc->push_node(pproc, node);
-    pproc->tmp_nd = vector_back(pproc->node_vec);
-    return pproc->tmp_nd;
+    Node* back_nd = vector_back(pproc->node_vec);
+
+    // 更新 tmp_nd
+    // | back_nd |  tmp_nd |
+    // |  PROG   |   yes   |
+    // |  MOD    |   yes   |
+    // |  ENUM   |   yes   |
+    // |  STRUCT |   yes   |
+    // |  FUNC   |   yes   |
+    switch (back_nd->type) {
+        case NODE_TYPE_PROG:
+        case NODE_TYPE_MOD:
+        case NODE_TYPE_FUNC:
+            pproc->tmp_nd = back_nd;
+            break;
+        default: break;
+    }
+    return back_nd;
 }
 
 
@@ -358,17 +562,15 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
     };
 
     
-    pproc->root = parse_process_create_node(pproc, &(Node){
+    pproc->root = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_PROG,
         .depth = 0,
         .pnd = NULL,
         .prog.name = fio_get_bare_filename(pproc->lex_proc->compile_proc->cfile),
     });
 
-    pproc->root->prog.main_mod = parse_process_create_node(pproc, &(Node){
+    pproc->root->prog.main_mod = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_MOD,
-        .pnd = pproc->tmp_nd,
-        .depth = pproc->tmp_nd->depth + 1,
         .mod.name = pproc->root->prog.name,
         .mod.sym_tbl = hashmap_create()
     });

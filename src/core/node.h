@@ -93,8 +93,7 @@ struct node {
 
         // 代码主体
         struct body {
-            Vector* statements;
-            size_t variable_size;
+            Node* stmt;
         } body;
 
         // 变量

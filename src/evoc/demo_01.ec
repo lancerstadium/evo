@@ -8,7 +8,7 @@ woshi shuaige .
 */
 
 // import libs
-use std:{io, str:*};
+use std:{io, str.*};
 
 
 // Macros with feature
