@@ -28,6 +28,9 @@ char* token_get_type_str(Token* tok) {
 
 void token_write_buffer(Token *tok, Buffer* buf) {
     if(!tok) return;
+    if(buf->len == 0) {
+        buffer_printf(buf, "\n%4d    ", 1);
+    }
     const char* tmp_str = &buf->data[buf->len - 4];
     switch(tok->type) {
         case TOKEN_TYPE_SYMBOL:
@@ -78,7 +81,7 @@ void token_write_buffer(Token *tok, Buffer* buf) {
             break;
         case TOKEN_TYPE_NEWLINE:
             if(buf->data[buf->len - 1] != '\n') {
-                buffer_printf(buf, "\n");
+                buffer_printf(buf, "\n%4d    ", tok->pos.line);
                 int sum_depth = tok->edep + tok->ldep + tok->sdep;
                 for(int i = 0; i < sum_depth; i++) {
                     buffer_printf(buf, "    ");

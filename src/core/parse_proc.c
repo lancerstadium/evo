@@ -190,10 +190,16 @@ static inline bool parser_next_token_is_symbol(ParseProcess* pproc, char sym) {
     return tok && tok->type == TOKEN_TYPE_SYMBOL && tok->cval == sym;
 }
 
+static inline bool parser_next_token_is_newline(ParseProcess* pproc) {
+    Token* tok = pproc->peek_token(pproc);
+    return tok && tok->type == TOKEN_TYPE_NEWLINE;
+}
+
 // ==================================================================================== //
 //                             parser: AST Consturct
 // ==================================================================================== //
 
+static inline Node* parser_make_stmt_node(ParseProcess* pproc);
 static inline Node* parser_make_expr_node(ParseProcess* pproc);
 
 // prim = "(" expr ")" 
@@ -343,36 +349,74 @@ static inline Node* parser_make_assign_node(ParseProcess* pproc) {
 
 // expr = assign
 static inline Node* parser_make_expr_node(ParseProcess* pproc) {
-    Token* next_tok = pproc->peek_token(pproc);
 
     return parser_make_assign_node(pproc);
-
-    // // num 1
-    // if(next_tok->type == TOKEN_TYPE_NUMBER) {
-    //     lnd = parser_single_token2node(pproc);
-    // }
-    // // "+"
-    // parser_excp_operator(pproc, "+");
-    // // num 2
-    // if(next_tok->type == TOKEN_TYPE_NUMBER) {
-    //     lnd = parser_single_token2node(pproc);
-    // }
-    // ...
-
 }
 
-// body = "{" expr "}"
-static inline Node* parser_make_body_node(ParseProcess* pproc) {
-    parser_excp_symbol(pproc, '{');
-    Node* node = parser_make_expr_node(pproc);
-    while(!parser_next_token_is_symbol(pproc, '}')) {
+// expr-stmt = expr? newline
+static inline Node* parser_make_expr_stmt_node(ParseProcess* pproc) {
+    if(parser_next_token_is_newline(pproc)) {
         pproc->next_token(pproc);
+        return pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_BODY,
+            .body.stmt = NULL
+        });
+    }
+
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_STMT,
+        .stmt.lnd = parser_make_expr_node(pproc),
+        .stmt.rnd = NULL
+    });
+
+    // parser_excp_newline(pproc);
+
+    return node;
+}
+
+// compound-stmt = stmt* ")"
+static inline Node* parser_make_body_compound_node(ParseProcess* pproc) {
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = NULL
+    });
+    while(!parser_next_token_is_symbol(pproc, ')')) {
+        node->body.stmt = parser_make_stmt_node(pproc);
+    }
+    parser_excp_symbol(pproc, ')');
+    return node;
+}
+
+// body-stmt = stmt* "}"
+static inline Node* parser_make_body_stmt_node(ParseProcess* pproc) {
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = NULL
+    });
+    while(!parser_next_token_is_symbol(pproc, '}')) {
+        node->body.stmt = parser_make_stmt_node(pproc);
     }
     parser_excp_symbol(pproc, '}');
-    return pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_BODY,
-        .body.stmt = node
-    });
+    return node;
+}
+
+// stmt = "return" expr-stmt
+//      | "(" compound-stmt
+//      | "{" body-stmt
+//      | expr-stmt
+static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
+    Node* node = NULL;
+    if(parser_next_token_is_keyword(pproc, "return")) {
+        LOG_TAG
+        pproc->next_token(pproc);
+        node = parser_make_expr_stmt_node(pproc);
+    }else if(parser_next_token_is_symbol(pproc, '{')) {
+        pproc->next_token(pproc);
+        node = parser_make_body_stmt_node(pproc);
+    }else {
+        node = parser_make_expr_stmt_node(pproc);
+    }
+    return node;
 }
 
 // 处理 keyword：
@@ -400,7 +444,6 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
     }else if(STR_EQ(kw, "type")) {
         pproc->next_token(pproc);
     }else if(STR_EQ(kw, "fn")) {
-        LOG_TAG
         pproc->next_token(pproc);
         // ident*
         tok = pproc->peek_token(pproc);
@@ -440,7 +483,8 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
         });
         // body*
         if(parser_next_token_is_symbol(pproc, '{')) {
-            fn_nd->func.fn_body = parser_make_body_node(pproc);
+            pproc->next_token(pproc);
+            fn_nd->func.fn_body = parser_make_body_stmt_node(pproc);
         }
 
         pproc->tmp_nd = pproc->tmp_nd->pnd;
@@ -688,6 +732,7 @@ int parse_process_next(ParseProcess* pproc) {
             pproc->next_token(pproc);
             break;
         case TOKEN_TYPE_EOF:
+            parser_single_token2node(pproc);
             res = -1;
             break;
         default:

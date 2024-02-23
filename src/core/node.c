@@ -10,6 +10,7 @@ static const char* node_type_str[] = {
     [NODE_TYPE_EXPR]   = "expr",
     [NODE_TYPE_FUNC]   = "func",
     [NODE_TYPE_BODY]   = "body",
+    [NODE_TYPE_STMT]   = "stmt",
     [NODE_TYPE_STRUCT] = "struct",
     [NODE_TYPE_ENUM]   = "enum",
     [NODE_TYPE_EOF]    = "EOF",

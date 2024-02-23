@@ -80,6 +80,12 @@ struct node {
             Node* stmt;
         } body;
 
+        // 表达式
+        struct stmt {
+            Node* lnd;                          // 左子节点
+            Node* rnd;                          // 右子节点
+        } stmt;
+
         // 变量
         struct var {
             DataType* type;
@@ -93,13 +99,6 @@ struct node {
                 unsigned long long llnum;
             } const_val;
         } var;
-
-        // 语句
-        union stmt {
-            struct return_stmt {
-                Node* expr_nd;
-            } ret;
-        } stmt;
 
         struct stc {
             const char* name;                   // 结构体名称
