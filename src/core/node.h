@@ -84,6 +84,9 @@ struct node {
         struct stmt {
             Node* lnd;                          // 左子节点
             Node* rnd;                          // 右子节点
+            Node* cond;
+            Node* then;
+            Node* els;
         } stmt;
 
         // 变量

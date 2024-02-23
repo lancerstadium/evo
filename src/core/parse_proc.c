@@ -401,15 +401,49 @@ static inline Node* parser_make_body_stmt_node(ParseProcess* pproc) {
 }
 
 // stmt = "return" expr-stmt
+//      | "if" expr "{" body-stmt ("else" "{" body-stmt)? 
+//      | "for" expr* "{" body-stmt 
 //      | "(" compound-stmt
 //      | "{" body-stmt
 //      | expr-stmt
 static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
     Node* node = NULL;
     if(parser_next_token_is_keyword(pproc, "return")) {
-        LOG_TAG
         pproc->next_token(pproc);
         node = parser_make_expr_stmt_node(pproc);
+    }else if(parser_next_token_is_keyword(pproc, "if")) {
+        pproc->next_token(pproc);
+        Node* cond_nd = NULL;
+        Node* then_nd = NULL;
+        Node* els_nd = NULL;
+        cond_nd = parser_make_expr_node(pproc);
+        parser_excp_symbol(pproc, '{');
+        then_nd = parser_make_body_stmt_node(pproc);
+        if(parser_next_token_is_keyword(pproc, "else")) {
+            pproc->next_token(pproc);
+            parser_excp_symbol(pproc, '{');
+            els_nd = parser_make_body_stmt_node(pproc);
+        }
+        node = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_STMT,
+            .stmt.cond = cond_nd,
+            .stmt.then = then_nd,
+            .stmt.els  = els_nd
+        });
+    }else if(parser_next_token_is_keyword(pproc, "for")){
+        pproc->next_token(pproc);
+        Node* cond_nd = NULL;
+        Node* then_nd = NULL;
+        if(!parser_next_token_is_symbol(pproc, '{')) {
+            cond_nd = parser_make_expr_node(pproc);
+        }
+        parser_excp_symbol(pproc, '{');
+        then_nd = parser_make_body_stmt_node(pproc);
+        node = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_STMT,
+            .stmt.cond = cond_nd,
+            .stmt.then = then_nd,
+        });
     }else if(parser_next_token_is_symbol(pproc, '{')) {
         pproc->next_token(pproc);
         node = parser_make_body_stmt_node(pproc);
@@ -667,11 +701,6 @@ ParseProcess* parse_process_create(LexProcess* lproc) {
         .mod.name = pproc->root->prog.name,
         .mod.sym_tbl = hashmap_create()
     });
-
-    // pproc->root = vector_at(pproc->node_vec, 0);
-    // pproc->root->prog.main_mod = vector_at(pproc->node_vec, 1);
-
-    log_info("root: %p", pproc->root);
 
     return pproc;
 }
