@@ -19,7 +19,7 @@ typedef enum {
     NODE_TYPE_VAR,                      // 变量
     NODE_TYPE_BODY,                     // 代码体
     NODE_TYPE_STMT,                     // 语句
-    NODE_TYPE_UNARY,                    // 单语句
+    NODE_TYPE_ENUM,                     // 枚举类
     NODE_TYPE_STRUCT                    // 结构体
 } NodeType;
 
@@ -67,26 +67,10 @@ struct node {
             const char* op;
         } expr;
 
-        // 单式
-        struct unary {
-            const char* op;
-            Node* op_nd;
-            union {
-                struct indirection {
-                    int depth;
-                } indirection;
-            };
-        } unary;
-
-        struct stc {
-            const char* name;
-            Node* body_nd;
-        } stc;
-
         // 函数
         struct func {
             const char* name;                   // 函数名
-            DataType rtype;                    // 返回类型
+            DataType rtype;                     // 返回类型
             Vector* argv;                       // 传入参数表
             Node* fn_body;                      // 函数体
         } func;
@@ -116,6 +100,15 @@ struct node {
                 Node* expr_nd;
             } ret;
         } stmt;
+
+        struct stc {
+            const char* name;                   // 结构体名称
+            Node* stc_body;                     // 结构体
+        } stc;
+
+        struct enm {
+            const char* name;                   // 枚举类名称
+        }enm;
     };
 
 };

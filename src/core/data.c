@@ -15,23 +15,13 @@ const char* datatype_str[] = {
     [DATA_TYPE_I64]         = "i64",
     [DATA_TYPE_F32]         = "f32", 
     [DATA_TYPE_F64]         = "f64", 
+    [DATA_TYPE_BYTE]        = "byte",
     [DATA_TYPE_CHAR]        = "char", 
     [DATA_TYPE_BOOL]        = "bool",
-    [DATA_TYPE_SHORT]       = "short",
-    [DATA_TYPE_INT]         = "int",
-    [DATA_TYPE_LONG]        = "lint",
-    [DATA_TYPE_LONG_LONG]   = "llint",
-    [DATA_TYPE_UINT]        = "uint",
-    [DATA_TYPE_ULONG]       = "ulint",
-    [DATA_TYPE_ULONG_LONG]  = "ullint",
-    [DATA_TYPE_FLOAT]       = "float",
-    [DATA_TYPE_DOUBLE]      = "double",
+    [DATA_TYPE_RUNE]        = "rune",  
     [DATA_TYPE_STR]         = "str",
-    [DATA_TYPE_STRUCT]      = "struct",
-    [DATA_TYPE_UNION]       = "union",
-    [DATA_TYPE_DEFINED]     = "defined",
     [DATA_TYPE_ANY]         = "any",
-    [DATA_TYPE_NONE]        = "none"
+    [DATA_TYPE_VOID]        = "void"
 };
 
 const int datatype_str_num = GET_ARR_LEN(datatype_str);
@@ -43,5 +33,5 @@ int get_datatype_idx(const char* str) {
             return idx;
         }
     }
-    return DATA_TYPE_UNKNOW;
+    return DATA_TYPE_UNKNOWN;
 }

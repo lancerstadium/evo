@@ -3,14 +3,16 @@
 
 
 static const char* node_type_str[] = {
-    [NODE_TYPE_PROG]  = "prog",
-    [NODE_TYPE_MOD]   = "mod",
-    [NODE_TYPE_NUM]   = "number",
-    [NODE_TYPE_IDENT] = "ident",
-    [NODE_TYPE_EXPR]  = "expr",
-    [NODE_TYPE_FUNC]  = "func",
-    [NODE_TYPE_BODY]  = "body",
-    [NODE_TYPE_EOF]   = "EOF",
+    [NODE_TYPE_PROG]   = "prog",
+    [NODE_TYPE_MOD]    = "mod",
+    [NODE_TYPE_NUM]    = "number",
+    [NODE_TYPE_IDENT]  = "ident",
+    [NODE_TYPE_EXPR]   = "expr",
+    [NODE_TYPE_FUNC]   = "func",
+    [NODE_TYPE_BODY]   = "body",
+    [NODE_TYPE_STRUCT] = "struct",
+    [NODE_TYPE_ENUM]   = "enum",
+    [NODE_TYPE_EOF]    = "EOF",
 };
 
 const char* node_get_type_str(Node* nd){
@@ -48,9 +50,9 @@ void node_read(Node* nd) {
             break;
         case NODE_TYPE_FUNC:
             buffer_printf(buf, "   func name     : %s\n", nd->func.name);
-            buffer_printf(buf, "   func return   : (%s)", datatype_str[nd->func.rtype.type]);
+            buffer_printf(buf, "   func return   : %s", datatype_str[nd->func.rtype.type]);
             switch (nd->func.rtype.type) {
-                default: buffer_printf(buf, " None");
+                default: buffer_printf(buf, " (None)");
             }
             buffer_printf(buf, "\n");
             break;
@@ -64,6 +66,12 @@ void node_read(Node* nd) {
             buffer_printf(buf, "   ident name    : %s\n", nd->sval);
             break;
         case NODE_TYPE_BODY:
+            break;
+        case NODE_TYPE_ENUM:
+            buffer_printf(buf, "   enum name     : %s\n", nd->enm.name);
+            break;
+        case NODE_TYPE_STRUCT:
+            buffer_printf(buf, "   struct name   : %s\n", nd->stc.name);
             break;
         default:
             break;

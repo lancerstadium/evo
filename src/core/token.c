@@ -55,7 +55,7 @@ void token_write_buffer(Token *tok, Buffer* buf) {
             buffer_printf(buf, _bred(" %s "), tok->sval);
             break;
         case TOKEN_TYPE_PRE_KEYWORD:
-            buffer_printf(buf, "%s ", tok->sval);
+            buffer_printf(buf, _yellow("#%s "), tok->sval);
             break;
         case TOKEN_TYPE_DATATYPE:
             if(buf->data[buf->len - 1] == '\n' || STR_EQ(tmp_str, "    ")) {

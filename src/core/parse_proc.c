@@ -216,7 +216,7 @@ static inline Node* parser_make_prim_node(ParseProcess* pproc) {
         return node;
     }
 
-    parser_error("Unexpect expression at %s:%d:%d!", tok->pos.filename, tok->pos.line, tok->pos.col);
+    parser_error("Unexpect expression at %s:%d:%d", tok->pos.filename, tok->pos.line, tok->pos.col);
     return NULL;
 }
 
@@ -379,7 +379,8 @@ static inline Node* parser_make_body_node(ParseProcess* pproc) {
 // keyword = "mod" ident* "(" assgin ")"
 //         | "use" "(" assign ")"
 //         | "type" --> handle type
-//         | "fn" (ident ".")* ident "(" assgin ")" ":" Datatype
+//         | "fn" (ident ".")* ident "(" assgin ")" ":" Datatype body*
+//         | "enum" ident* "{" ident* "}"
 static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
     LOG_TAG
     Token* tok;
@@ -403,7 +404,7 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
         pproc->next_token(pproc);
         // ident*
         tok = pproc->peek_token(pproc);
-        const char* func_name;
+        const char* func_name = NULL;
         if(tok->type == TOKEN_TYPE_IDENTIFIER) {
             func_name = tok->sval;
             pproc->next_token(pproc);
@@ -428,17 +429,74 @@ static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
             }
         }
         
-        pproc->create_node(pproc, &(Node){
+        Node* fn_nd = pproc->create_node(pproc, &(Node){
             .type = NODE_TYPE_FUNC,
             .func.name = func_name,
             .func.rtype = (DataType) {
                 .type = rtype_enum,
                 .type_str = rtype_str
             },
-            .func.fn_body = parser_make_body_node(pproc)
+            .func.fn_body = NULL
         });
+        // body*
+        if(parser_next_token_is_symbol(pproc, '{')) {
+            fn_nd->func.fn_body = parser_make_body_node(pproc);
+        }
+
+        pproc->tmp_nd = pproc->tmp_nd->pnd;
+        
     }else if(STR_EQ(kw, "self")) {
         pproc->next_token(pproc);
+    }else if(STR_EQ(kw, "enum")) {
+        pproc->next_token(pproc);
+        // ident*
+        tok = pproc->peek_token(pproc);
+        const char* enum_name;
+        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            enum_name = tok->sval;
+            pproc->next_token(pproc);
+            log_info("enum name: %s", enum_name);
+        }
+
+        Node* enm_nd = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_ENUM,
+            .enm.name = enum_name ? enum_name : "(None)"
+        });
+
+        // "{" ident* newline "}"
+        parser_excp_symbol(pproc, '{');
+        while(!parser_next_token_is_symbol(pproc, '}')) {
+            tok = pproc->next_token(pproc);
+            // if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            //     parser_single_token2node(pproc);
+            //     parser_excp_newline(pproc);
+            // }
+        }
+        parser_excp_symbol(pproc, '}');
+        pproc->tmp_nd = pproc->tmp_nd->pnd;
+    }else if(STR_EQ(kw, "struct")) {
+        pproc->next_token(pproc);
+        // ident*
+        tok = pproc->peek_token(pproc);
+        const char* stc_name = NULL;
+        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            stc_name = tok->sval;
+            pproc->next_token(pproc);
+            log_info("struct name: %s", stc_name);
+        }
+
+        Node* stc_nd = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_STRUCT,
+            .stc.name = stc_name ? stc_name : "(None)"
+        });
+
+        // "{" ... "}"
+        parser_excp_symbol(pproc, '{');
+        while(!parser_next_token_is_symbol(pproc, '}')) {
+            tok = pproc->next_token(pproc);
+        }
+        parser_excp_symbol(pproc, '}');
+        pproc->tmp_nd = pproc->tmp_nd->pnd;
     }else {
         parser_error("TODO handle keyword `%s`", kw);
     }
@@ -493,29 +551,6 @@ void parse_process_push_node(ParseProcess* pproc, Node* node) {
 
 Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
 
-    if(!pproc->tmp_nd) 
-        pproc->tmp_nd = pproc->root;
-    
-    switch (_node->type) {
-        case NODE_TYPE_BODY:
-        case NODE_TYPE_NUM:
-        case NODE_TYPE_IDENT:
-        case NODE_TYPE_EXPR:
-            _node->pnd = pproc->tmp_nd;
-            _node->depth = pproc->tmp_nd->depth;
-            break;
-        case NODE_TYPE_FUNC:
-            _node->pnd = pproc->tmp_nd;
-            _node->depth = pproc->tmp_nd->depth + 1;
-            pproc->tmp_nd = pproc->tmp_nd->pnd;
-            break;
-        case NODE_TYPE_MOD:
-            _node->pnd = pproc->tmp_nd;
-            _node->depth = pproc->tmp_nd->depth + 1;
-            break;
-        case NODE_TYPE_PROG:
-        default: break;
-    }
     Node* node = malloc(sizeof(Node));
     memcpy(node, _node, sizeof(Node));
     pproc->push_node(pproc, node);
@@ -528,13 +563,27 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
     // |  ENUM   |   yes   |
     // |  STRUCT |   yes   |
     // |  FUNC   |   yes   |
+    if(!pproc->tmp_nd) 
+    pproc->tmp_nd = pproc->root;
+    
     switch (back_nd->type) {
-        case NODE_TYPE_PROG:
-        case NODE_TYPE_MOD:
+        case NODE_TYPE_PROG: break;
         case NODE_TYPE_FUNC:
+        case NODE_TYPE_STRUCT:
+        case NODE_TYPE_ENUM:
+        case NODE_TYPE_MOD:
+            back_nd->pnd = pproc->tmp_nd;
+            back_nd->depth = pproc->tmp_nd->depth + 1;
             pproc->tmp_nd = back_nd;
             break;
-        default: break;
+        case NODE_TYPE_BODY:
+        case NODE_TYPE_NUM:
+        case NODE_TYPE_IDENT:
+        case NODE_TYPE_EXPR:
+        default:
+            back_nd->pnd = pproc->tmp_nd;
+            back_nd->depth = pproc->tmp_nd->depth;
+            break;
     }
     return back_nd;
 }

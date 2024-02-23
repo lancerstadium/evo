@@ -1,3 +1,17 @@
+
+enum AnimalType {
+    CAT
+    DOG
+    BIRD
+}
+
+struct {
+
+}
+
+fn add() 
+
 fn main() {
-    x = 1+1
+    a = 23
+    x = a + 2
 }
