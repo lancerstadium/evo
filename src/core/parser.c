@@ -22,10 +22,13 @@ int parse(ParseProcess *pproc) {
         // // 还将其推回我们刚刚弹出的主节点堆栈
         // pproc->push_node(pproc, node);
     }
+    Buffer* buf = buffer_create();
     for(int i = 0; i < pproc->node_vec->count; i++) {
         nd = vector_at(pproc->node_vec, i);
-        node_read(nd);
+        // node_read(nd);
+        node_write_buffer(nd, buf);
     }
+    log_info(buffer_ptr(buf));
     return PARSER_ANALYSIS_OK;
 }
 

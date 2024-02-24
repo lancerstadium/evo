@@ -12,6 +12,7 @@
     } while (0)
 
 // 类型声明
+typedef struct parse_config ParseConfig;
 typedef struct parse_process ParseProcess;
 typedef Token* (*PARSE_PROCESS_NEXT_TK)(ParseProcess* pproc);
 typedef Token* (*PARSE_PROCESS_PEEK_TK)(ParseProcess* pproc);
@@ -28,6 +29,12 @@ typedef enum {
     PARSER_ANALYSIS_ERROR,              // 语法分析失败                
 } ParserAnalysisResult;
 
+// parser设置
+struct parse_config {
+    int default_datatype;          // 默认类型
+    const char* default_datatype_str;   // 默认类型字符串
+};
+
 // parser进程
 struct parse_process {
 
@@ -37,6 +44,7 @@ struct parse_process {
     Vector* node_vec;                   // 用于存储解析所有节点：可以被弹出以形成其他更大的节点，例如表达式
     HashMap* symbol_tbl;                // 保存函数名称、全局变量等内容的符号表，数据可以指向有问题的节点以及其他相关信息
     LexProcess* lex_proc;               // 指向 lex_process 的指针
+    ParseConfig* config;                // 解析器设置
 
     PARSE_PROCESS_NEXT_TK next_token;   // 移到下一个 token
     PARSE_PROCESS_PEEK_TK peek_token;   // 查看下一个 token
@@ -58,4 +66,4 @@ ParseProcess* parse_process_create(LexProcess* lproc);
 void parse_process_free(ParseProcess* pproc);
 int parse_process_next(ParseProcess* pproc);
 
-#endif 
+#endif

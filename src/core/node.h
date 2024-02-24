@@ -17,6 +17,7 @@ typedef enum {
     NODE_TYPE_NUM,                      // 数字
     NODE_TYPE_IDENT,                    // 标识符
     NODE_TYPE_VAR,                      // 变量
+    NODE_TYPE_PARAM,                    // 参数体
     NODE_TYPE_BODY,                     // 代码体
     NODE_TYPE_STMT,                     // 语句
     NODE_TYPE_ENUM,                     // 枚举类
@@ -70,10 +71,16 @@ struct node {
         // 函数
         struct func {
             const char* name;                   // 函数名
-            DataType rtype;                     // 返回类型
+            DataType fn_rtype;                     // 返回类型
             Vector* argv;                       // 传入参数表
+            Node* fn_param;                     // 参数体
             Node* fn_body;                      // 函数体
         } func;
+
+        // 参数主体
+        struct param{
+            HashMap* sym_tbl;                   // 符号表
+        } param;
 
         // 代码主体
         struct body {
@@ -88,6 +95,12 @@ struct node {
             Node* then;
             Node* els;
         } stmt;
+
+        // 标识符
+        struct ident{
+            Pos* pos;
+            DataType dtype;
+        }ident;
 
         // 变量
         struct var {
@@ -115,7 +128,7 @@ struct node {
 
 };
 
-
+void node_write_buffer(Node* nd, Buffer* buf);
 void node_append_size(Node* nd, size_t *var_size);
 void node_read(Node* nd);
 void node_swap(Node** nd1, Node** nd2);
