@@ -60,6 +60,7 @@ struct node {
         struct mod {
             const char* name;                   // 模块名
             HashMap* sym_tbl;                   // 符号表
+            Node* mod_body;                     // 模块体
         } mod;
         // 表达式
         struct expr {
@@ -91,6 +92,7 @@ struct node {
         struct stmt {
             Node* lnd;                          // 左子节点
             Node* rnd;                          // 右子节点
+            Node* ret;                          // 返回节点
             Node* cond;
             Node* then;
             Node* els;
@@ -123,6 +125,7 @@ struct node {
 
         struct enm {
             const char* name;                   // 枚举类名称
+            HashMap* sym_tbl;                   // 符号表
         }enm;
     };
 

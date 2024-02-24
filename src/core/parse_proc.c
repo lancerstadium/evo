@@ -166,12 +166,20 @@ static inline bool parser_next_token_is_newline(ParseProcess* pproc) {
     return tok && tok->type == TOKEN_TYPE_NEWLINE;
 }
 
+static inline bool parser_next_token_is_EOF(ParseProcess* pproc) {
+    Token* tok = pproc->peek_token(pproc);
+    return !tok || tok->type == TOKEN_TYPE_EOF;
+}
+
 // ==================================================================================== //
 //                             parser: AST Consturct
 // ==================================================================================== //
 
 static inline Node* parser_make_stmt_node(ParseProcess* pproc);
 static inline Node* parser_make_expr_node(ParseProcess* pproc);
+static inline Node* parser_make_func_node(ParseProcess* pproc);
+static inline Node* parser_make_enum_node(ParseProcess* pproc);
+static inline Node* parser_make_struct_node(ParseProcess* pproc);
 
 // num   <- number
 // ident <- identifier (":" datatype)*
@@ -362,32 +370,21 @@ static inline Node* parser_make_expr_stmt_node(ParseProcess* pproc) {
     if(parser_next_token_is_newline(pproc)) {
         pproc->next_token(pproc);
         return pproc->create_node(pproc, &(Node){
-            .type = NODE_TYPE_STMT
+            .type = NODE_TYPE_STMT,
         });
     }
 
     Node* node = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_STMT,
-        .stmt.lnd = parser_make_expr_node(pproc),
+        .sval = "expr-stmt",
+        .stmt.lnd = NULL,
         .stmt.rnd = NULL
     });
 
+    node->stmt.lnd = parser_make_expr_node(pproc);
+
     // parser_excp_newline(pproc);
 
-    return node;
-}
-
-// compound-stmt = stmt* ")"
-static inline Node* parser_make_body_compound_node(ParseProcess* pproc) {
-    Node* node = pproc->create_node(pproc, &(Node){
-        .type = NODE_TYPE_BODY,
-        .body.stmt = NULL
-    });
-    while(!parser_next_token_is_symbol(pproc, ')')) {
-        node->body.stmt = parser_make_stmt_node(pproc);
-    }
-    parser_excp_symbol(pproc, ')');
-    pproc->tmp_nd = pproc->tmp_nd->pnd;
     return node;
 }
 
@@ -400,62 +397,70 @@ static inline Node* parser_make_body_stmt_node(ParseProcess* pproc) {
     while(!parser_next_token_is_symbol(pproc, '}')) {
         node->body.stmt = parser_make_stmt_node(pproc);
     }
+
     parser_excp_symbol(pproc, '}');
     pproc->tmp_nd = pproc->tmp_nd->pnd;
     return node;
 }
 
-// stmt = "return" (expr | newline)
+// stmt = struct
+//      | enum
+//      | func
+//      | "return" (expr | newline)
 //      | "if" expr "{" body-stmt ("else" "{" body-stmt)? 
 //      | "for" expr* "{" body-stmt 
-//      | "(" compound-stmt
 //      | "{" body-stmt
 //      | expr-stmt
 static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
     Node* node = NULL;
-    if(parser_next_token_is_keyword(pproc, "return")) {
+    if(parser_next_token_is_keyword(pproc, "struct")){
+        node = parser_make_struct_node(pproc);
+    }else if(parser_next_token_is_keyword(pproc, "enum")){
+        node = parser_make_enum_node(pproc);
+    }else if(parser_next_token_is_keyword(pproc, "fn")){
+        node = parser_make_func_node(pproc);
+    }else if(parser_next_token_is_keyword(pproc, "return")) {
         pproc->next_token(pproc);
-        if(parser_next_token_is_newline(pproc)) {
-            pproc->next_token(pproc);
-            return pproc->create_node(pproc, &(Node){
-                .type = NODE_TYPE_STMT
-            });
-        }else {
-            node = parser_make_expr_node(pproc);
+        node = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_STMT,
+            .sval = "return-stmt",
+            .stmt.ret = NULL
+        });
+        if(!parser_next_token_is_newline(pproc)) {
+            node->stmt.ret = parser_make_expr_node(pproc);
         }
     }else if(parser_next_token_is_keyword(pproc, "if")) {
         pproc->next_token(pproc);
-        Node* cond_nd = NULL;
-        Node* then_nd = NULL;
-        Node* els_nd = NULL;
-        cond_nd = parser_make_expr_node(pproc);
+        node = pproc->create_node(pproc, &(Node){
+            .type = NODE_TYPE_STMT,
+            .sval = "if-stmt",
+            .stmt.cond = NULL,
+            .stmt.then = NULL,
+            .stmt.els  = NULL
+        });
+        node->stmt.cond = parser_make_expr_node(pproc);
         parser_excp_symbol(pproc, '{');
-        then_nd = parser_make_body_stmt_node(pproc);
+        node->stmt.then = parser_make_body_stmt_node(pproc);
         if(parser_next_token_is_keyword(pproc, "else")) {
             pproc->next_token(pproc);
             parser_excp_symbol(pproc, '{');
-            els_nd = parser_make_body_stmt_node(pproc);
+            node->stmt.els = parser_make_body_stmt_node(pproc);
         }
-        node = pproc->create_node(pproc, &(Node){
-            .type = NODE_TYPE_STMT,
-            .stmt.cond = cond_nd,
-            .stmt.then = then_nd,
-            .stmt.els  = els_nd
-        });
+
     }else if(parser_next_token_is_keyword(pproc, "for")){
         pproc->next_token(pproc);
-        Node* cond_nd = NULL;
-        Node* then_nd = NULL;
-        if(!parser_next_token_is_symbol(pproc, '{')) {
-            cond_nd = parser_make_expr_node(pproc);
-        }
-        parser_excp_symbol(pproc, '{');
-        then_nd = parser_make_body_stmt_node(pproc);
         node = pproc->create_node(pproc, &(Node){
             .type = NODE_TYPE_STMT,
-            .stmt.cond = cond_nd,
-            .stmt.then = then_nd,
+            .sval = "for-stmt",
+            .stmt.cond = NULL,
+            .stmt.then = NULL,
         });
+        if(!parser_next_token_is_symbol(pproc, '{')) {
+            node->stmt.cond = parser_make_expr_node(pproc);
+        }
+        parser_excp_symbol(pproc, '{');
+        node->stmt.then = parser_make_body_stmt_node(pproc);
+
     }else if(parser_next_token_is_symbol(pproc, '{')) {
         pproc->next_token(pproc);
         node = parser_make_body_stmt_node(pproc);
@@ -464,9 +469,6 @@ static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
     }
     return node;
 }
-
-// 
-
 
 // param = ident
 static inline Node* parser_make_param_node(ParseProcess* pproc) {
@@ -482,7 +484,9 @@ static inline Node* parser_make_param_node(ParseProcess* pproc) {
                 .param.sym_tbl = hashmap_create()
             });
         }else {
-            parser_excp_symbol(pproc, ',');
+            if(parser_next_token_is_symbol(pproc, ',')){
+                parser_excp_symbol(pproc, ',');
+            }
         }
 
         id_nd = parser_single_token2node(pproc);
@@ -507,133 +511,159 @@ static inline Node* parser_make_param_node(ParseProcess* pproc) {
     return node;
 }
 
+// func = "fn" (ident ".")* ident "(" param ")" ":" Datatype body*
+static inline Node* parser_make_func_node(ParseProcess* pproc) {
+    pproc->next_token(pproc);
+    // ident*
+    Token* tok = pproc->peek_token(pproc);
+    const char* func_name = NULL;
+    if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+        func_name = tok->sval;
+        pproc->next_token(pproc);
+        log_info("func name: %s", func_name);
+    }
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_FUNC,
+        .func.name = func_name,
+        .func.fn_param = NULL,
+        .func.fn_rtype = (DataType) {
+            .type = DATA_TYPE_I32,
+            .type_str = datatype_str[DATA_TYPE_I32]
+        },
+        .func.fn_body = NULL
+    });
 
-// keyword = "mod" ident* "(" param ")"
-//         | "use" "(" param ")"
-//         | "type" --> handle type
-//         | "fn" (ident ".")* ident "(" param ")" ":" Datatype body*
-//         | "enum" ident* "{" ident* "}"
-static inline void parser_handle_keyword(ParseProcess* pproc, const char* kw) {
+    // "(" param ")"
+    parser_excp_symbol(pproc, '(');
+    Node* param_nd = NULL;
+    if(!parser_next_token_is_symbol(pproc, ')')) {
+        param_nd = parser_make_param_node(pproc);
+    }
+    parser_excp_symbol(pproc, ')');
+    node->func.fn_param = param_nd;
+    // ":" Datatype
+    if(parser_next_token_is_operator(pproc, ":")) {
+        pproc->next_token(pproc);
+        tok = pproc->peek_token(pproc);
+        if(tok->type == TOKEN_TYPE_DATATYPE) {
+            node->func.fn_rtype.type = tok->inum;
+            node->func.fn_rtype.type_str = datatype_str[tok->inum];
+            pproc->next_token(pproc);
+        }
+    }
+    // body*
+    if(parser_next_token_is_symbol(pproc, '{')) {
+        pproc->next_token(pproc);
+        node->func.fn_body = parser_make_body_stmt_node(pproc);
+    }
+
+    pproc->tmp_nd = pproc->tmp_nd->pnd;
+    return node;
+}
+
+
+// enum = "enum" ident* "{" ident* "}"
+static inline Node* parser_make_enum_node(ParseProcess* pproc) {
+    pproc->next_token(pproc);
+    // ident*
+    Token* tok = pproc->peek_token(pproc);
+    const char* enum_name = NULL;
+    if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+        enum_name = tok->sval;
+        pproc->next_token(pproc);
+        log_info("enum name: %s", enum_name);
+    }
+
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_ENUM,
+        .enm.name = enum_name ? enum_name : "(None)",
+        .enm.sym_tbl = hashmap_create()
+    });
+
+    // "{" ident* "}"
+    parser_excp_symbol(pproc, '{');
+    Node* id_nd = NULL;
+    while(!parser_next_token_is_symbol(pproc, '}')) {
+        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            id_nd = parser_single_token2node(pproc);
+            id_nd->ident.dtype.type = DATA_TYPE_I32;
+            id_nd->ident.dtype.type_str = datatype_str[DATA_TYPE_I32];
+            hashmap_set(node->enm.sym_tbl, id_nd->sval, id_nd);
+        }else {
+            pproc->next_token(pproc);
+        }
+    }
+    parser_excp_symbol(pproc, '}');
+    pproc->tmp_nd = pproc->tmp_nd->pnd;
+    return node;
+}
+
+// struct = "struct" ident* "{" (param | func)* "}"
+static inline Node* parser_make_struct_node(ParseProcess* pproc) {
+    pproc->next_token(pproc);
+    // ident*
+    Token* tok = pproc->peek_token(pproc);
+    const char* stc_name = NULL;
+    if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+        stc_name = tok->sval;
+        pproc->next_token(pproc);
+        log_info("struct name: %s", stc_name);
+    }
+
+    Node* stc_nd = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_STRUCT,
+        .stc.name = stc_name ? stc_name : "(None)"
+    });
+
+    // "{" (param | func)* "}"
+    parser_excp_symbol(pproc, '{');
+    while(!parser_next_token_is_symbol(pproc, '}')) {
+        tok = pproc->peek_token(pproc);
+        if(parser_next_token_is_keyword(pproc, "fn")) {
+            parser_make_func_node(pproc);
+        }else if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            parser_make_param_node(pproc);
+        }else {
+            pproc->next_token(pproc);
+        }
+    }
+    parser_excp_symbol(pproc, '}');
+    pproc->tmp_nd = pproc->tmp_nd->pnd;
+}
+
+
+// mod = ("mod" ident* "(" param ")" )*  ("use" "(" param ")")* stmt*
+static inline Node* parser_make_mod_node(ParseProcess* pproc) {
     LOG_TAG
-    Token* tok;
-    if(STR_EQ(kw, "mod")) {
-        pproc->next_token(pproc);
-        // ident*
-        tok = pproc->peek_token(pproc);
-        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            pproc->root->prog.main_mod->mod.name = tok->sval;
+    Token* tok = pproc->peek_token(pproc);
+    const char* kw = NULL;
+    if(tok->type == TOKEN_TYPE_KEYWORD) {
+        kw = tok->sval;
+        if(STR_EQ(kw, "mod")) {
             pproc->next_token(pproc);
-        } else {
-            pproc->root->prog.main_mod->mod.name = pproc->root->prog.name;
-            pproc->next_token(pproc);
-        }
-    }else if(STR_EQ(kw, "use")) {
-        pproc->next_token(pproc);
-    }else if(STR_EQ(kw, "type")) {
-        pproc->next_token(pproc);
-    }else if(STR_EQ(kw, "fn")) {
-        pproc->next_token(pproc);
-        // ident*
-        tok = pproc->peek_token(pproc);
-        const char* func_name = NULL;
-        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            func_name = tok->sval;
-            pproc->next_token(pproc);
-            log_info("func name: %s", func_name);
-        }
-        Node* fn_nd = pproc->create_node(pproc, &(Node){
-            .type = NODE_TYPE_FUNC,
-            .func.name = func_name,
-            .func.fn_param = NULL,
-            .func.fn_rtype = (DataType) {
-                .type = DATA_TYPE_I32,
-                .type_str = datatype_str[DATA_TYPE_I32]
-            },
-            .func.fn_body = NULL
-        });
-
-        // "(" param ")"
-        parser_excp_symbol(pproc, '(');
-        Node* param_nd = NULL;
-        if(!parser_next_token_is_symbol(pproc, ')')) {
-            param_nd = parser_make_param_node(pproc);
-        }
-        parser_excp_symbol(pproc, ')');
-        fn_nd->func.fn_param = param_nd;
-        // ":" Datatype
-        if(parser_next_token_is_operator(pproc, ":")) {
-            pproc->next_token(pproc);
+            // ident*
             tok = pproc->peek_token(pproc);
-            if(tok->type == TOKEN_TYPE_DATATYPE) {
-                fn_nd->func.fn_rtype.type = tok->inum;
-                fn_nd->func.fn_rtype.type_str = datatype_str[tok->inum];
+            if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+                pproc->root->prog.main_mod->mod.name = tok->sval;
+                pproc->next_token(pproc);
+            } else {
+                pproc->root->prog.main_mod->mod.name = pproc->root->prog.name;
                 pproc->next_token(pproc);
             }
-        }
-        
-        // body*
-        if(parser_next_token_is_symbol(pproc, '{')) {
+        }else if(STR_EQ(kw, "use")) {
             pproc->next_token(pproc);
-            fn_nd->func.fn_body = parser_make_body_stmt_node(pproc);
         }
-
-        pproc->tmp_nd = pproc->tmp_nd->pnd;
-        
-    }else if(STR_EQ(kw, "self")) {
-        pproc->next_token(pproc);
-    }else if(STR_EQ(kw, "enum")) {
-        pproc->next_token(pproc);
-        // ident*
-        tok = pproc->peek_token(pproc);
-        const char* enum_name;
-        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            enum_name = tok->sval;
-            pproc->next_token(pproc);
-            log_info("enum name: %s", enum_name);
-        }
-
-        Node* enm_nd = pproc->create_node(pproc, &(Node){
-            .type = NODE_TYPE_ENUM,
-            .enm.name = enum_name ? enum_name : "(None)"
-        });
-
-        // "{" ident* newline "}"
-        parser_excp_symbol(pproc, '{');
-        while(!parser_next_token_is_symbol(pproc, '}')) {
-            tok = pproc->next_token(pproc);
-            // if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            //     parser_single_token2node(pproc);
-            //     parser_excp_newline(pproc);
-            // }
-        }
-        parser_excp_symbol(pproc, '}');
-        pproc->tmp_nd = pproc->tmp_nd->pnd;
-    }else if(STR_EQ(kw, "struct")) {
-        pproc->next_token(pproc);
-        // ident*
-        tok = pproc->peek_token(pproc);
-        const char* stc_name = NULL;
-        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            stc_name = tok->sval;
-            pproc->next_token(pproc);
-            log_info("struct name: %s", stc_name);
-        }
-
-        Node* stc_nd = pproc->create_node(pproc, &(Node){
-            .type = NODE_TYPE_STRUCT,
-            .stc.name = stc_name ? stc_name : "(None)"
-        });
-
-        // "{" ... "}"
-        parser_excp_symbol(pproc, '{');
-        while(!parser_next_token_is_symbol(pproc, '}')) {
-            tok = pproc->next_token(pproc);
-        }
-        parser_excp_symbol(pproc, '}');
-        pproc->tmp_nd = pproc->tmp_nd->pnd;
-    }else {
-        parser_error("TODO handle keyword `%s`", kw);
     }
+    pproc->root->prog.main_mod->mod.mod_body = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = NULL
+    });
+    while(!parser_next_token_is_EOF(pproc)) {
+        pproc->root->prog.main_mod->mod.mod_body->body.stmt = parser_make_stmt_node(pproc);
+    }
+
+    // parser_error("TODO handle keyword `%s`", kw);
+    return pproc->root->prog.main_mod;
 }
 
 // ==================================================================================== //
@@ -791,27 +821,15 @@ int parse_process_next(ParseProcess* pproc) {
     int res = 0;
     switch(tok->type) {
         case TOKEN_TYPE_NUMBER:
-            pproc->next_token(pproc);
-            break;
-        case TOKEN_TYPE_IDENTIFIER:
-            pproc->next_token(pproc);
-            break;
+        case TOKEN_TYPE_IDENTIFIER:;
         case TOKEN_TYPE_OPERATOR:
-            pproc->next_token(pproc);
-            break;
         case TOKEN_TYPE_STRING:
-            pproc->next_token(pproc);
-            break;
         case TOKEN_TYPE_SYMBOL:
-            pproc->next_token(pproc);
-            break;
+        case TOKEN_TYPE_DATATYPE:
         case TOKEN_TYPE_KEYWORD:
-            parser_handle_keyword(pproc, tok->sval);
+            parser_make_mod_node(pproc);
             break;
         case TOKEN_TYPE_PRE_KEYWORD:
-            pproc->next_token(pproc);
-            break;
-        case TOKEN_TYPE_DATATYPE:
             pproc->next_token(pproc);
             break;
         case TOKEN_TYPE_COMMENT:

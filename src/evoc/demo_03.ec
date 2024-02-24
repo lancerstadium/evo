@@ -38,7 +38,7 @@ struct Animal {
 // }
 
 fn main(argc : i32, argv : str) : i32 {
-    d1 := Animal (              // var d1 = Animal
+    d1 := Animal (              
         Dog_name = "John"
         Dog_no   = 12
     )
