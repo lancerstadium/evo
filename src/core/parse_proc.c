@@ -201,6 +201,21 @@ static inline Node* parser_single_token2node(ParseProcess* pproc) {
                 .sval = name,
                 .ident.pos = pos
             });
+            // datatype ident
+            int id_type = DATA_TYPE_I32;
+            const char* id_type_str = datatype_str[DATA_TYPE_I32];
+            
+            if(parser_next_token_is_operator(pproc, ":")) {
+                pproc->next_token(pproc);
+                tok = pproc->peek_token(pproc);
+                if(tok->type == TOKEN_TYPE_DATATYPE){
+                    id_type = tok->inum;
+                    id_type_str = datatype_str[tok->inum];
+                    pproc->next_token(pproc);
+                }
+            }
+            nd->ident.dtype.type = id_type;
+            nd->ident.dtype.type_str = id_type_str;
             break;
         case TOKEN_TYPE_EOF:
             pproc->tmp_nd = pproc->tmp_nd->pnd;
@@ -475,8 +490,6 @@ static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
 static inline Node* parser_make_param_node(ParseProcess* pproc) {
     Token* tok = pproc->peek_token(pproc);
     Node* node = NULL;
-    int id_type;
-    const char* id_type_str;
     Node* id_nd = NULL;
     while(tok->type == TOKEN_TYPE_IDENTIFIER || parser_next_token_is_symbol(pproc, ',')) {
         if(node == NULL) {
@@ -489,22 +502,7 @@ static inline Node* parser_make_param_node(ParseProcess* pproc) {
                 parser_excp_symbol(pproc, ',');
             }
         }
-
         id_nd = parser_single_token2node(pproc);
-        id_type = DATA_TYPE_I32;
-        id_type_str = datatype_str[DATA_TYPE_I32];
-        
-        if(parser_next_token_is_operator(pproc, ":")) {
-            pproc->next_token(pproc);
-            tok = pproc->peek_token(pproc);
-            if(tok->type == TOKEN_TYPE_DATATYPE){
-                id_type = tok->inum;
-                id_type_str = datatype_str[tok->inum];
-                pproc->next_token(pproc);
-            }
-        }
-        id_nd->ident.dtype.type = id_type;
-        id_nd->ident.dtype.type_str = id_type_str;
         hashmap_set(node->param.sym_tbl, id_nd->sval, id_nd);
 
         tok = pproc->peek_token(pproc);
@@ -573,8 +571,6 @@ static inline Node* parser_make_body_enum_node(ParseProcess* pproc) {
     while(!parser_next_token_is_symbol(pproc, '}')) {
         if(tok->type == TOKEN_TYPE_IDENTIFIER) {
             id_nd = parser_single_token2node(pproc);
-            id_nd->ident.dtype.type = DATA_TYPE_I32;
-            id_nd->ident.dtype.type_str = datatype_str[DATA_TYPE_I32];
             hashmap_set(node->body.sym_tbl, id_nd->sval, id_nd);
         }else {
             pproc->next_token(pproc);
@@ -615,14 +611,23 @@ static inline Node* parser_make_body_struct_node(ParseProcess* pproc) {
     Token* tok = NULL;
     Node* node = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_BODY,
-        .body.stmt = NULL
+        .body.stmt = NULL,
+        .body.sym_tbl = hashmap_create()
     });
     while(!parser_next_token_is_symbol(pproc, '}')) {
         tok = pproc->peek_token(pproc);
         if(parser_next_token_is_keyword(pproc, "fn")) {
             node->body.stmt = parser_make_func_node(pproc);
         }else if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            node->body.stmt = parser_make_param_node(pproc);
+            Node* id_nd = NULL;
+            while(tok->type == TOKEN_TYPE_IDENTIFIER || parser_next_token_is_symbol(pproc, ',')) {
+                if(parser_next_token_is_symbol(pproc, ',')){
+                    parser_excp_symbol(pproc, ',');
+                }
+                id_nd = parser_single_token2node(pproc);
+                hashmap_set(node->body.sym_tbl, id_nd->sval, id_nd);
+                tok = pproc->peek_token(pproc);
+            }
         }else {
             pproc->next_token(pproc);
         }

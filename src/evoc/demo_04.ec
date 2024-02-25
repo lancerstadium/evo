@@ -1,5 +1,5 @@
 
-mod dm4
+mod std
 
 enum AnimalType {
     CAT

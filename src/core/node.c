@@ -57,6 +57,19 @@ void node_write_buffer(Node* nd, Buffer* buf) {
             buffer_printf(buf, "%s\n", nd->enm.name); break;
         case NODE_TYPE_STMT:
             buffer_printf(buf, "%s\n", nd->sval); break;
+        case NODE_TYPE_BODY:
+            buffer_printf(buf, "(");
+            if(nd->body.sym_tbl) {
+                for(char* key = (char*) hashmap_first(nd->body.sym_tbl); key != NULL; key = (char*) hashmap_next(nd->body.sym_tbl, key)) {
+                    Node* id_nd = hashmap_get(nd->body.sym_tbl, key);
+                    if(!STR_EQ(key, hashmap_first(nd->body.sym_tbl))) {
+                        buffer_printf(buf, ", ");
+                    }
+                    buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
+                }
+            }
+            buffer_printf(buf, ")\n");
+            break;
         case NODE_TYPE_PARAM:
             buffer_printf(buf, "(");
             for(char* key = (char*) hashmap_first(nd->param.sym_tbl); key != NULL; key = (char*) hashmap_next(nd->param.sym_tbl, key)) {
