@@ -86,6 +86,7 @@ struct node {
         // 代码主体
         struct body {
             Node* stmt;
+            HashMap* sym_tbl;                   // 符号表
         } body;
 
         // 表达式
@@ -125,7 +126,7 @@ struct node {
 
         struct enm {
             const char* name;                   // 枚举类名称
-            HashMap* sym_tbl;                   // 符号表
+            Node* enm_body;                     // 枚举体
         }enm;
     };
 

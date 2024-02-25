@@ -10,6 +10,7 @@ enum AnimalType {
 struct Dog{
     name : i32
     age : str
+    fn eat()
 }
 
 fn add(a : i32, b : i32)

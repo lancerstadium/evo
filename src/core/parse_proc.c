@@ -203,6 +203,7 @@ static inline Node* parser_single_token2node(ParseProcess* pproc) {
             });
             break;
         case TOKEN_TYPE_EOF:
+            pproc->tmp_nd = pproc->tmp_nd->pnd;
             nd = pproc->create_node(pproc, &(Node){
                 .type = NODE_TYPE_EOF,
             });
@@ -557,10 +558,32 @@ static inline Node* parser_make_func_node(ParseProcess* pproc) {
         node->func.fn_body = parser_make_body_stmt_node(pproc);
     }
 
-    pproc->tmp_nd = pproc->tmp_nd->pnd;
     return node;
 }
 
+// body-enum = ident* "}"
+static inline Node* parser_make_body_enum_node(ParseProcess* pproc) {
+    Node* id_nd = NULL;
+    Token* tok = pproc->peek_token(pproc);
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = NULL,
+        .body.sym_tbl = hashmap_create()
+    });
+    while(!parser_next_token_is_symbol(pproc, '}')) {
+        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            id_nd = parser_single_token2node(pproc);
+            id_nd->ident.dtype.type = DATA_TYPE_I32;
+            id_nd->ident.dtype.type_str = datatype_str[DATA_TYPE_I32];
+            hashmap_set(node->body.sym_tbl, id_nd->sval, id_nd);
+        }else {
+            pproc->next_token(pproc);
+        }
+    }
+    parser_excp_symbol(pproc, '}');
+    pproc->tmp_nd = pproc->tmp_nd->pnd;
+    return node;
+}
 
 // enum = "enum" ident* "{" ident* "}"
 static inline Node* parser_make_enum_node(ParseProcess* pproc) {
@@ -577,18 +600,29 @@ static inline Node* parser_make_enum_node(ParseProcess* pproc) {
     Node* node = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_ENUM,
         .enm.name = enum_name ? enum_name : "(None)",
-        .enm.sym_tbl = hashmap_create()
+        .enm.enm_body = NULL
     });
 
-    // "{" ident* "}"
+    // "{" enum-body
     parser_excp_symbol(pproc, '{');
-    Node* id_nd = NULL;
+    node->enm.enm_body = parser_make_body_enum_node(pproc);
+    return node;
+}
+
+
+// body-struct = (param | func)* "}"
+static inline Node* parser_make_body_struct_node(ParseProcess* pproc) {
+    Token* tok = NULL;
+    Node* node = pproc->create_node(pproc, &(Node){
+        .type = NODE_TYPE_BODY,
+        .body.stmt = NULL
+    });
     while(!parser_next_token_is_symbol(pproc, '}')) {
-        if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            id_nd = parser_single_token2node(pproc);
-            id_nd->ident.dtype.type = DATA_TYPE_I32;
-            id_nd->ident.dtype.type_str = datatype_str[DATA_TYPE_I32];
-            hashmap_set(node->enm.sym_tbl, id_nd->sval, id_nd);
+        tok = pproc->peek_token(pproc);
+        if(parser_next_token_is_keyword(pproc, "fn")) {
+            node->body.stmt = parser_make_func_node(pproc);
+        }else if(tok->type == TOKEN_TYPE_IDENTIFIER) {
+            node->body.stmt = parser_make_param_node(pproc);
         }else {
             pproc->next_token(pproc);
         }
@@ -598,7 +632,7 @@ static inline Node* parser_make_enum_node(ParseProcess* pproc) {
     return node;
 }
 
-// struct = "struct" ident* "{" (param | func)* "}"
+// struct = "struct" ident* "{" body-struct
 static inline Node* parser_make_struct_node(ParseProcess* pproc) {
     pproc->next_token(pproc);
     // ident*
@@ -610,25 +644,16 @@ static inline Node* parser_make_struct_node(ParseProcess* pproc) {
         log_info("struct name: %s", stc_name);
     }
 
-    Node* stc_nd = pproc->create_node(pproc, &(Node){
+    Node* node = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_STRUCT,
-        .stc.name = stc_name ? stc_name : "(None)"
+        .stc.name = stc_name ? stc_name : "(None)",
+        .stc.stc_body = NULL
     });
 
-    // "{" (param | func)* "}"
+    // "{" body-struct
     parser_excp_symbol(pproc, '{');
-    while(!parser_next_token_is_symbol(pproc, '}')) {
-        tok = pproc->peek_token(pproc);
-        if(parser_next_token_is_keyword(pproc, "fn")) {
-            parser_make_func_node(pproc);
-        }else if(tok->type == TOKEN_TYPE_IDENTIFIER) {
-            parser_make_param_node(pproc);
-        }else {
-            pproc->next_token(pproc);
-        }
-    }
-    parser_excp_symbol(pproc, '}');
-    pproc->tmp_nd = pproc->tmp_nd->pnd;
+    node->stc.stc_body = parser_make_body_struct_node(pproc);
+    return node;
 }
 
 
@@ -732,15 +757,15 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
     
     switch (back_nd->type) {
         case NODE_TYPE_PROG: break;
-        case NODE_TYPE_FUNC:
-        case NODE_TYPE_STRUCT:
-        case NODE_TYPE_ENUM:
         case NODE_TYPE_MOD:
         case NODE_TYPE_BODY:
             back_nd->pnd = pproc->tmp_nd;
             back_nd->depth = pproc->tmp_nd->depth + 1;
             pproc->tmp_nd = back_nd;
             break;
+        case NODE_TYPE_STRUCT:
+        case NODE_TYPE_ENUM:
+        case NODE_TYPE_FUNC:
         case NODE_TYPE_NUM:
         case NODE_TYPE_IDENT:
         case NODE_TYPE_EXPR:
