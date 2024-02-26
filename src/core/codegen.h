@@ -13,6 +13,7 @@ typedef enum {
 } CodeGeneratorResult;
 
 typedef struct codegen_process CodegenProcess;
+typedef Node* (*CODEGEN_PROCESS_PEEK_ND)(CodegenProcess* cgproc);
 typedef Node* (*CODEGEN_PROCESS_NEXT_ND)(CodegenProcess* cgproc);
 
 struct codegen_process {
@@ -25,6 +26,7 @@ struct codegen_process {
     } states;
 
     CODEGEN_PROCESS_NEXT_ND next_node;
+    CODEGEN_PROCESS_PEEK_ND peek_node;
 };
 
 

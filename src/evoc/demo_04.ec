@@ -13,25 +13,18 @@ struct Dog{
     fn eat()
 }
 
-fn add(a : i32, b : i32)
+fn add(a : i32, b : i32) {}
 
-fn main(argc : i32, argv : str) {
-    1
-    fn skd(sdsd : i32, xxx:i64)
-    enum LLL{
-        MCV
-        MSI
-    }
-    struct Person{
-        weight : i32
-        height : i32
-    }
+fn main(argc : i32, argv : str){
     a = 23
     if a==x { 
         a = 1 
     } else {
         a
     }
+    fn mc1(a1 : i32, b1, c) {}
+    fn mc2() {}
+    fn mc3() {}
     for hello == x1{
         do_something
     }

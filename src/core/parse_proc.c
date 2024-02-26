@@ -218,7 +218,6 @@ static inline Node* parser_single_token2node(ParseProcess* pproc) {
             nd->ident.dtype.type_str = id_type_str;
             break;
         case TOKEN_TYPE_EOF:
-            pproc->tmp_nd = pproc->tmp_nd->pnd;
             nd = pproc->create_node(pproc, &(Node){
                 .type = NODE_TYPE_EOF,
             });
@@ -487,27 +486,19 @@ static inline Node* parser_make_stmt_node(ParseProcess* pproc) {
 }
 
 // param = ident
-static inline Node* parser_make_param_node(ParseProcess* pproc) {
+static inline Vector* parser_make_param_vector(ParseProcess* pproc) {
     Token* tok = pproc->peek_token(pproc);
-    Node* node = NULL;
+    Vector* param_vec = vector_create(sizeof(Node));
     Node* id_nd = NULL;
     while(tok->type == TOKEN_TYPE_IDENTIFIER || parser_next_token_is_symbol(pproc, ',')) {
-        if(node == NULL) {
-            node = pproc->create_node(pproc, &(Node) {
-                .type = NODE_TYPE_PARAM,
-                .param.sym_tbl = hashmap_create()
-            });
-        }else {
-            if(parser_next_token_is_symbol(pproc, ',')){
-                parser_excp_symbol(pproc, ',');
-            }
+        if(param_vec->count > 0) {
+            parser_excp_symbol(pproc, ',');
         }
         id_nd = parser_single_token2node(pproc);
-        hashmap_set(node->param.sym_tbl, id_nd->sval, id_nd);
-
+        vector_push(param_vec, id_nd);
         tok = pproc->peek_token(pproc);
     }
-    return node;
+    return param_vec;
 }
 
 // func = "fn" (ident ".")* ident "(" param ")" ":" Datatype body*
@@ -524,7 +515,7 @@ static inline Node* parser_make_func_node(ParseProcess* pproc) {
     Node* node = pproc->create_node(pproc, &(Node){
         .type = NODE_TYPE_FUNC,
         .func.name = func_name,
-        .func.fn_param = NULL,
+        .func.param_vec = NULL,
         .func.fn_rtype = (DataType) {
             .type = DATA_TYPE_I32,
             .type_str = datatype_str[DATA_TYPE_I32]
@@ -534,12 +525,13 @@ static inline Node* parser_make_func_node(ParseProcess* pproc) {
 
     // "(" param ")"
     parser_excp_symbol(pproc, '(');
-    Node* param_nd = NULL;
+    Vector* param_vec = NULL;
     if(!parser_next_token_is_symbol(pproc, ')')) {
-        param_nd = parser_make_param_node(pproc);
+        param_vec = parser_make_param_vector(pproc);
     }
     parser_excp_symbol(pproc, ')');
-    node->func.fn_param = param_nd;
+    node->func.param_vec = param_vec;
+    
     // ":" Datatype
     if(parser_next_token_is_operator(pproc, ":")) {
         pproc->next_token(pproc);
@@ -555,7 +547,6 @@ static inline Node* parser_make_func_node(ParseProcess* pproc) {
         pproc->next_token(pproc);
         node->func.fn_body = parser_make_body_stmt_node(pproc);
     }
-
     return node;
 }
 
@@ -692,7 +683,7 @@ static inline Node* parser_make_mod_node(ParseProcess* pproc) {
         pproc->root->prog.main_mod->mod.mod_body->body.stmt = parser_make_stmt_node(pproc);
     }
 
-    // parser_error("TODO handle keyword `%s`", kw);
+    pproc->tmp_nd = pproc->tmp_nd->pnd;
     return pproc->root->prog.main_mod;
 }
 
@@ -747,8 +738,10 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
 
     Node* node = malloc(sizeof(Node));
     memcpy(node, _node, sizeof(Node));
+
     pproc->push_node(pproc, node);
     Node* back_nd = vector_back(pproc->node_vec);
+    pproc->root = vector_at(pproc->node_vec, 0);
 
     // 更新 tmp_nd
     // | back_nd |  tmp_nd |
@@ -758,8 +751,8 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
     // |  STRUCT |   yes   |
     // |  FUNC   |   yes   |
     if(!pproc->tmp_nd) 
-    pproc->tmp_nd = pproc->root;
-    
+        pproc->tmp_nd = pproc->root;
+
     switch (back_nd->type) {
         case NODE_TYPE_PROG: break;
         case NODE_TYPE_MOD:

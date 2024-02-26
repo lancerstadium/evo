@@ -37,6 +37,7 @@ struct node {
     NodeType type;                      // AST节点类型
     int depth;                          // 节点在AST树中的深度
     Node* pnd;                          // 父节点
+    int pnd_idx;                        // 父节点下标
     int flags;                          // 节点标志
 
     // 存储每个节点类型的值
@@ -74,14 +75,9 @@ struct node {
             const char* name;                   // 函数名
             DataType fn_rtype;                     // 返回类型
             Vector* argv;                       // 传入参数表
-            Node* fn_param;                     // 参数体
+            Vector* param_vec;                  // 参数
             Node* fn_body;                      // 函数体
         } func;
-
-        // 参数主体
-        struct param{
-            HashMap* sym_tbl;                   // 符号表
-        } param;
 
         // 代码主体
         struct body {

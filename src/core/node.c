@@ -48,7 +48,19 @@ void node_write_buffer(Node* nd, Buffer* buf) {
         case NODE_TYPE_MOD:
             buffer_printf(buf, "%s\n", nd->mod.name); break;
         case NODE_TYPE_FUNC:
-            buffer_printf(buf, "%s\n", nd->func.name); break;
+            buffer_printf(buf, "%s", nd->func.name);
+            buffer_printf(buf, "(");
+            if(nd->func.param_vec) {
+                for(int i = 0; i < nd->func.param_vec->count; i++) {
+                    Node* id_nd = vector_at(nd->func.param_vec, i);
+                    if(i > 0) {
+                        buffer_printf(buf, ", ");
+                    }
+                    buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
+                }
+            }
+            buffer_printf(buf, ") %s\n", nd->func.fn_rtype.type_str);
+            break;
         case NODE_TYPE_IDENT:
             buffer_printf(buf, "%s %s\n", nd->sval, nd->ident.dtype.type_str); break;
         case NODE_TYPE_STRUCT:
@@ -67,17 +79,6 @@ void node_write_buffer(Node* nd, Buffer* buf) {
                     }
                     buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
                 }
-            }
-            buffer_printf(buf, ")\n");
-            break;
-        case NODE_TYPE_PARAM:
-            buffer_printf(buf, "(");
-            for(char* key = (char*) hashmap_first(nd->param.sym_tbl); key != NULL; key = (char*) hashmap_next(nd->param.sym_tbl, key)) {
-                Node* id_nd = hashmap_get(nd->param.sym_tbl, key);
-                if(!STR_EQ(key, hashmap_first(nd->param.sym_tbl))) {
-                    buffer_printf(buf, ", ");
-                }
-                buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
             }
             buffer_printf(buf, ")\n");
             break;
