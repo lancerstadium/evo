@@ -24,11 +24,19 @@ ap_def_args(test_args) = {
 
 void arg_parser(int argc, char *argv[], char *envp[]) {
     // 初始化解析器
-    ap_init_parser("evo - Evolvable Programming Language", NULL);
+    ap_init_parser("evo - Evolvable Programming Language \n"
+                   "                                 \n"
+                   "   $$$$$$\\  $$\\    $$\\  $$$$$$\\  \n"
+                   "  $$  __$$\\ \\$$\\  $$  |$$  __$$\\ \n"
+                   "  $$$$$$$$ | \\$$\\$$  / $$ /  $$ |\n"
+                   "  $$   ____|  \\$$$  /  $$ |  $$ |\n"
+                   "  \\$$$$$$$\\    \\$  /   \\$$$$$$  |\n"
+                   "   \\_______|    \\_/     \\______/ \n"
+                   "                                 \n", NULL);
     // 添加命令
     ap_add_command("default"    , "evo compiler"            , "This is usage."  , evoc              , default_args);
-    ap_add_command("hello"      , "Print `Hello, World!`."  , "This is usage."  , hello_world       , default_args);
-    // ap_add_command("test"       , "Unit test"               , "This is usage."  , util_test         , test_args);
+    ap_add_command("hello"      , "Print `Hello, World!`."  , "This is usage."  , evo_hello         , default_args);
+    ap_add_command("test"       , "Unit test"               , "This is usage."  , evo_test          , test_args);
     // 开始解析
     ap_do_parser(argc, argv, envp);
 }

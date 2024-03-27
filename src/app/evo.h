@@ -15,8 +15,8 @@
 // ==================================================================================== //
 
 ap_def_callback(evoc);
-ap_def_callback(hello_world);
-// ap_def_callback(util_test);
+ap_def_callback(evo_hello);
+ap_def_callback(evo_test);
 
 void arg_parser(int argc, char *argv[], char *envp[]);
 

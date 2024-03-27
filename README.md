@@ -1,5 +1,17 @@
 # evo
 
+
+```
+   $$$$$$\  $$\    $$\  $$$$$$\  
+  $$  __$$\ \$$\  $$  |$$  __$$\ 
+  $$$$$$$$ | \$$\$$  / $$ /  $$ |
+  $$   ____|  \$$$  /  $$ |  $$ |
+  \$$$$$$$\    \$  /   \$$$$$$  |
+   \_______|    \_/     \______/ 
+
+```
+
+
 - `evo` is designed to be an evolvable programming language. 
 
 - `.ec` is the extension of evo code file. 
