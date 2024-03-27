@@ -96,14 +96,41 @@ void log_test() {
     log_debug("nihao");
     log_warn("nihao");
     log_error("nihao");
-    log_assert(0, "nihao");
-    log_fatal("nihao");
+    // log_assert(1, "nihao");
+    // log_fatal("nihao");
+}
+
+
+void suit_test_01() {
+    ut_print_test();
 }
 
 ap_def_callback(evo_test) {
+    
+
+    ap_arg_t* arg_o = ap_get("output");
+    log_assert(arg_o != NULL, "arg_o not NULL");
+    log_assert(arg_o->value == NULL, "");
+
+    if (!arg_o->value) {
+        printf("Output Init: %s\n", (!arg_o->value) ? arg_o->init.s : arg_o->value);
+    }
+    
+    int q_l;
+    if(!ap_get("quiet")->value) {
+        q_l = ap_get("quiet")->init.i;
+    } else {
+        q_l = atoi(ap_get("quiet")->value);
+    }
+    printf("set quiet: %d\n", q_l);
+    ut_set_quiet(q_l);
+
     // toml_test("demo.toml");
-
     widget_test();
-
     log_test();
+
+    
+    suit_test_01();
+
+
 }
