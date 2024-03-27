@@ -102,14 +102,16 @@ void log_test() {
     log_fatal("nihao");
 }
 
-
-int main() {
-    
-    toml_test("demo.toml");
+ap_def_callback(util_test) {
+    // toml_test("demo.toml");
 
     widget_test();
 
     log_test();
+}
 
+int main(int argc, char *argv[], char *envp[]) {
+    
+    util_test(argc, argv, envp);
     return 0;
 }

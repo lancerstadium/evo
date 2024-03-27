@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = --std=c11 -g -static
+CFLAGS = --std=gnu11 -g -static
 CODEDIR = src
 BINDIR = bin
 OBJDIR = obj
@@ -11,7 +11,7 @@ EXES = $(EVO).c $(UTIL_TEST).c
 SRCS = $(filter-out $(EXES), $(foreach dir, $(FOLDERS), $(wildcard $(CODEDIR)/$(dir)/*.c)))
 OBJS = $(patsubst $(CODEDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
-FOLDERS = app core util
+FOLDERS = app core util mem fmt
 
 # 创建目录
 $(shell mkdir -p $(OBJDIR) $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)))
@@ -35,8 +35,12 @@ $(OBJDIR)/util-test.o: $(UTIL_TEST).c
 
 run:
 
+
+test:
+	$(BINDIR)/util-test
+
 clean:
 	rm -f $(BINDIR)/evo $(BINDIR)/util-test
 	rm -f $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)/*.o)
 
-.PHONY: evo util-test run clean
+.PHONY: evo util-test run test clean

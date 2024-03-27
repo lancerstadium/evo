@@ -8,14 +8,12 @@
 #define UTIL_STR_H
 
 #include "gtype.h"
-#include "alloc.h"
+#include <string.h>
 
 typedef struct str {
     char* s;
     u32 len;
 } Str;
-
-ALLOC_DEC_TYPE(Str)
 
 
 #define STR_EQ(str1, str2) \

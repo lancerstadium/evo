@@ -1,8 +1,7 @@
 
 #include "str.h"
 #include <string.h>
-
-ALLOC_DEF_METHOD(Str)
+#include <stdlib.h>
 
 
 bool char_is_delim(char c, const char *delims) {

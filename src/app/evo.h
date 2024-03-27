@@ -9,6 +9,16 @@
 #include "../core/core.h"
 
 
-int evoc(int argc, char **argv);
+
+// ==================================================================================== //
+//                                   Apps Define
+// ==================================================================================== //
+
+ap_def_callback(evoc);
+ap_def_callback(hello_world);
+// ap_def_callback(util_test);
+
+void arg_parser(int argc, char *argv[], char *envp[]);
+
 
 #endif // APP_EVO_H

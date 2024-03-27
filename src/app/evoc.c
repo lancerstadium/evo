@@ -8,11 +8,15 @@
 #include <time.h>
 #include <unistd.h>
 
-int evoc(int argc, char **argv) {
+// ==================================================================================== //
+//                          App: evoc - evo's compile process
+// ==================================================================================== //
+
+ap_def_callback(evoc){
 
     if (argc == 1) {
         log_warn("usage: %s <file>", argv[0]);
-        return -1;
+        return;
     }
 
     LOG_TAG
@@ -27,5 +31,8 @@ int evoc(int argc, char **argv) {
         log_error("Unknown res code %d", res);
     }
 
-    return 0;
+}
+
+ap_def_callback(hello_world) {
+    printf("hello, world!\n");
 }

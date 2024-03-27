@@ -11,6 +11,7 @@
 //                                     Include
 // ==================================================================================== //
 
+#include "macro.h"
 #include "hashmap.h"
 #include "list.h"
 #include "vector.h"
@@ -22,7 +23,8 @@
 #include "utf8.h"
 #include "log.h"
 #include "str.h"
-
+#include "argparse.h"
+#include "unittest.h"
 
 
 
