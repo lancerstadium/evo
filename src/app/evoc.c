@@ -4,7 +4,7 @@
 //                                       Include
 // ==================================================================================== //
 
-#include "evoc.h"
+#include "evo.h"
 #include <time.h>
 #include <unistd.h>
 
@@ -94,20 +94,13 @@ void widget_test() {
 	progressbar_finish(bar);
 }
 
-// ==================================================================================== //
-//                                  Proc Entry: evoc
-// ==================================================================================== //
 
-int main(int argc, char **argv) {
+int evoc(int argc, char **argv) {
 
     if (argc == 1) {
         log_warn("usage: %s <file>", argv[0]);
-        return 0;
+        return -1;
     }
-
-    toml_parse_test("sample.toml");
-    // widget_test();
-
 
     LOG_TAG
     char* arg = argv[1];

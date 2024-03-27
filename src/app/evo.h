@@ -1,6 +1,6 @@
 
-#ifndef EVOC_EVOC_H
-#define EVOC_EVOC_H
+#ifndef APP_EVO_H
+#define APP_EVO_H
 
 // ==================================================================================== //
 //                                       Include
@@ -9,5 +9,6 @@
 #include "../core/core.h"
 
 
+int evoc(int argc, char **argv);
 
-#endif // EVOC_EVOC_H
+#endif // APP_EVO_H

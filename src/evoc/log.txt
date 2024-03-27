@@ -1,9 +1,0 @@
-[21:43:39] [92mINFO [0m[0m[30mevoc.c:112: [0m[0m[94mmain[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/compiler.c:11: [0m[0m[94mcompile_file[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/compile_proc.c:6: [0m[0m[94mcompile_process_create[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/lex_proc.c:683: [0m[0m[94mlex_process_create[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/parse_proc.c:303: [0m[0m[94mparse_process_create[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/parse_proc.c:334: [0mroot: 0x563dc028c1b0
-[21:43:39] [92mINFO [0m[0m[30m../core/codegen_proc.c:23: [0m[0m[94mcodegen_process_create[0m() is called
-[21:43:39] [92mINFO [0m[0m[30m../core/lexer.c:8: [0m[0m[94mlex[0m() is called
-[21:43:39] [91mASSE [0m[0m[30m../core/lex_proc.c:430: [0m[0m[91mlproc->last_parentheses == '{'[0m 

@@ -70,8 +70,13 @@ int codegen_process_next(CodegenProcess* cgproc) {
             asm_push(".globl %s", nd->mod.name);
             asm_push("%s:", nd->mod.name);
             break;
+        case NODE_TYPE_IDENT:
+            asm_push("  movl %s, %%eax", nd->sval);
+            break;
         case NODE_TYPE_NUM:
             asm_push("  movl $%d, %%eax", nd->llnum);
+            break;
+        case NODE_TYPE_EXPR:
             break;
         case NODE_TYPE_EOF:
             res = -1;

@@ -1,30 +1,16 @@
 
 
 // ==================================================================================== //
-//                                    util: util
+//                                       Include
 // ==================================================================================== //
 
-#ifndef UTIL_UTIL_H
-#define UTIL_UTIL_H
+#include "evo.h"
 
 // ==================================================================================== //
-//                                     Include
+//                                  Proc Entry: evo
 // ==================================================================================== //
 
-#include "hashmap.h"
-#include "list.h"
-#include "vector.h"
-#include "buffer.h"
-#include "toml.h"
-#include "widget.h"
-#include "fio.h"
-#include "pos.h"
-#include "utf8.h"
-#include "log.h"
-#include "str.h"
+int main(int argc, char **argv) {
 
-
-
-
-
-#endif // UTIL_UTIL_H
+    return evoc(argc, argv);
+}
