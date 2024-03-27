@@ -25,6 +25,7 @@
 #include "str.h"
 #include "argparse.h"
 #include "unittest.h"
+#include "linenoise.h"
 
 
 

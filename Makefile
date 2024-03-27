@@ -6,23 +6,27 @@ OBJDIR = obj
 LDFLAGS = $(foreach dir, $(FOLDERS), -L$(CODEDIR)/$(dir))
 INCDIR = $(foreach dir, $(FOLDERS), -I$(CODEDIR)/$(dir))
 EVO = $(CODEDIR)/app/evo
-UTIL_TEST = $(CODEDIR)/app/util-test
-EXES = $(EVO).c $(UTIL_TEST).c
+TEST_UTIL = $(CODEDIR)/app/test-util
+TEST_DEC = $(CODEDIR)/app/test-dec
+EXES = $(EVO).c $(TEST_UTIL).c $(TEST_DEC).c
 SRCS = $(filter-out $(EXES), $(foreach dir, $(FOLDERS), $(wildcard $(CODEDIR)/$(dir)/*.c)))
 OBJS = $(patsubst $(CODEDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
-FOLDERS = app core util mem fmt
+FOLDERS = app core dec fmt jit mem util
 
 # 创建目录
 $(shell mkdir -p $(OBJDIR) $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)))
 
-all: evo util-test
+all: evo test-util test-dec
 
 evo: $(OBJS) $(OBJDIR)/evo.o
 	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/evo
 
-util-test: $(OBJS) $(OBJDIR)/util-test.o
-	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/util-test
+test-util: $(OBJS) $(OBJDIR)/test-util.o
+	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/test-util
+
+test-dec: $(OBJS) $(OBJDIR)/test-dec.o
+	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/test-dec
 
 $(OBJDIR)/%.o: $(CODEDIR)/%.c
 	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
@@ -30,7 +34,10 @@ $(OBJDIR)/%.o: $(CODEDIR)/%.c
 $(OBJDIR)/evo.o: $(EVO).c
 	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
 
-$(OBJDIR)/util-test.o: $(UTIL_TEST).c
+$(OBJDIR)/test-util.o: $(TEST_UTIL).c
+	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
+
+$(OBJDIR)/test-dec.o: $(TEST_DEC).c
 	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
 
 run:
@@ -40,7 +47,7 @@ test:
 	$(BINDIR)/util-test
 
 clean:
-	rm -f $(BINDIR)/evo $(BINDIR)/util-test
-	rm -f $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)/*.o)
+	rm -f $(BINDIR)/evo $(BINDIR)/test-util $(BINDIR)/test-dec
+	rm -f $(OBJDIR)/*.o $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)/*.o)
 
 .PHONY: evo util-test run test clean

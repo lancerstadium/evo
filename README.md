@@ -28,6 +28,7 @@
 src
  ┣━ app
  ┣━ core
+ ┣━ dec
  ┣━ mem
  ┣━ fmt
  ┗━ util

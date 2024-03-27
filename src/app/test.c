@@ -109,7 +109,7 @@ ap_def_callback(evo_test) {
     
 
     ap_arg_t* arg_o = ap_get("output");
-    log_assert(arg_o != NULL, "arg_o not NULL");
+    log_assert(arg_o != NULL, "arg_o should not NULL");
     log_assert(arg_o->value == NULL, "");
 
     if (!arg_o->value) {
