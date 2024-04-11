@@ -6,71 +6,71 @@
 //                               parser Pri Data
 // ==================================================================================== //
 
-#define PARSE_MAX_OPS_IN_GROUP 12
+// #define PARSE_MAX_OPS_IN_GROUP 12
 
-typedef enum {
-    PARSE_OPERATOR_ASSOC_LEFT2RIGHT,
-    PARSE_OPERATOR_ASSOC_RIGHT2LEFT
-} OperatorAssociativity;
+// typedef enum {
+//     PARSE_OPERATOR_ASSOC_LEFT2RIGHT,
+//     PARSE_OPERATOR_ASSOC_RIGHT2LEFT
+// } OperatorAssociativity;
 
-typedef struct {
-    char* ops[PARSE_MAX_OPS_IN_GROUP];
-    OperatorAssociativity asc;
-} OpGroup;
+// typedef struct {
+//     char* ops[PARSE_MAX_OPS_IN_GROUP];
+//     OperatorAssociativity asc;
+// } OpGroup;
 
-OpGroup op_level[] = {
-    {.ops = {"++", "--", "()", "(", "[", "]", ".", "->", NULL},                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"*", "/", "%%", NULL},                                                         .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"+", "-", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"<<", ">>", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"<", "<=", ">", ">=", NULL},                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"==", "!=", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"&", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"^", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"|", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"&&", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"||", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-    {.ops = {"?", ":", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
-    {.ops = {"=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", NULL},      .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
-    {.ops = {",", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
-};
+// OpGroup op_level[] = {
+//     {.ops = {"++", "--", "()", "(", "[", "]", ".", "->", NULL},                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"*", "/", "%%", NULL},                                                         .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"+", "-", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"<<", ">>", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"<", "<=", ">", ">=", NULL},                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"==", "!=", NULL},                                                             .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"&", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"^", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"|", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"&&", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"||", NULL},                                                                   .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+//     {.ops = {"?", ":", NULL},                                                               .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
+//     {.ops = {"=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", NULL},      .asc = PARSE_OPERATOR_ASSOC_RIGHT2LEFT},
+//     {.ops = {",", NULL},                                                                    .asc = PARSE_OPERATOR_ASSOC_LEFT2RIGHT},
+// };
 
-#define PARSE_OP_LEVEL_NUM  GET_ARR_LEN(op_level)
+// #define PARSE_OP_LEVEL_NUM  GET_ARR_LEN(op_level)
 
-static inline int parser_get_op_level(const char* op, OpGroup** group_out) {
-    *group_out = NULL;
-    for(int i = 0; i < PARSE_OP_LEVEL_NUM; i++) {
-        for(int b = 0; op_level[i].ops[b]; b++) {
-            const char *_op = op_level[i].ops[b];
-            if(STR_EQ(op, _op)) {
-                *group_out = &op_level[i];
-                return i;
-            }
-        }
-    }
-    return -1;
-}
+// static inline int parser_get_op_level(const char* op, OpGroup** group_out) {
+//     *group_out = NULL;
+//     for(int i = 0; i < PARSE_OP_LEVEL_NUM; i++) {
+//         for(int b = 0; op_level[i].ops[b]; b++) {
+//             const char *_op = op_level[i].ops[b];
+//             if(STR_EQ(op, _op)) {
+//                 *group_out = &op_level[i];
+//                 return i;
+//             }
+//         }
+//     }
+//     return -1;
+// }
 
-static inline bool parser_left_op_has_priority(const char* op_left, const char* op_right) {
-    OpGroup* group_left = NULL;
-    OpGroup* group_right = NULL;
+// static inline bool parser_left_op_has_priority(const char* op_left, const char* op_right) {
+//     OpGroup* group_left = NULL;
+//     OpGroup* group_right = NULL;
 
-    // 一样的运算符？
-    if(STR_EQ(op_left, op_right)){
-        return false;
-    }
+//     // 一样的运算符？
+//     if(STR_EQ(op_left, op_right)){
+//         return false;
+//     }
 
-    int level_left = parser_get_op_level(op_left, &group_left);
-    int level_right = parser_get_op_level(op_right, &group_right);
-    if(group_left->asc == PARSE_OPERATOR_ASSOC_RIGHT2LEFT) {
-        return false;
-    }
-    return level_left <= level_right;
-}
+//     int level_left = parser_get_op_level(op_left, &group_left);
+//     int level_right = parser_get_op_level(op_right, &group_right);
+//     if(group_left->asc == PARSE_OPERATOR_ASSOC_RIGHT2LEFT) {
+//         return false;
+//     }
+//     return level_left <= level_right;
+// }
 
-static inline bool is_unary_operator(const char *op) {
-    return STR_EQ(op, "-") || STR_EQ(op, "!") || STR_EQ(op, "~");
-}
+// static inline bool is_unary_operator(const char *op) {
+//     return STR_EQ(op, "-") || STR_EQ(op, "!") || STR_EQ(op, "~");
+// }
 
 // ==================================================================================== //
 //                            parser: Token -> Node
@@ -772,6 +772,7 @@ Node* parse_process_create_node(ParseProcess* pproc, Node* _node) {
             back_nd->depth = pproc->tmp_nd->depth;
             break;
     }
+
     return back_nd;
 }
 

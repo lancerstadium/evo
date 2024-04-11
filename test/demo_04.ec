@@ -16,7 +16,7 @@ struct Dog{
 fn add(a : i32, b : i32) {}
 
 fn main(argc : i32, argv : str){
-    a = 23
+    a := 23
     if a==x { 
         a = 1 
     } else {

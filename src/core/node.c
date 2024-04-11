@@ -9,7 +9,7 @@ static const char* node_type_str[] = {
     [NODE_TYPE_IDENT]  = "ident",
     [NODE_TYPE_EXPR]   = "expr",
     [NODE_TYPE_PARAM]  = "param",
-    [NODE_TYPE_FUNC]   = "func",
+    [NODE_TYPE_FUNC]   = "fn",
     [NODE_TYPE_BODY]   = "body",
     [NODE_TYPE_STMT]   = "stmt",
     [NODE_TYPE_STRUCT] = "struct",
@@ -41,14 +41,14 @@ void node_write_buffer(Node* nd, Buffer* buf) {
     for(int i = 0; i < nd->depth; i++) {
         buffer_printf(buf, "  ");
     }
-    buffer_printf(buf, "- %-6s : ", node_get_type_str(nd));
+    buffer_printf(buf, "- [%-6s]  ", node_get_type_str(nd));
     switch(nd->type) {
         case NODE_TYPE_PROG:
             buffer_printf(buf, "%s\n", nd->prog.name); break;
         case NODE_TYPE_MOD:
             buffer_printf(buf, "%s\n", nd->mod.name); break;
         case NODE_TYPE_FUNC:
-            buffer_printf(buf, "%s", nd->func.name);
+            buffer_printf(buf, "%s ", nd->func.name);
             buffer_printf(buf, "(");
             if(nd->func.param_vec) {
                 for(int i = 0; i < nd->func.param_vec->count; i++) {
@@ -56,13 +56,13 @@ void node_write_buffer(Node* nd, Buffer* buf) {
                     if(i > 0) {
                         buffer_printf(buf, ", ");
                     }
-                    buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
+                    buffer_printf(buf, "%s : %s", id_nd->sval, id_nd->ident.dtype.type_str);
                 }
             }
             buffer_printf(buf, ") %s\n", nd->func.fn_rtype.type_str);
             break;
         case NODE_TYPE_IDENT:
-            buffer_printf(buf, "%s %s\n", nd->sval, nd->ident.dtype.type_str); break;
+            buffer_printf(buf, "%s : %s\n", nd->sval, nd->ident.dtype.type_str); break;
         case NODE_TYPE_STRUCT:
             buffer_printf(buf, "%s\n", nd->stc.name); break;
         case NODE_TYPE_ENUM:
@@ -77,7 +77,7 @@ void node_write_buffer(Node* nd, Buffer* buf) {
                     if(!STR_EQ(key, hashmap_first(nd->body.sym_tbl))) {
                         buffer_printf(buf, ", ");
                     }
-                    buffer_printf(buf, "%s %s", id_nd->sval, id_nd->ident.dtype.type_str);
+                    buffer_printf(buf, "%s : %s", id_nd->sval, id_nd->ident.dtype.type_str);
                 }
             }
             buffer_printf(buf, ")\n");
