@@ -142,3 +142,18 @@ void node_read(Node* nd) {
     }
     log_debug(buffer_ptr(buf));
 }
+
+
+void node_read_root(Node* nd) {
+    if(!nd) return;
+    Buffer* buf = buffer_create();
+    buffer_printf(buf, "\n Read Root Node: \n");
+
+    switch(nd->type) {
+        case NODE_TYPE_PROG:
+            buffer_printf(buf, "   prog name     : %s\n", nd->prog.name);
+            // 打印 prog 内的 main mod
+            break;
+    }
+
+}

@@ -132,5 +132,6 @@ void node_write_buffer(Node* nd, Buffer* buf);
 void node_append_size(Node* nd, size_t *var_size);
 void node_read(Node* nd);
 void node_swap(Node** nd1, Node** nd2);
+void node_read_root(Node* nd);
 
 #endif
