@@ -4,7 +4,7 @@
 
 解析出如下的 AST：
 
-```json
+```
 CompUnit : {
     Mod : [
         name : "std",

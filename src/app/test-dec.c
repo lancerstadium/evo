@@ -8,17 +8,17 @@
 #include "../dec/rvdec.h"
 
 
-static int test_impl(FrvOptions opt, unsigned len, uint32_t inst_raw,
+static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
                      const char* exp_fmt) {
-    FrvInst inst;
+    RvInst inst;
     char fmt[128];
-    int retval = frv_decode(len, (unsigned char*) &inst_raw, opt, &inst);
-    if (retval == FRV_PARTIAL)
+    int retval = rv_decode(len, (unsigned char*) &inst_raw, opt, &inst);
+    if (retval == RV_PARTIAL)
         strcpy(fmt, "PARTIAL");
-    else if (retval == FRV_UNDEF)
+    else if (retval == RV_UNDEF)
         strcpy(fmt, "UNDEF");
     else
-        frv_format(&inst, sizeof fmt, fmt);
+        rv_format(&inst, sizeof fmt, fmt);
     if ((retval < 0 || (unsigned) retval == len) && !strcmp(fmt, exp_fmt)) {
         printf("OK: %s\n", fmt);
         return 0;
@@ -29,8 +29,8 @@ static int test_impl(FrvOptions opt, unsigned len, uint32_t inst_raw,
     return -1;
 }
 
-#define test32(...) test_impl(FRV_RV32, __VA_ARGS__)
-#define test64(...) test_impl(FRV_RV64, __VA_ARGS__)
+#define test32(...) test_impl(RV_RV32, __VA_ARGS__)
+#define test64(...) test_impl(RV_RV64, __VA_ARGS__)
 #define test(...) test32(__VA_ARGS__) | test64(__VA_ARGS__)
 
 int main() {
