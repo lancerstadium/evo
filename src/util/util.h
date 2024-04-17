@@ -26,6 +26,13 @@
 #include "argparse.h"
 #include "unittest.h"
 #include "linenoise.h"
+#include "mir-dlist.h"
+#include "mir-varr.h"
+#include "mir-bitmap.h"
+#include "mir-hash.h"
+#include "mir-htab.h"
+
+
 
 
 

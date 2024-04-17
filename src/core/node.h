@@ -73,7 +73,7 @@ struct node {
         // 函数
         struct func {
             const char* name;                   // 函数名
-            DataType fn_rtype;                     // 返回类型
+            DataType fn_rtype;                  // 返回类型
             Vector* argv;                       // 传入参数表
             Vector* param_vec;                  // 参数
             Node* fn_body;                      // 函数体
@@ -90,9 +90,9 @@ struct node {
             Node* lnd;                          // 左子节点
             Node* rnd;                          // 右子节点
             Node* ret;                          // 返回节点
-            Node* cond;
-            Node* then;
-            Node* els;
+            Node* cond;                         // 条件代码块
+            Node* then;                         // 顺序代码块
+            Node* els;                          // 其他代码块
         } stmt;
 
         // 标识符
