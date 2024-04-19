@@ -26,12 +26,16 @@
 
 ```
 src
- ┣━ app
- ┣━ core
- ┣━ dec
- ┣━ mem
- ┣━ fmt
- ┗━ util
+ ┣━ app             // 程序
+ ┣━ arch            // 架构
+ ┣━ back            // 后端：IR -> Asm
+ ┣━ emu             // 模拟器：CPU, MEM
+ ┣━ front           // 前端：C -> IR
+ ┣━ ir              // 中间表示：
+ ┣━ lift            // 提升：Asm -> IR
+ ┣━ opt             // 优化
+ ┣━ util            // 工具
+ ┗━ main.rs
 
 ```
 
@@ -42,3 +46,5 @@ src
 - [lua](https://github.com/lua/lua.git)
 - [scf](http://baseworks.info/gitweb/scf.git)
 - [dlang](https://github.com/dlang/dlang.org.git)
+- [koopa](https://github.com/pku-minic/koopa)
+- [khemu](https://github.com/KireinaHoro/khemu)
