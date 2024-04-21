@@ -18,7 +18,7 @@ use crate::log_fatal;
 
 /// `IRValue`: Value in the IR
 /// - Support 8-bit, 16-bit, 32-bit, 64-bit and float, double
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IRValue {
     pub ty: IRType,
     pub val: RefCell<Vec<u8>>
@@ -454,6 +454,7 @@ impl Display for IRValue {
     }
 }
 
+impl Eq for IRValue {}
 
 
 

@@ -12,6 +12,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::ir::val::IRValue;
+use crate::log_warning;
+use crate::util::log::Span;
 
 
 
@@ -19,7 +21,7 @@ use crate::ir::val::IRValue;
 //                              op::IROperandKind
 // ============================================================================== //
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IROperandKind {
     /// |  val  |
     Imm(IRValue),
@@ -37,6 +39,11 @@ pub enum IROperandKind {
 }
 
 impl IROperandKind {
+
+    /// New IROperand
+    pub fn new_reg(val: IRValue) -> Self {
+        Self::Reg(val)
+    }
 
     /// Get the size of the operand
     pub fn size(&self) -> usize {
@@ -76,10 +83,21 @@ impl IROperandKind {
 
 
 /// `IROperand`: Operands in the IR
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IROperand {
     /// `kind`: Kind of the operand (Imm, Reg, Mem, Label)
     pub kind: IROperandKind,
+}
+
+impl IROperand {
+
+    /// New IROperand Reg
+    pub fn new_reg(val: IRValue) -> Self {
+        Self {
+            kind: IROperandKind::new_reg(val),
+        }
+    }
+
 }
 
 impl fmt::Display for IROperand {
@@ -124,9 +142,10 @@ pub trait ArchInfo {
     /// Get Info String
     fn info() -> String;
 
-
-
     // ===================== Object ====================== //
+
+    /// Get Name
+    fn name() -> &'static str;
 
     /// Register Map Init: Rc<RefCell<Vec<(&'static str, IROperand)>>>
     fn reg_init(&mut self);
@@ -146,21 +165,21 @@ pub trait ArchInfo {
 
 
 // ============================================================================== //
-//                              op::IRArchInfo
+//                              op::IRArch
 // ============================================================================== //
 
 
-/// `IRArchInfo`: Config of the `evo-ir` architecture
-#[derive(Debug, Clone)]
-pub struct IRArchInfo {
+/// `IRArch`: Config of the `evo-ir` architecture
+#[derive(Debug, Clone, PartialEq)]
+pub struct IRArch {
 
     reg_map: Rc<RefCell<Vec<(&'static str, IROperand)>>>,
 
 }
 
-impl IRArchInfo {
+impl IRArch {
 
-    /// Create new `IRArchInfo`
+    /// Create new `IRArch`
     pub fn new() -> Self {
         let mut arch = Self {
             reg_map: Rc::new(RefCell::new(Vec::new())),
@@ -172,15 +191,15 @@ impl IRArchInfo {
 }
 
 
-impl Default for IRArchInfo {
-    /// Set default function for `IRArchInfo`.
+impl Default for IRArch {
+    /// Set default function for `IRArch`.
     fn default() -> Self {
         Self::new()
     }
 }
 
 
-impl ArchInfo for IRArchInfo {
+impl ArchInfo for IRArch {
 
     // 1. Set Constants
     const NAME: &'static str = "evo";
@@ -202,13 +221,26 @@ impl ArchInfo for IRArchInfo {
     }
 
 
+    /// 3. Get Name
+    fn name() -> &'static str {
+        Self::NAME
+    }
+
     /// 4. Register Map Init
     fn reg_init(&mut self) {
         self.reg_map = Rc::new(vec![
-            ("eax", IROperand { kind: IROperandKind::Reg(IRValue::from_u32(0)) }),
-            ("ebx", IROperand { kind: IROperandKind::Reg(IRValue::from_u32(1)) }),
-            ("ecx", IROperand { kind: IROperandKind::Reg(IRValue::from_u32(2)) }),
+            ("eax", IROperand::new_reg(IRValue::from_u32(0))),
+            ("ebx", IROperand::new_reg(IRValue::from_u32(1))),
+            ("ecx", IROperand::new_reg(IRValue::from_u32(2))),
+            ("edx", IROperand::new_reg(IRValue::from_u32(3))),
+            ("esi", IROperand::new_reg(IRValue::from_u32(4))),
+            ("edi", IROperand::new_reg(IRValue::from_u32(5))),
+            ("ebp", IROperand::new_reg(IRValue::from_u32(6))),
+            ("esp", IROperand::new_reg(IRValue::from_u32(7))),
         ].into());
+        if Self::ADDR_SIZE != self.reg_map.borrow().len() {
+            log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
+        }
     }
 
     /// 5. Reg Info
@@ -269,11 +301,14 @@ mod op_test {
 
     #[test]
     fn arch_print() {
-        println!("{}", IRArchInfo::info());
-        let mut arch = IRArchInfo::new();
+        println!("{}", IRArch::info());
+        let mut arch = IRArch::new();
         println!("{}", arch.reg_info());
-        arch.set_reg("eax", IROperand { kind: IROperandKind::Reg(IRValue::from_u32(72)) });
-        println!("{}", arch.reg_info());
-        println!("{}", arch.get_reg("ebx"));
+        arch.set_reg("eax", IROperand::new_reg(IRValue::from_u32(72)));
+        assert_eq!(arch.get_reg("ebx"), IROperand::new_reg(IRValue::from_u32(1)));
+
+        let arch2 = IRArch::new();
+        // Compare Registers
+        assert_ne!(arch, arch2);
     }
 }
