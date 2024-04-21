@@ -229,14 +229,14 @@ impl ArchInfo for IRArch {
     /// 4. Register Map Init
     fn reg_init(&mut self) {
         self.reg_map = Rc::new(vec![
-            ("eax", IROperand::new_reg(IRValue::from_u32(0))),
-            ("ebx", IROperand::new_reg(IRValue::from_u32(1))),
-            ("ecx", IROperand::new_reg(IRValue::from_u32(2))),
-            ("edx", IROperand::new_reg(IRValue::from_u32(3))),
-            ("esi", IROperand::new_reg(IRValue::from_u32(4))),
-            ("edi", IROperand::new_reg(IRValue::from_u32(5))),
-            ("ebp", IROperand::new_reg(IRValue::from_u32(6))),
-            ("esp", IROperand::new_reg(IRValue::from_u32(7))),
+            ("eax", IROperand::new_reg(IRValue::u32(0))),
+            ("ebx", IROperand::new_reg(IRValue::u32(1))),
+            ("ecx", IROperand::new_reg(IRValue::u32(2))),
+            ("edx", IROperand::new_reg(IRValue::u32(3))),
+            ("esi", IROperand::new_reg(IRValue::u32(4))),
+            ("edi", IROperand::new_reg(IRValue::u32(5))),
+            ("ebp", IROperand::new_reg(IRValue::u32(6))),
+            ("esp", IROperand::new_reg(IRValue::u32(7))),
         ].into());
         if Self::ADDR_SIZE != self.reg_map.borrow().len() {
             log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
@@ -304,8 +304,8 @@ mod op_test {
         println!("{}", IRArch::info());
         let mut arch = IRArch::new();
         println!("{}", arch.reg_info());
-        arch.set_reg("eax", IROperand::new_reg(IRValue::from_u32(72)));
-        assert_eq!(arch.get_reg("ebx"), IROperand::new_reg(IRValue::from_u32(1)));
+        arch.set_reg("eax", IROperand::new_reg(IRValue::u32(72)));
+        assert_eq!(arch.get_reg("ebx"), IROperand::new_reg(IRValue::u32(1)));
 
         let arch2 = IRArch::new();
         // Compare Registers

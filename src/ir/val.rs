@@ -138,9 +138,13 @@ impl IRValue {
 
     /// Set type of the IRValue by `IRTypeKind`
     pub fn set_kind(&mut self, kind : IRTypeKind) {
-        // 1. Change the type
+        // 1. if kind equal to self.ty.kind, return
+        if kind == *self.ty.kind() {
+            return;
+        }
+        // 2. Change the type
         self.ty.set(kind);
-        // 2. Expand the buffer
+        // 3. Expand the buffer
         let size = self.ty.size();
         let mut buffer = self.val.borrow_mut();
         while buffer.len() < size {
@@ -275,6 +279,32 @@ impl IRValue {
         self.set_8bit(index + 7, bytes[7]);
     }
 
+    /// Set value by array
+    pub fn set_array(&mut self, value: Vec<IRValue>) {
+        self.set_kind(IRTypeKind::Array(value[0].ty.clone(), value.len()));
+        let size = self.size();
+        assert_eq!(value.len() * value[0].size(), size);
+        let mut buffer = self.val.borrow_mut();
+        // value: [1,2], [3,0], [2,4] -> buffer: [1,2,3,0,2,4]
+        for i in 0..value.len() {
+            let val_bytes = value[i].val.borrow();
+            for j in 0..value[i].size() {
+                buffer[i * value[i].size() + j] = val_bytes[j];
+            }
+        }
+    }
+
+    /// Set value by pointer/struct/tuple
+    pub fn set_ptr(&mut self, value: IRValue) {
+        self.set_kind(IRTypeKind::Ptr(value.ty.clone()));
+        let size = self.size();
+        assert_eq!(value.size(), size);
+        let mut buffer = self.val.borrow_mut();
+        for i in 0..size {
+            buffer[i] = value.val.borrow()[i];
+        }
+    }
+
     /// Set zero.
     pub fn set_zero(&mut self) {
         let size = self.size();
@@ -335,95 +365,146 @@ impl IRValue {
     pub fn is_f64(str : &str) -> bool {
         str.parse::<f64>().is_ok()
     }
+
+    /// Check str if the value is array
+    pub fn is_array(str : &str) -> bool {
+        // begin with `[` and end with `]`
+        str.starts_with('[') && str.ends_with(']')
+    }
+
+    /// Check str if the value is pointer: tuple / struct / function
+    pub fn is_ptr(str : &str) -> bool {
+        Self::is_tuple(str) || Self::is_struct(str) || Self::is_func(str)
+    }
+
+    /// Check str if the value is tuple
+    pub fn is_tuple(str : &str) -> bool {
+        // begin with `(` and end with `)` and has `,`
+        str.starts_with('(') && str.ends_with(')') && str.contains(',')
+    }
+
+    /// Check str if the value is function
+    pub fn is_func(str : &str) -> bool {
+        // begin with `(` and has `) ->`
+        str.starts_with('(') && str.contains(") ->")
+    }
+
+    /// Check str if the value is struct
+    pub fn is_struct(str : &str) -> bool {
+        // begin with `struct {` and end with `}` and has `,`
+        str.starts_with("struct {") && str.ends_with('}') && str.contains(',')
+    }
     
 
     // ==================== IRValue.from =================== //
 
     /// Get value from u8
-    pub fn from_u8(value: u8) -> IRValue {
+    pub fn u8(value: u8) -> IRValue {
         let mut val = IRValue::new(IRType::u8());
         val.set_u8(0, value);
         val
     }
 
     /// Get value from u16
-    pub fn from_u16(value: u16) -> IRValue {
+    pub fn u16(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u16());
         val.set_u16(0, value);
         val
     }
 
     /// Get value from u32
-    pub fn from_u32(value: u32) -> IRValue {
+    pub fn u32(value: u32) -> IRValue {
         let mut val = IRValue::new(IRType::u32());
         val.set_u32(0, value);
         val
     }
 
     /// Get value from u64
-    pub fn from_u64(value: u64) -> IRValue {
+    pub fn u64(value: u64) -> IRValue {
         let mut val = IRValue::new(IRType::u64());
         val.set_u64(0, value);
         val
     }
 
     /// Get value from i8
-    pub fn from_i8(value: i8) -> IRValue {
+    pub fn i8(value: i8) -> IRValue {
         let mut val = IRValue::new(IRType::i8());
         val.set_i8(0, value);
         val
     }
 
     /// Get value from i16
-    pub fn from_i16(value: i16) -> IRValue {
+    pub fn i16(value: i16) -> IRValue {
         let mut val = IRValue::new(IRType::i16());
         val.set_i16(0, value);
         val
     }
 
     /// Get value from i32
-    pub fn from_i32(value: i32) -> IRValue {
+    pub fn i32(value: i32) -> IRValue {
         let mut val = IRValue::new(IRType::i32());
         val.set_i32(0, value);
         val
     }
 
     /// Get value from i64
-    pub fn from_i64(value: i64) -> IRValue {
+    pub fn i64(value: i64) -> IRValue {
         let mut val = IRValue::new(IRType::i64());
         val.set_i64(0, value);
         val
     }
 
     /// Get value from float
-    pub fn from_f32(value: f32) -> IRValue {
+    pub fn f32(value: f32) -> IRValue {
         let mut val = IRValue::new(IRType::f32());
         val.set_f32(0, value);
         val
     }
 
     /// Get value from double
-    pub fn from_f64(value: f64) -> IRValue {
+    pub fn f64(value: f64) -> IRValue {
         let mut val = IRValue::new(IRType::f64());
         val.set_f64(0, value);
         val
     }
 
+    /// Get value from array
+    pub fn array(value: Vec<IRValue>) -> IRValue {
+        // Set kind
+        let mut val = IRValue::new(IRType::array(value[0].ty.clone(), value.len()));
+        val.set_array(value);
+        val
+    }
+
+    /// Get value from pointer
+    pub fn ptr(value: IRValue) -> IRValue {
+        let mut val = IRValue::new(IRType::ptr(value.ty.clone()));
+        val.set_ptr(value);
+        val
+    }
+
     /// Get value from string
-    pub fn from_str(value: &str) -> IRValue {
+    pub fn from_string(value: &str) -> IRValue {
         let value = value.trim();
         if IRValue::is_i32(value) { // parse as i32
-            return IRValue::from_i32(value.parse::<i32>().unwrap());
+            return IRValue::i32(value.parse::<i32>().unwrap());
         } else if IRValue::is_i64(value) { // parse as i64
-            return IRValue::from_i64(value.parse::<i64>().unwrap());
+            return IRValue::i64(value.parse::<i64>().unwrap());
         } else if IRValue::is_f32(value) { // parse as f32
-            return IRValue::from_f32(value.parse::<f32>().unwrap());
+            return IRValue::f32(value.parse::<f32>().unwrap());
         } else if IRValue::is_f64(value) { // parse as f64
-            return IRValue::from_f64(value.parse::<f64>().unwrap());
+            return IRValue::f64(value.parse::<f64>().unwrap());
+        } else if IRValue::is_array(value) { // parse as array
+            // Deal with value string: `[1, 2, 3]`
+            let value = value[1..value.len() - 1].to_string();
+            let value = value.trim();
+            let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+            let value = value.iter().map(|v| IRValue::from_string(v)).collect::<Vec<IRValue>>();
+            return IRValue::array(value);
         } else {
             log_warning!("Can't parse {} as IRValue", value);
         }
-        IRValue::from_i32(0)
+        IRValue::i32(0)
     }
 
 }
@@ -431,7 +512,7 @@ impl IRValue {
 impl Default for IRValue {
     /// Default value type is i32
     fn default() -> Self {
-        IRValue::from_i32(0)
+        IRValue::i32(0)
     }
 }
 
@@ -494,33 +575,43 @@ mod val_tests {
 
     #[test]
     fn val_from() {
-        let val = IRValue::from_u8(12 as u8);
+        let val = IRValue::u8(12 as u8);
         assert_eq!(val.get_u8(0), 12 as u8);
-        let val = IRValue::from_i8(-12 as i8);
+        let val = IRValue::i8(-12 as i8);
         assert_eq!(val.get_i8(0), -12 as i8);
-        let val = IRValue::from_u16(12 as u16);
+        let val = IRValue::u16(12 as u16);
         assert_eq!(val.get_u16(0), 12 as u16);
-        let val = IRValue::from_i16(-12 as i16);
+        let val = IRValue::i16(-12 as i16);
         assert_eq!(val.get_i16(0), -12 as i16);
-        let val = IRValue::from_u32(12 as u32);
+        let val = IRValue::u32(12 as u32);
         assert_eq!(val.get_u32(0), 12 as u32);
-        let val = IRValue::from_i32(-12 as i32);
+        let val = IRValue::i32(-12 as i32);
         assert_eq!(val.get_i32(0), -12 as i32);
-        let val = IRValue::from_u64(12 as u64);
-        assert_eq!(val.get_u64(0), 12 as u64);
-        let val = IRValue::from_i64(-12 as i64);
+        let val = IRValue::u64(129 as u64);
+        assert_eq!(val.get_u64(0), 129 as u64);
+        let val = IRValue::i64(-12 as i64);
         assert_eq!(val.get_i64(0), -12 as i64);
-        let val = IRValue::from_f32(12.33f32);
+        let val = IRValue::f32(12.33f32);
         assert_eq!(val.get_f32(0), 12.33f32);
-        let val = IRValue::from_f64(12.34f64);
+        let val = IRValue::f64(12.34f64);
         assert_eq!(val.get_f64(0), 12.34f64);
 
 
-        let val = IRValue::from_str("12");
+        let val = IRValue::from_string("12");
         assert_eq!(val.get_i32(0), 12 as i32);
 
-        let val = IRValue::from_str("23.5");
+        let val = IRValue::from_string("23.5");
         assert_eq!(val.get_f32(0), 23.5f32);
+
+        let val = IRValue::from_string("[18, 22, 623]");
+        assert_eq!(val.get_i32(0), 18);
+        assert_eq!(val.get_i32(4), 22);
+        assert_eq!(val.get_i32(8), 623);
+
+        let val = IRValue::from_string("[-18, 1, -23]");
+        assert_eq!(val.get_i32(0), -18);
+        assert_eq!(val.get_u32(4), 1);
+        assert_eq!(val.get_i32(8), -23);
     }
 
 
