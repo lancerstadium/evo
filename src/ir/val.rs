@@ -4,7 +4,7 @@
 // ============================================================================== //
 
 
-use std::{borrow::Borrow, cell::RefCell, fmt::{Debug, Display}};
+use std::{cell::RefCell, fmt::{Debug, Display}};
 
 
 use crate::{ir::ty::{IRType, IRTypeKind}, log_warning};
@@ -411,30 +411,19 @@ impl IRValue {
 
     /// Get value from string
     pub fn from_str(value: &str) -> IRValue {
-        let mut val = IRValue::from_i32(0);
-        let value = String::from(value.trim());
-        // parse as f64
-        let val1 = value.borrow();
-        if IRValue::is_f64(val1) {
-            val = IRValue::from_f64(val1.parse::<f64>().unwrap());
+        let value = value.trim();
+        if IRValue::is_i32(value) { // parse as i32
+            return IRValue::from_i32(value.parse::<i32>().unwrap());
+        } else if IRValue::is_i64(value) { // parse as i64
+            return IRValue::from_i64(value.parse::<i64>().unwrap());
+        } else if IRValue::is_f32(value) { // parse as f32
+            return IRValue::from_f32(value.parse::<f32>().unwrap());
+        } else if IRValue::is_f64(value) { // parse as f64
+            return IRValue::from_f64(value.parse::<f64>().unwrap());
+        } else {
+            log_warning!("Can't parse {} as IRValue", value);
         }
-        // parse as f32
-        let val2 = value.borrow();
-        if IRValue::is_f32(val2) {
-            val = IRValue::from_f32(val2.parse::<f32>().unwrap());
-        }
-        // parse as i64
-        let val3 = value.borrow();
-        if IRValue::is_i64(val3) {
-            val = IRValue::from_i64(val3.parse::<i64>().unwrap());
-        }
-        // parse as i32
-        let val4 = value.borrow();
-        if IRValue::is_i32(val4) {
-            val = IRValue::from_i32(val4.parse::<i32>().unwrap());
-        }
-        log_warning!("Can't parse {} as IRValue", value);
-        val
+        IRValue::from_i32(0)
     }
 
 }
