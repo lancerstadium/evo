@@ -140,6 +140,37 @@ impl IRTypeKind {
             _ => panic!("Invalid type: {}", s),
         }
     }
+
+
+    // ==================== IRType.is ====================== //
+
+    /// TypeKind is signed
+    pub fn is_signed(&self) -> bool {
+        match self {
+            IRTypeKind::I8
+            | IRTypeKind::I16
+            | IRTypeKind::I32
+            | IRTypeKind::I64
+            | IRTypeKind::I128
+            | IRTypeKind::F16
+            | IRTypeKind::F32
+            | IRTypeKind::F64
+            | IRTypeKind::F128 => true,
+            _ => false
+        }
+    }
+
+    /// TypeKind is float
+    pub fn is_float(&self) -> bool {
+        match self {
+            IRTypeKind::F16
+            | IRTypeKind::F32
+            | IRTypeKind::F64
+            | IRTypeKind::F128 => true,
+            _ => false
+        }
+    }
+
 }
 
 /// Set string for `IRTypeKind`.
@@ -324,7 +355,6 @@ impl IRType {
             ptr_size.set(size);
         });
     }
-
 
 }
 

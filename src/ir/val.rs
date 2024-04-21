@@ -4,10 +4,10 @@
 // ============================================================================== //
 
 
-use std::{cell::RefCell, fmt::{Debug, Display}};
+use std::{borrow::Borrow, cell::RefCell, fmt::{Debug, Display}};
 
-use crate::ir::ty::{IRType, IRTypeKind};
 
+use crate::{ir::ty::{IRType, IRTypeKind}, log_warning};
 use crate::util::log::Span;
 use crate::log_fatal;
 
@@ -66,62 +66,71 @@ impl IRValue {
     /// Get value by 8-bit
     pub fn get_u8(&self, index: usize) -> u8 {
         self.bound(index, 1 as u8);
-        self.val.borrow()[index]
+        let buffer = self.val.borrow();
+        u8::from_le_bytes([buffer[index]])
     }
 
     /// Get value by 16-bit
     pub fn get_u16(&self, index: usize) -> u16 {
         self.bound(index, 1 as u16);
         let buffer = self.val.borrow();
-        (buffer[index] as u16) | ((buffer[index + 1] as u16) << 8)
+        u16::from_le_bytes([buffer[index], buffer[index + 1]])
     }
 
     /// Get value by 32-bit
     pub fn get_u32(&self, index: usize) -> u32 {
         self.bound(index, 1 as u32);
         let buffer = self.val.borrow();
-        (buffer[index] as u32) | ((buffer[index + 1] as u32) << 8) |
-            ((buffer[index + 2] as u32) << 16) | ((buffer[index + 3] as u32) << 24)
+        u32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
     }
 
     /// Get value by 64-bit
     pub fn get_u64(&self, index: usize) -> u64 {
         self.bound(index, 1 as u64);
         let buffer = self.val.borrow();
-        (buffer[index] as u64) | ((buffer[index + 1] as u64) << 8) |
-            ((buffer[index + 2] as u64) << 16) | ((buffer[index + 3] as u64) << 24) |
-            ((buffer[index + 4] as u64) << 32) | ((buffer[index + 5] as u64) << 40) |
-            ((buffer[index + 6] as u64) << 48) | ((buffer[index + 7] as u64) << 56)
+        u64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
     }
 
     /// Get value by signed 8-bit
     pub fn get_i8(&self, index: usize) -> i8 {
-        self.get_u8(index) as i8
+        self.bound(index, 1 as i8);
+        let buffer = self.val.borrow();
+        i8::from_le_bytes([buffer[index]])
     }
 
     /// Get value by signed 16-bit
     pub fn get_i16(&self, index: usize) -> i16 {
-        self.get_u16(index) as i16
+        self.bound(index, 1 as i16);
+        let buffer = self.val.borrow();
+        i16::from_le_bytes([buffer[index], buffer[index + 1]])
     }
 
     /// Get value by signed 32-bit
     pub fn get_i32(&self, index: usize) -> i32 {
-        self.get_u32(index) as i32
+        self.bound(index, 1 as i32);
+        let buffer = self.val.borrow();
+        i32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
     }
 
     /// Get value by signed 64-bit
     pub fn get_i64(&self, index: usize) -> i64 {
-        self.get_u64(index) as i64
+        self.bound(index, 1 as i64);
+        let buffer = self.val.borrow();
+        i64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
     }
 
     /// Get value by float
     pub fn get_f32(&self, index: usize) -> f32 {
-        self.get_u32(index) as f32
+        self.bound(index, 1 as f32);
+        let buffer = self.val.borrow();
+        f32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
     }
 
     /// Get value by double
     pub fn get_f64(&self, index: usize) -> f64 {
-        self.get_u64(index) as f64
+        self.bound(index, 1 as f64);
+        let buffer = self.val.borrow();
+        f64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
     }
 
 
@@ -155,39 +164,43 @@ impl IRValue {
     pub fn set_8bit(&mut self, index: usize, value: u8) {
         self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
-        buffer[index] = value;
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
     }
 
     /// Set value by 16-bit
     pub fn set_16bit(&mut self, index: usize, value: u16) {
         self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
-        buffer[index] = (value & 0xFF) as u8;
-        buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
+        buffer[index + 1] = bytes[1];
     }
 
     /// Set value by 32-bit
     pub fn set_32bit(&mut self, index: usize, value: u32) {
         self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
-        buffer[index] = (value & 0xFF) as u8;
-        buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
-        buffer[index + 2] = ((value >> 16) & 0xFF) as u8;
-        buffer[index + 3] = ((value >> 24) & 0xFF) as u8;
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
+        buffer[index + 1] = bytes[1];
+        buffer[index + 2] = bytes[2];
+        buffer[index + 3] = bytes[3];
     }
 
     /// Set value by 64-bit
     pub fn set_64bit(&mut self, index: usize, value: u64) {
         self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
-        buffer[index] = (value & 0xFF) as u8;
-        buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
-        buffer[index + 2] = ((value >> 16) & 0xFF) as u8;
-        buffer[index + 3] = ((value >> 24) & 0xFF) as u8;
-        buffer[index + 4] = ((value >> 32) & 0xFF) as u8;
-        buffer[index + 5] = ((value >> 40) & 0xFF) as u8;
-        buffer[index + 6] = ((value >> 48) & 0xFF) as u8;
-        buffer[index + 7] = ((value >> 56) & 0xFF) as u8;
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
+        buffer[index + 1] = bytes[1];
+        buffer[index + 2] = bytes[2];
+        buffer[index + 3] = bytes[3];
+        buffer[index + 4] = bytes[4];
+        buffer[index + 5] = bytes[5];
+        buffer[index + 6] = bytes[6];
+        buffer[index + 7] = bytes[7];
     }
 
     /// Set value by unsigned 8-bit
@@ -241,23 +254,195 @@ impl IRValue {
     /// Set value by float
     pub fn set_f32(&mut self, index: usize, value: f32) {
         self.set_kind(IRTypeKind::F32);
-        self.set_32bit(index, value as u32);
+        let bytes = value.to_le_bytes();
+        self.set_8bit(index, bytes[0]);
+        self.set_8bit(index + 1, bytes[1]);
+        self.set_8bit(index + 2, bytes[2]);
+        self.set_8bit(index + 3, bytes[3]);
     }
 
     /// Set value by double
     pub fn set_f64(&mut self, index: usize, value: f64) {
         self.set_kind(IRTypeKind::F64);
-        self.set_64bit(index, value as u64);
+        let bytes = value.to_le_bytes();
+        self.set_8bit(index, bytes[0]);
+        self.set_8bit(index + 1, bytes[1]);
+        self.set_8bit(index + 2, bytes[2]);
+        self.set_8bit(index + 3, bytes[3]);
+        self.set_8bit(index + 4, bytes[4]);
+        self.set_8bit(index + 5, bytes[5]);
+        self.set_8bit(index + 6, bytes[6]);
+        self.set_8bit(index + 7, bytes[7]);
     }
 
+    /// Set zero.
+    pub fn set_zero(&mut self) {
+        let size = self.size();
+        let mut buffer = self.val.borrow_mut();
+        for i in 0..size {
+            buffer[i] = 0;
+        }
+    }
+
+    // ==================== IRValue.is ===================== //
+
+    /// Check str if the value is u8 number
+    pub fn is_u8(str : &str) -> bool {
+        str.parse::<u8>().is_ok()
+    }
+
+    /// Check str if the value is u16 number
+    pub fn is_u16(str : &str) -> bool {
+        str.parse::<u16>().is_ok()
+    }
+
+    /// Check str if the value is u32 number
+    pub fn is_u32(str : &str) -> bool {
+        str.parse::<u32>().is_ok()
+    }
+
+    /// Check str if the value is u64 number
+    pub fn is_u64(str : &str) -> bool {
+        str.parse::<u64>().is_ok()
+    }
+
+    /// Check str if the value is i8 number
+    pub fn is_i8(str : &str) -> bool {
+        str.parse::<i8>().is_ok()
+    }
+
+    /// Check str if the value is i16 number
+    pub fn is_i16(str : &str) -> bool {
+        str.parse::<i16>().is_ok()
+    }
+
+    /// Check str if the value is i32 number
+    pub fn is_i32(str : &str) -> bool {
+        str.parse::<i32>().is_ok()
+    }
+
+    /// Check str if the value is i64 number
+    pub fn is_i64(str : &str) -> bool {
+        str.parse::<i64>().is_ok()
+    }
+
+    /// Check str if the value is float number
+    pub fn is_f32(str : &str) -> bool {
+        str.parse::<f32>().is_ok()
+    }
+
+    /// Check str if the value is double number
+    pub fn is_f64(str : &str) -> bool {
+        str.parse::<f64>().is_ok()
+    }
     
+
+    // ==================== IRValue.from =================== //
+
+    /// Get value from u8
+    pub fn from_u8(value: u8) -> IRValue {
+        let mut val = IRValue::new(IRType::u8());
+        val.set_u8(0, value);
+        val
+    }
+
+    /// Get value from u16
+    pub fn from_u16(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u16());
+        val.set_u16(0, value);
+        val
+    }
+
+    /// Get value from u32
+    pub fn from_u32(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u32());
+        val.set_u32(0, value);
+        val
+    }
+
+    /// Get value from u64
+    pub fn from_u64(value: u64) -> IRValue {
+        let mut val = IRValue::new(IRType::u64());
+        val.set_u64(0, value);
+        val
+    }
+
+    /// Get value from i8
+    pub fn from_i8(value: i8) -> IRValue {
+        let mut val = IRValue::new(IRType::i8());
+        val.set_i8(0, value);
+        val
+    }
+
+    /// Get value from i16
+    pub fn from_i16(value: i16) -> IRValue {
+        let mut val = IRValue::new(IRType::i16());
+        val.set_i16(0, value);
+        val
+    }
+
+    /// Get value from i32
+    pub fn from_i32(value: i32) -> IRValue {
+        let mut val = IRValue::new(IRType::i32());
+        val.set_i32(0, value);
+        val
+    }
+
+    /// Get value from i64
+    pub fn from_i64(value: i64) -> IRValue {
+        let mut val = IRValue::new(IRType::i64());
+        val.set_i64(0, value);
+        val
+    }
+
+    /// Get value from float
+    pub fn from_f32(value: f32) -> IRValue {
+        let mut val = IRValue::new(IRType::f32());
+        val.set_f32(0, value);
+        val
+    }
+
+    /// Get value from double
+    pub fn from_f64(value: f64) -> IRValue {
+        let mut val = IRValue::new(IRType::f64());
+        val.set_f64(0, value);
+        val
+    }
+
+    /// Get value from string
+    pub fn from_str(value: &str) -> IRValue {
+        let mut val = IRValue::from_i32(0);
+        let value = String::from(value.trim());
+        // parse as f64
+        let val1 = value.borrow();
+        if IRValue::is_f64(val1) {
+            val = IRValue::from_f64(val1.parse::<f64>().unwrap());
+        }
+        // parse as f32
+        let val2 = value.borrow();
+        if IRValue::is_f32(val2) {
+            val = IRValue::from_f32(val2.parse::<f32>().unwrap());
+        }
+        // parse as i64
+        let val3 = value.borrow();
+        if IRValue::is_i64(val3) {
+            val = IRValue::from_i64(val3.parse::<i64>().unwrap());
+        }
+        // parse as i32
+        let val4 = value.borrow();
+        if IRValue::is_i32(val4) {
+            val = IRValue::from_i32(val4.parse::<i32>().unwrap());
+        }
+        log_warning!("Can't parse {} as IRValue", value);
+        val
+    }
 
 }
 
 impl Default for IRValue {
     /// Default value type is i32
     fn default() -> Self {
-        IRValue::new(IRType::i32())
+        IRValue::from_i32(0)
     }
 }
 
@@ -314,29 +499,58 @@ mod val_tests {
         val.set_type(IRType::array(IRType::u32(), 3));
         assert_eq!(val.kind().to_string(), "[u32; 3]");
         assert_eq!(val.size(), 12);
+
     }
+
+    #[test]
+    fn val_from() {
+        let val = IRValue::from_u8(12 as u8);
+        assert_eq!(val.get_u8(0), 12 as u8);
+        let val = IRValue::from_i8(-12 as i8);
+        assert_eq!(val.get_i8(0), -12 as i8);
+        let val = IRValue::from_u16(12 as u16);
+        assert_eq!(val.get_u16(0), 12 as u16);
+        let val = IRValue::from_i16(-12 as i16);
+        assert_eq!(val.get_i16(0), -12 as i16);
+        let val = IRValue::from_u32(12 as u32);
+        assert_eq!(val.get_u32(0), 12 as u32);
+        let val = IRValue::from_i32(-12 as i32);
+        assert_eq!(val.get_i32(0), -12 as i32);
+        let val = IRValue::from_u64(12 as u64);
+        assert_eq!(val.get_u64(0), 12 as u64);
+        let val = IRValue::from_i64(-12 as i64);
+        assert_eq!(val.get_i64(0), -12 as i64);
+        let val = IRValue::from_f32(12.33f32);
+        assert_eq!(val.get_f32(0), 12.33f32);
+        let val = IRValue::from_f64(12.34f64);
+        assert_eq!(val.get_f64(0), 12.34f64);
+
+
+        let val = IRValue::from_str("12");
+        assert_eq!(val.get_i32(0), 12 as i32);
+
+        let val = IRValue::from_str("23.5");
+        assert_eq!(val.get_f32(0), 23.5f32);
+    }
+
 
     #[test]
     fn val_change() {
         let mut val = IRValue::new(IRType::u8());
         val.set_u8(0, 1 as u8);
         assert_eq!(val.get_u8(0), 1 as u8);
-        
         // Change value
         val.set_u8(0, 2 as u8);
         assert_eq!(val.get_u8(0), 2 as u8);
-
         // Change Type
         val.set_i8(0, -3 as i8);
         assert_eq!(val.get_i8(0), -3 as i8);
-
         // Change to Float
-        val.set_f32(0, 255.0f32);
-        assert_eq!(val.get_f32(0), 255.0f32);
-
+        val.set_f32(0, 255.33f32);
+        assert_eq!(val.get_f32(0), 255.33f32);
         // Change to Double
-        val.set_f64(0, 255.0f64);
-        assert_eq!(val.get_f64(0), 255.0f64);
+        val.set_f64(0, 255.34f64);
+        assert_eq!(val.get_f64(0), 255.34f64);
     }
 
 }
