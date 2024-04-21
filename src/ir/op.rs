@@ -17,9 +17,17 @@ use crate::ir::val::IRValue;
 
 #[derive(Debug, Clone)]
 pub enum IROperandKind {
+    /// |  val  |
     Imm(IRValue),
+
+    /// |  val  |
     Reg(IRValue),
+
+    /// Mem = [base + index * scale + disp]
+    /// |  base  |  idx  |  scala  | disp  |
+    // Mem(IRValue, IRValue, IRValue, IRValue),
     Mem(IRValue),
+
     Label(IRValue),
 }
 
@@ -44,6 +52,7 @@ impl IROperandKind {
             IROperandKind::Label(val) => val.to_string(),
         }
     }
+
 
     /// Get the size of the operand
     pub fn size(&self) -> usize {

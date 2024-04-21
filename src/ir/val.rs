@@ -8,7 +8,8 @@ use std::{cell::RefCell, fmt::{Debug, Display}};
 
 use crate::ir::ty::{IRType, IRTypeKind};
 
-
+use crate::util::log::Span;
+use crate::log_fatal;
 
 // ============================================================================== //
 //                              val::IRValue
@@ -51,21 +52,33 @@ impl IRValue {
         self.val.borrow().iter().map(|x| format!("{:02X}", x)).collect::<Vec<String>>().join(" ")
     }
 
+    /// Check IRValue size bound
+    pub fn bound<T>(&self, index: usize, _: T) {
+        // index + size of T should <= self.size()
+        let is_valid = index + std::mem::size_of::<T>() <= self.size();
+        if !is_valid {
+            log_fatal!("Index out of bounds: index+type: {}+{} > size: {}", index, std::mem::size_of::<T>(), self.size());
+        }
+    }
+
     // ==================== IRValue.get ==================== //
 
     /// Get value by 8-bit
     pub fn get_u8(&self, index: usize) -> u8 {
+        self.bound(index, 1 as u8);
         self.val.borrow()[index]
     }
 
     /// Get value by 16-bit
     pub fn get_u16(&self, index: usize) -> u16 {
+        self.bound(index, 1 as u16);
         let buffer = self.val.borrow();
         (buffer[index] as u16) | ((buffer[index + 1] as u16) << 8)
     }
 
     /// Get value by 32-bit
     pub fn get_u32(&self, index: usize) -> u32 {
+        self.bound(index, 1 as u32);
         let buffer = self.val.borrow();
         (buffer[index] as u32) | ((buffer[index + 1] as u32) << 8) |
             ((buffer[index + 2] as u32) << 16) | ((buffer[index + 3] as u32) << 24)
@@ -73,6 +86,7 @@ impl IRValue {
 
     /// Get value by 64-bit
     pub fn get_u64(&self, index: usize) -> u64 {
+        self.bound(index, 1 as u64);
         let buffer = self.val.borrow();
         (buffer[index] as u64) | ((buffer[index + 1] as u64) << 8) |
             ((buffer[index + 2] as u64) << 16) | ((buffer[index + 3] as u64) << 24) |
@@ -139,12 +153,14 @@ impl IRValue {
 
     /// Set value by 8-bit
     pub fn set_8bit(&mut self, index: usize, value: u8) {
+        self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
         buffer[index] = value;
     }
 
     /// Set value by 16-bit
     pub fn set_16bit(&mut self, index: usize, value: u16) {
+        self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
         buffer[index] = (value & 0xFF) as u8;
         buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
@@ -152,6 +168,7 @@ impl IRValue {
 
     /// Set value by 32-bit
     pub fn set_32bit(&mut self, index: usize, value: u32) {
+        self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
         buffer[index] = (value & 0xFF) as u8;
         buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
@@ -161,6 +178,7 @@ impl IRValue {
 
     /// Set value by 64-bit
     pub fn set_64bit(&mut self, index: usize, value: u64) {
+        self.bound(index, value);
         let mut buffer = self.val.borrow_mut();
         buffer[index] = (value & 0xFF) as u8;
         buffer[index + 1] = ((value >> 8) & 0xFF) as u8;
@@ -239,7 +257,7 @@ impl IRValue {
 impl Default for IRValue {
     /// Default value type is i32
     fn default() -> Self {
-        IRValue::new(IRType::get_i32())
+        IRValue::new(IRType::i32())
     }
 }
 
@@ -277,7 +295,7 @@ mod val_tests {
 
     #[test]
     fn val_print() {
-        let mut val = IRValue::new(IRType::get_u8());
+        let mut val = IRValue::new(IRType::u8());
         val.set_u8(0, 9 as u8);
         assert_eq!(val.hex(), "09");
 
@@ -285,6 +303,7 @@ mod val_tests {
         val.set_i64(0, 255 as i64);
         assert_eq!(val.hex(), "FF 00 00 00 00 00 00 00");
         assert_eq!(val.kind().to_string(), IRTypeKind::I64.to_string());
+        assert_eq!(val.ty, IRType::i64());
 
         // Only Write in data, don't change type
         val.set_8bit(0, 64 as u8);
@@ -292,14 +311,14 @@ mod val_tests {
         assert_eq!(val.to_string(), "64");
 
         // `set_type` by array
-        val.set_type(IRType::get_array(IRType::get_u32(), 3));
+        val.set_type(IRType::array(IRType::u32(), 3));
         assert_eq!(val.kind().to_string(), "[u32; 3]");
         assert_eq!(val.size(), 12);
     }
 
     #[test]
     fn val_change() {
-        let mut val = IRValue::new(IRType::get_u8());
+        let mut val = IRValue::new(IRType::u8());
         val.set_u8(0, 1 as u8);
         assert_eq!(val.get_u8(0), 1 as u8);
         

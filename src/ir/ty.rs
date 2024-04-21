@@ -184,98 +184,98 @@ impl IRType {
     }
     
     /// Returns an `i8` type.
-    pub fn get_i8() -> IRType {
+    pub fn i8() -> IRType {
         IRType::get(IRTypeKind::I8)
     }
 
     /// Returns an `i16` type.
-    pub fn get_i16() -> IRType {
+    pub fn i16() -> IRType {
         IRType::get(IRTypeKind::I16)
     }
 
     /// Returns an `i32` type.
-    pub fn get_i32() -> IRType {
+    pub fn i32() -> IRType {
         IRType::get(IRTypeKind::I32)
     }
 
     /// Returns an `i64` type.
-    pub fn get_i64() -> IRType {
+    pub fn i64() -> IRType {
         IRType::get(IRTypeKind::I64)
     }
 
     /// Returns an `i128` type.
-    pub fn get_i128() -> IRType {
+    pub fn i128() -> IRType {
         IRType::get(IRTypeKind::I128)
     }
 
     /// Returns an `u8` type.
-    pub fn get_u8() -> IRType {
+    pub fn u8() -> IRType {
         IRType::get(IRTypeKind::U8)
     }
 
     /// Returns an `u16` type.
-    pub fn get_u16() -> IRType {
+    pub fn u16() -> IRType {
         IRType::get(IRTypeKind::U16)
     }
 
     /// Returns an `u32` type.
-    pub fn get_u32() -> IRType {
+    pub fn u32() -> IRType {
         IRType::get(IRTypeKind::U32)
     }
 
     /// Returns an `u64` type.
-    pub fn get_u64() -> IRType {
+    pub fn u64() -> IRType {
         IRType::get(IRTypeKind::U64)
     }
 
     /// Returns an `u128` type.
-    pub fn get_u128() -> IRType {
+    pub fn u128() -> IRType {
         IRType::get(IRTypeKind::U128)
     }
 
     /// Returns an `f16` type.
-    pub fn get_f16() -> IRType {
+    pub fn f16() -> IRType {
         IRType::get(IRTypeKind::F16)
     }
 
     /// Returns an `f32` type.
-    pub fn get_f32() -> IRType {
+    pub fn f32() -> IRType {
         IRType::get(IRTypeKind::F32)
     }
 
     /// Returns an `f64` type.
-    pub fn get_f64() -> IRType {
+    pub fn f64() -> IRType {
         IRType::get(IRTypeKind::F64)
     }
 
     /// Returns an `f128` type.
-    pub fn get_f128() -> IRType {
+    pub fn f128() -> IRType {
         IRType::get(IRTypeKind::F128)
     }
 
     /// Returns an `array` type.
-    pub fn get_array(ty: IRType, size: usize) -> IRType {
+    pub fn array(ty: IRType, size: usize) -> IRType {
         assert!(size != 0, "array size cannot be 0");
         IRType::get(IRTypeKind::Array(ty, size))
     }
 
     /// Returns an `ptr` type.
-    pub fn get_ptr(ty: IRType) -> IRType {
+    pub fn ptr(ty: IRType) -> IRType {
         IRType::get(IRTypeKind::Ptr(ty))
     }
 
     /// Returns an `func` type.
-    pub fn get_func(args: Vec<IRType>, ret: IRType) -> IRType {
+    pub fn func(args: Vec<IRType>, ret: IRType) -> IRType {
         IRType::get(IRTypeKind::Func(args, ret))
     }
 
     /// Returns an `tuple` type.
-    pub fn get_tuple(tys: Vec<IRType>) -> IRType {
+    pub fn tuple(tys: Vec<IRType>) -> IRType {
         IRType::get(IRTypeKind::Tuple(tys))
     }
 
     /// Returns an `struct` type.
-    pub fn get_struct(fields: Vec<IRType>) -> IRType {
+    pub fn stc(fields: Vec<IRType>) -> IRType {
         IRType::get(IRTypeKind::Struct(fields))
     }
 
@@ -331,9 +331,21 @@ impl IRType {
 
 impl cmp::PartialEq for IRType {
     /// Compare two `IRType`
-    fn eq(&self, other: &IRType) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+    fn eq(&self, other: &Self) -> bool {
+        // 1. Compare size
+        if self.size() != other.size() {
+            return false
+        }
+        // 2. Compare kind
+        if self.kind() != other.kind() {
+            return false
+        }
+        true
     }
+
+    // fn eq(&self, other: &IRType) -> bool {
+    //     Rc::ptr_eq(&self.0, &other.0)
+    // }
 }
 
 impl fmt::Display for IRType {
@@ -376,87 +388,87 @@ mod ty_test {
 
     #[test]
     fn type_from_string() {
-        assert_eq!(IRType::from_string("i8"), IRType::get_i8());
-        assert_eq!(IRType::from_string("i16"), IRType::get_i16());
-        assert_eq!(IRType::from_string("i32"), IRType::get_i32());
-        assert_eq!(IRType::from_string("i64"), IRType::get_i64());
-        assert_eq!(IRType::from_string("i128"), IRType::get_i128());
-        assert_eq!(IRType::from_string("u8"), IRType::get_u8());
-        assert_eq!(IRType::from_string("u16"), IRType::get_u16());
-        assert_eq!(IRType::from_string("u32"), IRType::get_u32());
-        assert_eq!(IRType::from_string("u64"), IRType::get_u64());
-        assert_eq!(IRType::from_string("u128"), IRType::get_u128());
-        assert_eq!(IRType::from_string("f16"), IRType::get_f16());
-        assert_eq!(IRType::from_string("f32"), IRType::get_f32());
-        assert_eq!(IRType::from_string("f64"), IRType::get_f64());
+        assert_eq!(IRType::from_string("i8"), IRType::i8());
+        assert_eq!(IRType::from_string("i16"), IRType::i16());
+        assert_eq!(IRType::from_string("i32"), IRType::i32());
+        assert_eq!(IRType::from_string("i64"), IRType::i64());
+        assert_eq!(IRType::from_string("i128"), IRType::i128());
+        assert_eq!(IRType::from_string("u8"), IRType::u8());
+        assert_eq!(IRType::from_string("u16"), IRType::u16());
+        assert_eq!(IRType::from_string("u32"), IRType::u32());
+        assert_eq!(IRType::from_string("u64"), IRType::u64());
+        assert_eq!(IRType::from_string("u128"), IRType::u128());
+        assert_eq!(IRType::from_string("f16"), IRType::f16());
+        assert_eq!(IRType::from_string("f32"), IRType::f32());
+        assert_eq!(IRType::from_string("f64"), IRType::f64());
 
-        assert_eq!(IRType::from_string("[i32; 10]"), IRType::get_array(IRType::get_i32(), 10));
-        assert_eq!(IRType::from_string("[[i32; 10]; 3]"), IRType::get_array(IRType::get_array(IRType::get_i32(), 10), 3));
-        assert_eq!(IRType::from_string("*i32"), IRType::get_ptr(IRType::get_i32()));
+        assert_eq!(IRType::from_string("[i32; 10]"), IRType::array(IRType::i32(), 10));
+        assert_eq!(IRType::from_string("[[i32; 10]; 3]"), IRType::array(IRType::array(IRType::i32(), 10), 3));
+        assert_eq!(IRType::from_string("*i32"), IRType::ptr(IRType::i32()));
 
-        assert_eq!(IRType::from_string("(i32, f64)"), IRType::get_tuple(vec![IRType::get_i32(), IRType::get_f64()]));
-        assert_eq!(IRType::from_string("(i32, f64) -> f64"), IRType::get_func(vec![IRType::get_i32(), IRType::get_f64()], IRType::get_f64()));
-        assert_eq!(IRType::from_string("struct {i32, f64}"), IRType::get_struct(vec![IRType::get_i32(), IRType::get_f64()]));
+        assert_eq!(IRType::from_string("(i32, f64)"), IRType::tuple(vec![IRType::i32(), IRType::f64()]));
+        assert_eq!(IRType::from_string("(i32, f64) -> f64"), IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()));
+        assert_eq!(IRType::from_string("struct {i32, f64}"), IRType::stc(vec![IRType::i32(), IRType::f64()]));
     }
 
     #[test]
     fn type_to_string() {
-        assert_eq!(format!("{}", IRType::get_i8()), "i8");
-        assert_eq!(format!("{}", IRType::get_i16()), "i16");
-        assert_eq!(format!("{}", IRType::get_i32()), "i32");
-        assert_eq!(format!("{}", IRType::get_i64()), "i64");
-        assert_eq!(format!("{}", IRType::get_i128()), "i128");
-        assert_eq!(format!("{}", IRType::get_u8()), "u8");
-        assert_eq!(format!("{}", IRType::get_u16()), "u16");
-        assert_eq!(format!("{}", IRType::get_u32()), "u32");
-        assert_eq!(format!("{}", IRType::get_u64()), "u64");
-        assert_eq!(format!("{}", IRType::get_u128()), "u128");
-        assert_eq!(format!("{}", IRType::get_f16()), "f16");
-        assert_eq!(format!("{}", IRType::get_f32()), "f32");
-        assert_eq!(format!("{}", IRType::get_f64()), "f64");
-        assert_eq!(format!("{}", IRType::get_f128()), "f128");
-        assert_eq!(format!("{}", IRType::get_array(IRType::get_i32(), 10)), "[i32; 10]");
-        assert_eq!(format!("{}", IRType::get_array(IRType::get_array(IRType::get_i32(), 10), 3)), "[[i32; 10]; 3]");
-        assert_eq!(format!("{}", IRType::get_ptr(IRType::get_ptr(IRType::get_f64()))), "**f64");
-        assert_eq!(format!("{}", IRType::get_func(vec![IRType::get_i32(), IRType::get_f64()], IRType::get_f64())), "(i32, f64) -> f64");
-        assert_eq!(format!("{}", IRType::get_tuple(vec![IRType::get_i32(), IRType::get_f64()])), "(i32, f64)");
-        assert_eq!(format!("{}", IRType::get_struct(vec![IRType::get_i32(), IRType::get_f64()])), "struct {i32, f64}");
+        assert_eq!(format!("{}", IRType::i8()), "i8");
+        assert_eq!(format!("{}", IRType::i16()), "i16");
+        assert_eq!(format!("{}", IRType::i32()), "i32");
+        assert_eq!(format!("{}", IRType::i64()), "i64");
+        assert_eq!(format!("{}", IRType::i128()), "i128");
+        assert_eq!(format!("{}", IRType::u8()), "u8");
+        assert_eq!(format!("{}", IRType::u16()), "u16");
+        assert_eq!(format!("{}", IRType::u32()), "u32");
+        assert_eq!(format!("{}", IRType::u64()), "u64");
+        assert_eq!(format!("{}", IRType::u128()), "u128");
+        assert_eq!(format!("{}", IRType::f16()), "f16");
+        assert_eq!(format!("{}", IRType::f32()), "f32");
+        assert_eq!(format!("{}", IRType::f64()), "f64");
+        assert_eq!(format!("{}", IRType::f128()), "f128");
+        assert_eq!(format!("{}", IRType::array(IRType::i32(), 10)), "[i32; 10]");
+        assert_eq!(format!("{}", IRType::array(IRType::array(IRType::i32(), 10), 3)), "[[i32; 10]; 3]");
+        assert_eq!(format!("{}", IRType::ptr(IRType::ptr(IRType::f64()))), "**f64");
+        assert_eq!(format!("{}", IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64())), "(i32, f64) -> f64");
+        assert_eq!(format!("{}", IRType::tuple(vec![IRType::i32(), IRType::f64()])), "(i32, f64)");
+        assert_eq!(format!("{}", IRType::stc(vec![IRType::i32(), IRType::f64()])), "struct {i32, f64}");
     }
 
     #[test]
     fn type_eq() {
-        assert_eq!(IRType::get_i8(), IRType::get_i8());
-        assert_eq!(IRType::get_array(IRType::get_i32(), 6), IRType::get_array(IRType::get_i32(), 6));
+        assert_eq!(IRType::i8(), IRType::i8());
+        assert_eq!(IRType::array(IRType::i32(), 6), IRType::array(IRType::i32(), 6));
     }
 
     #[test]
     fn type_size() {
 
-        assert_eq!(IRType::get_i8().size(), 1);
-        assert_eq!(IRType::get_i16().size(), 2);
-        assert_eq!(IRType::get_i32().size(), 4);
-        assert_eq!(IRType::get_i64().size(), 8);
-        assert_eq!(IRType::get_i128().size(), 16);
-        assert_eq!(IRType::get_u8().size(), 1);
-        assert_eq!(IRType::get_u16().size(), 2);
-        assert_eq!(IRType::get_u32().size(), 4);
-        assert_eq!(IRType::get_u64().size(), 8);
-        assert_eq!(IRType::get_u128().size(), 16);
-        assert_eq!(IRType::get_f16().size(), 2);
-        assert_eq!(IRType::get_f32().size(), 4);
-        assert_eq!(IRType::get_f64().size(), 8);
-        assert_eq!(IRType::get_f128().size(), 16);
+        assert_eq!(IRType::i8().size(), 1);
+        assert_eq!(IRType::i16().size(), 2);
+        assert_eq!(IRType::i32().size(), 4);
+        assert_eq!(IRType::i64().size(), 8);
+        assert_eq!(IRType::i128().size(), 16);
+        assert_eq!(IRType::u8().size(), 1);
+        assert_eq!(IRType::u16().size(), 2);
+        assert_eq!(IRType::u32().size(), 4);
+        assert_eq!(IRType::u64().size(), 8);
+        assert_eq!(IRType::u128().size(), 16);
+        assert_eq!(IRType::f16().size(), 2);
+        assert_eq!(IRType::f32().size(), 4);
+        assert_eq!(IRType::f64().size(), 8);
+        assert_eq!(IRType::f128().size(), 16);
 
-        assert_eq!(IRType::get_array(IRType::get_i32(), 10).size(), 10 * 4);
-        assert_eq!(IRType::get_array(IRType::get_array(IRType::get_i32(), 10), 3).size(), 3 * 10 * 4);
-        assert_eq!(IRType::get_ptr(IRType::get_f64()).size(), mem::size_of::<usize>());
+        assert_eq!(IRType::array(IRType::i32(), 10).size(), 10 * 4);
+        assert_eq!(IRType::array(IRType::array(IRType::i32(), 10), 3).size(), 3 * 10 * 4);
+        assert_eq!(IRType::ptr(IRType::f64()).size(), mem::size_of::<usize>());
 
         IRType::set_ptr_size(4);
-        assert_eq!(IRType::get_ptr(IRType::get_f64()).size(), 4);
-        assert_eq!(IRType::get_array(IRType::get_ptr(IRType::get_i32()), 5).size(), 4 * 5);
-        assert_eq!(IRType::get_func(vec![IRType::get_i32(), IRType::get_f64()], IRType::get_f64()).size(), 4);
-        assert_eq!(IRType::get_tuple(vec![IRType::get_i32(), IRType::get_f32()]).size(), 4);
-        assert_eq!(IRType::get_struct(vec![IRType::get_i32(), IRType::get_f32()]).size(), 4);
+        assert_eq!(IRType::ptr(IRType::f64()).size(), 4);
+        assert_eq!(IRType::array(IRType::ptr(IRType::i32()), 5).size(), 4 * 5);
+        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).size(), 4);
+        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).size(), 4);
+        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).size(), 4);
     } 
 
 }

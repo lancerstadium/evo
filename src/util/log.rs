@@ -331,7 +331,7 @@ impl Span {
 
     /// `no-log`: Logs fatal error with no span provided.
     #[cfg(feature = "no-log")]
-    pub fn log_fatal_error(args: Arguments) -> ErrorType {
+    pub fn log_fatal(args: Arguments) -> ErrorType {
         // update error counter
         Self::STATE.with(|gs| gs.borrow_mut().err_cnt += 1);
         ErrorType::Fatal(format!("{}", args))
@@ -339,12 +339,12 @@ impl Span {
 
     /// `log`: Logs fatal error with no span provided.
     #[cfg(not(feature = "no-log"))]
-    pub fn log_fatal_error(args: Arguments) -> ErrorType {
+    pub fn log_fatal(args: Arguments) -> ErrorType {
         Self::STATE.with(|gs| {
             // 1. update error counter
             gs.borrow_mut().err_cnt += 1;
             // 2. print message to stderr
-            eprintln!("{}: {}", "error".bright_red(), args);
+            eprintln!("{}: {}", "fatal".bright_red(), args);
         });
         ErrorType::Fatal
     }
@@ -366,15 +366,15 @@ impl Span {
 
     /// `no-log`: Logs fatal error message.
     #[cfg(feature = "no-log")]
-    pub fn log_fatal_error_at(&self, args: Arguments) -> ErrorType {
-        Self::log_error(args);
+    pub fn log_fatal_at(&self, args: Arguments) -> ErrorType {
+        Self::log_fatal(args);
         ErrorType::Fatal(self.error_message(args))
     }
 
     /// `log`: Logs fatal error message.
     #[cfg(not(feature = "no-log"))]
-    pub fn log_fatal_error_at(&self, args: Arguments) -> ErrorType {
-        Self::log_error(args);
+    pub fn log_fatal_at(&self, args: Arguments) -> ErrorType {
+        Self::log_fatal(args);
         Self::STATE.with(|gs| self.log_info_file(&gs.borrow().file, Color::BrightRed));
         ErrorType::Fatal
     }
@@ -675,9 +675,9 @@ macro_rules! log_error {
 
 /// Logs fatal error with no span provided.
 #[macro_export]
-macro_rules! log_fatal_error {
+macro_rules! log_fatal {
     ($($arg:tt)+) => {
-        Span::log_fatal_error(format_args!($($arg)+))
+        Span::log_fatal(format_args!($($arg)+))
     };
 }
 
@@ -699,9 +699,9 @@ macro_rules! log_error_at {
 
 /// Logs fatal error message.
 #[macro_export]
-macro_rules! log_fatal_error_at {
+macro_rules! log_fatal_at {
     ($span:expr, $($arg:tt)+) => {
-        $span.log_fatal_error_at(format_args!($($arg)+))
+        $span.log_fatal_at(format_args!($($arg)+))
     };
 }
 
@@ -845,7 +845,7 @@ mod log_test {
     #[test]
     fn span_log() {
         log_error_at!(Span::new(Pos::new()), "test error at");
-        log_fatal_error_at!(Span::new(Pos::new()), "test fatal error at");
+        log_fatal_at!(Span::new(Pos::new()), "test fatal error at");
         log_warning_at!(Span::new(Pos::new()), "test warning at");
         log_attention_at!(Span::new(Pos::new()), "test attention at");
         log_info_at!(Span::new(Pos::new()), "test info at");
@@ -853,7 +853,7 @@ mod log_test {
         log_trace_at!(Span::new(Pos::new()), "test trace at");
 
         log_error!("test error");
-        log_fatal_error!("test fatal error");
+        log_fatal!("test fatal error");
         log_warning!("test warning");
         log_attention!("test attention");
         log_info!("test info");
