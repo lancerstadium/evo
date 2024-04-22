@@ -32,8 +32,7 @@ pub enum IROperandKind {
 
     /// Mem = [base + index * scale + disp]
     /// |  base  |  idx  |  scala  | disp  |
-    // Mem(IRValue, IRValue, IRValue, IRValue),
-    Mem(IRValue),
+    Mem(IRValue, IRValue, IRValue, IRValue),
 
     /// |  name*  |  addr  |
     Label(&'static str, IRValue),
@@ -47,7 +46,7 @@ impl IROperandKind {
             IROperandKind::Imm(val) => val.size(),
             // Get Reg value's size
             IROperandKind::Reg(_, val) => val.size(),
-            IROperandKind::Mem(val) => val.size(),
+            IROperandKind::Mem(val, _, _, _) => val.size(),
             // Get Label ptr's size
             IROperandKind::Label(_, val) => val.size(),
         }
@@ -59,7 +58,7 @@ impl IROperandKind {
             IROperandKind::Imm(val) => val.hex(),
             // Get Reg value's hex
             IROperandKind::Reg(_, val) => val.hex(),
-            IROperandKind::Mem(val) => val.hex(),
+            IROperandKind::Mem(_, _, _, _) => self.val().hex(),
             // Get Label ptr's hex
             IROperandKind::Label(_, val) => val.hex(),
         }
@@ -68,9 +67,9 @@ impl IROperandKind {
     /// Get name of the operand
     pub fn name(&self) -> &'static str {
         match self {
-            IROperandKind::Imm(_) => "Imm",
+            IROperandKind::Imm(_) => "<Imm>",
             IROperandKind::Reg(name, _) => name,
-            IROperandKind::Mem(_) => "Mem",
+            IROperandKind::Mem(_, _, _, _) => "<Mem>",
             IROperandKind::Label(name, _) => name,
         }
     }
@@ -80,7 +79,7 @@ impl IROperandKind {
         match self {
             IROperandKind::Imm(val) => val.to_string(),
             IROperandKind::Reg(name, val) => format!("{}: {}", name, val.to_string()),
-            IROperandKind::Mem(val) => val.to_string(),
+            IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]", base, idx, scale, disp),
             IROperandKind::Label(name, val) => format!("{}: {}", name, val.to_string()),
         }
     }
@@ -90,11 +89,18 @@ impl IROperandKind {
         match self {
             IROperandKind::Imm(val) => val.clone(),
             IROperandKind::Reg(_, val) => val.clone(),
-            IROperandKind::Mem(val) => val.clone(),
+            IROperandKind::Mem(base, idx, scale, disp) => IRValue::u32(base.get_u32(0) + idx.get_u32(0) * scale.get_u32(0) + disp.get_u32(0)),
             IROperandKind::Label(_, val) => val.clone(),
         }
     }
 
+}
+
+
+impl fmt::Display for IROperandKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
 }
 
 // ============================================================================== //
@@ -424,10 +430,11 @@ mod op_test {
     fn arch_print() {
         println!("{}", IRArch::info());
         let mut arch = IRArch::new();
-        println!("{}", arch.reg_info());
+        
         arch.set_reg("ebx", IRValue::u32(9));
         arch.set_reg("eax", IRValue::u32(8));
         assert_eq!(arch.get_reg("ebx"), IRValue::u32(9));
+        println!("{}", arch.reg_info());
 
         let arch2 = IRArch::new();
         // Compare Registers

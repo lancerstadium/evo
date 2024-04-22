@@ -9,7 +9,8 @@ use std::{cell::RefCell, fmt::{Debug, Display}};
 
 use crate::{ir::ty::{IRType, IRTypeKind}, log_warning};
 use crate::util::log::Span;
-use crate::log_fatal;
+use crate::{log_fatal, log_error};
+
 
 // ============================================================================== //
 //                              val::IRValue
@@ -43,13 +44,17 @@ impl IRValue {
 
     /// Get the size of the IRValue
     pub fn size(&self) -> usize {
-        assert!(self.ty.size() == self.val.borrow().len());
         self.ty.size()
     }
 
     /// Get the bits hex string of the IRValue: Default little-endian
     pub fn hex(&self) -> String {
         self.val.borrow().iter().map(|x| format!("{:02X}", x)).collect::<Vec<String>>().join(" ")
+    }
+
+    /// Get the bits binary string of the IRValue: Default little-endian
+    pub fn bin(&self) -> String {
+        self.val.borrow().iter().map(|x| format!("{:08b}", x)).collect::<Vec<String>>().join(" ")
     }
 
     /// Check IRValue size bound
@@ -151,6 +156,12 @@ impl IRValue {
         str
     }
 
+    /// Get value by binary
+    pub fn get_bin(&self, index: usize) -> Vec<u8> {
+        let buffer = self.val.borrow();
+        buffer[index..].to_vec()
+    }
+
 
     // ==================== IRValue.set ==================== //
 
@@ -182,6 +193,113 @@ impl IRValue {
         }
     }
 
+    /// Set value by bit
+    /// `op_str`: `1`, `0`, `~`
+    pub fn set_bit(&mut self, index: usize, start: usize, end: usize, op_str: &str) {
+        if (start > end) || (end >= self.size() * 8 - index * 8 - 1) {
+            log_error!("Invalid start and end: {}, {}", start, end);
+        }
+        let mut buffer = self.val.borrow_mut();
+        // Check how many u8 we need access
+        let u8_num = end / 8 + 1;
+        // Get a vector like: start 3, end 9 -> [[3, 7], [0, 1]]
+        let mut idx_vec = Vec::new();
+        if u8_num == 0 {
+            log_error!("Invalid start and end: {}, {}", start, end);
+            return
+        } else if u8_num == 1 {
+            idx_vec.push(vec![start, end]);
+        } else if u8_num == 2 {
+            idx_vec.push(vec![start, 7]);
+            idx_vec.push(vec![0, end % 8]);
+        } else {
+            idx_vec.push(vec![start, 7]);
+            for _ in 1..u8_num - 1 {
+                idx_vec.push(vec![0, 7]);
+            }
+            idx_vec.push(vec![0, end % 8]);
+        }
+        assert!(idx_vec.len() == u8_num);
+        // Set value
+        match op_str {
+            "1" => {
+                for i in index..index + u8_num {
+                    let mut value: u8 = 0;
+                    let st = idx_vec[i - index][0];
+                    let ed = idx_vec[i - index][1];
+                    for j in st..=ed {
+                        value |= 1 << j;
+                    }
+                    buffer[i] |= value;
+                }
+            },
+            "0" => {
+                for i in index..index + u8_num {
+                    let mut value: u8 = 0;
+                    let st = idx_vec[i - index][0];
+                    let ed = idx_vec[i - index][1];
+                    for j in st..=ed {
+                        value |= 1 << j;
+                    }
+                    buffer[i] &= !value;
+                }
+            },
+            "~" => {
+                for i in index..index + u8_num {
+                    let mut value: u8 = 0;
+                    let st = idx_vec[i - index][0];
+                    let ed = idx_vec[i - index][1];
+                    for j in st..=ed {
+                        value |= 1 << j;
+                    }
+                    buffer[i] ^= value;
+                }
+            },
+            _ => {
+                log_error!("Invalid bit op: {}", op_str);
+            }
+        }
+    }
+
+    /// Set value by byte: 8-bits
+    /// `op_str`: `&`, `|`, `^`, `c`, `~c`, `shl`, `shr`, `rotl`, `rotr`
+    pub fn set_byte(&mut self, index: usize, value: u8, op_str: &str) {
+        self.bound(index, value);
+        let mut buffer = self.val.borrow_mut();
+        match op_str {
+            "&" => {        // AND
+                buffer[index] &= value;
+            },
+            "|" => {        // OR
+                buffer[index] |= value;
+            },
+            "^" => {        // XOR
+                buffer[index] ^= value;
+            },
+            "c" => {        // Cover
+                buffer[index] = value;
+            },
+            "~c" => {       // Cover NOT
+                buffer[index] = !value;
+            },
+            "shl" => {      // shift left
+                buffer[index] <<= value % 8;
+            },
+            "shr" => {      // shift right
+                buffer[index] >>= value % 8;
+            },
+            "rotl" => {     // rotate left
+                buffer[index] = (buffer[index] << value % 8) | (buffer[index] >> (8 - value % 8));
+            },
+            "rotr" => {     // rotate right
+                buffer[index] = (buffer[index] >> value % 8) | (buffer[index] << (8 - value % 8));
+            },
+            _ => {
+                log_error!("Invalid byte op: {}", op_str);
+            }
+        }
+    }
+    
     /// Set value by 8-bit
     pub fn set_8bit(&mut self, index: usize, value: u8) {
         self.bound(index, value);
@@ -648,8 +766,15 @@ mod val_tests {
         assert_eq!(val.get_f64(0), 12.34f64);
 
 
-        let val = IRValue::from_string("12");
-        assert_eq!(val.get_i32(0), 12 as i32);
+        let mut val = IRValue::from_string("1296");
+        assert_eq!(val.get_i32(0), 1296 as i32);
+        assert_eq!(val.bin(), "00010000 00000101 00000000 00000000");
+        val.set_bit(0, 3, 18, "1");
+        assert_eq!(val.bin(), "11111000 11111111 00000111 00000000");
+        val.set_bit(1, 0, 7, "~");
+        assert_eq!(val.bin(), "11111000 00000000 00000111 00000000");
+        val.set_byte(2, 9, "^");
+        assert_eq!(val.bin(), "11111000 00000000 00001110 00000000");
 
         let val = IRValue::from_string("23.5");
         assert_eq!(val.get_f32(0), 23.5f32);
@@ -673,7 +798,6 @@ mod val_tests {
         val.set_char(1, 'e');
         assert_eq!(val.get_char(1), 'e');
         assert_eq!(val.get_str(1), "ello");
-        println!("{}", val.kind());
     }
 
 
