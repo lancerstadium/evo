@@ -8,6 +8,7 @@
 // ============================================================================== //
 
 use std::fmt::{self};
+use std::cmp;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -39,11 +40,6 @@ pub enum IROperandKind {
 }
 
 impl IROperandKind {
-
-    /// New IROperand
-    pub fn new_reg(val: IRValue) -> Self {
-        Self::Reg(val)
-    }
 
     /// Get the size of the operand
     pub fn size(&self) -> usize {
@@ -83,7 +79,7 @@ impl IROperandKind {
 
 
 /// `IROperand`: Operands in the IR
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IROperand {
     /// `kind`: Kind of the operand (Imm, Reg, Mem, Label)
     pub kind: IROperandKind,
@@ -92,9 +88,9 @@ pub struct IROperand {
 impl IROperand {
 
     /// New IROperand Reg
-    pub fn new_reg(val: IRValue) -> Self {
+    pub fn reg(val: IRValue) -> Self {
         Self {
-            kind: IROperandKind::new_reg(val),
+            kind: IROperandKind::Reg(val),
         }
     }
 
@@ -103,6 +99,102 @@ impl IROperand {
 impl fmt::Display for IROperand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.kind.to_string())
+    }
+}
+
+
+
+// ============================================================================== //
+//                              op::IROpcodeKind
+// ============================================================================== //
+
+/// `IROpcodeKind`: Kind of IR opcodes
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IROpcodeKind {
+    /// Special opcode: [opcode]
+    Special(),
+
+    /// Unary operand opcode: [opcode] [operand]
+    Unary(IROperand),
+
+    /// Binary operand opcode: [opcode] [operand1], [operand2]
+    Binary(IROperand, IROperand),
+
+    /// Ternary operand opcode: [opcode] [operand1], [operand2], [operand3]
+    Ternary(IROperand, IROperand, IROperand),
+
+    /// Quaternary operand opcode: [opcode] [operand1], [operand2], [operand3], [operand4]
+    Quaternary(IROperand, IROperand, IROperand, IROperand),
+
+}
+
+impl fmt::Display for IROpcodeKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
+// ============================================================================== //
+//                               op::IROpcode
+// ============================================================================== //
+
+
+/// `IROpcode`: IR opcodes
+#[derive(Debug, Clone)]
+pub struct IROpcode {
+    /// `kind`: Kind of the opcode
+    pub kind: IROpcodeKind,
+}
+
+impl IROpcode {
+
+    /// New IROpcode Special
+    pub fn special() -> Self {
+        Self {
+            kind: IROpcodeKind::Special(),
+        }
+    }
+
+    /// New IROpcode Unary
+    pub fn unary(operand: IROperand) -> Self {
+        Self {
+            kind: IROpcodeKind::Unary(operand),
+        }
+    }
+
+    /// New IROpcode Binary
+    pub fn binary(operand1: IROperand, operand2: IROperand) -> Self {
+        Self {
+            kind: IROpcodeKind::Binary(operand1, operand2),
+        }
+    }
+
+    /// New IROpcode Ternary
+    pub fn ternary(operand1: IROperand, operand2: IROperand, operand3: IROperand) -> Self {
+        Self {
+            kind: IROpcodeKind::Ternary(operand1, operand2, operand3),
+        }
+    }
+
+    /// New IROpcode Quaternary
+    pub fn quaternary(operand1: IROperand, operand2: IROperand, operand3: IROperand, operand4: IROperand) -> Self {
+        Self {
+            kind: IROpcodeKind::Quaternary(operand1, operand2, operand3, operand4),
+        }
+    }
+
+
+}
+
+impl fmt::Display for IROpcode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.kind.to_string())
+    }
+}
+
+impl cmp::PartialEq for IROpcode {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
     }
 }
 
@@ -172,8 +264,10 @@ pub trait ArchInfo {
 /// `IRArch`: Config of the `evo-ir` architecture
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRArch {
-
+    /// `reg_map`: Register Map
     reg_map: Rc<RefCell<Vec<(&'static str, IROperand)>>>,
+    /// `opcode_map`: Opcode Map
+    opcode_map: Rc<RefCell<Vec<(&'static str, IROpcode)>>>,
 
 }
 
@@ -183,6 +277,7 @@ impl IRArch {
     pub fn new() -> Self {
         let mut arch = Self {
             reg_map: Rc::new(RefCell::new(Vec::new())),
+            opcode_map: Rc::new(RefCell::new(Vec::new())),
         };
         arch.reg_init();
         arch
@@ -229,14 +324,14 @@ impl ArchInfo for IRArch {
     /// 4. Register Map Init
     fn reg_init(&mut self) {
         self.reg_map = Rc::new(vec![
-            ("eax", IROperand::new_reg(IRValue::u32(0))),
-            ("ebx", IROperand::new_reg(IRValue::u32(1))),
-            ("ecx", IROperand::new_reg(IRValue::u32(2))),
-            ("edx", IROperand::new_reg(IRValue::u32(3))),
-            ("esi", IROperand::new_reg(IRValue::u32(4))),
-            ("edi", IROperand::new_reg(IRValue::u32(5))),
-            ("ebp", IROperand::new_reg(IRValue::u32(6))),
-            ("esp", IROperand::new_reg(IRValue::u32(7))),
+            ("eax", IROperand::reg(IRValue::u32(0))),
+            ("ebx", IROperand::reg(IRValue::u32(1))),
+            ("ecx", IROperand::reg(IRValue::u32(2))),
+            ("edx", IROperand::reg(IRValue::u32(3))),
+            ("esi", IROperand::reg(IRValue::u32(4))),
+            ("edi", IROperand::reg(IRValue::u32(5))),
+            ("ebp", IROperand::reg(IRValue::u32(6))),
+            ("esp", IROperand::reg(IRValue::u32(7))),
         ].into());
         if Self::ADDR_SIZE != self.reg_map.borrow().len() {
             log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
@@ -270,25 +365,6 @@ impl ArchInfo for IRArch {
 
 
 
-// ============================================================================== //
-//                              op::IROpcodeKind
-// ============================================================================== //
-
-/// `IROpcodeKind`: Kind of IR opcodes
-#[derive(Debug, Clone)]
-pub enum IROpcodeKind {
-
-}
-
-// ============================================================================== //
-//                               op::IROpcode
-// ============================================================================== //
-
-
-
-
-
-
 
 // ============================================================================== //
 //                                Unit Tests
@@ -304,8 +380,8 @@ mod op_test {
         println!("{}", IRArch::info());
         let mut arch = IRArch::new();
         println!("{}", arch.reg_info());
-        arch.set_reg("eax", IROperand::new_reg(IRValue::u32(72)));
-        assert_eq!(arch.get_reg("ebx"), IROperand::new_reg(IRValue::u32(1)));
+        arch.set_reg("eax", IROperand::reg(IRValue::u32(72)));
+        assert_eq!(arch.get_reg("ebx"), IROperand::reg(IRValue::u32(1)));
 
         let arch2 = IRArch::new();
         // Compare Registers

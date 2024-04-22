@@ -133,6 +133,24 @@ impl IRValue {
         f64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
     }
 
+    /// Get value by char
+    pub fn get_char(&self, index: usize) -> char {
+        self.get_u8(index) as char
+    }
+
+    /// Get value by string
+    pub fn get_str(&self, index: usize) -> String {
+        let buffer = self.val.borrow_mut();
+        let mut str = String::new();
+        for i in index..buffer.len() {
+            if buffer[i] == 0 {
+                break;
+            }
+            str.push(buffer[i] as char);
+        }
+        str
+    }
+
 
     // ==================== IRValue.set ==================== //
 
@@ -305,6 +323,22 @@ impl IRValue {
         }
     }
 
+    /// Set value by char(4-bits)
+    pub fn set_char(&mut self, index: usize, value: char) {
+        self.set_8bit(index, value as u8);
+    }
+
+    /// Set value by string
+    pub fn set_str(&mut self, value: &str) {
+        self.set_kind(IRTypeKind::Array(IRType::u8(), value.len()));
+        let size = self.size();
+        assert_eq!(value.len(), size);
+        let mut buffer = self.val.borrow_mut();
+        for i in 0..value.len() {
+            buffer[i] = value.as_bytes()[i];
+        }
+    }
+
     /// Set zero.
     pub fn set_zero(&mut self) {
         let size = self.size();
@@ -370,6 +404,12 @@ impl IRValue {
     pub fn is_array(str : &str) -> bool {
         // begin with `[` and end with `]`
         str.starts_with('[') && str.ends_with(']')
+    }
+
+    /// Check str if the value is string
+    pub fn is_str(str : &str) -> bool {
+        // begin with `"` and end with `"`
+        str.starts_with('"') && str.ends_with('"')
     }
 
     /// Check str if the value is pointer: tuple / struct / function
@@ -483,6 +523,13 @@ impl IRValue {
         val
     }
 
+    /// Get value from text string -> array: `"hello"`
+    pub fn str(value: &str) -> IRValue {
+        let mut val = IRValue::new(IRType::array(IRType::u8(), value.len()));
+        val.set_str(value);
+        val
+    }
+
     /// Get value from string
     pub fn from_string(value: &str) -> IRValue {
         let value = value.trim();
@@ -501,6 +548,10 @@ impl IRValue {
             let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
             let value = value.iter().map(|v| IRValue::from_string(v)).collect::<Vec<IRValue>>();
             return IRValue::array(value);
+        } else if IRValue::is_str(value) { // parse as string
+            // Deal with value string: `"hello"`
+            let value = value[1..value.len() - 1].to_string();
+            return IRValue::str(&value);
         } else {
             log_warning!("Can't parse {} as IRValue", value);
         }
@@ -610,8 +661,19 @@ mod val_tests {
 
         let val = IRValue::from_string("[-18, 1, -23]");
         assert_eq!(val.get_i32(0), -18);
-        assert_eq!(val.get_u32(4), 1);
+        assert_eq!(val.get_i32(4), 1);
         assert_eq!(val.get_i32(8), -23);
+
+        let val = IRValue::from_string("[-18.5, 1.5, -23.5]");
+        assert_eq!(val.get_f32(0), -18.5f32);
+        assert_eq!(val.get_f32(4), 1.5f32);
+        assert_eq!(val.get_f32(8), -23.5f32);
+
+        let mut val = IRValue::from_string("\"hallo\"");
+        val.set_char(1, 'e');
+        assert_eq!(val.get_char(1), 'e');
+        assert_eq!(val.get_str(1), "ello");
+        println!("{}", val.kind());
     }
 
 
