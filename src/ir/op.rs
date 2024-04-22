@@ -27,16 +27,16 @@ pub enum IROperandKind {
     /// |  val  |
     Imm(IRValue),
 
-    /// |  val  |
-    Reg(IRValue),
+    /// |  name*  |  val   |
+    Reg(&'static str, IRValue),
 
     /// Mem = [base + index * scale + disp]
     /// |  base  |  idx  |  scala  | disp  |
     // Mem(IRValue, IRValue, IRValue, IRValue),
     Mem(IRValue),
 
-    /// |  addr  |
-    Label(IRValue),
+    /// |  name*  |  addr  |
+    Label(&'static str, IRValue),
 }
 
 impl IROperandKind {
@@ -45,9 +45,11 @@ impl IROperandKind {
     pub fn size(&self) -> usize {
         match self {
             IROperandKind::Imm(val) => val.size(),
-            IROperandKind::Reg(val) => val.size(),
+            // Get Reg value's size
+            IROperandKind::Reg(_, val) => val.size(),
             IROperandKind::Mem(val) => val.size(),
-            IROperandKind::Label(val) => val.size(),
+            // Get Label ptr's size
+            IROperandKind::Label(_, val) => val.size(),
         }
     }
 
@@ -55,9 +57,21 @@ impl IROperandKind {
     pub fn hex(&self) -> String {
         match self {
             IROperandKind::Imm(val) => val.hex(),
-            IROperandKind::Reg(val) => val.hex(),
+            // Get Reg value's hex
+            IROperandKind::Reg(_, val) => val.hex(),
             IROperandKind::Mem(val) => val.hex(),
-            IROperandKind::Label(val) => val.hex(),
+            // Get Label ptr's hex
+            IROperandKind::Label(_, val) => val.hex(),
+        }
+    }
+
+    /// Get name of the operand
+    pub fn name(&self) -> &'static str {
+        match self {
+            IROperandKind::Imm(_) => "Imm",
+            IROperandKind::Reg(name, _) => name,
+            IROperandKind::Mem(_) => "Mem",
+            IROperandKind::Label(name, _) => name,
         }
     }
 
@@ -65,9 +79,19 @@ impl IROperandKind {
     pub fn to_string(&self) -> String {
         match self {
             IROperandKind::Imm(val) => val.to_string(),
-            IROperandKind::Reg(val) => val.to_string(),
+            IROperandKind::Reg(name, val) => format!("{}: {}", name, val.to_string()),
             IROperandKind::Mem(val) => val.to_string(),
-            IROperandKind::Label(val) => val.to_string(),
+            IROperandKind::Label(name, val) => format!("{}: {}", name, val.to_string()),
+        }
+    }
+
+    /// Get value of the operand
+    pub fn val(&self) -> IRValue {
+        match self {
+            IROperandKind::Imm(val) => val.clone(),
+            IROperandKind::Reg(_, val) => val.clone(),
+            IROperandKind::Mem(val) => val.clone(),
+            IROperandKind::Label(_, val) => val.clone(),
         }
     }
 
@@ -88,10 +112,30 @@ pub struct IROperand {
 impl IROperand {
 
     /// New IROperand Reg
-    pub fn reg(val: IRValue) -> Self {
+    pub fn reg(name: &'static str, val: IRValue) -> Self {
         Self {
-            kind: IROperandKind::Reg(val),
+            kind: IROperandKind::Reg(name, val),
         }
+    }
+
+
+    // ================== IROperand.get ==================== //
+
+    /// Get Operand value
+    pub fn val(&self) -> IRValue {
+        self.kind.val()
+    }
+
+    /// Get Operand name
+    pub fn name(&self) -> &'static str {
+        self.kind.name()
+    }
+
+    // ================== IROperand.set ==================== //
+
+    /// Set Operand value
+    pub fn set_reg(&mut self, val: IRValue) {
+        self.kind = IROperandKind::Reg(self.kind.name(), val);
     }
 
 }
@@ -239,17 +283,17 @@ pub trait ArchInfo {
     /// Get Name
     fn name() -> &'static str;
 
-    /// Register Map Init: Rc<RefCell<Vec<(&'static str, IROperand)>>>
+    /// Register Map Init
     fn reg_init(&mut self);
 
     /// Reg Info: `RegName: RegValue` String
     fn reg_info(&self) -> String;
 
     /// Get Register
-    fn get_reg(&self, name: &'static str) -> IROperand;
+    fn get_reg(&self, name: &'static str) -> IRValue;
 
     /// Set Register
-    fn set_reg(&mut self, name: &'static str, value: IROperand);
+    fn set_reg(&mut self, name: &'static str, value: IRValue);
 
 }
 
@@ -265,7 +309,7 @@ pub trait ArchInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRArch {
     /// `reg_map`: Register Map
-    reg_map: Rc<RefCell<Vec<(&'static str, IROperand)>>>,
+    reg_map: Rc<RefCell<Vec<IROperand>>>,
     /// `opcode_map`: Opcode Map
     opcode_map: Rc<RefCell<Vec<(&'static str, IROpcode)>>>,
 
@@ -324,14 +368,14 @@ impl ArchInfo for IRArch {
     /// 4. Register Map Init
     fn reg_init(&mut self) {
         self.reg_map = Rc::new(vec![
-            ("eax", IROperand::reg(IRValue::u32(0))),
-            ("ebx", IROperand::reg(IRValue::u32(1))),
-            ("ecx", IROperand::reg(IRValue::u32(2))),
-            ("edx", IROperand::reg(IRValue::u32(3))),
-            ("esi", IROperand::reg(IRValue::u32(4))),
-            ("edi", IROperand::reg(IRValue::u32(5))),
-            ("ebp", IROperand::reg(IRValue::u32(6))),
-            ("esp", IROperand::reg(IRValue::u32(7))),
+            IROperand::reg("eax", IRValue::u32(0)),
+            IROperand::reg("ebx", IRValue::u32(0)),
+            IROperand::reg("ecx", IRValue::u32(0)),
+            IROperand::reg("edx", IRValue::u32(0)),
+            IROperand::reg("esi", IRValue::u32(0)),
+            IROperand::reg("edi", IRValue::u32(0)),
+            IROperand::reg("esp", IRValue::u32(0)),
+            IROperand::reg("ebp", IRValue::u32(0)),
         ].into());
         if Self::ADDR_SIZE != self.reg_map.borrow().len() {
             log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
@@ -343,19 +387,20 @@ impl ArchInfo for IRArch {
         let mut result = String::new();
         result.push_str(&format!("Regs Info: \n"));
         for reg in self.reg_map.borrow().iter() {
-            result.push_str(&format!(" - {}: {}\n", reg.0, reg.1));
+            result.push_str(&format!(" - {}\n", reg));
         }
         result
     }
 
     /// 6. Get Register
-    fn get_reg(&self, name: &'static str) -> IROperand {
-        self.reg_map.borrow().iter().find(|reg| reg.0 == name).unwrap().1.clone()
+    fn get_reg(&self, name: &'static str) -> IRValue {
+        // Get value according to name
+        self.reg_map.borrow().iter().find(|reg| reg.name() == name).unwrap_or(&IROperand::reg(name, IRValue::u32(0))).val()
     }
-
     /// 7. Set Register
-    fn set_reg(&mut self, name: &'static str, value: IROperand) {
-        self.reg_map.borrow_mut().iter_mut().find(|reg| reg.0 == name).unwrap().1 = value;
+    fn set_reg(&mut self, name: &'static str, value: IRValue) {
+        // Set value according to name and value
+        self.reg_map.borrow_mut().iter_mut().find(|reg| reg.name() == name).unwrap_or(&mut IROperand::reg(name, IRValue::u32(0))).set_reg(value);
     }
 
 }
@@ -380,8 +425,9 @@ mod op_test {
         println!("{}", IRArch::info());
         let mut arch = IRArch::new();
         println!("{}", arch.reg_info());
-        arch.set_reg("eax", IROperand::reg(IRValue::u32(72)));
-        assert_eq!(arch.get_reg("ebx"), IROperand::reg(IRValue::u32(1)));
+        arch.set_reg("ebx", IRValue::u32(9));
+        arch.set_reg("eax", IRValue::u32(8));
+        assert_eq!(arch.get_reg("ebx"), IRValue::u32(9));
 
         let arch2 = IRArch::new();
         // Compare Registers
