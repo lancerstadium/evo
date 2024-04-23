@@ -47,6 +47,11 @@ impl IRValue {
         self.ty.size()
     }
 
+    /// Get the scale of the IRValue
+    pub fn scale(&self) -> Vec<usize> {
+        self.ty.scale()
+    }
+
     /// Get the bits hex string of the IRValue: Default little-endian
     pub fn hex(&self) -> String {
         self.val.borrow().iter().map(|x| format!("{:02X}", x)).collect::<Vec<String>>().join(" ")
@@ -430,6 +435,30 @@ impl IRValue {
         }
     }
 
+    /// Set value by tuple
+    pub fn set_tuple(&mut self, value: Vec<IRValue>) {
+        // Get Vec<IRType> from Vec<IRValue>
+        let mut types = Vec::new();
+        let mut types_size = 0;
+        for val in value.iter() {
+            types.push(val.ty.clone());
+            types_size += val.size();
+        }
+        self.set_kind(IRTypeKind::Tuple(types));
+        let size = self.size();
+        assert_eq!(types_size, size);
+        // (1,3,4), (2), (3,4) -> buffer: [1,3,4,2,3,4]
+        let mut buffer = self.val.borrow_mut();
+        let mut type_size = 0;
+        for i in 0..value.len() {
+            let val_bytes = value[i].val.borrow();
+            for j in 0..value[i].size() {
+                buffer[type_size + j] = val_bytes[j];
+            }
+            type_size += value[i].size();
+        }
+    }
+
     /// Set value by pointer/struct/tuple
     pub fn set_ptr(&mut self, value: IRValue) {
         self.set_kind(IRTypeKind::Ptr(value.ty.clone()));
@@ -530,15 +559,15 @@ impl IRValue {
         str.starts_with('"') && str.ends_with('"')
     }
 
-    /// Check str if the value is pointer: tuple / struct / function
-    pub fn is_ptr(str : &str) -> bool {
-        Self::is_tuple(str) || Self::is_struct(str) || Self::is_func(str)
-    }
-
     /// Check str if the value is tuple
     pub fn is_tuple(str : &str) -> bool {
         // begin with `(` and end with `)` and has `,`
         str.starts_with('(') && str.ends_with(')') && str.contains(',')
+    }
+
+    /// Check str if the value is pointer: tuple / struct / function
+    pub fn is_ptr(str : &str) -> bool {
+        Self::is_struct(str) || Self::is_func(str)
     }
 
     /// Check str if the value is function
@@ -634,6 +663,19 @@ impl IRValue {
         val
     }
 
+    /// Get value from tuple
+    pub fn tuple(value: Vec<IRValue>) -> IRValue {
+        // Get Vec<IRType> from Vec<IRValue>
+        let mut types = Vec::new();
+        for val in value.iter() {
+            types.push(val.ty.clone());
+        }
+        // Set kind
+        let mut val = IRValue::new(IRType::tuple(types));
+        val.set_tuple(value);
+        val
+    }
+
     /// Get value from pointer
     pub fn ptr(value: IRValue) -> IRValue {
         let mut val = IRValue::new(IRType::ptr(value.ty.clone()));
@@ -666,6 +708,13 @@ impl IRValue {
             let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
             let value = value.iter().map(|v| IRValue::from_string(v)).collect::<Vec<IRValue>>();
             return IRValue::array(value);
+        } else if IRValue::is_tuple(value) { // parse as tuple
+            // Deal with value string: `(1, 2.7, 3)`
+            let value = value[1..value.len() - 1].to_string();
+            let value = value.trim();
+            let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+            let value = value.iter().map(|v| IRValue::from_string(v)).collect::<Vec<IRValue>>();
+            return IRValue::tuple(value);
         } else if IRValue::is_str(value) { // parse as string
             // Deal with value string: `"hello"`
             let value = value[1..value.len() - 1].to_string();
@@ -735,6 +784,17 @@ mod val_tests {
         assert_eq!(val.hex(), "40 00 00 00 00 00 00 00");
         assert_eq!(val.to_string(), "64");
 
+        // Check binary
+        let mut val = IRValue::from_string("1296");
+        assert_eq!(val.get_i32(0), 1296 as i32);
+        assert_eq!(val.bin(), "00010000 00000101 00000000 00000000");
+        val.set_bit(0, 3, 18, "1");
+        assert_eq!(val.bin(), "11111000 11111111 00000111 00000000");
+        val.set_bit(1, 0, 7, "~");
+        assert_eq!(val.bin(), "11111000 00000000 00000111 00000000");
+        val.set_byte(2, 9, "^");
+        assert_eq!(val.bin(), "11111000 00000000 00001110 00000000");
+
         // `set_type` by array
         val.set_type(IRType::array(IRType::u32(), 3));
         assert_eq!(val.kind().to_string(), "[u32; 3]");
@@ -765,17 +825,6 @@ mod val_tests {
         let val = IRValue::f64(12.34f64);
         assert_eq!(val.get_f64(0), 12.34f64);
 
-
-        let mut val = IRValue::from_string("1296");
-        assert_eq!(val.get_i32(0), 1296 as i32);
-        assert_eq!(val.bin(), "00010000 00000101 00000000 00000000");
-        val.set_bit(0, 3, 18, "1");
-        assert_eq!(val.bin(), "11111000 11111111 00000111 00000000");
-        val.set_bit(1, 0, 7, "~");
-        assert_eq!(val.bin(), "11111000 00000000 00000111 00000000");
-        val.set_byte(2, 9, "^");
-        assert_eq!(val.bin(), "11111000 00000000 00001110 00000000");
-
         let val = IRValue::from_string("23.5");
         assert_eq!(val.get_f32(0), 23.5f32);
 
@@ -793,6 +842,14 @@ mod val_tests {
         assert_eq!(val.get_f32(0), -18.5f32);
         assert_eq!(val.get_f32(4), 1.5f32);
         assert_eq!(val.get_f32(8), -23.5f32);
+
+        let val = IRValue::from_string("(-18.5, 0, -23.5, \"hello\", 13, 9)");
+        assert_eq!(val.get_f32(0), -18.5f32);
+        assert_eq!(val.get_i32(4), 0);
+        assert_eq!(val.get_f32(8), -23.5f32);
+        assert_eq!(val.get_str(12), "hello\r");
+
+
 
         let mut val = IRValue::from_string("\"hallo\"");
         val.set_char(1, 'e');

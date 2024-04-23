@@ -333,9 +333,41 @@ impl IRType {
             IRTypeKind::F64 => 8,
             IRTypeKind::F128 => 16,
             IRTypeKind::Array(ty, len) => ty.size() * len,
-            IRTypeKind::Ptr(..) | IRTypeKind::Tuple(..) | IRTypeKind::Func(..) | IRTypeKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| ptr_size.get()),
+            IRTypeKind::Tuple(tys) => tys.iter().map(|ty| ty.size()).sum(),
+            IRTypeKind::Ptr(..) | IRTypeKind::Func(..) | IRTypeKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| ptr_size.get()),
         }
     }
+
+    /// Returns the scale vec of current type: bits number
+    pub fn scale(&self) -> Vec<usize> {
+        match self.kind() {
+            IRTypeKind::I8 | IRTypeKind::U8 => vec![8], 
+            IRTypeKind::I16 | IRTypeKind::U16 | IRTypeKind::F16 => vec![16],
+            IRTypeKind::I32 | IRTypeKind::U32 | IRTypeKind::F32 => vec![32],
+            IRTypeKind::I64 | IRTypeKind::U64 | IRTypeKind::F64 => vec![64],
+            IRTypeKind::I128 | IRTypeKind::U128 | IRTypeKind::F128 => vec![128],
+            // [u32; 5] => scale = [32, 32, 32, 32, 32]
+            IRTypeKind::Array(ty, len) => (0..*len).map(|_| ty.size() * 8).collect(),
+            // ((u32, u32), u32) => scale = [64, 32]
+            IRTypeKind::Tuple(tys) => tys.iter().map(|ty| ty.size() * 8).collect(),
+            IRTypeKind::Ptr(..) | IRTypeKind::Func(..) | IRTypeKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| vec![ptr_size.get() * 8]),
+        }
+    }
+
+    /// Return types vec of current type
+    pub fn types(&self) -> Vec<IRType> {
+        match self.kind() {
+            IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
+                | IRTypeKind::U8 | IRTypeKind::U16 | IRTypeKind::U32 | IRTypeKind::U64 | IRTypeKind::U128
+                | IRTypeKind::F16 | IRTypeKind::F32 | IRTypeKind::F64 | IRTypeKind::F128 => vec![self.clone()],
+            IRTypeKind::Ptr(ty) => vec![ty.clone()],
+            IRTypeKind::Func(args, ret) => args.clone().into_iter().chain(vec![ret.clone()]).collect(),
+            IRTypeKind::Array(ty, len) => (0..*len).map(|_| ty.clone()).collect(), 
+            IRTypeKind::Tuple(tys) => tys.clone(),
+            IRTypeKind::Struct(fields) => fields.clone(),
+        }
+    }
+
 
     /// Returns a new `IRType` from string
     pub fn from_string(s: &str) -> IRType {
@@ -496,9 +528,35 @@ mod ty_test {
         IRType::set_ptr_size(4);
         assert_eq!(IRType::ptr(IRType::f64()).size(), 4);
         assert_eq!(IRType::array(IRType::ptr(IRType::i32()), 5).size(), 4 * 5);
+        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).size(), 8);
         assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).size(), 4);
-        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).size(), 4);
         assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).size(), 4);
     } 
+
+
+    #[test]
+    fn type_scale() {
+        assert_eq!(IRType::i32().scale(), vec![32]);
+        assert_eq!(IRType::array(IRType::i32(), 5).scale(), vec![32, 32, 32, 32, 32]);
+        assert_eq!(IRType::array(IRType::array(IRType::i32(), 5), 3).scale(), vec![160, 160, 160]);
+        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).scale(), vec![32, 32]);
+        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).scale(), vec![64]);
+        
+        IRType::set_ptr_size(4);
+        assert_eq!(IRType::ptr(IRType::f64()).scale(), vec![32]);
+        assert_eq!(IRType::array(IRType::ptr(IRType::i32()), 5).scale(), vec![32, 32, 32, 32, 32]);
+        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).scale(), vec![32]);
+    }
+
+
+    #[test]
+    fn type_types() {
+        assert_eq!(IRType::i32().types(), vec![IRType::i32()]);
+        assert_eq!(IRType::array(IRType::i32(), 5).types(), vec![IRType::i32(), IRType::i32(), IRType::i32(), IRType::i32(), IRType::i32()]);
+        assert_eq!(IRType::array(IRType::array(IRType::i32(), 5), 3).types(), vec![IRType::array(IRType::i32(), 5), IRType::array(IRType::i32(), 5), IRType::array(IRType::i32(), 5)]);
+        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).types(), vec![IRType::i32(), IRType::f32()]);
+        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).types(), vec![IRType::i32(), IRType::f32()]);
+        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).types(), vec![IRType::i32(), IRType::f64(), IRType::f64()]);
+    }
 
 }
