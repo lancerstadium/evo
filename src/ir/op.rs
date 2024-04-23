@@ -43,6 +43,26 @@ pub enum IROperandKind {
 
 impl IROperandKind {
 
+    /// Get Default Reg
+    pub fn reg() -> Self {
+        Self::Reg("<Reg>", IRValue::u32(0))
+    }
+
+    /// Get Default Label
+    pub fn label() -> Self {
+        Self::Label("<Label>", IRValue::u32(0))
+    }
+
+    /// Get Default Mem
+    pub fn mem() -> Self {
+        Self::Mem(IRValue::u32(0), IRValue::u32(0), IRValue::u32(0), IRValue::u32(0))
+    }
+
+    /// Get Default Imm
+    pub fn imm() -> Self {
+        Self::Imm(IRValue::default())
+    }
+
     /// Get the size of the operand
     pub fn size(&self) -> usize {
         match self {
@@ -196,16 +216,16 @@ pub enum IROpcodeKind {
     Special(&'static str),
 
     /// Unary operand opcode: [opcode] [operand]
-    Unary(&'static str, RefCell<IROperand>),
+    Unary(&'static str, IROperandKind),
 
     /// Binary operand opcode: [opcode] [operand1], [operand2]
-    Binary(&'static str, RefCell<IROperand>, RefCell<IROperand>),
+    Binary(&'static str, IROperandKind, IROperandKind),
 
     /// Ternary operand opcode: [opcode] [operand1], [operand2], [operand3]
-    Ternary(&'static str, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>),
+    Ternary(&'static str, IROperandKind, IROperandKind, IROperandKind),
 
     /// Quaternary operand opcode: [opcode] [operand1], [operand2], [operand3], [operand4]
-    Quaternary(&'static str, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>),
+    Quaternary(&'static str, IROperandKind, IROperandKind, IROperandKind, IROperandKind),
 
 }
 
@@ -227,10 +247,10 @@ impl IROpcodeKind {
     pub fn to_string(&self) -> String {
         match self {
             IROpcodeKind::Special(name) => name.to_string(),
-            IROpcodeKind::Unary(name, operand) => format!("{:<6} {}", name, operand.borrow().to_string()),
-            IROpcodeKind::Binary(name, operand1, operand2) => format!("{:<6} {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string()),
-            IROpcodeKind::Ternary(name, operand1, operand2, operand3) => format!("{:<6} {}, {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string(), operand3.borrow().to_string()),
-            IROpcodeKind::Quaternary(name, operand1, operand2, operand3, operand4) => format!("{:<6} {}, {}, {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string(), operand3.borrow().to_string(), operand4.borrow().to_string()),
+            IROpcodeKind::Unary(name, ope) => format!("{:<6} {}", name, ope.to_string()),
+            IROpcodeKind::Binary(name, ope1, ope2) => format!("{:<6} {}, {}", name, ope1.to_string(), ope2.to_string()),
+            IROpcodeKind::Ternary(name, ope1, ope2, ope3) => format!("{:<6} {}, {}, {}", name, ope1.to_string(), ope2.to_string(), ope3.to_string()),
+            IROpcodeKind::Quaternary(name, ope1, ope2, ope3, ope4) => format!("{:<6} {}, {}, {}, {}", name, ope1.to_string(), ope2.to_string(), ope3.to_string(), ope4.to_string()),
         }
     }
 
@@ -277,22 +297,22 @@ impl IROpcode {
     }
 
     /// Get Unary Opcode
-    pub fn unary(name: &'static str, ope1: RefCell<IROperand>) -> Self {
-        Self::regist(IROpcodeKind::Unary(name, ope1))
+    pub fn unary(name: &'static str, ope: IROperandKind) -> Self {
+        Self::regist(IROpcodeKind::Unary(name, ope))
     }
-    
+
     /// Get Binary Opcode
-    pub fn binary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>) -> Self {
+    pub fn binary(name: &'static str, ope1: IROperandKind, ope2: IROperandKind) -> Self {
         Self::regist(IROpcodeKind::Binary(name, ope1, ope2))
     }
 
     /// Get Ternary Opcode
-    pub fn ternary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>, ope3: RefCell<IROperand>) -> Self {
+    pub fn ternary(name: &'static str, ope1: IROperandKind, ope2: IROperandKind, ope3: IROperandKind) -> Self {
         Self::regist(IROpcodeKind::Ternary(name, ope1, ope2, ope3))
     }
-
+    
     /// Get Quaternary Opcode
-    pub fn quaternary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>, ope3: RefCell<IROperand>, ope4: RefCell<IROperand>) -> Self {
+    pub fn quaternary(name: &'static str, ope1: IROperandKind, ope2: IROperandKind, ope3: IROperandKind, ope4: IROperandKind) -> Self {
         Self::regist(IROpcodeKind::Quaternary(name, ope1, ope2, ope3, ope4))
     }
 
@@ -515,14 +535,18 @@ impl ArchInfo for IRArch {
 
         self.opcode_map = RefCell::new(vec![
             IROpcode::special("nop"),
-            IROpcode::binary("mov", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("add", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("sub", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("mul", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("div", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("and", self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("or" , self.reg("eax"), self.reg("ebx")),
-            IROpcode::binary("xor", self.reg("eax"), self.reg("ebx")),
+            IROpcode::special("ret"),
+            IROpcode::binary("mov", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("add", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("sub", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("and", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("or" , IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("xor", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("shl", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("shr", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("sarl", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("sar", IROperandKind::reg(), IROperandKind::reg()),
+            IROpcode::binary("cmp", IROperandKind::reg(), IROperandKind::reg()),
         ]);
         
     }
@@ -533,7 +557,7 @@ impl ArchInfo for IRArch {
         info.push_str(&format!("Opcode Info (Num = {}):\n", self.opcode_map.borrow().len()));
         let mut idx = 0;
         for opcode in self.opcode_map.borrow().iter() {
-            info.push_str(&format!("[{}] {}\n", idx, opcode.to_string()));
+            info.push_str(&format!("[{:>3}] {}\n", idx, opcode.to_string()));
             idx += 1;
         }
         info
