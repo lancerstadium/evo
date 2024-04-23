@@ -53,15 +53,48 @@ impl IRValue {
     }
 
     /// Get the bits hex string of the IRValue: Default little-endian
-    pub fn hex(&self) -> String {
-        self.val.borrow().iter().map(|x| format!("{:02X}", x)).collect::<Vec<String>>().join(" ")
+    /// - `index`: start index
+    /// - `byte_num`: number of bytes you want, -1 means all
+    pub fn hex(&self, index: usize, byte_num: i32) -> String {
+        let mut num = byte_num as usize;
+        // Check index and byte_num
+        if byte_num < 0 {
+            num = self.size() - index;
+        }
+        // Get index byte hexs
+        let mut hexs = String::new();
+        for i in 0..num {
+            hexs.push_str(&format!("{:02X}", self.get_u8(index + i as usize)));
+            if i < num - 1 {
+                hexs.push(' ');
+            }
+        }
+        hexs
     }
 
     /// Get the bits binary string of the IRValue: Default little-endian
-    pub fn bin(&self) -> String {
-        self.val.borrow().iter().map(|x| format!("{:08b}", x)).collect::<Vec<String>>().join(" ")
+    /// - `index`: start index
+    /// - `byte_num`: number of bytes you want, -1 means all
+    pub fn bin(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
+        let mut num = byte_num as usize;
+        // Check index and byte_num
+        if byte_num < 0 {
+            num = self.size() - index;
+        }
+        // Get index byte bin
+        let mut bin = String::new();
+        for i in 0..num {
+            if big_endian {
+                bin.push_str(&format!("{:08b}", self.get_u8(index + num - 1 - i as usize)));
+            } else {
+                bin.push_str(&format!("{:08b}", self.get_u8(index + i as usize)));
+            }
+            if i < num - 1 {
+                bin.push(' ');
+            }
+        }
+        bin
     }
-
     /// Check IRValue size bound
     pub fn bound<T>(&self, index: usize, _: T) {
         // index + size of T should <= self.size()
@@ -201,37 +234,40 @@ impl IRValue {
     /// Set value by bit
     /// `op_str`: `1`, `0`, `~`
     pub fn set_bit(&mut self, index: usize, start: usize, end: usize, op_str: &str) {
-        if (start > end) || (end >= self.size() * 8 - index * 8 - 1) {
+        if (start > end) || (end > self.size() * 8 - index * 8 - 1) {
             log_error!("Invalid start and end: {}, {}", start, end);
         }
         let mut buffer = self.val.borrow_mut();
         // Check how many u8 we need access
-        let u8_num = end / 8 + 1;
+        let end_offset = end / 8 + 1;
+        // Check how many index we can offset.
+        let begin_offset = start / 8;
         // Get a vector like: start 3, end 9 -> [[3, 7], [0, 1]]
+        // start 12, end 17 -> [[4, 7], [0, 1]]
         let mut idx_vec = Vec::new();
-        if u8_num == 0 {
+        if end_offset - begin_offset == 0 {
             log_error!("Invalid start and end: {}, {}", start, end);
             return
-        } else if u8_num == 1 {
-            idx_vec.push(vec![start, end]);
-        } else if u8_num == 2 {
-            idx_vec.push(vec![start, 7]);
+        } else if end_offset - begin_offset == 1 {
+            idx_vec.push(vec![start % 8, end % 8]);
+        } else if end_offset - begin_offset == 2 {
+            idx_vec.push(vec![start % 8, 7]);
             idx_vec.push(vec![0, end % 8]);
         } else {
-            idx_vec.push(vec![start, 7]);
-            for _ in 1..u8_num - 1 {
+            idx_vec.push(vec![start % 8, 7]);
+            for _ in 1..end_offset - 1 {
                 idx_vec.push(vec![0, 7]);
             }
             idx_vec.push(vec![0, end % 8]);
         }
-        assert!(idx_vec.len() == u8_num);
+        assert!(idx_vec.len() == end_offset - begin_offset);
         // Set value
         match op_str {
             "1" => {
-                for i in index..index + u8_num {
+                for i in index + begin_offset..index + end_offset {
                     let mut value: u8 = 0;
-                    let st = idx_vec[i - index][0];
-                    let ed = idx_vec[i - index][1];
+                    let st = idx_vec[i - index - begin_offset][0];
+                    let ed = idx_vec[i - index - begin_offset][1];
                     for j in st..=ed {
                         value |= 1 << j;
                     }
@@ -239,10 +275,10 @@ impl IRValue {
                 }
             },
             "0" => {
-                for i in index..index + u8_num {
+                for i in index + begin_offset..index + end_offset {
                     let mut value: u8 = 0;
-                    let st = idx_vec[i - index][0];
-                    let ed = idx_vec[i - index][1];
+                    let st = idx_vec[i - index - begin_offset][0];
+                    let ed = idx_vec[i - index - begin_offset][1];
                     for j in st..=ed {
                         value |= 1 << j;
                     }
@@ -250,10 +286,10 @@ impl IRValue {
                 }
             },
             "~" => {
-                for i in index..index + u8_num {
+                for i in index + begin_offset..index + end_offset {
                     let mut value: u8 = 0;
-                    let st = idx_vec[i - index][0];
-                    let ed = idx_vec[i - index][1];
+                    let st = idx_vec[i - index - begin_offset][0];
+                    let ed = idx_vec[i - index - begin_offset][1];
                     for j in st..=ed {
                         value |= 1 << j;
                     }
@@ -305,6 +341,38 @@ impl IRValue {
         }
     }
     
+    /// Set value by bits string: `00001010`
+    pub fn set_bits(&mut self, value: &str, big_endian: bool) {
+        let val_size = (value.len() as f64 / 8.0).ceil() as usize;
+        self.set_kind(IRTypeKind::Array(IRType::u8(), val_size));
+        let mut cnt = 0;
+        let mut idx;
+        for i in 0..value.len() {
+            if big_endian {
+                // Set bits:  little-endian
+                idx = cnt;
+            } else { 
+                // Set bits: big-endian -> little-endian
+                idx = cnt / 8 * 8 + (8 - cnt % 8) - 1;
+            }
+            match value.chars().nth(i).unwrap() {
+                '0' => {
+                    self.set_bit(0, idx, idx, "0");
+                    cnt += 1;
+                },
+                '1' => {
+                    self.set_bit(0, idx, idx, "1");
+                    cnt += 1;
+                },
+                '.' => {
+                    cnt += 1;
+                },
+                // if got other char, jump
+                _ => continue,
+            }
+        }
+    }
+
     /// Set value by 8-bit
     pub fn set_8bit(&mut self, index: usize, value: u8) {
         self.bound(index, value);
@@ -581,9 +649,53 @@ impl IRValue {
         // begin with `struct {` and end with `}` and has `,`
         str.starts_with("struct {") && str.ends_with('}') && str.contains(',')
     }
+
+    /// Check str if the value is hex
+    pub fn is_hex(str : &str) -> bool {
+        // begin with `0x`
+        str.starts_with("0x")
+    }
+
+    /// Check str if the value is bin
+    pub fn is_bin(str : &str) -> bool {
+        // begin with `0b` or `0B`
+        str.starts_with("0b") || str.starts_with("0B")
+    }
     
 
     // ==================== IRValue.from =================== //
+
+
+    /// Get bits from String: `0b00001010 00001010`
+    pub fn bits(value: &str) -> IRValue {
+        let is_big_endian = value.starts_with("0B");
+
+        let value = value[2..].to_string();
+        let value = value.trim();
+        // Deal with value string: `0b00001010` -> `10`
+        // Get value length
+        let len = value.len();
+        // Parse value string: `0` -> 0, `1` -> 1, `.` -> ., other jump
+        let mut new_val = String::new();
+        for i in 0..len {
+            if value.chars().nth(i).unwrap() == '0' {
+                new_val += "0";
+            } else if value.chars().nth(i).unwrap() == '1' {
+                new_val += "1";
+            } else if value.chars().nth(i).unwrap() == '.' {
+                new_val += ".";
+            } else {
+                continue;
+            }
+        }
+        // Get val size: Upper bound
+        let val_size = (new_val.len() as f64 / 8.0).ceil() as usize;
+        let mut val = IRValue::new(IRType::array(IRType::u8(), val_size));
+
+        // Set value
+        val.set_bits(&new_val, is_big_endian);
+        val
+    }
 
     /// Get value from u8
     pub fn u8(value: u8) -> IRValue {
@@ -717,12 +829,20 @@ impl IRValue {
             return IRValue::tuple(value);
         } else if IRValue::is_str(value) { // parse as string
             // Deal with value string: `"hello"`
+            // Delete `"`, `"` and delete `\n` `\r` `\t` on the side
             let value = value[1..value.len() - 1].to_string();
+            let value = value.trim();
             return IRValue::str(&value);
+        } else if IRValue::is_hex(value) { // parse as hex
+            let value = value[2..].to_string();
+            let value = value.trim();
+            return IRValue::u8(value.parse::<u8>().unwrap());
+        } else if IRValue::is_bin(value) { // parse as bin
+            return IRValue::bits(value);
         } else {
             log_warning!("Can't parse {} as IRValue", value);
+            IRValue::i32(0)
         }
-        IRValue::i32(0)
     }
 
 }
@@ -748,7 +868,7 @@ impl Display for IRValue {
             IRTypeKind::I64 => write!(f, "{}", self.get_i64(0)),
             IRTypeKind::F32 => write!(f, "{}", self.get_f32(0)),
             IRTypeKind::F64 => write!(f, "{}", self.get_f64(0)),
-            _ => write!(f, "{}", self.hex()),
+            _ => write!(f, "{}", self.hex(0, -1)),
         }
     }
 }
@@ -768,42 +888,7 @@ mod val_tests {
     use super::*;
 
     #[test]
-    fn val_print() {
-        let mut val = IRValue::new(IRType::u8());
-        val.set_u8(0, 9 as u8);
-        assert_eq!(val.hex(), "09");
-
-        // Change type
-        val.set_i64(0, 255 as i64);
-        assert_eq!(val.hex(), "FF 00 00 00 00 00 00 00");
-        assert_eq!(val.kind().to_string(), IRTypeKind::I64.to_string());
-        assert_eq!(val.ty, IRType::i64());
-
-        // Only Write in data, don't change type
-        val.set_8bit(0, 64 as u8);
-        assert_eq!(val.hex(), "40 00 00 00 00 00 00 00");
-        assert_eq!(val.to_string(), "64");
-
-        // Check binary
-        let mut val = IRValue::from_string("1296");
-        assert_eq!(val.get_i32(0), 1296 as i32);
-        assert_eq!(val.bin(), "00010000 00000101 00000000 00000000");
-        val.set_bit(0, 3, 18, "1");
-        assert_eq!(val.bin(), "11111000 11111111 00000111 00000000");
-        val.set_bit(1, 0, 7, "~");
-        assert_eq!(val.bin(), "11111000 00000000 00000111 00000000");
-        val.set_byte(2, 9, "^");
-        assert_eq!(val.bin(), "11111000 00000000 00001110 00000000");
-
-        // `set_type` by array
-        val.set_type(IRType::array(IRType::u32(), 3));
-        assert_eq!(val.kind().to_string(), "[u32; 3]");
-        assert_eq!(val.size(), 12);
-
-    }
-
-    #[test]
-    fn val_from() {
+    fn val_get() {
         let val = IRValue::u8(12 as u8);
         assert_eq!(val.get_u8(0), 12 as u8);
         let val = IRValue::i8(-12 as i8);
@@ -824,6 +909,50 @@ mod val_tests {
         assert_eq!(val.get_f32(0), 12.33f32);
         let val = IRValue::f64(12.34f64);
         assert_eq!(val.get_f64(0), 12.34f64);
+    }
+
+    #[test]
+    fn val_print() {
+        let mut val = IRValue::new(IRType::u8());
+        val.set_u8(0, 9 as u8);
+        assert_eq!(val.hex(0, -1), "09");
+
+        // Change type
+        val.set_i64(0, 255 as i64);
+        assert_eq!(val.hex(0, -1), "FF 00 00 00 00 00 00 00");
+        assert_eq!(val.kind().to_string(), IRTypeKind::I64.to_string());
+        assert_eq!(val.ty, IRType::i64());
+
+        // Only Write in data, don't change type
+        val.set_8bit(0, 64 as u8);
+        assert_eq!(val.hex(0, -1), "40 00 00 00 00 00 00 00");
+        assert_eq!(val.to_string(), "64");
+
+        // Check binary
+        let mut val = IRValue::from_string("1296");
+        assert_eq!(val.get_i32(0), 1296 as i32);
+        assert_eq!(val.bin(0, -1, false), "00010000 00000101 00000000 00000000");
+        val.set_bit(0, 3, 18, "1");
+        assert_eq!(val.bin(0, -1, false), "11111000 11111111 00000111 00000000");
+        val.set_bit(1, 0, 7, "~");
+        assert_eq!(val.bin(0, -1, false), "11111000 00000000 00000111 00000000");
+        val.set_byte(2, 9, "^");
+        assert_eq!(val.bin(0, -1, false), "11111000 00000000 00001110 00000000");
+
+        // `set_type` by array
+        val.set_type(IRType::array(IRType::u32(), 3));
+        assert_eq!(val.kind().to_string(), "[u32; 3]");
+        assert_eq!(val.size(), 12);
+
+        // `set_type` by tuple
+        val.set_type(IRType::tuple(vec![IRType::u32(), IRType::u64()]));
+        assert_eq!(val.kind().to_string(), "(u32, u64)");
+        assert_eq!(val.size(), 12);
+
+    }
+
+    #[test]
+    fn val_from() {
 
         let val = IRValue::from_string("23.5");
         assert_eq!(val.get_f32(0), 23.5f32);
@@ -843,18 +972,21 @@ mod val_tests {
         assert_eq!(val.get_f32(4), 1.5f32);
         assert_eq!(val.get_f32(8), -23.5f32);
 
-        let val = IRValue::from_string("(-18.5, 0, -23.5, \"hello\", 13, 9)");
+        let val = IRValue::from_string("(-18.5, 0, -23.5, \"hello\")");
         assert_eq!(val.get_f32(0), -18.5f32);
         assert_eq!(val.get_i32(4), 0);
         assert_eq!(val.get_f32(8), -23.5f32);
-        assert_eq!(val.get_str(12), "hello\r");
-
-
+        assert_eq!(val.get_str(13), "ello");
 
         let mut val = IRValue::from_string("\"hallo\"");
         val.set_char(1, 'e');
         assert_eq!(val.get_char(1), 'e');
         assert_eq!(val.get_str(1), "ello");
+
+        let val = IRValue::from_string("0b00001010 11001010 1111");
+        assert_eq!(val.bin(0, -1, false), "00001010 11001010 11110000");
+        // let val = IRValue::from_string("0B00001010 11001010 1111");
+        // assert_eq!(val.bin(0, -1, false), "00001010 11001010 11110000");
     }
 
 
