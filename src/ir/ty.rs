@@ -195,7 +195,7 @@ impl IRType {
     // Init type pool.
     thread_local! {
         /// Pool of all created types.
-        static POOL: RefCell<HashMap<IRTypeKind, IRType>> = RefCell::new(HashMap::new());
+        static TYPE_POOL: RefCell<HashMap<IRTypeKind, IRType>> = RefCell::new(HashMap::new());
         /// Size of pointers.
         static PTR_SIZE: Cell<usize> = Cell::new(mem::size_of::<*const ()>());
     }
@@ -204,7 +204,7 @@ impl IRType {
 
     /// Returns a type by the given `IRTypeKind`.
     pub fn get(type_kind: IRTypeKind) -> IRType {
-        Self::POOL.with(|pool| {
+        Self::TYPE_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             pool.get(&type_kind).cloned().unwrap_or_else(|| {
                 let v = Self(Rc::new(type_kind.clone()));

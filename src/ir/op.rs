@@ -11,10 +11,13 @@ use std::fmt::{self};
 use std::cmp;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use crate::ir::val::IRValue;
 use crate::log_warning;
 use crate::util::log::Span;
+
+use super::ty::IRTypeKind;
 
 
 
@@ -52,6 +55,18 @@ impl IROperandKind {
         }
     }
 
+    /// Get the kind of value
+    pub fn kind(&self) -> &IRTypeKind{
+        match self {
+            IROperandKind::Imm(val) => val.kind(),
+            // Get Reg value's kind
+            IROperandKind::Reg(_, val) => val.kind(),
+            IROperandKind::Mem(val, _, _, _) => val.kind(),
+            // Get Label ptr's kind
+            IROperandKind::Label(_, val) => val.kind(),
+        }
+    }
+
     /// Get hex of the operand
     pub fn hex(&self) -> String {
         match self {
@@ -77,10 +92,10 @@ impl IROperandKind {
     /// Get String of the operand
     pub fn to_string(&self) -> String {
         match self {
-            IROperandKind::Imm(val) => val.to_string(),
-            IROperandKind::Reg(name, val) => format!("{}: {}", name, val.to_string()),
-            IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]", base, idx, scale, disp),
-            IROperandKind::Label(name, val) => format!("{}: {}", name, val.to_string()),
+            IROperandKind::Imm(val) =>  format!("<Imm>: {}", val.kind()),
+            IROperandKind::Reg(name, val) => format!("{}: {}", name, val.kind()),
+            IROperandKind::Mem(_, _, _, _) => format!("<Mem> : {}", self.val().kind()),
+            IROperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
         }
     }
 
@@ -110,18 +125,28 @@ impl fmt::Display for IROperandKind {
 
 /// `IROperand`: Operands in the IR
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IROperand {
-    /// `kind`: Kind of the operand (Imm, Reg, Mem, Label)
-    pub kind: IROperandKind,
-}
+pub struct IROperand(Rc<RefCell<IROperandKind>>);
 
 impl IROperand {
 
     /// New IROperand Reg
     pub fn reg(name: &'static str, val: IRValue) -> Self {
-        Self {
-            kind: IROperandKind::Reg(name, val),
-        }
+        Self(Rc::new(RefCell::new(IROperandKind::Reg(name, val))))
+    }
+
+    /// New IROperand Imm
+    pub fn imm(val: IRValue) -> Self {
+        Self(Rc::new(RefCell::new(IROperandKind::Imm(val))))
+    }
+
+    /// New IROperand Mem
+    pub fn mem(base: IRValue, idx: IRValue, scale: IRValue, disp: IRValue) -> Self {
+        Self(Rc::new(RefCell::new(IROperandKind::Mem(base, idx, scale, disp))))
+    }
+
+    /// New IROperand Label
+    pub fn label(name: &'static str, val: IRValue) -> Self {
+        Self(Rc::new(RefCell::new(IROperandKind::Label(name, val))))
     }
 
 
@@ -129,26 +154,32 @@ impl IROperand {
 
     /// Get Operand value
     pub fn val(&self) -> IRValue {
-        self.kind.val()
+        self.0.borrow().val()
     }
 
     /// Get Operand name
     pub fn name(&self) -> &'static str {
-        self.kind.name()
+        self.0.borrow().name()
     }
 
     // ================== IROperand.set ==================== //
 
     /// Set Operand value
     pub fn set_reg(&mut self, val: IRValue) {
-        self.kind = IROperandKind::Reg(self.kind.name(), val);
+        let mut kind = self.0.borrow_mut();
+        *kind = IROperandKind::Reg(kind.name(), val);
+    }
+
+    /// To String
+    pub fn to_string(&self) -> String {
+        self.0.borrow().to_string()
     }
 
 }
 
 impl fmt::Display for IROperand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.kind.to_string())
+        write!(f, "{}", self.0.borrow().to_string())
     }
 }
 
@@ -162,19 +193,46 @@ impl fmt::Display for IROperand {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IROpcodeKind {
     /// Special opcode: [opcode]
-    Special(),
+    Special(&'static str),
 
     /// Unary operand opcode: [opcode] [operand]
-    Unary(IROperand),
+    Unary(&'static str, RefCell<IROperand>),
 
     /// Binary operand opcode: [opcode] [operand1], [operand2]
-    Binary(IROperand, IROperand),
+    Binary(&'static str, RefCell<IROperand>, RefCell<IROperand>),
 
     /// Ternary operand opcode: [opcode] [operand1], [operand2], [operand3]
-    Ternary(IROperand, IROperand, IROperand),
+    Ternary(&'static str, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>),
 
     /// Quaternary operand opcode: [opcode] [operand1], [operand2], [operand3], [operand4]
-    Quaternary(IROperand, IROperand, IROperand, IROperand),
+    Quaternary(&'static str, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>, RefCell<IROperand>),
+
+}
+
+
+impl IROpcodeKind {
+
+    /// Get Name of OpcodeKind
+    pub fn name(&self) -> &'static str {
+        match self {
+            IROpcodeKind::Special(name) => name,
+            IROpcodeKind::Unary(name, _) => name,
+            IROpcodeKind::Binary(name, _, _) => name,
+            IROpcodeKind::Ternary(name, _, _, _) => name,
+            IROpcodeKind::Quaternary(name, _, _, _, _) => name,
+        }
+    }
+
+    /// To string
+    pub fn to_string(&self) -> String {
+        match self {
+            IROpcodeKind::Special(name) => name.to_string(),
+            IROpcodeKind::Unary(name, operand) => format!("{:<6} {}", name, operand.borrow().to_string()),
+            IROpcodeKind::Binary(name, operand1, operand2) => format!("{:<6} {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string()),
+            IROpcodeKind::Ternary(name, operand1, operand2, operand3) => format!("{:<6} {}, {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string(), operand3.borrow().to_string()),
+            IROpcodeKind::Quaternary(name, operand1, operand2, operand3, operand4) => format!("{:<6} {}, {}, {}, {}", name, operand1.borrow().to_string(), operand2.borrow().to_string(), operand3.borrow().to_string(), operand4.borrow().to_string()),
+        }
+    }
 
 }
 
@@ -191,60 +249,85 @@ impl fmt::Display for IROpcodeKind {
 
 /// `IROpcode`: IR opcodes
 #[derive(Debug, Clone)]
-pub struct IROpcode {
-    /// `kind`: Kind of the opcode
-    pub kind: IROpcodeKind,
-}
+pub struct IROpcode(Rc<IROpcodeKind>);
 
 impl IROpcode {
 
-    /// New IROpcode Special
-    pub fn special() -> Self {
-        Self {
-            kind: IROpcodeKind::Special(),
-        }
+    // Init opcode pool
+    thread_local! {
+        /// Opcode Pool
+        static OPCODE_POOL: RefCell<HashMap<&'static str, IROpcode>> = RefCell::new(HashMap::new());
     }
 
-    /// New IROpcode Unary
-    pub fn unary(operand: IROperand) -> Self {
-        Self {
-            kind: IROpcodeKind::Unary(operand),
-        }
+    // =================== IROpcode.get ==================== //
+
+    /// Regist Opcodekind to pool and return Reference of IROpcode
+    pub fn regist(kind: IROpcodeKind) -> IROpcode {
+        IROpcode::OPCODE_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
+            let name = kind.name();
+            pool.insert(name, IROpcode(Rc::new(kind)));
+            pool.get(name).unwrap().clone()
+        })
     }
 
-    /// New IROpcode Binary
-    pub fn binary(operand1: IROperand, operand2: IROperand) -> Self {
-        Self {
-            kind: IROpcodeKind::Binary(operand1, operand2),
-        }
+    /// Get Special Opcode
+    pub fn special(name: &'static str) -> Self {
+        Self::regist(IROpcodeKind::Special(name))
     }
 
-    /// New IROpcode Ternary
-    pub fn ternary(operand1: IROperand, operand2: IROperand, operand3: IROperand) -> Self {
-        Self {
-            kind: IROpcodeKind::Ternary(operand1, operand2, operand3),
-        }
+    /// Get Unary Opcode
+    pub fn unary(name: &'static str, ope1: RefCell<IROperand>) -> Self {
+        Self::regist(IROpcodeKind::Unary(name, ope1))
+    }
+    
+    /// Get Binary Opcode
+    pub fn binary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>) -> Self {
+        Self::regist(IROpcodeKind::Binary(name, ope1, ope2))
     }
 
-    /// New IROpcode Quaternary
-    pub fn quaternary(operand1: IROperand, operand2: IROperand, operand3: IROperand, operand4: IROperand) -> Self {
-        Self {
-            kind: IROpcodeKind::Quaternary(operand1, operand2, operand3, operand4),
-        }
+    /// Get Ternary Opcode
+    pub fn ternary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>, ope3: RefCell<IROperand>) -> Self {
+        Self::regist(IROpcodeKind::Ternary(name, ope1, ope2, ope3))
     }
 
+    /// Get Quaternary Opcode
+    pub fn quaternary(name: &'static str, ope1: RefCell<IROperand>, ope2: RefCell<IROperand>, ope3: RefCell<IROperand>, ope4: RefCell<IROperand>) -> Self {
+        Self::regist(IROpcodeKind::Quaternary(name, ope1, ope2, ope3, ope4))
+    }
+
+    /// Get Name of Opcode
+    pub fn name(&self) -> &'static str {
+        self.0.name()
+    }
+
+    /// Get a refence of OpcodeKind
+    pub fn kind(&self) -> &IROpcodeKind {
+        &self.0
+    }
+
+    /// Find Opcode by name
+    pub fn find(name: &'static str) -> Option<IROpcode> {
+        IROpcode::OPCODE_POOL.with(|pool| {
+            let pool = pool.borrow();
+            pool.get(name).map(|op| op.clone())
+        })
+    }
+
+
+    // =================== IROpcode.set ==================== //
 
 }
 
 impl fmt::Display for IROpcode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.kind.to_string())
+        write!(f, "{}", self.0)
     }
 }
 
 impl cmp::PartialEq for IROpcode {
     fn eq(&self, other: &Self) -> bool {
-        self.kind == other.kind
+        self.name() == other.name() && self.kind() == other.kind()
     }
 }
 
@@ -258,7 +341,7 @@ impl cmp::PartialEq for IROpcode {
 pub trait ArchInfo {
 
 
-    // ===================== Struct ====================== //
+    // ====================== Const ====================== //
 
     /// Arch name: like "evo"
     const NAME: &'static str;
@@ -284,7 +367,7 @@ pub trait ArchInfo {
     /// Get Info String
     fn info() -> String;
 
-    // ===================== Object ====================== //
+    // ====================== Reg ======================== //
 
     /// Get Name
     fn name() -> &'static str;
@@ -296,10 +379,22 @@ pub trait ArchInfo {
     fn reg_info(&self) -> String;
 
     /// Get Register
-    fn get_reg(&self, name: &'static str) -> IRValue;
+    fn get_reg_val(&self, name: &'static str) -> IRValue;
 
     /// Set Register
-    fn set_reg(&mut self, name: &'static str, value: IRValue);
+    fn set_reg_val(&mut self, name: &'static str, value: IRValue);
+
+    /// Get refence of Register
+    fn reg(&mut self, name: &'static str) -> RefCell<IROperand>;
+
+
+    // ===================== Opcode ===================== //
+
+    /// Opcode Map Init
+    fn opcode_init(&mut self);
+
+    /// Opcode Info: `OpcodeName OpcodeValue, OpcodeValue ...` String
+    fn opcode_info(&self) -> String;
 
 }
 
@@ -315,9 +410,9 @@ pub trait ArchInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRArch {
     /// `reg_map`: Register Map
-    reg_map: Rc<RefCell<Vec<IROperand>>>,
+    reg_map: RefCell<Vec<RefCell<IROperand>>>,
     /// `opcode_map`: Opcode Map
-    opcode_map: Rc<RefCell<Vec<(&'static str, IROpcode)>>>,
+    opcode_map: RefCell<Vec<IROpcode>>
 
 }
 
@@ -326,8 +421,8 @@ impl IRArch {
     /// Create new `IRArch`
     pub fn new() -> Self {
         let mut arch = Self {
-            reg_map: Rc::new(RefCell::new(Vec::new())),
-            opcode_map: Rc::new(RefCell::new(Vec::new())),
+            reg_map: RefCell::new(Vec::new()),
+            opcode_map: RefCell::new(Vec::new()),
         };
         arch.reg_init();
         arch
@@ -373,16 +468,16 @@ impl ArchInfo for IRArch {
 
     /// 4. Register Map Init
     fn reg_init(&mut self) {
-        self.reg_map = Rc::new(vec![
-            IROperand::reg("eax", IRValue::u32(0)),
-            IROperand::reg("ebx", IRValue::u32(0)),
-            IROperand::reg("ecx", IRValue::u32(0)),
-            IROperand::reg("edx", IRValue::u32(0)),
-            IROperand::reg("esi", IRValue::u32(0)),
-            IROperand::reg("edi", IRValue::u32(0)),
-            IROperand::reg("esp", IRValue::u32(0)),
-            IROperand::reg("ebp", IRValue::u32(0)),
-        ].into());
+        self.reg_map = RefCell::new(vec![
+            RefCell::new(IROperand::reg("eax", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("ebx", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("ecx", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("edx", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("esi", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("edi", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("esp", IRValue::u32(0))),
+            RefCell::new(IROperand::reg("ebp", IRValue::u32(0))),
+        ]);
         if Self::ADDR_SIZE != self.reg_map.borrow().len() {
             log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
         }
@@ -390,25 +485,59 @@ impl ArchInfo for IRArch {
 
     /// 5. Reg Info
     fn reg_info(&self) -> String {
-        let mut result = String::new();
-        result.push_str(&format!("Regs Info: \n"));
+        let mut info = String::new();
+        info.push_str(&format!("Registers (Num = {}):\n", self.reg_map.borrow().len()));
         for reg in self.reg_map.borrow().iter() {
-            result.push_str(&format!(" - {}\n", reg));
+            info.push_str(&format!("- {:<10} ({:>4} : {})\n", reg.borrow().to_string(), reg.borrow().val(), reg.borrow().val().bin(0, -1, false)));
         }
-        result
+        info
     }
 
-    /// 6. Get Register
-    fn get_reg(&self, name: &'static str) -> IRValue {
-        // Get value according to name
-        self.reg_map.borrow().iter().find(|reg| reg.name() == name).unwrap_or(&IROperand::reg(name, IRValue::u32(0))).val()
+    /// 6. Get Register value
+    fn get_reg_val(&self, name: &'static str) -> IRValue {
+        self.reg_map.borrow().iter().find(|reg| reg.borrow().name() == name).unwrap().borrow().val()
     }
-    /// 7. Set Register
-    fn set_reg(&mut self, name: &'static str, value: IRValue) {
+    /// 7. Set Register value
+    fn set_reg_val(&mut self, name: &'static str, value: IRValue) {
         // Set value according to name and value
-        self.reg_map.borrow_mut().iter_mut().find(|reg| reg.name() == name).unwrap_or(&mut IROperand::reg(name, IRValue::u32(0))).set_reg(value);
+        self.reg_map.borrow().iter().find(|reg| reg.borrow().name() == name).unwrap().borrow_mut().set_reg(value);
     }
 
+    /// 8. Get Register reference
+    fn reg(&mut self, name: &'static str) -> RefCell<IROperand> {
+        self.reg_map.borrow().iter().find(|reg| reg.borrow().name() == name).unwrap().clone()
+    }
+
+    
+
+    /// 1. Opcode Map Init
+    fn opcode_init(&mut self) {
+
+        self.opcode_map = RefCell::new(vec![
+            IROpcode::special("nop"),
+            IROpcode::binary("mov", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("add", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("sub", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("mul", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("div", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("and", self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("or" , self.reg("eax"), self.reg("ebx")),
+            IROpcode::binary("xor", self.reg("eax"), self.reg("ebx")),
+        ]);
+        
+    }
+    
+    /// 2. Opcode Info
+    fn opcode_info(&self) -> String {
+        let mut info = String::new();
+        info.push_str(&format!("Opcode Info (Num = {}):\n", self.opcode_map.borrow().len()));
+        let mut idx = 0;
+        for opcode in self.opcode_map.borrow().iter() {
+            info.push_str(&format!("[{}] {}\n", idx, opcode.to_string()));
+            idx += 1;
+        }
+        info
+    }
 }
 
 
@@ -427,17 +556,32 @@ mod op_test {
     use super::*;
 
     #[test]
-    fn arch_print() {
+    fn arch_reg() {
         println!("{}", IRArch::info());
         let mut arch = IRArch::new();
         
-        arch.set_reg("ebx", IRValue::u32(9));
-        arch.set_reg("eax", IRValue::u32(8));
-        assert_eq!(arch.get_reg("ebx"), IRValue::u32(9));
+        arch.set_reg_val("ebx", IRValue::u32(9));
+        arch.set_reg_val("eax", IRValue::u32(8));
+        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(9));
         println!("{}", arch.reg_info());
+
+
+        arch.set_reg_val("ebx", IRValue::u32(13));
+        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(13));
+        arch.reg("ebx").borrow_mut().set_reg(IRValue::u32(9));
+        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(9));
+        arch.set_reg_val("ebx", IRValue::u32(13));
+        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(13));
 
         let arch2 = IRArch::new();
         // Compare Registers
         assert_ne!(arch, arch2);
+    }
+
+    #[test]
+    fn arch_opcode() {
+        let mut arch = IRArch::new();
+        arch.opcode_init();
+        println!("{}", arch.opcode_info());
     }
 }

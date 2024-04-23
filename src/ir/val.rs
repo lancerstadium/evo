@@ -342,18 +342,27 @@ impl IRValue {
     }
     
     /// Set value by bits string: `00001010`
-    pub fn set_bits(&mut self, value: &str, big_endian: bool) {
-        let val_size = (value.len() as f64 / 8.0).ceil() as usize;
-        self.set_kind(IRTypeKind::Array(IRType::u8(), val_size));
+    pub fn set_bits(&mut self, index: usize, value: &str, change_length: bool, big_endian: bool) {
+        let mut val_size = self.size();
+        // Set length
+        if change_length {
+            val_size = index + (value.len() as f64 / 8.0).ceil() as usize;
+            self.set_kind(IRTypeKind::Array(IRType::u8(), val_size));
+        }
         let mut cnt = 0;
         let mut idx;
         for i in 0..value.len() {
+            // If index is out of range, break
+            if i >= (val_size - index) * 8 {
+                log_error!("Index out of range: {} >= {}", i, (val_size - index) * 8);
+                break;
+            }
             if big_endian {
-                // Set bits:  little-endian
-                idx = cnt;
-            } else { 
-                // Set bits: big-endian -> little-endian
-                idx = cnt / 8 * 8 + (8 - cnt % 8) - 1;
+                // Set bits: big-endian
+                idx = val_size * 8 - 1 - cnt + (index * 8);
+            } else {
+                // Set bits: little-endian
+                idx = cnt / 8 * 8 + (8 - cnt % 8) - 1 + (index * 8);
             }
             match value.chars().nth(i).unwrap() {
                 '0' => {
@@ -693,7 +702,7 @@ impl IRValue {
         let mut val = IRValue::new(IRType::array(IRType::u8(), val_size));
 
         // Set value
-        val.set_bits(&new_val, is_big_endian);
+        val.set_bits(0, &new_val, true, is_big_endian);
         val
     }
 
@@ -985,8 +994,14 @@ mod val_tests {
 
         let val = IRValue::from_string("0b00001010 11001010 1111");
         assert_eq!(val.bin(0, -1, false), "00001010 11001010 11110000");
-        // let val = IRValue::from_string("0B00001010 11001010 1111");
-        // assert_eq!(val.bin(0, -1, false), "00001010 11001010 11110000");
+        let mut val1 = IRValue::from_string("0b00010000 00000101 00000000 00000000");
+        let val2 = IRValue::from_string("0B00010000 00000101 00000000 00000000");
+        assert_eq!(val1.bin(0, -1, true), val2.bin(0, -1, false));
+        assert_eq!(val1.bin(0, -1, false), val2.bin(0, -1, true));
+
+        assert_eq!(val1.bin(0, -1, false), "00010000 00000101 00000000 00000000");
+        val1.set_bits(1, "10..1.10 ...111.0", false, false);
+        assert_eq!(val1.bin(0, -1, false), "00010000 10001110 00011100 00000000");
     }
 
 
