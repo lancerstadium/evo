@@ -88,12 +88,12 @@ impl IROperandKind {
         }
     }
 
-    /// Get String of the operand
+    /// Get String of the operand like: `val : kind`
     pub fn to_string(&self) -> String {
         match self {
-            IROperandKind::Imm(val) =>  format!("<Imm>: {}", val.kind()),
+            IROperandKind::Imm(val) =>  format!("{}: {}", val.get_u32(0) , val.kind()),
             IROperandKind::Reg(name, val) => format!("{}: {}", name, val.kind()),
-            IROperandKind::Mem(_, _, _, _) => format!("<Mem> : {}", self.val().kind()),
+            IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]: {}", base.kind(), idx.kind(), scale.kind(), disp.kind() , self.val().kind()),
             IROperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
         }
     }
@@ -122,11 +122,11 @@ impl IROperandKind {
     /// Get sym string
     pub fn sym_str(sym: i32) -> &'static str {
         match sym {
-            0 => "<Imm>",
-            1 => "<Reg>",
-            2 => "<Mem>",
-            3 => "<Label>",
-            _ => "<Undef>",
+            0 => "<Imm>",   // Imm
+            1 => "<Reg>",   // Reg
+            2 => "<Mem>",   // Mem
+            3 => "<Lab>",   // Label
+            _ => "<Und>",   // Undefined
         }
     }
 
@@ -135,7 +135,7 @@ impl IROperandKind {
     pub fn set_reg(&mut self, val: IRValue) {
         match self {
             IROperandKind::Reg(_, _) => *self = IROperandKind::Reg(self.name(), val),
-            _ => *self = IROperandKind::Reg("<Undef>", val),
+            _ => *self = IROperandKind::Reg("<Und>", val),
         }
     }
 
@@ -180,22 +180,22 @@ impl IROperand {
     }
 
     /// New default Reg
-    pub fn dft_reg() -> Self {
+    pub fn reg_dft() -> Self {
         Self(Rc::new(RefCell::new(IROperandKind::Reg("<Reg>", IRValue::u32(0)))))
     }
 
     /// New default Imm
-    pub fn dft_imm() -> Self {
+    pub fn imm_dft() -> Self {
         Self(Rc::new(RefCell::new(IROperandKind::Imm(IRValue::u32(0)))))
     }
 
     /// New default Mem
-    pub fn dft_mem() -> Self {
+    pub fn mem_dft() -> Self {
         Self(Rc::new(RefCell::new(IROperandKind::Mem(IRValue::u32(0), IRValue::u32(0), IRValue::u32(0), IRValue::u32(0)))))
     }
 
     /// New default Label
-    pub fn dft_label() -> Self {
+    pub fn label_dft() -> Self {
         Self(Rc::new(RefCell::new(IROperandKind::Label("<Label>", IRValue::u32(0)))))
     }
 
@@ -218,6 +218,11 @@ impl IROperand {
         self.0.borrow().sym()
     }
 
+    /// Get symbol str
+    pub fn sym_str(&self) -> &'static str {
+        IROperandKind::sym_str(self.0.borrow().sym())
+    }
+
     // ================== IROperand.set ==================== //
 
     /// Set Operand value
@@ -225,7 +230,7 @@ impl IROperand {
         self.0.borrow_mut().set_reg(val);
     }
 
-    /// To String
+    /// To String like: `val : kind`
     pub fn to_string(&self) -> String {
         self.0.borrow().to_string()
     }
@@ -504,10 +509,28 @@ impl IRInsn {
         self.byt.bin(index, byte_num, big_endian)
     }
 
+    /// Show type of IRInsn
+    pub fn ty(&self) -> &'static str {
+        self.opc.ty()
+    }
 
-    /// To string
-    pub fn to_string(&self) -> String {
+    /// Get String of Opcode + Operand Syms
+    pub fn info(&self) -> String {
         format!("{}", self.opc.to_string())
+    }
+
+    /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
+    pub fn to_string(&self) -> String {
+        let mut info = String::new();
+        info.push_str(&format!("{:<6} ", self.opc.name()));
+        for opr in self.opr.iter() {
+            info.push_str(&format!("{}", opr.to_string()));
+            // if iter not last push `,`
+            if opr != self.opr.last().unwrap() {
+                info.push_str(&format!(", "));
+            }
+        }
+        info
     }
 
 
@@ -545,7 +568,7 @@ impl IRInsn {
 
 impl fmt::Display for IRInsn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.opc.to_string())
+        write!(f, "{}", self.to_string())
     }
 }
 
@@ -730,9 +753,19 @@ impl ArchInfo for IRArch {
     /// 1. Insn temp Map Init
     fn insn_init(&mut self) {
         self.insn_map = RefCell::new(vec![
-            IRInsn::def("add", vec![1, 1, 1], "R", "0b0000000. ........ .000.... .0110011"),
-            IRInsn::def("sub", vec![1, 1, 1], "R", "0b0000000. ........ .001.... .0110011"),
-            IRInsn::def("mul", vec![1, 1, 1], "R", "0b0000000. ........ .010.... .0110011"),
+            // RISCV Instruction Format:            32|31  25|24 20|19 15|  |11  7|6    0|
+            // Type: R         [rd, rs1, rs2]         |  f7  | rs2 | rs1 |f3|  rd |  op  |
+            IRInsn::def("add" , vec![1, 1, 1], "R", "0b0000000. ........ .000.... .0110011"),
+            IRInsn::def("sub" , vec![1, 1, 1], "R", "0b0100000. ........ .000.... .0110011"),
+            IRInsn::def("or"  , vec![1, 1, 1], "R", "0b0000000. ........ .111.... .0110011"),
+            IRInsn::def("xor" , vec![1, 1, 1], "R", "0b0000000. ........ .100.... .0110011"),
+            IRInsn::def("sll" , vec![1, 1, 1], "R", "0b0000000. ........ .001.... .0110011"),
+            IRInsn::def("srl" , vec![1, 1, 1], "R", "0b0000000. ........ .101.... .0110011"),
+            IRInsn::def("sra" , vec![1, 1, 1], "R", "0b0100000. ........ .101.... .0110011"),
+            IRInsn::def("slt" , vec![1, 1, 1], "R", "0b0000000. ........ .010.... .0110011"),
+            IRInsn::def("sltu", vec![1, 1, 1], "R", "0b0000000. ........ .011.... .0110011"),
+            // Type: I         [rd, rs1, imm]         |    imm     | rs1 |f3|  rd |  op  |
+            IRInsn::def("addi", vec![1, 1, 0], "I", "0b0000000. ........ .000.... .0010011"),
         ]);
     }
     
@@ -741,7 +774,7 @@ impl ArchInfo for IRArch {
         let mut info = String::new();
         info.push_str(&format!("Instructions (Num = {}):\n", self.insn_map.borrow().len()));
         for insn in self.insn_map.borrow().iter() {
-            info.push_str(&format!("- {}    ({})\n", insn.to_string(), insn.bin(0, -1, false)));
+            info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.bin(0, -1, false)));
         }
         info
     }
@@ -790,5 +823,7 @@ mod op_test {
         let mut arch = IRArch::new();
         arch.insn_init();
         println!("{}", arch.insn_info());
+        let insn1 = IRInsn::apply("xor", vec![IROperand::reg("eax", IRValue::u8(8)), IROperand::reg("eax", IRValue::u8(8)), IROperand::reg("ebx", IRValue::u8(9))]);
+        println!("{}", insn1);
     }
 }

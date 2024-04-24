@@ -52,6 +52,11 @@ impl IRValue {
         self.ty.scale()
     }
 
+    /// Get the sum of the scale of the IRValue
+    pub fn scale_sum(&self) -> usize {
+        self.ty.scale().iter().sum()
+    }
+
     /// Get the bits hex string of the IRValue: Default little-endian
     /// - `index`: start index
     /// - `byte_num`: number of bytes you want, -1 means all
@@ -945,7 +950,7 @@ mod val_tests {
         assert_eq!(val.bin(0, -1, false), "11111000 11111111 00000111 00000000");
         val.set_bit(1, 0, 7, "~");
         assert_eq!(val.bin(0, -1, false), "11111000 00000000 00000111 00000000");
-        val.set_byte(2, 9, "^");
+        val.set_byte(2, 9, "^");    // need to enhance this
         assert_eq!(val.bin(0, -1, false), "11111000 00000000 00001110 00000000");
 
         // `set_type` by array

@@ -31,6 +31,10 @@ use std::{cmp, fmt, hash, mem};
 /// `IRTypeKind`: evo-ir enum types
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub enum IRTypeKind {
+
+    // Unsigned bits
+    U1,
+
     // Integer type
     I8, I16, I32, I64, I128, U8, U16, U32, U64, U128,
 
@@ -65,6 +69,7 @@ impl IRTypeKind {
             IRTypeKind::I32 => "i32".to_string(),
             IRTypeKind::I64 => "i64".to_string(),
             IRTypeKind::I128 => "i128".to_string(),
+            IRTypeKind::U1 => "u1".to_string(),
             IRTypeKind::U8 => "u8".to_string(),
             IRTypeKind::U16 => "u16".to_string(),
             IRTypeKind::U32 => "u32".to_string(),
@@ -128,6 +133,13 @@ impl IRTypeKind {
             "i32" => IRTypeKind::I32,
             "i64" => IRTypeKind::I64,
             "i128" => IRTypeKind::I128,
+            "u1" => IRTypeKind::U1,
+            "u2" => IRTypeKind::Array(IRType::u1(), 2),
+            "u3" => IRTypeKind::Array(IRType::u1(), 3),
+            "u4" => IRTypeKind::Array(IRType::u1(), 4),
+            "u5" => IRTypeKind::Array(IRType::u1(), 5),
+            "u6" => IRTypeKind::Array(IRType::u1(), 6),
+            "u7" => IRTypeKind::Array(IRType::u1(), 7),
             "u8" => IRTypeKind::U8,
             "u16" => IRTypeKind::U16,
             "u32" => IRTypeKind::U32,
@@ -239,6 +251,41 @@ impl IRType {
         IRType::get(IRTypeKind::I128)
     }
 
+    /// Returns an `u1` type.
+    pub fn u1() -> IRType {
+        IRType::get(IRTypeKind::U1)
+    }
+
+    /// Returns an `u2` type.
+    pub fn u2() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 2))
+    }
+
+    /// Returns an `u3` type.
+    pub fn u3() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 3))
+    }
+
+    /// Returns an `u4` type.
+    pub fn u4() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 4))
+    }
+
+    /// Returns an `u5` type.
+    pub fn u5() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 5))
+    }
+
+    /// Returns an `u6` type.
+    pub fn u6() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 6))
+    }
+
+    /// Returns an `u7` type.
+    pub fn u7() -> IRType {
+        IRType::get(IRTypeKind::Array(IRType::u1(), 7))
+    }
+
     /// Returns an `u8` type.
     pub fn u8() -> IRType {
         IRType::get(IRTypeKind::U8)
@@ -323,6 +370,7 @@ impl IRType {
             IRTypeKind::I32 => 4,
             IRTypeKind::I64 => 8,
             IRTypeKind::I128 => 16,
+            IRTypeKind::U1 => 1,
             IRTypeKind::U8 => 1,
             IRTypeKind::U16 => 2,
             IRTypeKind::U32 => 4,
@@ -341,6 +389,7 @@ impl IRType {
     /// Returns the scale vec of current type: bits number
     pub fn scale(&self) -> Vec<usize> {
         match self.kind() {
+            IRTypeKind::U1 => vec![1],
             IRTypeKind::I8 | IRTypeKind::U8 => vec![8], 
             IRTypeKind::I16 | IRTypeKind::U16 | IRTypeKind::F16 => vec![16],
             IRTypeKind::I32 | IRTypeKind::U32 | IRTypeKind::F32 => vec![32],
@@ -357,7 +406,7 @@ impl IRType {
     /// Return types vec of current type
     pub fn types(&self) -> Vec<IRType> {
         match self.kind() {
-            IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
+            IRTypeKind::U1 | IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
                 | IRTypeKind::U8 | IRTypeKind::U16 | IRTypeKind::U32 | IRTypeKind::U64 | IRTypeKind::U128
                 | IRTypeKind::F16 | IRTypeKind::F32 | IRTypeKind::F64 | IRTypeKind::F128 => vec![self.clone()],
             IRTypeKind::Ptr(ty) => vec![ty.clone()],
@@ -455,6 +504,7 @@ mod ty_test {
         assert_eq!(IRType::from_string("i32"), IRType::i32());
         assert_eq!(IRType::from_string("i64"), IRType::i64());
         assert_eq!(IRType::from_string("i128"), IRType::i128());
+        assert_eq!(IRType::from_string("u1"), IRType::u1());
         assert_eq!(IRType::from_string("u8"), IRType::u8());
         assert_eq!(IRType::from_string("u16"), IRType::u16());
         assert_eq!(IRType::from_string("u32"), IRType::u32());
@@ -480,6 +530,8 @@ mod ty_test {
         assert_eq!(format!("{}", IRType::i32()), "i32");
         assert_eq!(format!("{}", IRType::i64()), "i64");
         assert_eq!(format!("{}", IRType::i128()), "i128");
+        assert_eq!(format!("{}", IRType::u1()), "u1");
+        assert_eq!(format!("{}", IRType::u2()), "[u1; 2]");
         assert_eq!(format!("{}", IRType::u8()), "u8");
         assert_eq!(format!("{}", IRType::u16()), "u16");
         assert_eq!(format!("{}", IRType::u32()), "u32");
@@ -511,6 +563,7 @@ mod ty_test {
         assert_eq!(IRType::i32().size(), 4);
         assert_eq!(IRType::i64().size(), 8);
         assert_eq!(IRType::i128().size(), 16);
+        assert_eq!(IRType::u1().size(), 1);
         assert_eq!(IRType::u8().size(), 1);
         assert_eq!(IRType::u16().size(), 2);
         assert_eq!(IRType::u32().size(), 4);
@@ -537,6 +590,7 @@ mod ty_test {
     #[test]
     fn type_scale() {
         assert_eq!(IRType::i32().scale(), vec![32]);
+        assert_eq!(IRType::u1().scale(), vec![1]);
         assert_eq!(IRType::array(IRType::i32(), 5).scale(), vec![32, 32, 32, 32, 32]);
         assert_eq!(IRType::array(IRType::array(IRType::i32(), 5), 3).scale(), vec![160, 160, 160]);
         assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).scale(), vec![32, 32]);
