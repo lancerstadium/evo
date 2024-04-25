@@ -103,9 +103,23 @@ impl IRValue {
     /// Check IRValue size bound
     pub fn bound<T>(&self, index: usize, _: T) {
         // index + size of T should <= self.size()
-        let is_valid = index + std::mem::size_of::<T>() <= self.size();
+        let left = (index + std::mem::size_of::<T>()) * 8;
+        let mut right = self.size() * 8;
+        let scale = self.scale_sum();
+        let mut use_scale = false;
+        if scale < right {
+            right = scale;
+            use_scale = true; 
+        }
+        let is_valid = left <= right;
+        let sym;
+        if use_scale == true {
+            sym = "scale".to_string();
+        } else {
+            sym = "wsize".to_string();
+        }
         if !is_valid {
-            log_fatal!("Index out of bounds: index+type: {}+{} > size: {}", index, std::mem::size_of::<T>(), self.size());
+            log_fatal!("Index out of scale bounds: idx+val: {} > {}: {}", left, sym, right);
         }
     }
 
@@ -387,12 +401,22 @@ impl IRValue {
         }
     }
 
-    /// Set value by 8-bit
-    pub fn set_8bit(&mut self, index: usize, value: u8) {
-        self.bound(index, value);
+    /// Set value by 8-bit: index by bytes and offset by bits
+    pub fn set_8bit(&mut self, index: usize, offset: usize, value: u8) {
+        let offset_bytes = offset / 8;
+        let offset_bit = offset % 8;
+        self.bound(index + offset_bytes, value);
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
-        buffer[index] = bytes[0];
+        // Offset bits and load value to buffer
+        if offset_bit == 0 {
+            // nomal value `00001010`, offset `0` -> `00001010`
+            buffer[index + offset_bytes] = bytes[0];
+        } else {
+            // value `00001010 ........`, offset `2` -> `..000010 10......`
+            buffer[index + offset_bytes] |= bytes[0] << offset_bit;
+            buffer[index + offset_bytes + 1] = bytes[0] >> (8 - offset_bit);
+        }
     }
 
     /// Set value by 16-bit
@@ -430,10 +454,16 @@ impl IRValue {
         buffer[index + 7] = bytes[7];
     }
 
+    /// Set value by unsigned 1-bit
+    pub fn set_u1(&mut self, index: usize, value: u8) {
+        self.set_kind(IRTypeKind::U1);
+        self.set_8bit(index, 0, value);
+    }
+
     /// Set value by unsigned 8-bit
     pub fn set_u8(&mut self, index: usize, value: u8) {
         self.set_kind(IRTypeKind::U8);
-        self.set_8bit(index, value);
+        self.set_8bit(index, 0, value);
     }
 
     /// Set value by unsigned 16-bit
@@ -457,7 +487,7 @@ impl IRValue {
     /// Set value by signed 8-bit
     pub fn set_i8(&mut self, index: usize, value: i8) {
         self.set_kind(IRTypeKind::I8);
-        self.set_8bit(index, value as u8);
+        self.set_8bit(index, 0, value as u8);
     }
 
     /// Set value by signed 16-bit
@@ -482,24 +512,24 @@ impl IRValue {
     pub fn set_f32(&mut self, index: usize, value: f32) {
         self.set_kind(IRTypeKind::F32);
         let bytes = value.to_le_bytes();
-        self.set_8bit(index, bytes[0]);
-        self.set_8bit(index + 1, bytes[1]);
-        self.set_8bit(index + 2, bytes[2]);
-        self.set_8bit(index + 3, bytes[3]);
+        self.set_8bit(index, 0, bytes[0]);
+        self.set_8bit(index + 1, 0, bytes[1]);
+        self.set_8bit(index + 2, 0, bytes[2]);
+        self.set_8bit(index + 3, 0, bytes[3]);
     }
 
     /// Set value by double
     pub fn set_f64(&mut self, index: usize, value: f64) {
         self.set_kind(IRTypeKind::F64);
         let bytes = value.to_le_bytes();
-        self.set_8bit(index, bytes[0]);
-        self.set_8bit(index + 1, bytes[1]);
-        self.set_8bit(index + 2, bytes[2]);
-        self.set_8bit(index + 3, bytes[3]);
-        self.set_8bit(index + 4, bytes[4]);
-        self.set_8bit(index + 5, bytes[5]);
-        self.set_8bit(index + 6, bytes[6]);
-        self.set_8bit(index + 7, bytes[7]);
+        self.set_8bit(index, 0, bytes[0]);
+        self.set_8bit(index + 1, 0,bytes[1]);
+        self.set_8bit(index + 2, 0,bytes[2]);
+        self.set_8bit(index + 3, 0,bytes[3]);
+        self.set_8bit(index + 4, 0,bytes[4]);
+        self.set_8bit(index + 5, 0,bytes[5]);
+        self.set_8bit(index + 6, 0,bytes[6]);
+        self.set_8bit(index + 7, 0,bytes[7]);
     }
 
     /// Set value by array
@@ -554,7 +584,7 @@ impl IRValue {
 
     /// Set value by char(4-bits)
     pub fn set_char(&mut self, index: usize, value: char) {
-        self.set_8bit(index, value as u8);
+        self.set_8bit(index, 0, value as u8);
     }
 
     /// Set value by string
@@ -679,19 +709,13 @@ impl IRValue {
 
     // ==================== IRValue.from =================== //
 
-
-    /// Get bits from String: `0b00001010 00001010`
-    pub fn bits(value: &str) -> IRValue {
+    /// bits fliter: `0b00001010 00001010` -> `0000101000001010` and `is_big_endian`
+    pub fn bits_fliter(value: &str) -> (String, bool) {
         let is_big_endian = value.starts_with("0B");
-
         let value = value[2..].to_string();
         let value = value.trim();
-        // Deal with value string: `0b00001010` -> `10`
-        // Get value length
-        let len = value.len();
-        // Parse value string: `0` -> 0, `1` -> 1, `.` -> ., other jump
         let mut new_val = String::new();
-        for i in 0..len {
+        for i in 0..value.len() {
             if value.chars().nth(i).unwrap() == '0' {
                 new_val += "0";
             } else if value.chars().nth(i).unwrap() == '1' {
@@ -702,12 +726,25 @@ impl IRValue {
                 continue;
             }
         }
+        (new_val, is_big_endian)
+    }
+
+    /// Get bits from String: `0b00001010 00001010`
+    pub fn bits(value: &str) -> IRValue {
+        let (new_val, is_big_endian) = Self::bits_fliter(value);
         // Get val size: Upper bound
         let val_size = (new_val.len() as f64 / 8.0).ceil() as usize;
         let mut val = IRValue::new(IRType::array(IRType::u8(), val_size));
 
         // Set value
         val.set_bits(0, &new_val, true, is_big_endian);
+        val
+    }
+
+    /// Get value from u1
+    pub fn u1(value: u8) -> IRValue {
+        let mut val = IRValue::new(IRType::u1());
+        val.set_u1(0, value);
         val
     }
 
@@ -938,7 +975,7 @@ mod val_tests {
         assert_eq!(val.ty, IRType::i64());
 
         // Only Write in data, don't change type
-        val.set_8bit(0, 64 as u8);
+        val.set_8bit(0, 0, 64 as u8);
         assert_eq!(val.hex(0, -1), "40 00 00 00 00 00 00 00");
         assert_eq!(val.to_string(), "64");
 
@@ -1027,6 +1064,15 @@ mod val_tests {
         // Change to Double
         val.set_f64(0, 255.34f64);
         assert_eq!(val.get_f64(0), 255.34f64);
+    }
+
+
+    #[test]
+    fn val_bits() {
+
+        let mut val = IRValue::new(IRType::u1());
+        val.set_u1(0, 1);
+        println!("{}", val.bin(0, -1, false));
     }
 
 }

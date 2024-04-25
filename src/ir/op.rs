@@ -29,7 +29,7 @@ pub enum IROperandKind {
     /// |  val  |
     Imm(IRValue),
 
-    /// |  name*  |  val   |
+    /// |  name*  |  idx   |
     Reg(&'static str, IRValue),
 
     /// Mem = [base + index * scale + disp]
