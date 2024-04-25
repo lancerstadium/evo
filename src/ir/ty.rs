@@ -307,6 +307,41 @@ impl IRType {
         IRType::get(IRTypeKind::U8)
     }
 
+    /// Returns an `u9` type.
+    pub fn u9() -> IRType {
+        IRType::get(IRTypeKind::U9)
+    }
+
+    /// Returns an `u10` type.
+    pub fn u10() -> IRType {
+        IRType::get(IRTypeKind::U10)
+    }
+
+    /// Returns an `u11` type.
+    pub fn u11() -> IRType {
+        IRType::get(IRTypeKind::U11)
+    }
+
+    /// Returns an `u12` type.
+    pub fn u12() -> IRType {
+        IRType::get(IRTypeKind::U12)
+    }
+
+    /// Returns an `u13` type.
+    pub fn u13() -> IRType {
+        IRType::get(IRTypeKind::U13)
+    }
+
+    /// Returns an `u14` type.
+    pub fn u14() -> IRType {
+        IRType::get(IRTypeKind::U14)
+    }
+
+    /// Returns an `u15` type.
+    pub fn u15() -> IRType {
+        IRType::get(IRTypeKind::U15)
+    }
+
     /// Returns an `u16` type.
     pub fn u16() -> IRType {
         IRType::get(IRTypeKind::U16)
@@ -497,10 +532,6 @@ impl cmp::PartialEq for IRType {
         }
         true
     }
-
-    // fn eq(&self, other: &IRType) -> bool {
-    //     Rc::ptr_eq(&self.0, &other.0)
-    // }
 }
 
 impl fmt::Display for IRType {
