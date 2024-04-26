@@ -35,6 +35,17 @@ impl IRValue {
         IRValue { ty, val }
     }
 
+    /// change new IRValue to Self
+    pub fn change(&mut self, value: IRValue) {
+        *self = value;
+    }
+
+    /// just change value vec, must size equal
+    pub fn set_val(&mut self, value: IRValue) {
+        assert_eq!(value.size(), self.size());
+        self.val = value.val;
+    }
+
     // ==================== IRValue.ctl ==================== //
 
     /// Get the kind of the IRValue
@@ -116,19 +127,54 @@ impl IRValue {
                 }
             }
         }
-
-        // for i in 0..num {
-        //     if big_endian {
-        //         bin.push_str(&format!("{:08b}", self.get_byte(index + num - 1 - i as usize)));
-        //     } else {
-        //         bin.push_str(&format!("{:08b}", self.get_byte(index + i as usize)));
-        //     }
-        //     if i < num - 1 {
-        //         bin.push(' ');
-        //     }
-        // }
         bin
     }
+
+    /// Scale version bin
+    pub fn bin_scale(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
+        let mut num = byte_num as usize;
+        // Check index and byte_num
+        if byte_num < 0 {
+            num = self.size() - index;
+        }
+        // Get index byte bin
+        let mut bin = String::new();
+        if big_endian {
+            bin.push_str("0B");
+            for i in 0..num {
+                if num * 8 > self.scale_sum() {
+                    let addition = self.scale_sum() % 8;
+                    bin.push_str(&format!("{:08b}", 
+                        self.get_byte(index + num - 1 - i as usize))
+                        .chars().rev().take(addition).collect::<String>().chars().rev().collect::<String>()
+                    );
+                    break;
+                }
+                bin.push_str(&format!("{:08b}", self.get_byte(index + num - 1 - i as usize)));
+                if i < num - 1 {
+                    bin.push(' ');
+                }
+            }
+        } else {
+            bin.push_str("0b");
+            for i in 0..num {
+                if num * 8 > self.scale_sum() {
+                    let addition = self.scale_sum() % 8;
+                    bin.push_str(&format!("{:08b}", 
+                        self.get_byte(index + num - 1 - i as usize))
+                        .chars().rev().take(addition).collect::<String>().chars().rev().collect::<String>()
+                    );
+                    break;
+                }
+                bin.push_str(&format!("{:08b}", self.get_byte(index + i as usize)));
+                if i < num - 1 {
+                    bin.push(' ');
+                }
+            }
+        }
+        bin
+    }
+
     /// Check IRValue size bound
     pub fn bound(&self, index: usize, scale : usize) {
         // index + size of T should <= self.size()
