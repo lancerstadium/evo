@@ -60,7 +60,7 @@ impl IRValue {
     /// Get the bits hex string of the IRValue: Default little-endian
     /// - `index`: start index
     /// - `byte_num`: number of bytes you want, -1 means all
-    pub fn hex(&self, index: usize, byte_num: i32) -> String {
+    pub fn hex(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
         let mut num = byte_num as usize;
         // Check index and byte_num
         if byte_num < 0 {
@@ -68,10 +68,21 @@ impl IRValue {
         }
         // Get index byte hexs
         let mut hexs = String::new();
-        for i in 0..num {
-            hexs.push_str(&format!("{:02X}", self.get_byte(index + i as usize)));
-            if i < num - 1 {
-                hexs.push(' ');
+        if big_endian {
+            hexs.push_str("0X");
+            for i in 0..num {
+                hexs.push_str(&format!("{:02X}", self.get_byte(index + num - 1 - i as usize)));
+                if i < num - 1 {
+                    hexs.push(' ');
+                }
+            }
+        } else {
+            hexs.push_str("0x");
+            for i in 0..num {
+                hexs.push_str(&format!("{:02x}", self.get_byte(index + i as usize)));
+                if i < num - 1 {
+                    hexs.push(' ');
+                }
             }
         }
         hexs
@@ -88,16 +99,34 @@ impl IRValue {
         }
         // Get index byte bin
         let mut bin = String::new();
-        for i in 0..num {
-            if big_endian {
+        if big_endian {
+            bin.push_str("0B");
+            for i in 0..num {
                 bin.push_str(&format!("{:08b}", self.get_byte(index + num - 1 - i as usize)));
-            } else {
-                bin.push_str(&format!("{:08b}", self.get_byte(index + i as usize)));
+                if i < num - 1 {
+                    bin.push(' ');
+                }
             }
-            if i < num - 1 {
-                bin.push(' ');
+        } else {
+            bin.push_str("0b");
+            for i in 0..num {
+                bin.push_str(&format!("{:08b}", self.get_byte(index + i as usize)));
+                if i < num - 1 {
+                    bin.push(' ');
+                }
             }
         }
+
+        // for i in 0..num {
+        //     if big_endian {
+        //         bin.push_str(&format!("{:08b}", self.get_byte(index + num - 1 - i as usize)));
+        //     } else {
+        //         bin.push_str(&format!("{:08b}", self.get_byte(index + i as usize)));
+        //     }
+        //     if i < num - 1 {
+        //         bin.push(' ');
+        //     }
+        // }
         bin
     }
     /// Check IRValue size bound
@@ -129,6 +158,95 @@ impl IRValue {
     pub fn get_byte(&self, index: usize) -> u8 {
         let buffer = self.val.borrow();
         buffer[index]
+    }
+
+    /// Get value by ubyte
+    pub fn get_ubyte(&self, index: usize, offset: usize, scale: usize) -> u8 {
+        let offset_bytes = offset / 8;
+        let offset_bits = offset % 8;
+        let mut scale = scale;
+        // scale must <= 8
+        if scale > 8 {
+            scale = 8;
+            log_error!("Scale must <= 8");
+        }
+        self.bound(index + offset_bytes, scale);
+        let buffer = self.val.borrow();
+        let res: u8;
+        let flag = (offset_bits + scale) as i32 - 8;     // if > 0, have overflow
+        // Offset bits and load value to res
+        if offset_bits == 0 && scale == 8 {
+            // nomal value `10001010`, offset `0`, scale `8` -> `10001010`
+            res = buffer[index + offset_bytes] as u8;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 1 {
+            // 0. get u16
+            let buf_val : u16 = u16::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1]]);
+            // 1. get mask
+            let mask: u16 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u8;
+        } else {
+            // 0. get u8
+            let buf_val : u8 = buffer[index + offset_bytes];
+            // 1. get mask
+            let mask: u8 = (1 << scale) - 1;
+            // 2. get value
+            res = (buf_val >> offset_bits) & mask;
+        }
+        res as u8
+    }
+
+    /// Get value by ubyte (u16 version)
+    pub fn get_ubytes(&self, index: usize, offset: usize, scale: usize) -> u16 {
+        let offset_bytes = offset / 8;
+        let offset_bits = offset % 8;
+        let mut scale = scale;
+        // scale must <= 16
+        if scale > 16 {
+            scale = 16;
+            log_error!("Scale must <= 16");
+        }
+        self.bound(index + offset_bytes, scale);
+        if scale <= 8 {
+            return self.get_ubyte(index, offset, scale) as u16
+        }
+        let buffer = self.val.borrow();
+        let res: u16;
+        let flag = (offset_bits + scale) as i32 - 8;     // if > 0, have overflow
+        // Offset bits and load value to res
+        if offset_bits == 0 && scale == 16 {
+            // nomal value `10001010`, offset `0`, scale `16` -> `10001010`
+            res = u16::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1]]);
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 3 {
+            // 0. get u32
+            let buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3]]);
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u16;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 2 {
+            // 0. get u32
+            let buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], 0]);
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u16;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 1 {
+            // 0. get u16
+            let buf_val : u16 = u16::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1]]);
+            // 1. get mask
+            let mask: u16 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u16;
+        } else {
+            // 0. get u8
+            let buf_val : u8 = buffer[index + offset_bytes];
+            // 1. get mask
+            let mask: u8 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u16;
+        }
+        res
     }
 
     /// Get value by 8-bit
@@ -407,6 +525,35 @@ impl IRValue {
         }
     }
 
+    /// Set hexs from string
+    pub fn set_hexs(&mut self, index: usize, value: &str, change_length: bool, big_endian: bool) {
+        let mut value = value.to_string();
+        if value.len() % 2 != 0 {
+            if big_endian {
+                value.insert(0, '0');
+            } else {
+                value.push_str("0");
+            }
+        }
+        // Set length
+        if change_length {
+            self.set_kind(IRTypeKind::Array(IRType::u8(), (value.len() as f64 / 2.0).ceil() as usize));
+        }
+        // parser hexs from string like "eaff0000": evary time deal with 2 words
+        // every two words be a u8 byte
+        for i in 0..value.len() / 2 {
+            // get two words
+            let hexs :&str;
+            if big_endian {
+                hexs = &value[(value.len() - 2 - i * 2)..(value.len() - 1 - i * 2)];
+            } else {
+                hexs = &value[i * 2..i * 2 + 2];
+            }
+            // deal with two words
+            self.set_8bit(index + i, u8::from_str_radix(hexs, 16).unwrap());
+        }
+    }
+
     /// Set value by unsigned byte.
     /// 
     /// `offset`: bit offset, from bytes' right side. 
@@ -428,6 +575,10 @@ impl IRValue {
             log_error!("Scale must <= 8");
         }
         self.bound(index + offset_bytes, scale);
+        // if log(value + 1) > scale, warning
+        if value as u16 > ((1 as u16) << scale) - 1 {
+            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+        }
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
         let flag = (offset_bits + scale) as i32 - 8;     // if > 0, have overflow
@@ -474,6 +625,10 @@ impl IRValue {
             self.set_ubyte(index, offset, scale, (value & 0xFF) as u8);
             return
         }
+        // If log(value + 1) > scale, warning
+        if value as u32 > ((1 as u32) << scale) - 1 {
+            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+        }
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
         let flag = (offset_bits + scale) as i32 - 16;     // if > 0, have overflow
@@ -482,6 +637,22 @@ impl IRValue {
             // nomal value `10001010`, offset `0`, scale `16` -> `10001010`
             buffer[index + offset_bytes] = bytes[0];
             buffer[index + offset_bytes + 1] = bytes[1];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 3 {
+            // 0. get u32
+            let mut buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3]]);
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
         } else if flag > 0 && buffer.len() > index + offset_bytes + 2 {
             // 0. get u32
             let mut buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], 0]);
@@ -512,7 +683,6 @@ impl IRValue {
             buffer[index + offset_bytes] = buf_bytes[0];
             buffer[index + offset_bytes + 1] = buf_bytes[1];
         } else {
-            println!("flag: {}", flag);
             // 0. get u16
             let mut buf_val : u16 = u16::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1]]);
             let bytes_val : u16 = value as u16;
@@ -808,8 +978,8 @@ impl IRValue {
 
     /// Check str if the value is hex
     pub fn is_hex(str : &str) -> bool {
-        // begin with `0x`
-        str.starts_with("0x")
+        // begin with `0x` or `0X`
+        str.starts_with("0x") || str.starts_with("0X")
     }
 
     /// Check str if the value is bin
@@ -821,8 +991,8 @@ impl IRValue {
 
     // ==================== IRValue.from =================== //
 
-    /// bits fliter: `0b00001010 00001010` -> `0000101000001010` and `is_big_endian`
-    pub fn bits_fliter(value: &str) -> (String, bool) {
+    /// bits filter: `0b00001010 00001010` -> `0000101000001010` and `is_big_endian`
+    pub fn bits_filter(value: &str) -> (String, bool) {
         let is_big_endian = value.starts_with("0B");
         let value = value[2..].to_string();
         let value = value.trim();
@@ -843,13 +1013,39 @@ impl IRValue {
 
     /// Get bits from String: `0b00001010 00001010`
     pub fn bits(value: &str) -> IRValue {
-        let (new_val, is_big_endian) = Self::bits_fliter(value);
+        let (new_val, is_big_endian) = Self::bits_filter(value);
         // Get val size: Upper bound
         let val_size = (new_val.len() as f64 / 8.0).ceil() as usize;
         let mut val = IRValue::new(IRType::array(IRType::u8(), val_size));
 
         // Set value
         val.set_bits(0, &new_val, true, is_big_endian);
+        val
+    }
+
+    /// hex filter: `0xea ff 00 00` -> `eaff0000`
+    pub fn hex_filter(value: &str) -> (String, bool) {
+        let is_big_endian = value.starts_with("0X");
+        let value = value[2..].to_string();
+        let value = value.trim();
+        let mut new_val = String::new();
+        for i in 0..value.len() {
+            // deal with hex value like `ea` `ff` `00` `00`
+            // if is hex num
+            if value.chars().nth(i).unwrap().is_ascii_hexdigit() {
+                new_val += value.chars().nth(i).unwrap().to_string().as_str();
+            } else {
+                continue;
+            }
+        }
+        (new_val, is_big_endian)
+    }
+
+    /// Get hex from String: `0xea ff 00 00`
+    pub fn hexs(value: &str) -> IRValue {
+        let (new_val, is_big_endian) = Self::hex_filter(value);
+        let mut val = IRValue::new(IRType::array(IRType::u8(), new_val.len() / 2));
+        val.set_hexs(0, &new_val, true, is_big_endian);
         val
     }
 
@@ -920,6 +1116,41 @@ impl IRValue {
     pub fn u10(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u10());
         val.set_ubytes(0, 0, 10, value);
+        val
+    }
+
+    /// Get value from u16 -> u11
+    pub fn u11(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u11());
+        val.set_ubytes(0, 0, 11, value);
+        val
+    }
+
+    /// Get value from u16 -> u12
+    pub fn u12(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u12());
+        val.set_ubytes(0, 0, 12, value);
+        val
+    }
+
+    /// Get value from u16 -> u13
+    pub fn u13(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u13());
+        val.set_ubytes(0, 0, 13, value);
+        val
+    }
+
+    /// Get value from u16 -> u14
+    pub fn u14(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u14());
+        val.set_ubytes(0, 0, 14, value);
+        val
+    }
+
+    /// Get value from u16 -> u15
+    pub fn u15(value: u16) -> IRValue {
+        let mut val = IRValue::new(IRType::u15());
+        val.set_ubytes(0, 0, 15, value);
         val
     }
 
@@ -1053,11 +1284,11 @@ impl IRValue {
             let value = value.trim();
             return IRValue::str(&value);
         } else if IRValue::is_hex(value) { // parse as hex
-            let value = value[2..].to_string();
-            let value = value.trim();
-            return IRValue::u8(value.parse::<u8>().unwrap());
+            return IRValue::hexs(value);
         } else if IRValue::is_bin(value) { // parse as bin
             return IRValue::bits(value);
+        } else if IRValue::is_hex(value) { // parse as hex
+            return IRValue::hexs(value);
         } else {
             log_warning!("Can't parse {} as IRValue", value);
             IRValue::i32(0)
@@ -1077,7 +1308,21 @@ impl Display for IRValue {
     /// Display the IRValue by IRType
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind() {
+            IRTypeKind::U1 => write!(f, "{}", self.get_ubyte(0, 0, 1)),
+            IRTypeKind::U2 => write!(f, "{}", self.get_ubyte(0, 0, 2)),
+            IRTypeKind::U3 => write!(f, "{}", self.get_ubyte(0, 0, 3)),
+            IRTypeKind::U4 => write!(f, "{}", self.get_ubyte(0, 0, 4)),
+            IRTypeKind::U5 => write!(f, "{}", self.get_ubyte(0, 0, 5)),
+            IRTypeKind::U6 => write!(f, "{}", self.get_ubyte(0, 0, 6)),
+            IRTypeKind::U7 => write!(f, "{}", self.get_ubyte(0, 0, 7)),
             IRTypeKind::U8 => write!(f, "{}", self.get_u8(0)),
+            IRTypeKind::U9 => write!(f, "{}", self.get_ubytes(0, 0, 9)),
+            IRTypeKind::U10 => write!(f, "{}", self.get_ubytes(0, 0, 10)),
+            IRTypeKind::U11 => write!(f, "{}", self.get_ubytes(0, 0, 11)),
+            IRTypeKind::U12 => write!(f, "{}", self.get_ubytes(0, 0, 12)),
+            IRTypeKind::U13 => write!(f, "{}", self.get_ubytes(0, 0, 13)),
+            IRTypeKind::U14 => write!(f, "{}", self.get_ubytes(0, 0, 14)),
+            IRTypeKind::U15 => write!(f, "{}", self.get_ubytes(0, 0, 15)),
             IRTypeKind::U16 => write!(f, "{}", self.get_u16(0)),
             IRTypeKind::U32 => write!(f, "{}", self.get_u32(0)),
             IRTypeKind::U64 => write!(f, "{}", self.get_u64(0)),
@@ -1087,7 +1332,7 @@ impl Display for IRValue {
             IRTypeKind::I64 => write!(f, "{}", self.get_i64(0)),
             IRTypeKind::F32 => write!(f, "{}", self.get_f32(0)),
             IRTypeKind::F64 => write!(f, "{}", self.get_f64(0)),
-            _ => write!(f, "{}", self.hex(0, -1)),
+            _ => write!(f, "{}", self.hex(0, -1, false)),
         }
     }
 }
@@ -1134,29 +1379,29 @@ mod val_tests {
     fn val_print() {
         let mut val = IRValue::new(IRType::u8());
         val.set_u8(0, 9 as u8);
-        assert_eq!(val.hex(0, -1), "09");
+        assert_eq!(val.hex(0, -1, false), "0x09");
 
         // Change type
         val.set_i64(0, 255 as i64);
-        assert_eq!(val.hex(0, -1), "FF 00 00 00 00 00 00 00");
+        assert_eq!(val.hex(0, -1, false), "0xff 00 00 00 00 00 00 00");
         assert_eq!(val.kind().to_string(), IRTypeKind::I64.to_string());
         assert_eq!(val.ty, IRType::i64());
 
         // Only Write in data, don't change type
         val.set_8bit(0, 64 as u8);
-        assert_eq!(val.hex(0, -1), "40 00 00 00 00 00 00 00");
+        assert_eq!(val.hex(0, -1, false), "0x40 00 00 00 00 00 00 00");
         assert_eq!(val.to_string(), "64");
 
         // Check binary
         let mut val = IRValue::from_string("1296");
         assert_eq!(val.get_i32(0), 1296 as i32);
-        assert_eq!(val.bin(0, -1, false), "00010000 00000101 00000000 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b00010000 00000101 00000000 00000000");
         val.set_bit(0, 3, 18, "1");
-        assert_eq!(val.bin(0, -1, false), "11111000 11111111 00000111 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b11111000 11111111 00000111 00000000");
         val.set_bit(1, 0, 7, "~");
-        assert_eq!(val.bin(0, -1, false), "11111000 00000000 00000111 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b11111000 00000000 00000111 00000000");
         val.set_byte(2, 9, "^");    // need to enhance this
-        assert_eq!(val.bin(0, -1, false), "11111000 00000000 00001110 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b11111000 00000000 00001110 00000000");
 
         // `set_type` by array
         val.set_type(IRType::array(IRType::u32(), 3));
@@ -1203,15 +1448,21 @@ mod val_tests {
         assert_eq!(val.get_str(1), "ello");
 
         let val = IRValue::from_string("0b00001010 11001010 1111");
-        assert_eq!(val.bin(0, -1, false), "00001010 11001010 11110000");
+        assert_eq!(val.bin(0, -1, false), "0b00001010 11001010 11110000");
         let mut val1 = IRValue::from_string("0b00010000 00000101 00000000 00000000");
         let val2 = IRValue::from_string("0B00010000 00000101 00000000 00000000");
-        assert_eq!(val1.bin(0, -1, true), val2.bin(0, -1, false));
-        assert_eq!(val1.bin(0, -1, false), val2.bin(0, -1, true));
+        assert_eq!(val1.bin(0, -1, true).replace("0B", ""), val2.bin(0, -1, false).replace("0b", ""));
+        assert_eq!(val1.bin(0, -1, false).replace("0b", ""), val2.bin(0, -1, true).replace("0B", ""));
 
-        assert_eq!(val1.bin(0, -1, false), "00010000 00000101 00000000 00000000");
+        assert_eq!(val1.bin(0, -1, false), "0b00010000 00000101 00000000 00000000");
         val1.set_bits(1, "10..1.10 ...111.0", false, false);
-        assert_eq!(val1.bin(0, -1, false), "00010000 10001110 00011100 00000000");
+        assert_eq!(val1.bin(0, -1, false), "0b00010000 10001110 00011100 00000000");
+
+        let mut val = IRValue::from_string("0x12345678");
+        assert_eq!(val.hex(0, -1, false), "0x12 34 56 78");
+        val.set_byte(0, 32, "c");
+        assert_eq!(val.hex(0, -1, false), "0x20 34 56 78");
+        
     }
 
 
@@ -1240,19 +1491,28 @@ mod val_tests {
 
         let mut val = IRValue::u32(0);
         val.set_ubyte(0, 0, 5, 3);
-        assert_eq!(val.bin(0, -1, false), "00000011 00000000 00000000 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b00000011 00000000 00000000 00000000");
 
         let mut val = IRValue::u32(0);
         val.set_ubyte(0, 2, 8, 255);
-        assert_eq!(val.bin(0, -1, false), "11111100 00000011 00000000 00000000");
+        assert_eq!(val.bin(0, -1, false), "0b11111100 00000011 00000000 00000000");
 
-        let mut val = IRValue::u7(255);
-        val.set_ubyte(0, 5, 3, 13);
-        assert_eq!(val.bin(0, -1, false), "10111111");
+        let mut val = IRValue::u7(127);
+        val.set_ubyte(0, 5, 3, 5);
+        assert_eq!(val.bin(0, -1, false), "0b10111111");
+        val.set_ubyte(0, 1, 7, 0);
+        assert_eq!(val.bin(0, -1, false), "0b00000001");
+        val.set_ubyte(0, 2, 5, 31);
+        assert_eq!(val.bin(0, -1, false), "0b01111101");
 
         let mut val = IRValue::u32(0);
-        val.set_ubytes(0, 15, 12, 279);
-        assert_eq!(val.bin(0, -1, false), "00000000 10000000 10001011 00000000");
+        val.set_ubytes(0, 15, 16, 8253);
+        assert_eq!(val.bin(0, -1, true), "0B00010000 00011110 10000000 00000000");
+        assert_eq!(val.get_ubytes(0, 15, 16), 8253);
+
+        let val = IRValue::u12(232);
+        assert_eq!(val.hex(0, -1, false), "0xe8 00");
+
     }
 
 }

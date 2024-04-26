@@ -69,12 +69,12 @@ impl IROperandKind {
     /// Get hex of the operand
     pub fn hex(&self) -> String {
         match self {
-            IROperandKind::Imm(val) => val.hex(0, -1),
+            IROperandKind::Imm(val) => val.hex(0, -1, false),
             // Get Reg value's hex
-            IROperandKind::Reg(_, val) => val.hex(0, -1),
-            IROperandKind::Mem(_, _, _, _) => self.val().hex(0, -1),
+            IROperandKind::Reg(_, val) => val.hex(0, -1, false),
+            IROperandKind::Mem(_, _, _, _) => self.val().hex(0, -1, false),
             // Get Label ptr's hex
-            IROperandKind::Label(_, val) => val.hex(0, -1),
+            IROperandKind::Label(_, val) => val.hex(0, -1, false),
         }
     }
 
