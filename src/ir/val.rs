@@ -545,7 +545,7 @@ impl IRValue {
             // get two words
             let hexs :&str;
             if big_endian {
-                hexs = &value[(value.len() - 2 - i * 2)..(value.len() - 1 - i * 2)];
+                hexs = &value[(value.len() - 2 - i * 2)..(value.len() - i * 2)];
             } else {
                 hexs = &value[i * 2..i * 2 + 2];
             }
@@ -1462,6 +1462,9 @@ mod val_tests {
         assert_eq!(val.hex(0, -1, false), "0x12 34 56 78");
         val.set_byte(0, 32, "c");
         assert_eq!(val.hex(0, -1, false), "0x20 34 56 78");
+
+        let val = IRValue::from_string("0XC40CFF00");
+        assert_eq!(val.hex(0, -1, true), "0XC4 0C FF 00");
         
     }
 

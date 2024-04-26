@@ -16,7 +16,7 @@ use crate::ir::val::IRValue;
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
 
-use super::ty::IRTypeKind;
+use super::ty::{IRType, IRTypeKind};
 
 
 
@@ -131,14 +131,6 @@ impl IROperandKind {
     }
 
 
-    /// Set Reg value
-    pub fn set_reg(&mut self, val: IRValue) {
-        match self {
-            IROperandKind::Reg(_, _) => *self = IROperandKind::Reg(self.name(), val),
-            _ => *self = IROperandKind::Reg("<Und>", val),
-        }
-    }
-
 }
 
 
@@ -158,6 +150,9 @@ impl fmt::Display for IROperandKind {
 pub struct IROperand(Rc<RefCell<IROperandKind>>);
 
 impl IROperand {
+
+
+    // ================== IROperand.new ==================== //
 
     /// New IROperand Reg
     pub fn reg(name: &'static str, val: IRValue) -> Self {
@@ -202,6 +197,11 @@ impl IROperand {
 
     // ================== IROperand.get ==================== //
 
+    /// Get Operand kind
+    pub fn kind(&self) -> IROperandKind {
+        self.0.borrow_mut().clone()
+    }
+
     /// Get Operand value
     pub fn val(&self) -> IRValue {
         self.0.borrow().val()
@@ -227,8 +227,26 @@ impl IROperand {
 
     /// Set Operand value
     pub fn set_reg(&mut self, val: IRValue) {
-        self.0.borrow_mut().set_reg(val);
+        let mut kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            IROperandKind::Reg(_, _) => kind = IROperandKind::Reg(self.name(), val),
+            _ => kind = IROperandKind::Reg("<Und>", val),
+        }
+        self.0.replace(kind);
     }
+
+    /// Set Imm value
+    pub fn set_imm(&mut self, val: IRValue) {
+        let mut kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            IROperandKind::Imm(_) => kind = IROperandKind::Imm(val),
+            _ => kind = IROperandKind::Imm(IRValue::u32(0)),
+        }
+        self.0.replace(kind);
+    }
+
+
+    // ================== IROperand.str ==================== //
 
     /// To String like: `val : kind`
     pub fn to_string(&self) -> String {
@@ -585,25 +603,23 @@ pub trait ArchInfo {
 
     /// Arch name: like "evo"
     const NAME: &'static str;
-
     /// Number of bytes in a byte: *1*, 2, 4
     const BYTE_SIZE: usize;
-
     /// Number of bytes in a addr(ptr/reg.size: 0x00 ~ 2^ADDR_SIZE): 8, 16, *32*, 64
     const ADDR_SIZE: usize;
-
     /// Number of bytes in a word(interger): 8, 16, *32*, 64
     const WORD_SIZE: usize;
-
     /// Number of bytes in a (float): *32*, 64
     const FLOAT_SIZE: usize;
-
+    /// Base of Addr: 0x04000000
+    const BASE_ADDR: usize;
+    /// Mem size: default 64MB = 4 * 1024 * 1024
+    const MEM_SIZE: usize;
     /// Number of Registers: 8, 16, *32*, 64
     const REG_NUM: usize;
 
     /// Get Arch string
     fn to_string () -> String;
-
     /// Get Info String
     fn info() -> String;
 
@@ -611,19 +627,14 @@ pub trait ArchInfo {
 
     /// Get Name
     fn name() -> &'static str;
-
     /// Register Map Init
     fn reg_init(&mut self);
-
     /// Reg Info: `RegName: RegValue` String
     fn reg_info(&self) -> String;
-
     /// Get Register
-    fn get_reg_val(&self, name: &'static str) -> IRValue;
-
+    fn get_reg_idx(&self, name: &'static str) -> IRValue;
     /// Set Register
-    fn set_reg_val(&mut self, name: &'static str, value: IRValue);
-
+    fn set_reg_idx(&mut self, name: &'static str, value: IRValue);
     /// Get refence of Register
     fn reg(&mut self, name: &'static str) -> RefCell<IROperand>;
 
@@ -632,94 +643,137 @@ pub trait ArchInfo {
 
     /// Opcode Map Init
     fn insn_init(&mut self);
-
     /// Opcode Info: `OpcodeName OpcodeValue, OpcodeValue ...` String
     fn insn_info(&self) -> String;
 
+
+    // ===================== Memory ===================== //
+
+    /// Mem Init
+    fn mem_init(&mut self);
+    /// Check Mem Bound
+    fn mem_bound(&self, addr: IRValue) -> bool;
+
 }
 
 
 
 
 // ============================================================================== //
-//                              op::IRArch
+//                              op::IRContext
 // ============================================================================== //
 
 
-/// `IRArch`: Config of the `evo-ir` architecture
+/// `IRContext`: Context of the `evo-ir` architecture
 #[derive(Debug, Clone, PartialEq)]
-pub struct IRArch {
-    /// `reg_map`: Register Map
-    reg_map: RefCell<Vec<RefCell<IROperand>>>,
-    /// `opcode_map`: Opcode Map
-    insn_map: RefCell<Vec<IRInsn>>
+pub struct IRContext {
+    /// `reg_map`: Register Map (Shared)
+    reg_map: Rc<RefCell<Vec<RefCell<IROperand>>>>,
+    /// `opcode_map`: Opcode Map (Shared)
+    insn_map: Rc<RefCell<Vec<IRInsn>>>,
 
+    /// `reg_file`: Register File, Store register value (Local)
+    reg_file: RefCell<Vec<IRValue>>,
+    /// `mem_space`: Run Memory, Store running time value (Local)
+    mem_space: RefCell<Vec<IRValue>>,
 }
 
-impl IRArch {
+impl IRContext {
 
-    /// Create new `IRArch`
-    pub fn new() -> Self {
+    /// Init new `IRContext`
+    pub fn init() -> Self {
         let mut arch = Self {
-            reg_map: RefCell::new(Vec::new()),
-            insn_map: RefCell::new(Vec::new()),
+            reg_map: Rc::new(RefCell::new(Vec::new())),
+            insn_map: Rc::new(RefCell::new(Vec::new())),
+            reg_file: RefCell::new(Vec::new()),
+            mem_space: RefCell::new(Vec::new()),
         };
         arch.reg_init();
+        arch.insn_init();
+        arch.mem_init();
         arch
+    }
+
+
+    /// Get mem size
+    pub fn mem_size(&self) -> usize {
+        self.mem_space.borrow().len()
+    }
+
+    /// Get mem scale
+    pub fn mem_scale(&self) -> usize {
+        self.mem_space.borrow().iter().map(|x| x.scale_sum()).sum()
     }
     
 }
 
 
-impl Default for IRArch {
-    /// Set default function for `IRArch`.
+impl Default for IRContext {
+    /// Set default function for `IRContext`.
     fn default() -> Self {
-        Self::new()
+        Self::init()
     }
 }
 
 
-impl ArchInfo for IRArch {
+impl ArchInfo for IRContext {
+
+
+    // =================== IRCtx.const ===================== //
 
     // 1. Set Constants
-    const NAME: &'static str = "evo";
+    const NAME: &'static str = "evo32";
     const BYTE_SIZE: usize = 1;
     const ADDR_SIZE: usize = 32;
     const WORD_SIZE: usize = 32;
     const FLOAT_SIZE: usize = 32;
+    const BASE_ADDR: usize = 0x04000000;
+    const MEM_SIZE: usize = 4 * 1024 * 1024;
     const REG_NUM: usize = 32;
+
+
+    // =================== IRCtx.info ====================== //
 
     /// 2. Get Arch string
     fn to_string () -> String {
-        // Append '-' with the address size
-        format!("{}-{}", Self::NAME, Self::ADDR_SIZE)
+        format!("{}", Self::NAME)
     }
 
     /// 3. Get ArchInfo string
     fn info() -> String {
-        format!("[{}]:\n - byte: {}\n - addr: {}\n - word: {}\n - float: {}\n - reg: {}", Self::to_string(), Self::BYTE_SIZE, Self::ADDR_SIZE, Self::WORD_SIZE, Self::FLOAT_SIZE, Self::REG_NUM)
+        format!("Arch Info: \n- Name: {}\n- Byte Size: {}\n- Addr Size: {}\n- Word Size: {}\n- Float Size: {}\n- Base Addr: 0x{:x}\n- Mem Size: {}\n- Reg Num: {}", 
+            Self::NAME, Self::BYTE_SIZE, Self::ADDR_SIZE, Self::WORD_SIZE, Self::FLOAT_SIZE, Self::BASE_ADDR, Self::MEM_SIZE, Self::REG_NUM)
     }
-
 
     /// 3. Get Name
     fn name() -> &'static str {
         Self::NAME
     }
 
+
+    // =================== IRCtx.reg ======================= //
+
     /// 4. Register Map Init
     fn reg_init(&mut self) {
-        self.reg_map = RefCell::new(vec![
-            RefCell::new(IROperand::reg("eax", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("ebx", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("ecx", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("edx", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("esi", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("edi", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("esp", IRValue::u32(0))),
-            RefCell::new(IROperand::reg("ebp", IRValue::u32(0))),
-        ]);
-        if Self::ADDR_SIZE != self.reg_map.borrow().len() {
-            log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::ADDR_SIZE);
+        // 1. Init reg name and index
+        self.reg_map = Rc::new(RefCell::new(vec![
+            RefCell::new(IROperand::reg("x0", IRValue::u5(0))),
+            RefCell::new(IROperand::reg("x1", IRValue::u5(1))),
+            RefCell::new(IROperand::reg("x2", IRValue::u5(2))),
+            RefCell::new(IROperand::reg("x3", IRValue::u5(3))),
+            RefCell::new(IROperand::reg("x4", IRValue::u5(4))),
+            RefCell::new(IROperand::reg("x5", IRValue::u5(5))),
+            RefCell::new(IROperand::reg("x6", IRValue::u5(6))),
+            RefCell::new(IROperand::reg("x7", IRValue::u5(7))),
+            RefCell::new(IROperand::reg("x8", IRValue::u5(8))),
+        ]));
+        // 2. Init reg file value: [0, 0, ...] * REG_NUM (u32)
+        for _ in 0..Self::REG_NUM {
+            self.reg_file.borrow_mut().push(IRValue::u32(0));
+        }
+        // 3. Check register map num == REG_NUM
+        if Self::REG_NUM != self.reg_map.borrow().len() {
+            log_warning!("Register map not match with address size: {} != {}", self.reg_map.borrow().len() , Self::REG_NUM);
         }
     }
 
@@ -733,12 +787,12 @@ impl ArchInfo for IRArch {
         info
     }
 
-    /// 6. Get Register value
-    fn get_reg_val(&self, name: &'static str) -> IRValue {
+    /// 6. Get Register index
+    fn get_reg_idx(&self, name: &'static str) -> IRValue {
         self.reg_map.borrow().iter().find(|reg| reg.borrow().name() == name).unwrap().borrow().val()
     }
-    /// 7. Set Register value
-    fn set_reg_val(&mut self, name: &'static str, value: IRValue) {
+    /// 7. Set Register index
+    fn set_reg_idx(&mut self, name: &'static str, value: IRValue) {
         // Set value according to name and value
         self.reg_map.borrow().iter().find(|reg| reg.borrow().name() == name).unwrap().borrow_mut().set_reg(value);
     }
@@ -749,10 +803,11 @@ impl ArchInfo for IRArch {
     }
 
     
+    // =================== IRCtx.insn ====================== //
 
     /// 1. Insn temp Map Init
     fn insn_init(&mut self) {
-        self.insn_map = RefCell::new(vec![
+        self.insn_map = Rc::new(RefCell::new(vec![
             // RISCV Instruction Format:            32|31  25|24 20|19 15|  |11  7|6    0|
             // Type: R         [rd, rs1, rs2]         |  f7  | rs2 | rs1 |f3|  rd |  op  |
             IRInsn::def("add" , vec![1, 1, 1], "R", "0b0000000. ........ .000.... .0110011"),
@@ -766,7 +821,7 @@ impl ArchInfo for IRArch {
             IRInsn::def("sltu", vec![1, 1, 1], "R", "0b0000000. ........ .011.... .0110011"),
             // Type: I         [rd, rs1, imm]         |    imm     | rs1 |f3|  rd |  op  |
             IRInsn::def("addi", vec![1, 1, 0], "I", "0b0000000. ........ .000.... .0010011"),
-        ]);
+        ]));
     }
     
     /// 2. Opcode Info
@@ -774,10 +829,30 @@ impl ArchInfo for IRArch {
         let mut info = String::new();
         info.push_str(&format!("Instructions (Num = {}):\n", self.insn_map.borrow().len()));
         for insn in self.insn_map.borrow().iter() {
-            info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.bin(0, -1, false)));
+            info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }
+
+
+    // =================== IRCtx.mem ======================= //
+
+    /// 1. Mem temp Map Init
+    fn mem_init(&mut self) {
+        // Mem Space Init: 1 Mem Space
+        self.mem_space.borrow_mut().push(IRValue::new(IRType::array(IRType::u8(), Self::MEM_SIZE / 8)));
+    }
+
+    /// 2. Mem bound check (addr: u32)
+    fn mem_bound(&self, addr: IRValue) -> bool {
+        let index = addr.get_u32(0) as usize;
+        let is_valid = index >= Self::BASE_ADDR && index < Self::BASE_ADDR + Self::MEM_SIZE;
+        if !is_valid {
+            log_error!("Memory access out of bounds: 0x{:x}", index);
+        }
+        is_valid
+    }
+
 }
 
 
@@ -795,35 +870,45 @@ mod op_test {
 
     use super::*;
 
-    #[test]
-    fn arch_reg() {
-        println!("{}", IRArch::info());
-        let mut arch = IRArch::new();
-        
-        arch.set_reg_val("ebx", IRValue::u32(9));
-        arch.set_reg_val("eax", IRValue::u32(8));
-        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(9));
-        println!("{}", arch.reg_info());
-
-
-        arch.set_reg_val("ebx", IRValue::u32(13));
-        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(13));
-        arch.reg("ebx").borrow_mut().set_reg(IRValue::u32(9));
-        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(9));
-        arch.set_reg_val("ebx", IRValue::u32(13));
-        assert_eq!(arch.get_reg_val("ebx"), IRValue::u32(13));
-
-        let arch2 = IRArch::new();
-        // Compare Registers
-        assert_ne!(arch, arch2);
-    }
 
     #[test]
-    fn arch_opcode() {
-        let mut arch = IRArch::new();
-        arch.insn_init();
-        println!("{}", arch.insn_info());
-        let insn1 = IRInsn::apply("xor", vec![IROperand::reg("eax", IRValue::u8(8)), IROperand::reg("eax", IRValue::u8(8)), IROperand::reg("ebx", IRValue::u8(9))]);
+    fn insn_info() {
+        IRContext::init();
+        let insn1 = IRInsn::apply(
+            "xor", vec![
+                IROperand::reg("x1", IRValue::u5(8)), 
+                IROperand::reg("x2", IRValue::u5(8)), 
+                IROperand::reg("x3", IRValue::u5(9))
+            ]
+        );
         println!("{}", insn1);
     }
+
+    #[test]
+    fn ctx_info() {
+        println!("{}", IRContext::info());
+
+        let mut ctx = IRContext::init();
+        ctx.set_reg_idx("x3", IRValue::u5(9));
+        assert_eq!(ctx.get_reg_idx("x3"), IRValue::u5(9));
+        println!("{}", ctx.reg_info());
+        println!("{}", ctx.insn_info());
+
+        ctx.set_reg_idx("x4", IRValue::u5(13));
+        assert_eq!(ctx.get_reg_idx("x4"), IRValue::u5(13));
+        ctx.reg("x4").borrow_mut().set_reg(IRValue::u5(9));
+        assert_eq!(ctx.get_reg_idx("x4"), IRValue::u5(9));
+        ctx.set_reg_idx("x4", IRValue::u5(13));
+        assert_eq!(ctx.get_reg_idx("x4"), IRValue::u5(13));
+
+        let ctx2 = IRContext::init();
+        // Compare Registers
+        assert_ne!(ctx, ctx2);
+
+
+        println!("mem size: {}", ctx.mem_size());
+        println!("mem scale: {}", ctx.mem_scale());
+    }
+
+
 }
