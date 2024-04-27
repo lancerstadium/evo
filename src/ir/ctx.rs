@@ -79,9 +79,9 @@ pub trait ArchInfo {
     // ===================== Memory ===================== //
 
     /// Mem Init
-    fn mem_init(&mut self);
+    fn seg_init(&mut self);
     /// Check Mem Bound
-    fn mem_bound(&self, addr: IRValue) -> bool;
+    fn seg_bound(&self, addr: IRValue) -> bool;
 
 }
 
@@ -94,17 +94,35 @@ pub trait ArchInfo {
 
 
 /// `IRContext`: Context of the `evo-ir` architecture
+/// 
+/// ### Process and Thread
+/// 
+/// - Here are the process and thread in the `evo-ir` architecture
+/// 
+/// ```
+///           ┌──────────────┬────────────────┬──────┐
+///  Process  │ Code Segment │  Data Segment  │ Heap │
+///  ───────  ├──────────────┴──┬─────────────┴──────┤
+///  Threads  │      Stack      │     Registers      │
+///           └─────────────────┴────────────────────┘
+///
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRContext {
-    /// `reg_map`: Register Map (Shared)
+    /// `reg_map`: Register Map (Shared Local Process)
     reg_map: Rc<RefCell<Vec<RefCell<IROperand>>>>,
-    /// `opcode_map`: Opcode Map (Shared)
+    /// `opcode_map`: Opcode Map (Shared Local Process)
     insn_map: Rc<RefCell<Vec<IRInsn>>>,
 
-    /// `reg_file`: Register File, Store register value (Local)
-    reg_file: RefCell<Vec<IRValue>>,
-    /// `mem_space`: Run Memory, Store running time value (Local)
-    mem_space: RefCell<Vec<IRValue>>,
+    /// `segments`: Runtime Memory Process: Code Segment, Data Segment. (Local Process)
+    segments: RefCell<Vec<IRValue>>,
+    /// `heap`: Runtime Memory Process: Heap. (Local Process)
+    heap: RefCell<Vec<IRValue>>,
+
+    /// `registers`: Register File, Store register value (Local Thread)
+    registers: RefCell<Vec<IRValue>>,
+    /// `stack`: Stack, Store stack value (Local Thread)
+    stack: RefCell<Vec<IRValue>>,
 }
 
 impl IRContext {
@@ -114,24 +132,28 @@ impl IRContext {
         let mut arch = Self {
             reg_map: Rc::new(RefCell::new(Vec::new())),
             insn_map: Rc::new(RefCell::new(Vec::new())),
-            reg_file: RefCell::new(Vec::new()),
-            mem_space: RefCell::new(Vec::new()),
+
+            segments: RefCell::new(Vec::new()),
+            heap: RefCell::new(Vec::new()),
+
+            registers: RefCell::new(Vec::new()),
+            stack: RefCell::new(Vec::new()),
         };
         arch.reg_init();
         arch.insn_init();
-        arch.mem_init();
+        arch.seg_init();
         arch
     }
 
 
-    /// Get mem size
-    pub fn mem_size(&self) -> usize {
-        self.mem_space.borrow().len()
+    /// Get segment size
+    pub fn seg_size(&self) -> usize {
+        self.segments.borrow().len()
     }
 
-    /// Get mem scale
-    pub fn mem_scale(&self) -> usize {
-        self.mem_space.borrow().iter().map(|x| x.scale_sum()).sum()
+    /// Get segment scale
+    pub fn seg_scale(&self) -> usize {
+        self.segments.borrow().iter().map(|x| x.scale_sum()).sum()
     }
     
 }
@@ -198,7 +220,7 @@ impl ArchInfo for IRContext {
         ]));
         // 2. Init reg file value: [0, 0, ...] * REG_NUM (u32)
         for _ in 0..Self::REG_NUM {
-            self.reg_file.borrow_mut().push(IRValue::u32(0));
+            self.registers.borrow_mut().push(IRValue::u32(0));
         }
         // 3. Check register map num == REG_NUM
         if Self::REG_NUM != self.reg_map.borrow().len() {
@@ -235,14 +257,14 @@ impl ArchInfo for IRContext {
     /// 9. Read Register Value (u32)
     fn reg_read(&self, name: &'static str) -> IRValue {
         let idx = self.get_reg_idx(name).get_byte(0) as usize;
-        let v = self.reg_file.borrow()[idx].clone();
+        let v = self.registers.borrow()[idx].clone();
         v
     }
 
     /// 10. Write Register Value (u32)
     fn reg_write(&mut self, name: &'static str, value: IRValue) {
         let idx = self.get_reg_idx(name).get_byte(0) as usize;
-        self.reg_file.borrow_mut()[idx].set_val(value);
+        self.registers.borrow_mut()[idx].set_val(value);
     }
 
     
@@ -278,16 +300,16 @@ impl ArchInfo for IRContext {
     }
 
 
-    // =================== IRCtx.mem ======================= //
+    // =================== IRCtx.seg ======================= //
 
-    /// 1. Mem temp Map Init
-    fn mem_init(&mut self) {
+    /// 1. Segment Mem Init
+    fn seg_init(&mut self) {
         // Mem Space Init: 1 Mem Space
-        self.mem_space.borrow_mut().push(IRValue::new(IRType::array(IRType::u8(), Self::MEM_SIZE / 8)));
+        self.segments.borrow_mut().push(IRValue::new(IRType::array(IRType::u8(), Self::MEM_SIZE / 8)));
     }
 
-    /// 2. Mem bound check (addr: u32)
-    fn mem_bound(&self, addr: IRValue) -> bool {
+    /// 2. Segment Mem bound check (addr: u32)
+    fn seg_bound(&self, addr: IRValue) -> bool {
         let index = addr.get_u32(0) as usize;
         let is_valid = index >= Self::BASE_ADDR && index < Self::BASE_ADDR + Self::MEM_SIZE;
         if !is_valid {
@@ -309,7 +331,7 @@ impl ArchInfo for IRContext {
 // ============================================================================== //
 
 #[cfg(test)]
-mod op_test {
+mod ctx_test {
 
     use super::*;
 
@@ -353,8 +375,8 @@ mod op_test {
         assert_ne!(ctx, ctx2);
 
 
-        println!("mem size: {}", ctx.mem_size());
-        println!("mem scale: {}", ctx.mem_scale());
+        println!("mem size: {}", ctx.seg_size());
+        println!("mem scale: {}", ctx.seg_scale());
     }
 
 

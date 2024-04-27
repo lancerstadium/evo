@@ -573,7 +573,7 @@ mod ty_test {
 
 
     #[test]
-    fn type_from_string() {
+    fn type_from() {
         assert_eq!(IRType::from_string("i8"), IRType::i8());
         assert_eq!(IRType::from_string("i16"), IRType::i16());
         assert_eq!(IRType::from_string("i32"), IRType::i32());
@@ -599,7 +599,7 @@ mod ty_test {
     }
 
     #[test]
-    fn type_to_string() {
+    fn type_to() {
         assert_eq!(format!("{}", IRType::i8()), "i8");
         assert_eq!(format!("{}", IRType::i16()), "i16");
         assert_eq!(format!("{}", IRType::i32()), "i32");

@@ -1393,7 +1393,7 @@ impl Eq for IRValue {}
 
 
 #[cfg(test)]
-mod val_tests {
+mod val_test {
 
     use super::*;
 
