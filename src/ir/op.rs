@@ -92,7 +92,7 @@ impl IROperandKind {
     pub fn to_string(&self) -> String {
         match self {
             IROperandKind::Imm(val) =>  format!("{}: {}", val.get_u32(0) , val.kind()),
-            IROperandKind::Reg(name, val) => format!("{}: {}", name, val.kind()),
+            IROperandKind::Reg(name, val) => format!("{:>3}: {}", name, val.kind()),
             IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]: {}", base.kind(), idx.kind(), scale.kind(), disp.kind() , self.val().kind()),
             IROperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
         }
@@ -204,6 +204,7 @@ impl IROperand {
             IROperandKind::Label(_, _) => self.to_string(),
         }
     }
+    
 
     // ================== IROperand.pool =================== //
 
@@ -262,7 +263,8 @@ impl IROperand {
         let mut info = String::new();
         info.push_str(&format!("Registers (Num = {}):\n", Self::pool_size()));
         for i in 0..Self::pool_size() {
-            info.push_str(&format!("- {}   {}\n", i, Self::pool_get(i).borrow().info()));
+            let reg = Self::pool_get(i).borrow().clone();
+            info.push_str(&format!("- {}\n", reg.info()));
         }
         info
     }
@@ -614,7 +616,8 @@ impl IRInsn {
         info.push_str(&format!("Instructions (Num = {}):\n", Self::pool_size()));
         
         for i in 0..Self::pool_size() {
-            info.push_str(&format!("- {}   {}\n", i, Self::pool_get(i).borrow().info()));
+            let insn = Self::pool_get(i).borrow().clone();
+            info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }

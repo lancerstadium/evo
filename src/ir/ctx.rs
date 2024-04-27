@@ -57,7 +57,7 @@ pub trait ArchInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRContext {
 
-    proc_handle: Rc<RefCell<IRProcess>>,
+    proc: Rc<RefCell<IRProcess>>,
 }
 
 impl ArchInfo for IRContext {
@@ -83,7 +83,7 @@ impl IRContext {
     /// Init a `IRContext`
     pub fn init() -> Self {
         let ctx = Self {
-            proc_handle: Rc::new(RefCell::new(IRProcess::default())),
+            proc: Rc::new(RefCell::new(IRProcess::default())),
         };
         Self::pool_init();
         ctx
@@ -98,7 +98,7 @@ impl IRContext {
 
     /// Get ArchInfo string
     pub fn info() -> String {
-        format!("Arch Info: \n- Name: {}\n- Byte Size: {}\n- Addr Size: {}\n- Word Size: {}\n- Float Size: {}\n- Base Addr: 0x{:x}\n- Mem Size: {}\n- Reg Num: {}", 
+        format!("Arch Info: \n- Name: {}\n- Byte Size: {}\n- Addr Size: {}\n- Word Size: {}\n- Float Size: {}\n- Base Addr: 0x{:x}\n- Mem Size: {}\n- Reg Num: {}\n", 
             Self::NAME, Self::BYTE_SIZE, Self::ADDR_SIZE, Self::WORD_SIZE, Self::FLOAT_SIZE, Self::BASE_ADDR, Self::MEM_SIZE, Self::REG_NUM)
     }
 
@@ -209,15 +209,6 @@ impl IRContext {
 
     // =================== IRCtx.process =================== //
 
-    /// Process Init in IRContext
-    pub fn process_init(&self) {
-        // 1. Check is init
-        if !Self::is_init() {
-            log_error!("IRContext not init");
-            return
-        }
-    }
-
     
 }
 
@@ -259,13 +250,21 @@ mod ctx_test {
 
     #[test]
     fn ctx_info() {
-        println!("{}", IRContext::info());
-        
-
-
+        // println!("{}", IRContext::info());
         let ctx = IRContext::init();
-        println!("{}", IRContext::pool_info());
-        ctx.proc_handle.borrow_mut().new_thread();
+
+        // Check pool info
+        // println!("{}", IRContext::pool_info());
+
+
+        let p0 = ctx.proc.borrow().clone();
+        // Check process info
+        println!("{}", p0.info());
+        p0.new_thread();
+        println!("{}", ctx.proc.borrow().info());
+
+        // p0.set_nreg("x7", IRValue::u32(57));
+        println!("{}", p0.reg_num());
 
 
     }
