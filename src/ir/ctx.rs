@@ -8,7 +8,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::{log_error, log_warning};
+use crate::log_warning;
 use crate::util::log::Span;
 use crate::ir::val::IRValue;
 use crate::ir::op::{IROperand, IRInsn};
@@ -256,15 +256,15 @@ mod ctx_test {
         // Check pool info
         // println!("{}", IRContext::pool_info());
 
-
         let p0 = ctx.proc.borrow().clone();
         // Check process info
         println!("{}", p0.info());
         p0.new_thread();
         println!("{}", ctx.proc.borrow().info());
 
-        // p0.set_nreg("x7", IRValue::u32(57));
-        println!("{}", p0.reg_num());
+        p0.set_reg(3, IRValue::u32(23));
+        println!("{}", ctx.proc.borrow().reg_info());
+        println!("{}", p0.get_reg(2));
 
 
     }

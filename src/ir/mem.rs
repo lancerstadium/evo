@@ -22,9 +22,9 @@ use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::util::log::Span;
+// use crate::util::log::Span;
 use crate::ir::val::IRValue;
-use crate::log_error;
+// use crate::log_error;
 use crate::ir::ctx::{IRContext, ArchInfo};
 
 use super::op::IROperand;
@@ -64,28 +64,15 @@ impl IRThread {
 
     pub fn init(proc_id: usize) -> usize {
         let thread : IRThread;
-        if IRContext::is_32() {
-            thread = Self {
-                id : 0,
-                proc_id,
-                registers: Rc::new(RefCell::new(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::REG_NUM])),
-                stack: Rc::new(RefCell::new(Vec::new())),
-            };
-            // Store in thread pool
-            Self::pool_push(thread)
-        } else if IRContext::is_64() {
-            thread = Self {
-                id : 0,
-                proc_id,
-                registers: Rc::new(RefCell::new(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::REG_NUM])),
-                stack: Rc::new(RefCell::new(Vec::new())),
-            };
-            // Store in thread pool
-            Self::pool_push(thread)
-        } else {
-            log_error!("Unsupported architecture");
-            0
-        }
+        thread = Self {
+            id : 0,
+            proc_id,
+            registers: Rc::new(RefCell::new(Vec::new())),
+            stack: Rc::new(RefCell::new(Vec::new())),
+        };
+        // Store in thread pool
+        let idx = Self::pool_push(thread);
+        idx
     }
 
 
@@ -106,7 +93,11 @@ impl IRThread {
         Self::IR_THREAD_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(thread))));
         let mut thread = Self::pool_last().1.borrow_mut().clone();
         thread.id = Self::IR_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
-        assert_eq!(thread.registers.borrow().len(), IRContext::REG_NUM);
+        if IRContext::is_32() {
+            thread.registers.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::REG_NUM]);
+        } else if IRContext::is_64() {
+            thread.registers.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::REG_NUM]);
+        }
         Self::pool_last().0
     }
 
@@ -145,29 +136,27 @@ impl IRThread {
 
     /// set reg value by index
     pub fn set_reg(&self, index: usize, value: IRValue) {
-        self.registers.borrow_mut()[index].replace(value);
+        let regs = self.registers.borrow_mut().clone();
+        regs[index].borrow_mut().change(value);
+        println!("vec: {:?}", regs);
     }
 
     /// get reg value by index
     pub fn get_reg(&self, index: usize) -> IRValue {
-        self.registers.borrow()[index].borrow().clone()
+        let val = self.registers.borrow_mut()[index].borrow().clone();
+        val
     }
 
     /// set reg value by name
     pub fn set_nreg(&self, name: &'static str, value: IRValue) {
-        let idx = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
-        if IRContext::is_32() {
-            assert_eq!(value.scale_sum(), 32);
-        } else if IRContext::is_64() {
-            assert_eq!(value.scale_sum(), 64);
-        }
-        self.registers.borrow_mut()[idx].replace(value);
+        let index = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        self.set_reg(index, value)
     }
 
     /// get reg value by name
     pub fn get_nreg(&self, name: &'static str) -> IRValue {
-        let idx = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
-        self.registers.borrow_mut()[idx].borrow().clone()
+        let index = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        self.get_reg(index)
     }
 
     /// set reg zero
@@ -184,7 +173,7 @@ impl IRThread {
         info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, IROperand::pool_size()));
         for i in 0..IROperand::pool_size() {
             let reg = IROperand::pool_get(i).borrow().clone();
-            info.push_str(&format!("- {} -> {}\n", reg.info(), self.get_reg(reg.val().get_byte(0) as usize)));
+            info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers.borrow()[i].borrow().clone().bin(0, -1, false)));
         }
         info
     }
@@ -281,34 +270,19 @@ impl IRProcess {
     /// Init `IRProcess`
     pub fn init(name: &'static str) -> Self {
         let proc : IRProcess;
-        if IRContext::is_32() {
-            proc = Self {
-                id:0,
-                name,
-                code_segment: Rc::new(RefCell::new(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::MEM_SIZE / 4])),
-                data_segment: Rc::new(RefCell::new(Vec::new())),
-                threads_id: Rc::new(RefCell::new(Vec::new())),
-                cur_thread: Rc::new(RefCell::new(IRThread::default())),
-            };
-            // Store in process pool
-            let idx = Self::pool_push(proc);
-            Self::pool_get(idx).borrow().clone()
-        } else if IRContext::is_64() {
-            proc = Self {
-                id:0,
-                name,
-                code_segment: Rc::new(RefCell::new(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::MEM_SIZE / 8])),
-                data_segment: Rc::new(RefCell::new(Vec::new())),
-                threads_id: Rc::new(RefCell::new(Vec::new())),
-                cur_thread: Rc::new(RefCell::new(IRThread::default())),
-            };
-            // Store in process pool
-            let idx = Self::pool_push(proc);
-            Self::pool_get(idx).borrow().clone()
-        } else {
-            log_error!("Unsupported architecture");
-            Self::default()
-        }
+        proc = Self {
+            id:0,
+            name,
+            code_segment: Rc::new(RefCell::new(Vec::new())),
+            data_segment: Rc::new(RefCell::new(Vec::new())),
+            threads_id: Rc::new(RefCell::new(Vec::new())),
+            cur_thread: Rc::new(RefCell::new(IRThread::default())),
+        };
+        // Store in process pool
+        let idx = Self::pool_push(proc);
+        let mut val = Self::pool_get(idx).borrow_mut().clone();
+        val.set_thread();
+        val
     }
 
 
@@ -332,6 +306,11 @@ impl IRProcess {
         let thread_id = IRThread::init(proc.id);
         proc.threads_id.borrow_mut().push(thread_id);
         proc.cur_thread = IRThread::pool_get(thread_id);
+        if IRContext::is_32() {
+            proc.code_segment.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::MEM_SIZE / 4]);
+        } else if IRContext::is_64() {
+            proc.code_segment.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::MEM_SIZE / 8]);
+        }
         Self::pool_last().0
     }
 
@@ -389,7 +368,7 @@ impl IRProcess {
     pub fn info(&self) -> String {
         let mut info = String::new();
         info.push_str(&format!("Process {} info: \n", self.id));
-        info.push_str(&format!("- name: {}\n- threads: {:?}\n- cur thread id: {}\n", self.name, self.threads_id.borrow().clone(), self.cur_thread.borrow().id));
+        info.push_str(&format!("- name: {}\n- code seg size: {}\n- threads: {:?}\n- cur thread id: {}\n- reg num: {}\n", self.name, self.code_segment.borrow().len(), self.threads_id.borrow().clone(), self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num()));
         info
     }
 
@@ -412,6 +391,12 @@ impl IRProcess {
         IRThread::pool_get(thread_id)
     }
 
+    /// set thread
+    pub fn set_thread(&mut self) -> Rc<RefCell<IRThread>> {
+        let thread_id = self.threads_id.borrow()[0];
+        self.cur_thread = IRThread::pool_get(thread_id);
+        self.cur_thread.clone()
+    }
 
 
     // ================= IRProcess.reg =================== //
