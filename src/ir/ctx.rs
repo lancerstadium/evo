@@ -254,7 +254,7 @@ mod ctx_test {
         let ctx = IRContext::init();
 
         // Check pool info
-        // println!("{}", IRContext::pool_info());
+        println!("{}", IRContext::pool_info());
 
         let p0 = ctx.proc.borrow().clone();
         // Check process info

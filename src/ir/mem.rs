@@ -138,7 +138,7 @@ impl IRThread {
     pub fn set_reg(&self, index: usize, value: IRValue) {
         let regs = self.registers.borrow_mut().clone();
         regs[index].borrow_mut().change(value);
-        println!("vec: {:?}", regs);
+        // println!("vec: {:?}", regs);
     }
 
     /// get reg value by index
