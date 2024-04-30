@@ -50,6 +50,8 @@ pub struct IRThread {
     pub registers: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
     /// `stack`: Stack, Store stack value
     pub stack: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
+    /// Dispatch label table
+    pub labels : Rc<RefCell<Vec<String>>>,
 }
 
 
@@ -69,6 +71,7 @@ impl IRThread {
             proc_id,
             registers: Rc::new(RefCell::new(Vec::new())),
             stack: Rc::new(RefCell::new(Vec::new())),
+            labels: Rc::new(RefCell::new(Vec::new())),
         };
         // Store in thread pool
         let idx = Self::pool_push(thread);
@@ -93,11 +96,17 @@ impl IRThread {
         Self::IR_THREAD_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(thread))));
         let mut thread = Self::pool_last().1.borrow_mut().clone();
         thread.id = Self::IR_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
+        let mut init_regs = Vec::new();
+        // let mut init_stack = Vec::new();
         if IRContext::is_32() {
-            thread.registers.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::REG_NUM]);
+            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::u32(0)))).collect::<Vec<_>>();
+            // init_stack = (0..IRContext::STACK_SIZE / 4).map(|_| Rc::new(RefCell::new(IRValue::u32(0)))).collect::<Vec<_>>();
         } else if IRContext::is_64() {
-            thread.registers.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::REG_NUM]);
+            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::u64(0)))).collect::<Vec<_>>();
+            // init_stack = (0..IRContext::STACK_SIZE / 8).map(|_| Rc::new(RefCell::new(IRValue::u64(0)))).collect::<Vec<_>>();
         }
+        thread.registers.borrow_mut().extend(init_regs);
+        // thread.stack.borrow_mut().extend(init_stack);
         Self::pool_last().0
     }
 
@@ -199,12 +208,17 @@ impl IRThread {
         self.stack.borrow_mut().clear();
     }
 
-    /// stack size
-    pub fn stack_size(&self) -> usize {
+    /// stack last value
+    pub fn stack_last(&self) -> IRValue {
+        self.stack.borrow().last().unwrap().borrow().clone()
+    }
+
+    /// stack len: stack vec size
+    pub fn stack_len(&self) -> usize {
         self.stack.borrow().len()
     }
 
-    /// stack scale
+    /// stack scale: stack scale size
     pub fn stack_scale(&self) -> usize {
         // Sum all IRValue scale
         self.stack.borrow().iter().map(|v| v.borrow().scale_sum()).sum()
@@ -227,6 +241,7 @@ impl default::Default for IRThread {
             proc_id: 0,
             registers: Rc::new(RefCell::new(Vec::new())),
             stack: Rc::new(RefCell::new(Vec::new())),
+            labels: Rc::new(RefCell::new(Vec::new())),
         }
     }
 }
@@ -306,11 +321,6 @@ impl IRProcess {
         let thread_id = IRThread::init(proc.id);
         proc.threads_id.borrow_mut().push(thread_id);
         proc.cur_thread = IRThread::pool_get(thread_id);
-        if IRContext::is_32() {
-            proc.code_segment.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u32(0))); IRContext::MEM_SIZE / 4]);
-        } else if IRContext::is_64() {
-            proc.code_segment.borrow_mut().extend(vec![Rc::new(RefCell::new(IRValue::u64(0))); IRContext::MEM_SIZE / 8]);
-        }
         Self::pool_last().0
     }
 
@@ -368,10 +378,27 @@ impl IRProcess {
     pub fn info(&self) -> String {
         let mut info = String::new();
         info.push_str(&format!("Process {} info: \n", self.id));
-        info.push_str(&format!("- name: {}\n- code seg size: {}\n- threads: {:?}\n- cur thread id: {}\n- reg num: {}\n", self.name, self.code_segment.borrow().len(), self.threads_id.borrow().clone(), self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num()));
+        info.push_str(&format!("- name: {}\n- code seg size: {}\n- threads: {:?}\n- thread id: {}\n- thread reg num: {}\n- thread stack size: {} / {}\n", 
+            self.name, self.code_segment.borrow().len(), self.threads_id.borrow().clone(), 
+            self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num(), 
+            self.cur_thread.borrow().stack_scale(), IRContext::STACK_SIZE));
         info
     }
 
+    // ================= IRProcess.code ================== //
+
+    /// Push code
+    pub fn push_code(&self, code: IRValue) {
+        let mut code_seg = self.code_segment.borrow_mut();
+        let code_ptr = Rc::new(RefCell::new(code));
+        code_seg.push(code_ptr);
+    }
+
+    /// Pop code
+    pub fn pop_code(&self) -> IRValue {
+        let mut code_seg = self.code_segment.borrow_mut();
+        code_seg.pop().unwrap().borrow().clone()
+    }
 
     // ================= IRProcess.thread ================ //
 
@@ -401,27 +428,32 @@ impl IRProcess {
 
     // ================= IRProcess.reg =================== //
 
+    /// set reg value by index
     pub fn set_reg(&self, index: usize, value: IRValue) {
         self.cur_thread.borrow_mut().set_reg(index, value)
     }
 
+    /// get reg value by index
     pub fn get_reg(&self, index: usize) -> IRValue {
         self.cur_thread.borrow().get_reg(index)
     }
 
+    /// set reg value by name
     pub fn set_nreg(&self, name: &'static str, value: IRValue) {
         self.cur_thread.borrow_mut().set_nreg(name, value)
     }
 
+    /// get reg value by name
     pub fn get_nreg(&self, name: &'static str) -> IRValue {
         self.cur_thread.borrow().get_nreg(name)
     }
 
-
+    /// get reg info
     pub fn reg_info(&self) -> String {
         self.cur_thread.borrow().reg_info()
     }
 
+    /// get reg num
     pub fn reg_num(&self) -> usize {
         self.cur_thread.borrow().reg_num()
     }

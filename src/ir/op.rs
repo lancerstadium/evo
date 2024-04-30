@@ -91,7 +91,7 @@ impl IROperandKind {
     /// Get String of the operand like: `val : kind`
     pub fn to_string(&self) -> String {
         match self {
-            IROperandKind::Imm(val) =>  format!("{}: {}", val.get_u32(0) , val.kind()),
+            IROperandKind::Imm(val) =>  format!("{}: {}", val.bin_scale(0, -1, true) , val.kind()),
             IROperandKind::Reg(name, val) => format!("{:>3}: {}", name, val.kind()),
             IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]: {}", base.kind(), idx.kind(), scale.kind(), disp.kind() , self.val().kind()),
             IROperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
@@ -197,7 +197,7 @@ impl IROperand {
         match self.kind() {
             IROperandKind::Imm(_) => self.to_string(),
             IROperandKind::Reg(_, val) => {
-                let idx_str = self.val().bin_scale(0, -1, false);
+                let idx_str = self.val().bin_scale(0, -1, true);
                 format!("{:<9} ({:>2}: {})", self.to_string(), val.to_string(), idx_str)
             },
             IROperandKind::Mem(_, _, _, _) => self.to_string(),
@@ -345,15 +345,21 @@ impl fmt::Display for IROperand {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IROpcodeKind {
 
-    /// I-Type Opcode
-    I(&'static str, Vec<i32>),
-
     /// R-Type Opcode
     R(&'static str, Vec<i32>),
-
+    /// I-Type Opcode
+    I(&'static str, Vec<i32>),
+    /// S-Type Opcode
+    S(&'static str, Vec<i32>),
+    /// B-Type Opcode
+    B(&'static str, Vec<i32>),
+    /// U-Type Opcode
+    U(&'static str, Vec<i32>),
     /// J-Type Opcode
     J(&'static str, Vec<i32>),
 
+    /// Undef-Type Opcode
+    Undef(&'static str, Vec<i32>),
 }
 
 
@@ -362,40 +368,64 @@ impl IROpcodeKind {
     /// Get Name of OpcodeKind
     pub fn name(&self) -> &'static str {
         match self {
-            IROpcodeKind::I(name, _) => name,
             IROpcodeKind::R(name, _) => name,
+            IROpcodeKind::I(name, _) => name,
+            IROpcodeKind::S(name, _) => name,
+            IROpcodeKind::B(name, _) => name,
+            IROpcodeKind::U(name, _) => name,
             IROpcodeKind::J(name, _) => name,
+            IROpcodeKind::Undef(name, _) => name,
         }
     }
 
     /// Get Type name of OpcodeKind
     pub fn ty(&self) -> &'static str {
         match self {
-            IROpcodeKind::I(_, _) => "I",
             IROpcodeKind::R(_, _) => "R",
+            IROpcodeKind::I(_, _) => "I",
+            IROpcodeKind::S(_, _) => "S",
+            IROpcodeKind::B(_, _) => "B",
+            IROpcodeKind::U(_, _) => "U",
             IROpcodeKind::J(_, _) => "J",
+            IROpcodeKind::Undef(_, _) => "Undef",
         }
     }
 
     /// Get Symbols of OpcodeKind
     pub fn syms(&self) -> Vec<i32> {
         match self {
-            IROpcodeKind::I(_, syms) => syms.clone(),
             IROpcodeKind::R(_, syms) => syms.clone(),
+            IROpcodeKind::I(_, syms) => syms.clone(),
+            IROpcodeKind::S(_, syms) => syms.clone(),
+            IROpcodeKind::B(_, syms) => syms.clone(),
+            IROpcodeKind::U(_, syms) => syms.clone(),
             IROpcodeKind::J(_, syms) => syms.clone(),
+            IROpcodeKind::Undef(_, syms) => syms.clone(),
         }
     }
 
     /// Set Symbols of OpcodeKind
     pub fn set_syms(&mut self, syms: Vec<i32>) {
         match self {
-            IROpcodeKind::I(_, _) => {
-                *self = IROpcodeKind::I(self.name(), syms);
-            },
             IROpcodeKind::R(_, _) => {
                 *self = IROpcodeKind::R(self.name(), syms);
             },
+            IROpcodeKind::I(_, _) => {
+                *self = IROpcodeKind::I(self.name(), syms);
+            },
+            IROpcodeKind::S(_, _) => {
+                *self = IROpcodeKind::S(self.name(), syms);
+            }
+            IROpcodeKind::B(_, _) => {
+                *self = IROpcodeKind::B(self.name(), syms);
+            }
+            IROpcodeKind::U(_, _) => {
+                *self = IROpcodeKind::U(self.name(), syms);
+            }
             IROpcodeKind::J(_, _) => {
+                *self = IROpcodeKind::J(self.name(), syms);
+            },
+            IROpcodeKind::Undef(_, _) => {
                 *self = IROpcodeKind::J(self.name(), syms);
             },
         }
@@ -404,13 +434,25 @@ impl IROpcodeKind {
     /// Check Symbols
     pub fn check_syms (&self, syms: Vec<i32>) -> bool {
         match self {
-            IROpcodeKind::I(_, _) => {
-                self.syms() == syms
-            },
             IROpcodeKind::R(_, _) => {
                 self.syms() == syms
             },
+            IROpcodeKind::I(_, _) => {
+                self.syms() == syms
+            },
+            IROpcodeKind::S(_, _) => {
+                self.syms() == syms
+            }
+            IROpcodeKind::B(_, _) => {
+                self.syms() == syms
+            }
+            IROpcodeKind::U(_, _) => {
+                self.syms() == syms
+            }
             IROpcodeKind::J(_, _) => {
+                self.syms() == syms
+            },
+            IROpcodeKind::Undef(_, _) => {
                 self.syms() == syms
             },
         }
@@ -429,7 +471,27 @@ impl IROpcodeKind {
                 let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
                 format!("{:<6} {}", name, sym_str)
             },
+            IROpcodeKind::S(name, syms) => {
+                // Get syms and to string
+                let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
+                format!("{:<6} {}", name, sym_str)
+            },
+            IROpcodeKind::B(name, syms) => {
+                // Get syms and to string
+                let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
+                format!("{:<6} {}", name, sym_str)
+            },
+            IROpcodeKind::U(name, syms) => {
+                // Get syms and to string
+                let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
+                format!("{:<6} {}", name, sym_str)
+            },
             IROpcodeKind::J(name, syms) => {
+                // Get syms and to string
+                let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
+                format!("{:<6} {}", name, sym_str)
+            },
+            IROpcodeKind::Undef(name, syms) => {
                 // Get syms and to string
                 let sym_str = syms.iter().map(|x| IROperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
                 format!("{:<6} {}", name, sym_str)
@@ -459,9 +521,13 @@ impl IROpcode {
     /// New Type Opcode
     pub fn new(name: &'static str, syms: Vec<i32>, ty: &'static str) -> IROpcode {
         match ty {
-            "I" => IROpcode(RefCell::new(IROpcodeKind::I(name, syms))),
             "R" => IROpcode(RefCell::new(IROpcodeKind::R(name, syms))),
+            "I" => IROpcode(RefCell::new(IROpcodeKind::I(name, syms))),
+            "S" => IROpcode(RefCell::new(IROpcodeKind::S(name, syms))),
+            "B" => IROpcode(RefCell::new(IROpcodeKind::B(name, syms))),
+            "U" => IROpcode(RefCell::new(IROpcodeKind::U(name, syms))),
             "J" => IROpcode(RefCell::new(IROpcodeKind::J(name, syms))),
+            "Undef" => IROpcode(RefCell::new(IROpcodeKind::Undef(name, syms))),
             _ => {
                 log_error!("Unknown type: {}", ty);
                 IROpcode(RefCell::new(IROpcodeKind::I(name, syms)))
@@ -543,6 +609,17 @@ impl IRInsn {
         static IR_INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<IRInsn>>>>> = Rc::new(RefCell::new(Vec::new()));
     }
 
+    /// Get Undef Insn
+    pub fn undef() -> IRInsn {
+        IRInsn {
+            opc: IROpcode::new("insn", Vec::new(), "Undef"),
+            opr: Vec::new(),
+            opb: "",
+            byt: IRValue::u32(0),
+            is_applied: false,
+        }
+    }
+
     /// Define IRInsn Temp
     pub fn def(name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> IRInsn {
         let opc = IROpcode::new(name, syms, ty);
@@ -562,7 +639,7 @@ impl IRInsn {
     /// apply temp to IRInsn
     pub fn apply(name: &'static str, opr: Vec<IROperand>) -> IRInsn {
         let mut insn = IRInsn::pool_nget(name).borrow().clone();
-        insn.apply_opr(opr)
+        insn.encode(opr)
     }
 
     // ==================== IRInsn.pool ==================== //
@@ -674,6 +751,17 @@ impl IRInsn {
     }
 
 
+    // ==================== IRInsn.code ==================== //
+
+    /// Byte Code of IRInsn
+    pub fn code(&self) -> IRValue {
+        if !self.is_applied {
+            log_error!("Code not applied: {} ", self.opc.name());
+        }
+        self.byt.clone()
+    }
+
+
     // ==================== IRInsn.sym ===================== //
 
     /// Check IROperand Syms
@@ -689,20 +777,123 @@ impl IRInsn {
 
     // ==================== IRInsn.opr ===================== //
 
-    /// apply IROperand to IROpcode
-    pub fn apply_opr(&mut self, opr: Vec<IROperand>) -> IRInsn {
+    pub fn get_funct7(&self) -> u8 {
+        self.byt.get_ubyte(0, 25, 7)
+    }
+
+    pub fn get_funct3(&self) -> u8 {
+        self.byt.get_ubyte(0, 12, 3)
+    }
+
+    pub fn get_opcode(&self) -> u8 {
+        self.byt.get_ubyte(0, 25, 7)
+    }
+
+    pub fn get_rs1(&self) -> u8 {
+        self.byt.get_ubyte(0, 15, 5)
+    }
+
+    pub fn get_rs2(&self) -> u8 {
+        self.byt.get_ubyte(0, 20, 5)
+    }
+
+    pub fn get_rd(&self) -> u8 {
+        self.byt.get_ubyte(0, 7, 5)
+    }
+
+    fn set_rs1(&mut self, rs1: u8) {
+        println!("rs1: {}", rs1);
+        self.byt.set_ubyte(0, 15, 5, rs1);
+    }
+
+    fn set_rs2(&mut self, rs2: u8) {
+        println!("rs2: {}", rs2);
+        self.byt.set_ubyte(0, 20, 5, rs2);
+    }
+
+    fn set_rd(&mut self, rd: u8) {
+        println!("rd : {}", rd);
+        self.byt.set_ubyte(0, 7, 5, rd);
+    }
+
+    fn set_imm_i(&mut self, imm: u16) {
+        println!("imm: {}", imm);
+        self.byt.set_ubytes(0, 20, 12, imm);
+    }
+
+    /// Apply IROperand to IROpcode, get new IRInsn
+    /// 
+    /// ## Byte Code
+    /// - Refence: RISC-V ISA Spec.
+    /// - Fill bytes according following format:
+    /// 
+    /// ```txt
+    ///  32|31  25|24 20|19 15|14  12|11   7|6  0| bits
+    ///    ┌──────┬─────┬─────┬──────┬──────┬────┐
+    ///    │  f7  │ rs2 │ rs1 │  f3  │  rd  │ op │  R
+    ///    ├──────┴─────┼─────┼──────┼──────┼────┤
+    ///    │   imm[12]  │ rs1 │  f3  │  rd  │ op │  I
+    ///    ├──────┬─────┼─────┼──────┼──────┼────┤
+    ///    │ imm1 │ rs2 │ rs1 │  f3  │ imm0 │ op │  S
+    ///    ├─┬────┼─────┼─────┼──────┼────┬─┼────┤
+    ///    │3│ i1 │ rs2 │ rs1 │  f3  │ i0 │2│ op │  B
+    ///    ├─┴────┴─────┴─────┴──────┼────┴─┼────┤
+    ///    │         imm[20]         │  rd  │ op │  U
+    ///    ├─┬──────────────┬─┬──────┼──────┼────┤
+    ///    │4│     imm1     │3│  i2  │  rd  │ op │  J
+    ///    └─┴──────────────┴─┴──────┴──────┴────┘
+    /// ```
+    pub fn encode(&mut self, opr: Vec<IROperand>) -> IRInsn {
         // Check syms
         if self.check_syms(opr.clone()) {
+            // refresh status
             self.opr = opr;
             self.is_applied = true;
+            // match opcode type kind and fill bytes by opreands
+            match self.opc.kind() {
+                IROpcodeKind::I(_, _) => {
+                    // rd: u5 -> 7->11
+                    let rd = self.opr[0].val().get_byte(0);
+                    self.set_rd(rd);
+
+                    // rs1: u5 -> 15->19
+                    let rs1 = self.opr[1].val().get_byte(0);
+                    self.set_rs1(rs1);
+
+                    // imm: u12 -> 20->32
+                    let imm = self.opr[2].val().get_bytes(0);
+                    self.set_imm_i(imm);
+                    
+                },
+                IROpcodeKind::R(_, _) => {
+                    // rd: u5 -> 7->11
+                    let rd = self.opr[0].val().get_byte(0);
+                    self.set_rd(rd);
+
+                    // rs1: u5 -> 15->19
+                    let rs1 = self.opr[1].val().get_byte(0);
+                    self.set_rs1(rs1);
+
+                    // rs2: u5 -> 20->24
+                    let rs2 = self.opr[2].val().get_byte(0);
+                    self.set_rs2(rs2);
+                },
+                IROpcodeKind::J(_, _) => {
+                    // TODO: Add IROpcodeKind::J
+                },
+                _ => {
+                    // Do nothing
+                },
+            }
             self.clone()
         } else {
             // Error
             log_error!("Apply operands failed: {} ", self.opc.name());
             // Revert
-            IRInsn::def(self.opc.name(), opr.iter().map(|x| x.sym()).collect(), self.opc.ty(), self.opb)
+            IRInsn::undef()
         }
     }
+
 }
 
 

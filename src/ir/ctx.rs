@@ -38,8 +38,10 @@ pub trait ArchInfo {
     const FLOAT_SIZE: usize;
     /// Base of Addr: 0x04000000
     const BASE_ADDR: usize;
-    /// Mem size: default 64MB = 4 * 1024 * 1024
+    /// Mem size: default 4MB = 4 * 1024 * 1024
     const MEM_SIZE: usize;
+    /// Stack Mem size: default 1MB = 1 * 1024 * 1024
+    const STACK_SIZE: usize;
     /// Number of Registers: 8, 16, **32**, 64
     const REG_NUM: usize;
 
@@ -72,6 +74,7 @@ impl ArchInfo for IRContext {
     const FLOAT_SIZE: usize = 32;
     const BASE_ADDR: usize = 0x04000000;
     const MEM_SIZE: usize = 4 * 1024 * 1024;
+    const STACK_SIZE: usize = 1 * 1024 * 1024;
     const REG_NUM: usize = 32;
 
 }
@@ -99,7 +102,7 @@ impl IRContext {
     /// Get ArchInfo string
     pub fn info() -> String {
         format!("Arch Info: \n- Name: {}\n- Byte Size: {}\n- Addr Size: {}\n- Word Size: {}\n- Float Size: {}\n- Base Addr: 0x{:x}\n- Mem Size: {}\n- Reg Num: {}\n", 
-            Self::NAME, Self::BYTE_SIZE, Self::ADDR_SIZE, Self::WORD_SIZE, Self::FLOAT_SIZE, Self::BASE_ADDR, Self::MEM_SIZE, Self::REG_NUM)
+            Self::NAME, Self::BYTE_SIZE, Self::ADDR_SIZE, Self::WORD_SIZE, Self::FLOAT_SIZE, Self::BASE_ADDR, Self::STACK_SIZE, Self::REG_NUM)
     }
 
     /// Get Name
@@ -170,17 +173,25 @@ impl IRContext {
         // 3. Init insns
         // RISCV Instruction Format:                               32|31  25|24 20|19 15|  |11  7|6    0|
         // Type: R                    [rd, rs1, rs2]                 |  f7  | rs2 | rs1 |f3|  rd |  op  |
-        IRInsn::def("add" , vec![1, 1, 1], "R", "0b0000000. ........ .000.... .0110011");
-        IRInsn::def("sub" , vec![1, 1, 1], "R", "0b0100000. ........ .000.... .0110011");
-        IRInsn::def("or"  , vec![1, 1, 1], "R", "0b0000000. ........ .111.... .0110011");
-        IRInsn::def("xor" , vec![1, 1, 1], "R", "0b0000000. ........ .100.... .0110011");
-        IRInsn::def("sll" , vec![1, 1, 1], "R", "0b0000000. ........ .001.... .0110011");
-        IRInsn::def("srl" , vec![1, 1, 1], "R", "0b0000000. ........ .101.... .0110011");
-        IRInsn::def("sra" , vec![1, 1, 1], "R", "0b0100000. ........ .101.... .0110011");
-        IRInsn::def("slt" , vec![1, 1, 1], "R", "0b0000000. ........ .010.... .0110011");
-        IRInsn::def("sltu", vec![1, 1, 1], "R", "0b0000000. ........ .011.... .0110011");
+        IRInsn::def("add" , vec![1, 1, 1], "R", "0B0000000. ........ .000.... .0110011");
+        IRInsn::def("sub" , vec![1, 1, 1], "R", "0B0100000. ........ .000.... .0110011");
+        IRInsn::def("or"  , vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011");
+        IRInsn::def("xor" , vec![1, 1, 1], "R", "0B0000000. ........ .100.... .0110011");
+        IRInsn::def("sll" , vec![1, 1, 1], "R", "0B0000000. ........ .001.... .0110011");
+        IRInsn::def("srl" , vec![1, 1, 1], "R", "0B0000000. ........ .101.... .0110011");
+        IRInsn::def("sra" , vec![1, 1, 1], "R", "0B0100000. ........ .101.... .0110011");
+        IRInsn::def("slt" , vec![1, 1, 1], "R", "0B0000000. ........ .010.... .0110011");
+        IRInsn::def("sltu", vec![1, 1, 1], "R", "0B0000000. ........ .011.... .0110011");
         // Type: I                    [rd, rs1, imm]                 |    imm     | rs1 |f3|  rd |  op  |
-        IRInsn::def("addi", vec![1, 1, 0], "I", "0b0000000. ........ .000.... .0010011");
+        IRInsn::def("addi", vec![1, 1, 0], "I", "0B........ ........ .000.... .0010011");
+        IRInsn::def("slti", vec![1, 1, 0], "I", "0B........ ........ .010.... .0010011");
+        IRInsn::def("sltiu",vec![1, 1, 0], "I", "0B........ ........ .011.... .0010011");
+        IRInsn::def("xori", vec![1, 1, 0], "I", "0B........ ........ .100.... .0010011");
+        IRInsn::def("ori" , vec![1, 1, 0], "I", "0B........ ........ .110.... .0010011");
+        IRInsn::def("andi", vec![1, 1, 0], "I", "0B........ ........ .111.... .0010011");
+        IRInsn::def("slli", vec![1, 1, 0], "I", "0B0000000. ........ .001.... .0010011");
+        IRInsn::def("srli", vec![1, 1, 0], "I", "0B0000000. ........ .101.... .0010011");
+        IRInsn::def("srai", vec![1, 1, 0], "I", "0B0100000. ........ .101.... .0010011");
     }
 
 
@@ -209,7 +220,12 @@ impl IRContext {
 
     // =================== IRCtx.process =================== //
 
+
+
+
+    // =================== IRCtx.decode ==================== //
     
+
 }
 
 
@@ -238,14 +254,40 @@ mod ctx_test {
     #[test]
     fn insn_info() {
         IRContext::init();
-        let insn1 = IRInsn::apply(
-            "xor", vec![
-                IROperand::reg("x1", IRValue::u5(8)), 
-                IROperand::reg("x2", IRValue::u5(8)), 
-                IROperand::reg("x3", IRValue::u5(9))
+
+        let insn1 = IRInsn::pool_nget("sub").borrow().clone();
+        println!("{}", insn1.info());
+        println!("{}", insn1.bin(0, -1, true));
+
+        let insn2 = IRInsn::apply(
+            "sub", vec![
+                IROperand::pool_nget("x31").borrow().clone(), 
+                IROperand::pool_nget("x2").borrow().clone(), 
+                IROperand::pool_nget("x8").borrow().clone()
             ]
         );
-        println!("{}", insn1);
+        println!("{}", insn2.bin(0, -1, true));
+        println!("{}", insn2);
+
+        let insn3 = IRInsn::apply(
+            "srl", vec![
+                IROperand::pool_nget("x31").borrow().clone(), 
+                IROperand::pool_nget("x30").borrow().clone(), 
+                IROperand::pool_nget("x7").borrow().clone()
+            ]
+        );
+        println!("{}", insn3.bin(0, -1, true));
+        println!("{}", insn3);
+
+        let insn4 = IRInsn::apply(
+            "addi", vec![
+                IROperand::pool_nget("x31").borrow().clone(),
+                IROperand::pool_nget("x30").borrow().clone(),
+                IROperand::imm(IRValue::u12(2457)),
+            ]
+        );
+        println!("{}", insn4.bin(0, -1, true));
+        println!("{}", insn4);
     }
 
     #[test]
@@ -264,7 +306,7 @@ mod ctx_test {
 
         p0.set_reg(3, IRValue::u32(23));
         println!("{}", ctx.proc.borrow().reg_info());
-        println!("{}", p0.get_reg(2));
+        println!("{}", p0.get_reg(3));
 
 
     }

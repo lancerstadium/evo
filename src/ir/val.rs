@@ -40,6 +40,16 @@ impl IRValue {
         *self = value;
     }
 
+    /// append IRvalue
+    pub fn append(&mut self, value: IRValue) {
+        // 1. Change the Kind to tuple: (self, value)
+        self.set_kind(IRTypeKind::Tuple(vec![self.ty.clone(), value.ty.clone()]));
+        // 2. Extend the val vec
+        self.val.borrow_mut().extend_from_slice(&value.val.borrow());
+        // 3. Check the size
+        assert_eq!(self.size(), self.val.borrow().len());
+    }
+
     /// just change value vec, must size equal
     pub fn set_val(&mut self, value: IRValue) {
         assert_eq!(value.size(), self.size());
@@ -142,26 +152,26 @@ impl IRValue {
         if big_endian {
             bin.push_str("0B");
             for i in 0..num {
-                if num * 8 > self.scale_sum() {
+                if (i+1) * 8 > self.scale_sum() {
                     let addition = self.scale_sum() % 8;
-                    bin.push_str(&format!("{:08b}", 
-                        self.get_byte(index + num - 1 - i as usize))
+                    bin.insert_str(2, &format!("{:08b}", 
+                        self.get_byte(index + i as usize))
                         .chars().rev().take(addition).collect::<String>().chars().rev().collect::<String>()
                     );
                     break;
                 }
-                bin.push_str(&format!("{:08b}", self.get_byte(index + num - 1 - i as usize)));
+                bin.insert_str(2, &format!("{:08b}", self.get_byte(index + i as usize)));
                 if i < num - 1 {
-                    bin.push(' ');
+                    bin.insert(2, ' ');
                 }
             }
         } else {
             bin.push_str("0b");
             for i in 0..num {
-                if num * 8 > self.scale_sum() {
+                if (i+1) * 8 > self.scale_sum() {
                     let addition = self.scale_sum() % 8;
                     bin.push_str(&format!("{:08b}", 
-                        self.get_byte(index + num - 1 - i as usize))
+                        self.get_byte(index + i as usize))
                         .chars().rev().take(addition).collect::<String>().chars().rev().collect::<String>()
                     );
                     break;
@@ -200,10 +210,24 @@ impl IRValue {
 
     // ==================== IRValue.get ==================== //
 
-    /// Get value by byte: no error
+    /// Get value by byte: no bound
     pub fn get_byte(&self, index: usize) -> u8 {
         let buffer = self.val.borrow();
+        if buffer.len() < index + 1 {
+            log_error!("Index out of bounds: {}", index);
+            return 0;
+        }
         buffer[index]
+    }
+
+    /// Get value by bytes: bound
+    pub fn get_bytes(&self, index: usize) -> u16 {
+        let buffer = self.val.borrow();
+        if buffer.len() < index + 2 {
+            log_error!("Index out of bounds: {}", index);
+            return 0;
+        }
+        u16::from_le_bytes([buffer[index], buffer[index + 1]])
     }
 
     /// Get value by ubyte
