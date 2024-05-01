@@ -27,8 +27,9 @@ use crate::ir::val::IRValue;
 // use crate::log_error;
 use crate::ir::ctx::{IRContext, ArchInfo};
 use crate::ir::op::IRInsn;
-
-use super::ty::IRType;
+use crate::log_warning;
+use crate::util::log::Span;
+use crate::ir::ty::IRType;
 
 
 
@@ -425,8 +426,16 @@ impl IRProcess {
         self.mem_segment.borrow_mut().set(idx, value);
     }
 
-    /// Read mem value: by 32 or 64-bit / index
-    pub fn read_mem(&self, index: usize) -> IRValue {
+    /// Read mem value: by 32 or 64-bit / index (num=[1-16])
+    pub fn read_mem(&self, index: usize, num: usize) -> IRValue {
+        let mut num = num;
+        if num <= 0 {
+            log_warning!("Read Mem: num: {} <= 0", num);
+            num = 1;
+        } else if num > 16 {
+            log_warning!("Read Mem: num: {} > 16", num);
+            num = 16;
+        }
         let idx :usize;
         let scale :usize;
         if IRContext::is_64() {
@@ -436,7 +445,7 @@ impl IRProcess {
             idx = index * 4;
             scale = 32;
         }
-        self.mem_segment.borrow().get(idx, scale)
+        self.mem_segment.borrow().get(idx, scale * num)
     }
 
     // ================= IRProcess.thread ================ //

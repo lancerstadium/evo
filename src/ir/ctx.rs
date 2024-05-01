@@ -582,8 +582,8 @@ impl IRContext {
     }
 
     /// Read Mem
-    pub fn read_mem(&self, index: usize) -> IRValue {
-        self.proc.borrow().read_mem(index)
+    pub fn read_mem(&self, index: usize, num: usize) -> IRValue {
+        self.proc.borrow().read_mem(index, num)
     }
 
     /// Write Mem
@@ -678,7 +678,7 @@ mod ctx_test {
         println!("{}", p0.get_reg(3));
 
         p0.write_mem(13, IRValue::i32(-65535));
-        println!("{}", p0.read_mem(13));
+        println!("{}", p0.read_mem(13, 2));
 
     }
 
