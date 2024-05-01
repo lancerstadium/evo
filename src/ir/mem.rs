@@ -179,6 +179,7 @@ impl IRThread {
         }
     }
 
+    /// get reg info
     pub fn reg_info(&self, start: usize, num: i32) -> String {
         let mut info = String::new();
         info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, IRInsn::reg_pool_size()));
@@ -194,8 +195,19 @@ impl IRThread {
         info
     }
 
+    /// get reg num
     pub fn reg_num(&self) -> usize {
         self.registers.borrow().len()
+    }
+
+    /// Get pc: ABI x2 is pc
+    pub fn get_pc(&self) -> IRValue {
+        self.get_nreg("x2")
+    }
+
+    /// Set pc: ABI x2 is pc
+    pub fn set_pc(&self, value: IRValue) {
+        self.set_nreg("x2", value)
     }
 
     // ================= IRThread.stark ================== //
@@ -506,6 +518,15 @@ impl IRProcess {
         self.cur_thread.borrow().reg_num()
     }
 
+    /// Set reg pc
+    pub fn set_pc(&self, value: IRValue) {
+        self.cur_thread.borrow_mut().set_pc(value)
+    }
+
+    /// Get reg pc
+    pub fn get_pc(&self) -> IRValue {
+        self.cur_thread.borrow().get_pc()
+    }
 }
 
 

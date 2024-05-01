@@ -525,7 +525,301 @@ impl IRContext {
                 proc0.set_reg(insn.rd() as usize, IRValue::i32(res));
             }
         );
-
+        IRInterpreter::def_insn("lb", vec![1, 1, 0], "I", "0B........ ........ .000.... .0000011",
+            |ctx, insn| {
+                // ======== rd = [rs1 + imm] ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_i() as i32;
+                // 3. Read Mem: Byte
+                let val = proc0.read_mem((rs1 + imm) as usize, 1).get_byte(0);
+                // 4. Set rd(i32)
+                proc0.set_reg(insn.rd() as usize, IRValue::i32(val as i32));
+            }
+        );
+        IRInterpreter::def_insn("lh", vec![1, 1, 0], "I", "0B........ ........ .001.... .0000011", 
+            |ctx, insn| {
+                // ======== rd = [rs1 + imm] ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_i() as i32;
+                // 3. Read Mem: Half
+                let val = proc0.read_mem((rs1 + imm) as usize, 1).get_half(0);
+                // 4. Set rd(i32)
+                proc0.set_reg(insn.rd() as usize, IRValue::i32(val as i32));
+            }
+        );
+        IRInterpreter::def_insn("lw", vec![1, 1, 0], "I", "0B........ ........ .010.... .0000011",
+            |ctx, insn| {
+                // ======== rd = [rs1 + imm] ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_i() as i32;
+                // 3. Read Mem: Word
+                let val = proc0.read_mem((rs1 + imm) as usize, 1).get_word(0);
+                // 4. Set rd(i32)
+                proc0.set_reg(insn.rd() as usize, IRValue::i32(val as i32));
+            }
+        );
+        IRInterpreter::def_insn("lbu", vec![1, 1, 0], "I", "0B........ ........ .100.... .0000011",
+            |ctx, insn| {
+                // ======== rd = [rs1 + imm] ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_i() as i32;
+                // 3. Read Mem: Byte
+                let val = proc0.read_mem((rs1 + imm) as usize, 1).get_byte(0);
+                // 4. Set rd(u32)
+                proc0.set_reg(insn.rd() as usize, IRValue::u32(val as u32));
+            }
+        );
+        IRInterpreter::def_insn("lhu", vec![1, 1, 0], "I", "0B........ ........ .101.... .0000011",
+            |ctx, insn| {
+                // ======== rd = [rs1 + imm] ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_i() as i32;
+                // 3. Read Mem: Half
+                let val = proc0.read_mem((rs1 + imm) as usize, 1).get_half(0);
+                // 4. Set rd(u32)
+                proc0.set_reg(insn.rd() as usize, IRValue::u32(val as u32));
+            }
+        );
+        // Type:S 
+        IRInterpreter::def_insn("sb", vec![1, 1, 0], "S", "0B........ ........ .000.... .0100011",
+            |ctx, insn| {
+                // ======== [rs1 + imm] = rs2 ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_s() as i32;
+                // 3. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_byte(0) as i8;
+                // 4. Write Mem: Byte
+                proc0.write_mem((rs1 + imm) as usize, IRValue::i8(rs2));
+            }
+        );
+        IRInterpreter::def_insn("sh", vec![1, 1, 0], "S", "0B........ ........ .001.... .0100011",
+            |ctx, insn| {
+                // ======== [rs1 + imm] = rs2 ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_s() as i32;
+                // 3. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_half(0) as i16;
+                // 4. Write Mem: Half
+                proc0.write_mem((rs1 + imm) as usize, IRValue::i16(rs2));
+            }
+        );
+        IRInterpreter::def_insn("sw", vec![1, 1, 0], "S", "0B........ ........ .010.... .0100011",
+            |ctx, insn| {
+                // ======== [rs1 + imm] = rs2 ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get imm(i32)
+                let imm = insn.imm_s() as i32;
+                // 3. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_word(0) as i32;
+                // 4. Write Mem: Word
+                proc0.write_mem((rs1 + imm) as usize, IRValue::i32(rs2));
+            }
+        );
+        // Type: B
+        IRInterpreter::def_insn("beq", vec![1, 1, 0], "B", "0B........ ........ .000.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 == rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 == rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        IRInterpreter::def_insn("bne", vec![1, 1, 0], "B", "0B........ ........ .001.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 != rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 != rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        IRInterpreter::def_insn("blt", vec![1, 1, 0], "B", "0B........ ........ .100.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 < rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 < rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        IRInterpreter::def_insn("bge", vec![1, 1, 0], "B", "0B........ ........ .101.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 >= rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(i32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+                // 2. Get rs2(i32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 >= rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        IRInterpreter::def_insn("bltu", vec![1, 1, 0], "B", "0B........ ........ .110.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 < rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(u32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
+                // 2. Get rs2(u32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_u32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 < rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        IRInterpreter::def_insn("bgeu", vec![1, 1, 0], "B", "0B........ ........ .111.... .1100011",
+            |ctx, insn| {
+                // ======== if(rs1 >= rs2) pc += imm ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get rs1(u32)
+                let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
+                // 2. Get rs2(u32)
+                let rs2 = proc0.get_reg(insn.rs2() as usize).get_u32(0);
+                // 3. Get imm(i32)
+                let imm = insn.imm_b() as i32;
+                // 4. Set PC
+                if rs1 >= rs2 {
+                    proc0.set_pc(IRValue::i32(proc0.get_pc().get_i32(0) + imm));
+                }
+            }
+        );
+        // Type: U
+        IRInterpreter::def_insn("lui", vec![1, 0], "U", "0B........ ........ ........ .0110111",
+            |ctx, insn| {
+                // ======== rd = imm << 12 ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get imm(i32)
+                let imm = insn.imm_u() as i32;
+                // 2. Set rd(i32)
+                proc0.set_reg(insn.rd() as usize, IRValue::i32(imm << 12));
+            }
+        );
+        IRInterpreter::def_insn("auipc", vec![1, 0], "U", "0B........ ........ ........ .0010111",
+            |ctx, insn| {
+                // ======== rd = pc + imm << 12 ======== //
+                if !insn.is_applied {
+                    log_warning!("Insn not applied: {}", insn);
+                    return;
+                }
+                let proc0 = ctx.proc.borrow().clone();
+                // 1. Get imm(i32)
+                let imm = insn.imm_u() as i32;
+                // 2. Set rd(i32)
+                proc0.set_reg(insn.rd() as usize, IRValue::i32(proc0.get_pc().get_i32(0) + imm << 12));
+            }
+        );
         Some(Rc::new(RefCell::new(itp)))
     }
 
@@ -579,6 +873,16 @@ impl IRContext {
     /// Get reg by name
     pub fn get_nreg(&self, name: &'static str) -> IRValue {
         self.proc.borrow().get_nreg(name)
+    }
+
+    /// Get pc
+    pub fn get_pc(&self) -> IRValue {
+        self.proc.borrow().get_pc()
+    }
+
+    /// Set pc
+    pub fn set_pc(&self, value: IRValue) {
+        self.proc.borrow_mut().set_pc(value);
     }
 
     /// Read Mem
@@ -689,6 +993,7 @@ mod ctx_test {
         ctx.set_nreg("x1", IRValue::i32(3));
         ctx.set_nreg("x2", IRValue::i32(5));
         ctx.set_nreg("x3", IRValue::i32(-32));
+        ctx.write_mem(26, IRValue::i32(0x1ffff));
 
         // R-Type Insns Test
         let insn1 = IRInsn::from_string("add x0, x1, x2");
@@ -707,7 +1012,30 @@ mod ctx_test {
         let insn12 = IRInsn::from_string("andi x0, x1, 2457");
         let insn13 = IRInsn::from_string("ori x0, x1, 2457");
         let insn14 = IRInsn::from_string("xori x0, x1, 2457");
+        let insn15 = IRInsn::from_string("slti x0, x1, 2");
+        let insn16 = IRInsn::from_string("sltiu x0, x1, 2");
 
+        let insn17 = IRInsn::from_string("lb x0, x1, 23");
+        let insn18 = IRInsn::from_string("lh x0, x1, 23");
+        let insn19 = IRInsn::from_string("lw x0, x1, 23");
+        let insn20 = IRInsn::from_string("lbu x0, x1, 23");
+        let insn21 = IRInsn::from_string("lhu x0, x1, 23");
+
+        let insn22 = IRInsn::from_string("sb x0, x1, 23");
+        let insn23 = IRInsn::from_string("sh x0, x1, 23");
+        let insn24 = IRInsn::from_string("sw x0, x1, 23");
+
+        // B-Type Insns Test
+        let insn25 = IRInsn::from_string("beq x0, x1, 23");
+        let insn26 = IRInsn::from_string("bne x0, x1, 23");
+        let insn27 = IRInsn::from_string("blt x0, x1, 23");
+        let insn28 = IRInsn::from_string("bge x0, x1, 23");
+        let insn29 = IRInsn::from_string("bltu x0, x1, 23");
+        let insn30 = IRInsn::from_string("bgeu x0, x1, 23");
+
+        // U-Type Insns Test
+        // let insn31 = IRInsn::from_string("lui x0, 2457");
+        // let insn32 = IRInsn::from_string("auipc x0, 2457");
 
         ctx.execute(&insn1);
         println!("{:<50} -> x0 = {}", insn1.to_string(), ctx.get_nreg("x0").get_i32(0));
@@ -738,7 +1066,49 @@ mod ctx_test {
         println!("{:<50} -> x0 = {}", insn13.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn14);
         println!("{:<50} -> x0 = {}", insn14.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn15);
+        println!("{:<50} -> x0 = {}", insn15.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn16);
+        println!("{:<50} -> x0 = {}", insn16.to_string(), ctx.get_nreg("x0").get_i32(0));
 
+        ctx.execute(&insn17);
+        println!("{:<50} -> x0 = {}", insn17.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn18);
+        println!("{:<50} -> x0 = {}", insn18.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn19);
+        println!("{:<50} -> x0 = {}", insn19.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn20);
+        println!("{:<50} -> x0 = {}", insn20.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn21);
+        println!("{:<50} -> x0 = {}", insn21.to_string(), ctx.get_nreg("x0").get_i32(0));
+
+        ctx.set_nreg("x0", IRValue::i32(56));
+        ctx.execute(&insn22);
+        println!("{:<50} -> mem = {}", insn22.to_string(), ctx.read_mem(26, 1).bin(0, 1, false));
+        ctx.set_nreg("x0", IRValue::i32(732));
+        ctx.execute(&insn23);
+        println!("{:<50} -> mem = {}", insn23.to_string(), ctx.read_mem(26, 1).bin(0, 2, false));
+        ctx.set_nreg("x0", IRValue::i32(-8739));
+        ctx.execute(&insn24);
+        println!("{:<50} -> mem = {}", insn24.to_string(), ctx.read_mem(26, 1).bin(0, 4, false));
+
+        ctx.execute(&insn25);
+        println!("{:<50} -> pc = {}", insn25.to_string(), ctx.get_pc());
+        ctx.execute(&insn26);
+        println!("{:<50} -> pc = {}", insn26.to_string(), ctx.get_pc());
+        ctx.execute(&insn27);
+        println!("{:<50} -> pc = {}", insn27.to_string(), ctx.get_pc());
+        ctx.execute(&insn28);
+        println!("{:<50} -> pc = {}", insn28.to_string(), ctx.get_pc());
+        ctx.execute(&insn29);
+        println!("{:<50} -> pc = {}", insn29.to_string(), ctx.get_pc());
+        ctx.execute(&insn30);
+        println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
+
+        // ctx.execute(&insn31);
+        // println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
+        // ctx.execute(&insn32);
+        // println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
     }
 
 }

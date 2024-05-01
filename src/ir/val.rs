@@ -253,6 +253,16 @@ impl IRValue {
         u16::from_le_bytes([buffer[index], buffer[index + 1]])
     }
 
+    /// Get value by word: bound
+    pub fn get_word(&self, index: usize) -> u32 {
+        let buffer = self.val.borrow();
+        if buffer.len() < index + 4 {
+            log_error!("Index out of bounds: {}", index);
+            return 0;
+        }
+        u32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
+    }
+
     /// Get value by ubyte
     pub fn get_ubyte(&self, index: usize, offset: usize, scale: usize) -> u8 {
         let offset_bytes = offset / 8;
@@ -1076,20 +1086,18 @@ impl IRValue {
             buffer[index + offset_bytes] = buf_bytes[0];
             buffer[index + offset_bytes + 1] = buf_bytes[1];
         } else {
-            // 0. get u32
-            let mut buf_val: u32 = buffer[index + offset_bytes] as u32;
-            let bytes_val : u32 = value as u32;
+            // 0. get u16
+            let mut buf_val = u16::from_le_bytes([buffer[index + offset_bytes], 0]);
+            let bytes_val : u16 = value as u16;
             // 1. get mask
-            let mask: u32 = (1 << scale) - 1;
+            let mask: u16 = (1 << scale) - 1;
             // 2. clear buf_val
             buf_val &= !(mask << offset_bits);
             // 3. set value
             buf_val |= (bytes_val & mask) << offset_bits;
             // 4. set buf_val
-            buffer[index + offset_bytes] = buf_val as u8;
-            buffer[index + offset_bytes + 1] = (buf_val >> 8) as u8;
-            buffer[index + offset_bytes + 2] = (buf_val >> 16) as u8;
-            buffer[index + offset_bytes + 3] = (buf_val >> 24) as u8;
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
         }
     }
 

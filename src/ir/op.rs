@@ -680,7 +680,7 @@ impl IRInsn {
         
         for i in 0..Self::insn_pool_size() {
             let insn = Self::insn_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
+            info.push_str(&format!("- {:<30} {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }
@@ -857,6 +857,26 @@ impl IRInsn {
         self.byt.get_uhalf(0, 20, 12)
     }
 
+    pub fn imm_s(&self) -> u16 {
+        let imm0 = self.byt.get_ubyte(0, 7, 5);
+        let imm1 = self.byt.get_ubyte(0, 25, 7);
+        let res = (imm0 as u16) | ((imm1 as u16) << 5);
+        res
+    }
+
+    pub fn imm_b(&self) -> u16 {
+        let imm0 = self.byt.get_ubyte(0, 8, 4);
+        let imm1 = self.byt.get_ubyte(0, 25, 6);
+        let imm2 = self.byt.get_ubyte(0, 7, 1);
+        let imm3 = self.byt.get_ubyte(0, 31, 1);
+        let res = (imm0 as u16) | ((imm1 as u16) << 4) | ((imm2 as u16) << 11) | ((imm3 as u16) << 12);
+        res
+    }
+
+    pub fn imm_u(&self) -> u32 {
+        self.byt.get_uword(0, 12, 20)
+    }
+
     fn set_rs1(&mut self, rs1: u8) {
         self.byt.set_ubyte(0, 15, 5, rs1);
     }
@@ -871,6 +891,28 @@ impl IRInsn {
 
     fn set_imm_i(&mut self, imm: u16) {
         self.byt.set_uhalf(0, 20, 12, imm);
+    }
+
+    fn set_imm_s(&mut self, imm: u16) {
+        let imm0 = (imm & 0x1f) as u8;
+        let imm1 = (imm >> 5) as u8;
+        self.byt.set_ubyte(0, 7, 5, imm0);
+        self.byt.set_ubyte(0, 25, 7, imm1);
+    }
+
+    fn set_imm_b(&mut self, imm: u16) {
+        let imm0 = (imm & 0x1f) as u8;
+        let imm1 = ((imm >> 5) & 0x3f) as u8;
+        let imm2 = ((imm >> 11) & 0x1) as u8;
+        let imm3 = ((imm >> 12) & 0x1) as u8;
+        self.byt.set_ubyte(0, 8, 4, imm0);
+        self.byt.set_ubyte(0, 25, 6, imm1);
+        self.byt.set_ubyte(0, 7, 1, imm2);
+        self.byt.set_ubyte(0, 31, 1, imm3);
+    }
+
+    fn set_imm_u(&mut self, imm: u32) {
+        self.byt.set_uword(0, 12, 20, imm);
     }
 
     /// Apply IROperand to IROpcode, get new IRInsn
@@ -903,6 +945,19 @@ impl IRInsn {
             self.is_applied = true;
             // match opcode type kind and fill bytes by opreands
             match self.opc.kind() {
+                IROpcodeKind::R(_, _) => {
+                    // rd: u5 -> 7->11
+                    let rd = self.opr[0].val().get_byte(0);
+                    self.set_rd(rd);
+
+                    // rs1: u5 -> 15->19
+                    let rs1 = self.opr[1].val().get_byte(0);
+                    self.set_rs1(rs1);
+
+                    // rs2: u5 -> 20->24
+                    let rs2 = self.opr[2].val().get_byte(0);
+                    self.set_rs2(rs2);
+                },
                 IROpcodeKind::I(_, _) => {
                     // rd: u5 -> 7->11
                     let rd = self.opr[0].val().get_byte(0);
@@ -917,18 +972,42 @@ impl IRInsn {
                     self.set_imm_i(imm);
                     
                 },
-                IROpcodeKind::R(_, _) => {
-                    // rd: u5 -> 7->11
-                    let rd = self.opr[0].val().get_byte(0);
-                    self.set_rd(rd);
+                IROpcodeKind::S(_, _) => {
+
+                    // rs2: u5 -> 20->24
+                    let rs2 = self.opr[0].val().get_byte(0);
+                    self.set_rs2(rs2);
 
                     // rs1: u5 -> 15->19
                     let rs1 = self.opr[1].val().get_byte(0);
                     self.set_rs1(rs1);
 
+                    // imm: S
+                    let imm = self.opr[2].val().get_half(0);
+                    self.set_imm_s(imm);
+                },
+                IROpcodeKind::B(_, _) => {
+
                     // rs2: u5 -> 20->24
-                    let rs2 = self.opr[2].val().get_byte(0);
+                    let rs2 = self.opr[0].val().get_byte(0);
                     self.set_rs2(rs2);
+
+                    // rs1: u5 -> 15->19
+                    let rs1 = self.opr[1].val().get_byte(0);
+                    self.set_rs1(rs1);
+
+                    // imm: B
+                    let imm = self.opr[2].val().get_half(0);
+                    self.set_imm_b(imm);
+                },
+                IROpcodeKind::U(_, _) => {
+                    // rd: u5 -> 7->11
+                    let rd = self.opr[0].val().get_byte(0);
+                    self.set_rd(rd);
+
+                    // imm: U
+                    let imm = self.opr[1].val().get_word(0);
+                    self.set_imm_u(imm);
                 },
                 IROpcodeKind::J(_, _) => {
                     // TODO: Add IROpcodeKind::J
