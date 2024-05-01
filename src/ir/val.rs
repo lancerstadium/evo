@@ -220,8 +220,8 @@ impl IRValue {
         buffer[index]
     }
 
-    /// Get value by bytes: bound
-    pub fn get_bytes(&self, index: usize) -> u16 {
+    /// Get value by half: bound
+    pub fn get_half(&self, index: usize) -> u16 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 2 {
             log_error!("Index out of bounds: {}", index);
@@ -267,7 +267,7 @@ impl IRValue {
     }
 
     /// Get value by ubyte (u16 version)
-    pub fn get_ubytes(&self, index: usize, offset: usize, scale: usize) -> u16 {
+    pub fn get_uhalf(&self, index: usize, offset: usize, scale: usize) -> u16 {
         let offset_bytes = offset / 8;
         let offset_bits = offset % 8;
         let mut scale = scale;
@@ -681,7 +681,7 @@ impl IRValue {
     }
 
     /// u16 version of set_ubyte
-    pub fn set_ubytes(&mut self, index: usize, offset: usize, scale: usize, value: u16) {
+    pub fn set_uhalf(&mut self, index: usize, offset: usize, scale: usize, value: u16) {
         let offset_bytes = offset / 8;
         let offset_bits = offset % 8;
         let mut scale = scale;
@@ -1178,49 +1178,49 @@ impl IRValue {
     /// Get value from u16 -> u9
     pub fn u9(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u9());
-        val.set_ubytes(0, 0, 9, value);
+        val.set_uhalf(0, 0, 9, value);
         val
     }
 
     /// Get value from u16 -> u10
     pub fn u10(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u10());
-        val.set_ubytes(0, 0, 10, value);
+        val.set_uhalf(0, 0, 10, value);
         val
     }
 
     /// Get value from u16 -> u11
     pub fn u11(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u11());
-        val.set_ubytes(0, 0, 11, value);
+        val.set_uhalf(0, 0, 11, value);
         val
     }
 
     /// Get value from u16 -> u12
     pub fn u12(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u12());
-        val.set_ubytes(0, 0, 12, value);
+        val.set_uhalf(0, 0, 12, value);
         val
     }
 
     /// Get value from u16 -> u13
     pub fn u13(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u13());
-        val.set_ubytes(0, 0, 13, value);
+        val.set_uhalf(0, 0, 13, value);
         val
     }
 
     /// Get value from u16 -> u14
     pub fn u14(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u14());
-        val.set_ubytes(0, 0, 14, value);
+        val.set_uhalf(0, 0, 14, value);
         val
     }
 
     /// Get value from u16 -> u15
     pub fn u15(value: u16) -> IRValue {
         let mut val = IRValue::new(IRType::u15());
-        val.set_ubytes(0, 0, 15, value);
+        val.set_uhalf(0, 0, 15, value);
         val
     }
 
@@ -1386,13 +1386,13 @@ impl Display for IRValue {
             IRTypeKind::U6 => write!(f, "{}", self.get_ubyte(0, 0, 6)),
             IRTypeKind::U7 => write!(f, "{}", self.get_ubyte(0, 0, 7)),
             IRTypeKind::U8 => write!(f, "{}", self.get_u8(0)),
-            IRTypeKind::U9 => write!(f, "{}", self.get_ubytes(0, 0, 9)),
-            IRTypeKind::U10 => write!(f, "{}", self.get_ubytes(0, 0, 10)),
-            IRTypeKind::U11 => write!(f, "{}", self.get_ubytes(0, 0, 11)),
-            IRTypeKind::U12 => write!(f, "{}", self.get_ubytes(0, 0, 12)),
-            IRTypeKind::U13 => write!(f, "{}", self.get_ubytes(0, 0, 13)),
-            IRTypeKind::U14 => write!(f, "{}", self.get_ubytes(0, 0, 14)),
-            IRTypeKind::U15 => write!(f, "{}", self.get_ubytes(0, 0, 15)),
+            IRTypeKind::U9 => write!(f, "{}", self.get_uhalf(0, 0, 9)),
+            IRTypeKind::U10 => write!(f, "{}", self.get_uhalf(0, 0, 10)),
+            IRTypeKind::U11 => write!(f, "{}", self.get_uhalf(0, 0, 11)),
+            IRTypeKind::U12 => write!(f, "{}", self.get_uhalf(0, 0, 12)),
+            IRTypeKind::U13 => write!(f, "{}", self.get_uhalf(0, 0, 13)),
+            IRTypeKind::U14 => write!(f, "{}", self.get_uhalf(0, 0, 14)),
+            IRTypeKind::U15 => write!(f, "{}", self.get_uhalf(0, 0, 15)),
             IRTypeKind::U16 => write!(f, "{}", self.get_u16(0)),
             IRTypeKind::U32 => write!(f, "{}", self.get_u32(0)),
             IRTypeKind::U64 => write!(f, "{}", self.get_u64(0)),
@@ -1579,9 +1579,9 @@ mod val_test {
         assert_eq!(val.bin(0, -1, false), "0b01111101");
 
         let mut val = IRValue::u32(0);
-        val.set_ubytes(0, 15, 16, 8253);
+        val.set_uhalf(0, 15, 16, 8253);
         assert_eq!(val.bin(0, -1, true), "0B00010000 00011110 10000000 00000000");
-        assert_eq!(val.get_ubytes(0, 15, 16), 8253);
+        assert_eq!(val.get_uhalf(0, 15, 16), 8253);
 
         let val = IRValue::u12(232);
         assert_eq!(val.hex(0, -1, false), "0xe8 00");

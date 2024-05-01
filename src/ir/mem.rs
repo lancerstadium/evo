@@ -98,10 +98,10 @@ impl IRThread {
         let mut init_regs = Vec::new();
         // let mut init_stack = Vec::new();
         if IRContext::is_32() {
-            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::u32(0)))).collect::<Vec<_>>();
+            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::i32(0)))).collect::<Vec<_>>();
             // init_stack = (0..IRContext::STACK_SIZE / 4).map(|_| Rc::new(RefCell::new(IRValue::u32(0)))).collect::<Vec<_>>();
         } else if IRContext::is_64() {
-            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::u64(0)))).collect::<Vec<_>>();
+            init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::i64(0)))).collect::<Vec<_>>();
             // init_stack = (0..IRContext::STACK_SIZE / 8).map(|_| Rc::new(RefCell::new(IRValue::u64(0)))).collect::<Vec<_>>();
         }
         thread.registers.borrow_mut().extend(init_regs);

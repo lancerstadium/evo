@@ -780,28 +780,32 @@ impl IRInsn {
         self.byt.val.borrow().clone()
     }
 
-    pub fn get_funct7(&self) -> u8 {
+    pub fn funct7(&self) -> u8 {
         self.byt.get_ubyte(0, 25, 7)
     }
 
-    pub fn get_funct3(&self) -> u8 {
+    pub fn funct3(&self) -> u8 {
         self.byt.get_ubyte(0, 12, 3)
     }
 
-    pub fn get_opcode(&self) -> u8 {
+    pub fn opcode(&self) -> u8 {
         self.byt.get_ubyte(0, 25, 7)
     }
 
-    pub fn get_rs1(&self) -> u8 {
+    pub fn rs1(&self) -> u8 {
         self.byt.get_ubyte(0, 15, 5)
     }
 
-    pub fn get_rs2(&self) -> u8 {
+    pub fn rs2(&self) -> u8 {
         self.byt.get_ubyte(0, 20, 5)
     }
 
-    pub fn get_rd(&self) -> u8 {
+    pub fn rd(&self) -> u8 {
         self.byt.get_ubyte(0, 7, 5)
+    }
+
+    pub fn imm_i(&self) -> u16 {
+        self.byt.get_uhalf(0, 20, 12)
     }
 
     fn set_rs1(&mut self, rs1: u8) {
@@ -821,7 +825,7 @@ impl IRInsn {
 
     fn set_imm_i(&mut self, imm: u16) {
         println!("imm: {}", imm);
-        self.byt.set_ubytes(0, 20, 12, imm);
+        self.byt.set_uhalf(0, 20, 12, imm);
     }
 
     /// Apply IROperand to IROpcode, get new IRInsn
@@ -864,7 +868,7 @@ impl IRInsn {
                     self.set_rs1(rs1);
 
                     // imm: u12 -> 20->32
-                    let imm = self.opr[2].val().get_bytes(0);
+                    let imm = self.opr[2].val().get_half(0);
                     self.set_imm_i(imm);
                     
                 },
