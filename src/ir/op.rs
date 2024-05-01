@@ -151,12 +151,6 @@ pub struct IROperand(Rc<RefCell<IROperandKind>>);
 
 impl IROperand {
 
-    thread_local! {
-        /// Register Map (Shared Process)
-        pub static IR_REG_POOL : Rc<RefCell<Vec<Rc<RefCell<IROperand>>>>> = Rc::new(RefCell::new(Vec::new()));
-    }
-
-
     // ================== IROperand.new ==================== //
 
     pub fn new(sym: i32) -> Self {
@@ -171,9 +165,7 @@ impl IROperand {
 
     /// New IROperand Reg
     pub fn reg(name: &'static str, val: IRValue) -> Self {
-        let reg = Self(Rc::new(RefCell::new(IROperandKind::Reg(name, val))));
-        Self::pool_push(reg.clone());
-        Self::pool_nget(name).borrow().clone()
+        Self(Rc::new(RefCell::new(IROperandKind::Reg(name, val))))
     }
 
     /// New IROperand Imm
@@ -208,66 +200,6 @@ impl IROperand {
 
     // ================== IROperand.pool =================== //
 
-    /// Pool set reg by index
-    pub fn pool_set(idx: usize, reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
-    }
-
-    /// Pool push reg
-    pub fn pool_push(reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
-    }
-
-    /// Pool get reg refenence by index
-    pub fn pool_get(idx: usize) -> Rc<RefCell<IROperand>> {
-        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].clone())
-    }
-
-    /// Pool set reg `index` value by index
-    pub fn pool_set_val(idx: usize, val: IRValue) { 
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
-    }
-
-    /// Pool get reg `index` value by index
-    pub fn pool_get_val(idx: usize) -> IRValue {
-        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
-    }
-
-    /// Pool set reg by name
-    pub fn pool_nset(name: &'static str , reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
-    }
-
-    /// Pool get reg refenence by name
-    pub fn pool_nget(name: &'static str) -> Rc<RefCell<IROperand>> {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
-    }
-
-    /// Pool get reg pool idx by name
-    pub fn pool_idx(name: &'static str) -> usize {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
-    }
-
-    /// Pool clear
-    pub fn pool_clr() {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().clear());
-    }
-
-    /// Pool size
-    pub fn pool_size() -> usize {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().len())
-    }
-
-    /// Pool info
-    pub fn pool_info() -> String {
-        let mut info = String::new();
-        info.push_str(&format!("Registers (Num = {}):\n", Self::pool_size()));
-        for i in 0..Self::pool_size() {
-            let reg = Self::pool_get(i).borrow().clone();
-            info.push_str(&format!("- {}\n", reg.info()));
-        }
-        info
-    }
 
     // ================== IROperand.get ==================== //
 
@@ -606,7 +538,10 @@ impl IRInsn {
 
     // Init Opcode POOL
     thread_local! {
-        static IR_INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<IRInsn>>>>> = Rc::new(RefCell::new(Vec::new()));
+        /// Register Map (Shared Global)
+        pub static IR_REG_POOL : Rc<RefCell<Vec<Rc<RefCell<IROperand>>>>> = Rc::new(RefCell::new(Vec::new()));
+        /// Insn Map (Shared Global)
+        pub static IR_INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<IRInsn>>>>> = Rc::new(RefCell::new(Vec::new()));
     }
 
     /// Get Undef Insn
@@ -620,7 +555,7 @@ impl IRInsn {
         }
     }
 
-    /// Define IRInsn Temp
+    /// Define IRInsn Temp and add to pool
     pub fn def(name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> IRInsn {
         let opc = IROpcode::new(name, syms, ty);
         let insn = IRInsn {
@@ -631,78 +566,150 @@ impl IRInsn {
             is_applied: false,
         };
         // add to pool
-        IRInsn::pool_push(insn);
+        IRInsn::insn_pool_push(insn);
         // return
-        IRInsn::pool_nget(name).borrow().clone()
+        IRInsn::insn_pool_nget(name).borrow().clone()
+    }
+
+    /// Define Register Temp and add to pool
+    pub fn reg(name: &'static str, val: IRValue) -> IROperand {
+        let reg = IROperand::reg(name, val);
+        Self::reg_pool_push(reg.clone());
+        Self::reg_pool_nget(name).borrow().clone()
     }
 
     /// apply temp to IRInsn
     pub fn apply(name: &'static str, opr: Vec<IROperand>) -> IRInsn {
-        let mut insn = IRInsn::pool_nget(name).borrow().clone();
+        let mut insn = IRInsn::insn_pool_nget(name).borrow().clone();
         insn.encode(opr)
     }
 
-    // ==================== IRInsn.pool ==================== //
+    // ================= IRInsn.insn_pool ================== //
 
     /// delete Insn from pool
-    pub fn pool_del(name: &'static str) {
+    pub fn insn_pool_del(name: &'static str) {
         // Get index
-        let idx = Self::pool_idx(name);
+        let idx = Self::insn_pool_idx(name);
         // Delete
         Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().remove(idx));
     }
 
     /// Get Insn index from pool
-    pub fn pool_idx(name: &'static str) -> usize {
+    pub fn insn_pool_idx(name: &'static str) -> usize {
         Self::IR_INSN_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
     }
 
     /// get Insn from pool
-    pub fn pool_nget(name: &'static str) -> Rc<RefCell<IRInsn>> {
+    pub fn insn_pool_nget(name: &'static str) -> Rc<RefCell<IRInsn>> {
         Self::IR_INSN_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
     }
 
     /// Set Insn from pool
-    pub fn pool_nset(name: &'static str, insn: IRInsn) {
+    pub fn insn_pool_nset(name: &'static str, insn: IRInsn) {
         Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(insn));
     }
 
     /// Insert Insn from pool
-    pub fn pool_push(insn: IRInsn) {
+    pub fn insn_pool_push(insn: IRInsn) {
         Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(insn))));
     }
 
     /// Get Insn from pool
-    pub fn pool_get(index: usize) -> Rc<RefCell<IRInsn>> {
+    pub fn insn_pool_get(index: usize) -> Rc<RefCell<IRInsn>> {
         Self::IR_INSN_POOL.with(|pool| pool.borrow()[index].clone())
     }
 
     /// Set Insn from pool
-    pub fn pool_set(index: usize, insn: IRInsn) {
+    pub fn insn_pool_set(index: usize, insn: IRInsn) {
         Self::IR_INSN_POOL.with(|pool| pool.borrow_mut()[index].replace(insn));
     }
 
     /// Clear Temp Insn Pool
-    pub fn pool_clr() {
+    pub fn insn_pool_clr() {
         Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().clear());
     }
 
     /// Get info of Insn Pool
-    pub fn pool_info() -> String {
+    pub fn insn_pool_info() -> String {
         let mut info = String::new();
-        info.push_str(&format!("Instructions (Num = {}):\n", Self::pool_size()));
+        info.push_str(&format!("Instructions (Num = {}):\n", Self::insn_pool_size()));
         
-        for i in 0..Self::pool_size() {
-            let insn = Self::pool_get(i).borrow().clone();
+        for i in 0..Self::insn_pool_size() {
+            let insn = Self::insn_pool_get(i).borrow().clone();
             info.push_str(&format!("- {}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }
 
     /// Get size of Insn Pool
-    pub fn pool_size() -> usize {
+    pub fn insn_pool_size() -> usize {
         Self::IR_INSN_POOL.with(|pool| pool.borrow().len())
     }
+
+    // ================== IRInsn.reg_pool ================== //
+
+    /// Pool set reg by index
+    pub fn reg_pool_set(idx: usize, reg: IROperand) {
+        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
+    }
+
+    /// Pool push reg
+    pub fn reg_pool_push(reg: IROperand) {
+        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
+    }
+
+    /// Pool get reg refenence by index
+    pub fn reg_pool_get(idx: usize) -> Rc<RefCell<IROperand>> {
+        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].clone())
+    }
+
+    /// Pool set reg `index` value by index
+    pub fn reg_pool_set_val(idx: usize, val: IRValue) { 
+        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
+    }
+
+    /// Pool get reg `index` value by index
+    pub fn reg_pool_get_val(idx: usize) -> IRValue {
+        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
+    }
+
+    /// Pool set reg by name
+    pub fn reg_pool_nset(name: &'static str , reg: IROperand) {
+        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
+    }
+
+    /// Pool get reg refenence by name
+    pub fn reg_pool_nget(name: &'static str) -> Rc<RefCell<IROperand>> {
+        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
+    }
+
+    /// Pool get reg pool idx by name
+    pub fn reg_pool_idx(name: &'static str) -> usize {
+        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
+    }
+
+    /// Pool clear
+    pub fn reg_pool_clr() {
+        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().clear());
+    }
+
+    /// Pool size
+    pub fn reg_pool_size() -> usize {
+        Self::IR_REG_POOL.with(|pool| pool.borrow().len())
+    }
+
+    /// Pool info
+    pub fn reg_pool_info() -> String {
+        let mut info = String::new();
+        info.push_str(&format!("Registers (Num = {}):\n", Self::reg_pool_size()));
+        for i in 0..Self::reg_pool_size() {
+            let reg = Self::reg_pool_get(i).borrow().clone();
+            info.push_str(&format!("- {}\n", reg.info()));
+        }
+        info
+    }
+
+
 
     // ==================== IRInsn.get ===================== //
     
@@ -750,18 +757,6 @@ impl IRInsn {
         info
     }
 
-
-    // ==================== IRInsn.code ==================== //
-
-    /// Byte Code of IRInsn
-    pub fn code(&self) -> IRValue {
-        if !self.is_applied {
-            log_error!("Code not applied: {} ", self.opc.name());
-        }
-        self.byt.clone()
-    }
-
-
     // ==================== IRInsn.sym ===================== //
 
     /// Check IROperand Syms
@@ -775,7 +770,15 @@ impl IRInsn {
     }
 
 
-    // ==================== IRInsn.opr ===================== //
+    // ==================== IRInsn.code ==================== //
+
+    /// Get Byte Code of IRInsn
+    pub fn code(&self) -> Vec<u8> {
+        if !self.is_applied {
+            log_error!("Code not applied: {} ", self.opc.name());
+        }
+        self.byt.val.borrow().clone()
+    }
 
     pub fn get_funct7(&self) -> u8 {
         self.byt.get_ubyte(0, 25, 7)

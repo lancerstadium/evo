@@ -26,8 +26,7 @@ use std::cell::RefCell;
 use crate::ir::val::IRValue;
 // use crate::log_error;
 use crate::ir::ctx::{IRContext, ArchInfo};
-
-use super::op::IROperand;
+use crate::ir::op::IRInsn;
 
 
 
@@ -158,13 +157,13 @@ impl IRThread {
 
     /// set reg value by name
     pub fn set_nreg(&self, name: &'static str, value: IRValue) {
-        let index = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let index = IRInsn::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
         self.set_reg(index, value)
     }
 
     /// get reg value by name
     pub fn get_nreg(&self, name: &'static str) -> IRValue {
-        let index = IROperand::pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let index = IRInsn::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
         self.get_reg(index)
     }
 
@@ -179,9 +178,9 @@ impl IRThread {
 
     pub fn reg_info(&self) -> String {
         let mut info = String::new();
-        info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, IROperand::pool_size()));
-        for i in 0..IROperand::pool_size() {
-            let reg = IROperand::pool_get(i).borrow().clone();
+        info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, IRInsn::reg_pool_size()));
+        for i in 0..IRInsn::reg_pool_size() {
+            let reg = IRInsn::reg_pool_get(i).borrow().clone();
             info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers.borrow()[i].borrow().clone().bin(0, -1, false)));
         }
         info

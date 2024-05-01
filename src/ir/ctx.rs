@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::ir::val::IRValue;
-use crate::ir::op::{IROperand, IRInsn};
+use crate::ir::op::IRInsn;
 use crate::ir::mem::IRProcess;
 
 
@@ -114,7 +114,7 @@ impl IRContext {
 
     /// Check if `IRContext` is init
     pub fn is_init() -> bool {
-        IROperand::pool_size() != 0 && IRInsn::pool_size() != 0
+        IRInsn::reg_pool_size() != 0 && IRInsn::insn_pool_size() != 0
     }
 
     /// Check if is_32
@@ -137,38 +137,38 @@ impl IRContext {
             return
         }
         // 2. Init regs pool
-        IROperand::reg("x0", IRValue::u5(0));
-        IROperand::reg("x1", IRValue::u5(1));
-        IROperand::reg("x2", IRValue::u5(2));
-        IROperand::reg("x3", IRValue::u5(3));
-        IROperand::reg("x4", IRValue::u5(4));
-        IROperand::reg("x5", IRValue::u5(5));
-        IROperand::reg("x6", IRValue::u5(6));
-        IROperand::reg("x7", IRValue::u5(7));
-        IROperand::reg("x8", IRValue::u5(8));
-        IROperand::reg("x9", IRValue::u5(9));
-        IROperand::reg("x10", IRValue::u5(10));
-        IROperand::reg("x11", IRValue::u5(11));
-        IROperand::reg("x12", IRValue::u5(12));
-        IROperand::reg("x13", IRValue::u5(13));
-        IROperand::reg("x14", IRValue::u5(14));
-        IROperand::reg("x15", IRValue::u5(15));
-        IROperand::reg("x16", IRValue::u5(16));
-        IROperand::reg("x17", IRValue::u5(17));
-        IROperand::reg("x18", IRValue::u5(18));
-        IROperand::reg("x19", IRValue::u5(19));
-        IROperand::reg("x20", IRValue::u5(20));
-        IROperand::reg("x21", IRValue::u5(21));
-        IROperand::reg("x22", IRValue::u5(22));
-        IROperand::reg("x23", IRValue::u5(23));
-        IROperand::reg("x24", IRValue::u5(24));
-        IROperand::reg("x25", IRValue::u5(25));
-        IROperand::reg("x26", IRValue::u5(26));
-        IROperand::reg("x27", IRValue::u5(27));
-        IROperand::reg("x28", IRValue::u5(28));
-        IROperand::reg("x29", IRValue::u5(29));
-        IROperand::reg("x30", IRValue::u5(30));
-        IROperand::reg("x31", IRValue::u5(31));
+        IRInsn::reg("x0", IRValue::u5(0));
+        IRInsn::reg("x1", IRValue::u5(1));
+        IRInsn::reg("x2", IRValue::u5(2));
+        IRInsn::reg("x3", IRValue::u5(3));
+        IRInsn::reg("x4", IRValue::u5(4));
+        IRInsn::reg("x5", IRValue::u5(5));
+        IRInsn::reg("x6", IRValue::u5(6));
+        IRInsn::reg("x7", IRValue::u5(7));
+        IRInsn::reg("x8", IRValue::u5(8));
+        IRInsn::reg("x9", IRValue::u5(9));
+        IRInsn::reg("x10", IRValue::u5(10));
+        IRInsn::reg("x11", IRValue::u5(11));
+        IRInsn::reg("x12", IRValue::u5(12));
+        IRInsn::reg("x13", IRValue::u5(13));
+        IRInsn::reg("x14", IRValue::u5(14));
+        IRInsn::reg("x15", IRValue::u5(15));
+        IRInsn::reg("x16", IRValue::u5(16));
+        IRInsn::reg("x17", IRValue::u5(17));
+        IRInsn::reg("x18", IRValue::u5(18));
+        IRInsn::reg("x19", IRValue::u5(19));
+        IRInsn::reg("x20", IRValue::u5(20));
+        IRInsn::reg("x21", IRValue::u5(21));
+        IRInsn::reg("x22", IRValue::u5(22));
+        IRInsn::reg("x23", IRValue::u5(23));
+        IRInsn::reg("x24", IRValue::u5(24));
+        IRInsn::reg("x25", IRValue::u5(25));
+        IRInsn::reg("x26", IRValue::u5(26));
+        IRInsn::reg("x27", IRValue::u5(27));
+        IRInsn::reg("x28", IRValue::u5(28));
+        IRInsn::reg("x29", IRValue::u5(29));
+        IRInsn::reg("x30", IRValue::u5(30));
+        IRInsn::reg("x31", IRValue::u5(31));
 
         // 3. Init insns
         // RISCV Instruction Format:                               32|31  25|24 20|19 15|  |11  7|6    0|
@@ -203,16 +203,16 @@ impl IRContext {
             return
         }
 
-        IROperand::pool_clr();
-        IRInsn::pool_clr();
+        IRInsn::reg_pool_clr();
+        IRInsn::insn_pool_clr();
     }
 
     /// Info of Pools
     pub fn pool_info() -> String{
         let str = format!(
             "{}\n{}",
-            IROperand::pool_info(),
-            IRInsn::pool_info()
+            IRInsn::reg_pool_info(),
+            IRInsn::insn_pool_info()
         );
         str
     }
@@ -249,21 +249,21 @@ impl Default for IRContext {
 mod ctx_test {
 
     use super::*;
-
+    use crate::ir::op::IROperand;
 
     #[test]
     fn insn_info() {
         IRContext::init();
 
-        let insn1 = IRInsn::pool_nget("sub").borrow().clone();
+        let insn1 = IRInsn::insn_pool_nget("sub").borrow().clone();
         println!("{}", insn1.info());
         println!("{}", insn1.bin(0, -1, true));
 
         let insn2 = IRInsn::apply(
             "sub", vec![
-                IROperand::pool_nget("x31").borrow().clone(), 
-                IROperand::pool_nget("x2").borrow().clone(), 
-                IROperand::pool_nget("x8").borrow().clone()
+                IRInsn::reg_pool_nget("x31").borrow().clone(), 
+                IRInsn::reg_pool_nget("x2").borrow().clone(), 
+                IRInsn::reg_pool_nget("x8").borrow().clone()
             ]
         );
         println!("{}", insn2.bin(0, -1, true));
@@ -271,9 +271,9 @@ mod ctx_test {
 
         let insn3 = IRInsn::apply(
             "srl", vec![
-                IROperand::pool_nget("x31").borrow().clone(), 
-                IROperand::pool_nget("x30").borrow().clone(), 
-                IROperand::pool_nget("x7").borrow().clone()
+                IRInsn::reg_pool_nget("x31").borrow().clone(), 
+                IRInsn::reg_pool_nget("x30").borrow().clone(), 
+                IRInsn::reg_pool_nget("x7").borrow().clone()
             ]
         );
         println!("{}", insn3.bin(0, -1, true));
@@ -281,8 +281,8 @@ mod ctx_test {
 
         let insn4 = IRInsn::apply(
             "addi", vec![
-                IROperand::pool_nget("x31").borrow().clone(),
-                IROperand::pool_nget("x30").borrow().clone(),
+                IRInsn::reg_pool_nget("x31").borrow().clone(),
+                IRInsn::reg_pool_nget("x30").borrow().clone(),
                 IROperand::imm(IRValue::u12(2457)),
             ]
         );
