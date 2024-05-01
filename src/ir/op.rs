@@ -38,6 +38,9 @@ pub enum IROperandKind {
 
     /// |  name*  |  addr  |
     Label(&'static str, IRValue),
+
+    /// Undefined
+    Undef,
 }
 
 impl IROperandKind {
@@ -51,6 +54,7 @@ impl IROperandKind {
             IROperandKind::Mem(val, _, _, _) => val.size(),
             // Get Label ptr's size
             IROperandKind::Label(_, val) => val.size(),
+            IROperandKind::Undef => 0,
         }
     }
 
@@ -63,6 +67,7 @@ impl IROperandKind {
             IROperandKind::Mem(val, _, _, _) => val.kind(),
             // Get Label ptr's kind
             IROperandKind::Label(_, val) => val.kind(),
+            IROperandKind::Undef => &IRTypeKind::I32,
         }
     }
 
@@ -75,6 +80,7 @@ impl IROperandKind {
             IROperandKind::Mem(_, _, _, _) => self.val().hex(0, -1, false),
             // Get Label ptr's hex
             IROperandKind::Label(_, val) => val.hex(0, -1, false),
+            IROperandKind::Undef => "0".to_string(),
         }
     }
 
@@ -85,6 +91,7 @@ impl IROperandKind {
             IROperandKind::Reg(name, _) => name,
             IROperandKind::Mem(_, _, _, _) => "<Mem>",
             IROperandKind::Label(name, _) => name,
+            IROperandKind::Undef => "<Und>",
         }
     }
 
@@ -95,6 +102,7 @@ impl IROperandKind {
             IROperandKind::Reg(name, val) => format!("{:>3}: {}", name, val.kind()),
             IROperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]: {}", base.kind(), idx.kind(), scale.kind(), disp.kind() , self.val().kind()),
             IROperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
+            IROperandKind::Undef => "<Und>".to_string(),
         }
     }
 
@@ -105,6 +113,7 @@ impl IROperandKind {
             IROperandKind::Reg(_, val) => val.clone(),
             IROperandKind::Mem(base, idx, scale, disp) => IRValue::u32(base.get_u32(0) + idx.get_u32(0) * scale.get_u32(0) + disp.get_u32(0)),
             IROperandKind::Label(_, val) => val.clone(),
+            _ => IRValue::i32(0),
         }
     }
 
@@ -116,6 +125,7 @@ impl IROperandKind {
             IROperandKind::Reg(_, _) => 1,
             IROperandKind::Mem(_, _, _, _) => 2,
             IROperandKind::Label(_, _) => 3,
+            _ => -1,
         }
     }
 
@@ -183,6 +193,10 @@ impl IROperand {
         Self(Rc::new(RefCell::new(IROperandKind::Label(name, val))))
     }
 
+    /// New IROperand Undef
+    pub fn undef() -> Self {
+        Self(Rc::new(RefCell::new(IROperandKind::Undef)))
+    }
 
     /// info
     pub fn info(&self) -> String {
@@ -194,12 +208,9 @@ impl IROperand {
             },
             IROperandKind::Mem(_, _, _, _) => self.to_string(),
             IROperandKind::Label(_, _) => self.to_string(),
+            IROperandKind::Undef => "<Und>".to_string(),
         }
     }
-    
-
-    // ================== IROperand.pool =================== //
-
 
     // ================== IROperand.get ==================== //
 
@@ -254,9 +265,42 @@ impl IROperand {
 
     // ================== IROperand.str ==================== //
 
-    /// To String like: `val : kind`
+    /// To String like: `val: kind`
     pub fn to_string(&self) -> String {
         self.0.borrow().to_string()
+    }
+
+    /// From String like: `val: {kind}`
+    pub fn from_string(sym: i32, opr: &'static str) -> Self {
+        match sym {
+            0 => {
+                // Parse as Imm: `val`
+                let val = IRValue::from_string(opr);
+                IROperand::imm(val)
+            },
+            1 => {
+                // Parse as Reg: `name`, find in reg pool
+                let name = opr.trim();
+                IRInsn::reg_pool_nget(name).borrow_mut().clone()
+            },
+            2 => {
+                // Parse as Mem: `[base, idx, scale, disp]`
+                let mut opr = opr.trim()[1..opr.len()-1].split(',').collect::<Vec<_>>();
+                let base = IRValue::from_string(opr.remove(0).trim());
+                let idx = IRValue::from_string(opr.remove(0).trim());
+                let scale = IRValue::from_string(opr.remove(0).trim());
+                let disp = IRValue::from_string(opr.remove(0).trim());
+                IROperand::mem(base, idx, scale, disp)
+            },
+            3 => {
+                // Parse as Label: `Label: val`
+                let mut opr = opr.split(':');
+                let name = opr.next().unwrap().trim();
+                let val = IRValue::from_string(opr.next().unwrap().trim());
+                IROperand::label(name, val)
+            },
+            _ => IROperand::undef(),
+        }
     }
 
 }
@@ -723,6 +767,11 @@ impl IRInsn {
         self.opc.name()
     }
 
+    /// Syms of IRInsn
+    pub fn syms(&self) -> Vec<i32> {
+        self.opc.syms()
+    }
+
     /// Show binary byte string of IRInsn
     pub fn bin(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
         self.byt.bin(index, byte_num, big_endian)
@@ -809,22 +858,18 @@ impl IRInsn {
     }
 
     fn set_rs1(&mut self, rs1: u8) {
-        println!("rs1: {}", rs1);
         self.byt.set_ubyte(0, 15, 5, rs1);
     }
 
     fn set_rs2(&mut self, rs2: u8) {
-        println!("rs2: {}", rs2);
         self.byt.set_ubyte(0, 20, 5, rs2);
     }
 
     fn set_rd(&mut self, rd: u8) {
-        println!("rd : {}", rd);
         self.byt.set_ubyte(0, 7, 5, rd);
     }
 
     fn set_imm_i(&mut self, imm: u16) {
-        println!("imm: {}", imm);
         self.byt.set_uhalf(0, 20, 12, imm);
     }
 
@@ -901,6 +946,31 @@ impl IRInsn {
         }
     }
 
+    /// From string to IRInsn
+    pub fn from_string(str: &'static str) -> IRInsn {
+        // 1. Deal with string
+        let str = str.trim();
+        // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
+        let mut part = str.splitn(2, ' ');
+        // 3. Find Insn from pool
+        let res = IRInsn::insn_pool_nget(part.next().unwrap().trim());
+        // 4. Collect extra part: Divide by `,` and Get Operands str
+        let extra_part = part.next().unwrap();
+        let opr = extra_part.split(',').collect::<Vec<_>>();
+        // 5. Get Operands by sym
+        let opr_sym = res.borrow().syms();
+        let mut opr_vec = Vec::new();
+        for i in 0..opr_sym.len() {
+            let mut r = IROperand::from_string(opr_sym[i], opr[i].trim());
+            if opr_sym[i] == 0 {
+                r = IROperand::imm(IRValue::u12(r.val().get_half(0)));
+            }
+            opr_vec.push(r);
+        }
+        // 5. Encode IRInsn
+        let res = res.borrow_mut().encode(opr_vec);
+        res
+    }
 }
 
 

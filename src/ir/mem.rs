@@ -176,12 +176,17 @@ impl IRThread {
         }
     }
 
-    pub fn reg_info(&self) -> String {
+    pub fn reg_info(&self, start: usize, num: i32) -> String {
         let mut info = String::new();
         info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, IRInsn::reg_pool_size()));
-        for i in 0..IRInsn::reg_pool_size() {
+        let ss = start;
+        let mut ee = start + num as usize;
+        if num < 0 || ee > IRInsn::reg_pool_size() {
+            ee = IRInsn::reg_pool_size();
+        }
+        for i in ss..ee {
             let reg = IRInsn::reg_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers.borrow()[i].borrow().clone().bin(0, -1, false)));
+            info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers.borrow()[i].borrow().clone().bin(0, -1, true)));
         }
         info
     }
@@ -448,8 +453,8 @@ impl IRProcess {
     }
 
     /// get reg info
-    pub fn reg_info(&self) -> String {
-        self.cur_thread.borrow().reg_info()
+    pub fn reg_info(&self, start: usize, num: i32) -> String {
+        self.cur_thread.borrow().reg_info(start, num)
     }
 
     /// get reg num
