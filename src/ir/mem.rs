@@ -28,6 +28,8 @@ use crate::ir::val::IRValue;
 use crate::ir::ctx::{IRContext, ArchInfo};
 use crate::ir::op::IRInsn;
 
+use super::ty::IRType;
+
 
 
 // ============================================================================== //
@@ -268,9 +270,9 @@ pub struct IRProcess {
     /// `name`: Process Name
     pub name: &'static str,
     /// `code_segment`: Code Segment
-    pub code_segment: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
-    /// `data_segment`: Data Segment
-    pub data_segment: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
+    pub code_segment: Rc<RefCell<Vec<IRValue>>>,
+    /// `mem_segment`: Data Segment
+    pub mem_segment: Rc<RefCell<IRValue>>,
     /// `threads_id`: Threads ID
     pub threads_id: Rc<RefCell<Vec<usize>>>,
     /// `cur_thread`: current thread
@@ -293,7 +295,7 @@ impl IRProcess {
             id:0,
             name,
             code_segment: Rc::new(RefCell::new(Vec::new())),
-            data_segment: Rc::new(RefCell::new(Vec::new())),
+            mem_segment: Rc::new(RefCell::new(IRValue::default())),
             threads_id: Rc::new(RefCell::new(Vec::new())),
             cur_thread: Rc::new(RefCell::new(IRThread::default())),
         };
@@ -325,6 +327,11 @@ impl IRProcess {
         let thread_id = IRThread::init(proc.id);
         proc.threads_id.borrow_mut().push(thread_id);
         proc.cur_thread = IRThread::pool_get(thread_id);
+        if IRContext::is_32() {
+            proc.mem_segment.borrow_mut().set_type(IRType::array(IRType::u32(), IRContext::MEM_SIZE / 4));
+        } else if IRContext::is_64() {
+            proc.mem_segment.borrow_mut().set_type(IRType::array(IRType::u64(), IRContext::MEM_SIZE / 8));
+        }
         Self::pool_last().0
     }
 
@@ -382,8 +389,10 @@ impl IRProcess {
     pub fn info(&self) -> String {
         let mut info = String::new();
         info.push_str(&format!("Process {} info: \n", self.id));
-        info.push_str(&format!("- name: {}\n- code seg size: {}\n- threads: {:?}\n- thread id: {}\n- thread reg num: {}\n- thread stack size: {} / {}\n", 
-            self.name, self.code_segment.borrow().len(), self.threads_id.borrow().clone(), 
+        info.push_str(&format!("- name: {}\n- code seg size: {}\n- mem seg size: {} / {}\n- threads: {:?}\n- thread id: {}\n- thread reg num: {}\n- thread stack size: {} / {}\n", 
+            self.name, self.code_segment.borrow().len(), 
+            self.mem_segment.borrow().scale_sum() / 8, IRContext::MEM_SIZE,
+            self.threads_id.borrow().clone(), 
             self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num(), 
             self.cur_thread.borrow().stack_scale(), IRContext::STACK_SIZE));
         info
@@ -393,15 +402,41 @@ impl IRProcess {
 
     /// Push code
     pub fn push_code(&self, code: IRValue) {
-        let mut code_seg = self.code_segment.borrow_mut();
-        let code_ptr = Rc::new(RefCell::new(code));
-        code_seg.push(code_ptr);
+        let mut code_seg = self.code_segment.borrow_mut().clone();
+        code_seg.push(code);
     }
 
     /// Pop code
     pub fn pop_code(&self) -> IRValue {
         let mut code_seg = self.code_segment.borrow_mut();
-        code_seg.pop().unwrap().borrow().clone()
+        code_seg.pop().unwrap().clone()
+    }
+
+    // ================= IRProcess.mem =================== //
+
+    /// Write mem value: by 32 or 64-bit / index
+    pub fn write_mem(&self, index: usize, value: IRValue) {
+        let idx :usize;
+        if IRContext::is_64() {
+            idx = index * 8;
+        } else {
+            idx = index * 4;
+        }
+        self.mem_segment.borrow_mut().set(idx, value);
+    }
+
+    /// Read mem value: by 32 or 64-bit / index
+    pub fn read_mem(&self, index: usize) -> IRValue {
+        let idx :usize;
+        let scale :usize;
+        if IRContext::is_64() {
+            idx = index * 8;
+            scale = 64;
+        } else {
+            idx = index * 4;
+            scale = 32;
+        }
+        self.mem_segment.borrow().get(idx, scale)
     }
 
     // ================= IRProcess.thread ================ //

@@ -581,6 +581,15 @@ impl IRContext {
         self.proc.borrow().get_nreg(name)
     }
 
+    /// Read Mem
+    pub fn read_mem(&self, index: usize) -> IRValue {
+        self.proc.borrow().read_mem(index)
+    }
+
+    /// Write Mem
+    pub fn write_mem(&self, index: usize, value: IRValue) {
+        self.proc.borrow_mut().write_mem(index, value);
+    }
 
     // =================== IRCtx.decode ==================== //
     
@@ -651,30 +660,6 @@ mod ctx_test {
 
 
     #[test]
-    fn insn_from() {
-        let ctx = IRContext::init();
-        ctx.set_nreg("x1", IRValue::i32(23));
-        ctx.set_nreg("x2", IRValue::i32(-53));
-        ctx.set_nreg("x3", IRValue::i32(3));
-        println!("{}", ctx.reg_info(0, 4));
-
-
-        let insn1 = IRInsn::from_string("add x0, x1, x2");
-        let insn2 = IRInsn::from_string("addi x0, x1, 2457");
-        let insn3 = IRInsn::from_string("xori x0, x1, 8");
-        let insn4 = IRInsn::from_string("srl x0, x1, x3");
-
-        ctx.execute(&insn1);
-        println!("{:<50} -> x0 = {}", insn1.to_string(), ctx.get_nreg("x0").get_i32(0));
-        ctx.execute(&insn2);
-        println!("{:<50} -> x0 = {}", insn2.to_string(), ctx.get_nreg("x0").get_i32(0));
-        ctx.execute(&insn3);
-        println!("{:<50} -> x0 = {}", insn3.to_string(), ctx.get_nreg("x0").get_i32(0));
-        ctx.execute(&insn4);
-        println!("{:<50} -> x0 = {}", insn4.to_string(), ctx.get_nreg("x0").get_i32(0));
-    }
-
-    #[test]
     fn ctx_info() {
         // println!("{}", IRContext::info());
         let ctx = IRContext::init();
@@ -692,6 +677,9 @@ mod ctx_test {
         println!("{}", ctx.proc.borrow().reg_info(0, 4));
         println!("{}", p0.get_reg(3));
 
+        p0.write_mem(13, IRValue::i32(-65535));
+        println!("{}", p0.read_mem(13));
+
     }
 
 
@@ -703,77 +691,53 @@ mod ctx_test {
         ctx.set_nreg("x3", IRValue::i32(-32));
 
         // R-Type Insns Test
-        let insn1 = IRInsn::apply("add", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn2 = IRInsn::apply("sub", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn3 = IRInsn::apply("or", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn4 = IRInsn::apply("xor", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn5 = IRInsn::apply("and", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn6 = IRInsn::apply("sll", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn7 = IRInsn::apply("srl", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
-        let insn8 = IRInsn::apply("sra", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x3").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone()
-        ]);
-        let insn9 = IRInsn::apply("slt", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone(),
-            IRInsn::reg_pool_nget("x3").borrow().clone()
-        ]);
-        let insn10 = IRInsn::apply("sltu", vec![
-            IRInsn::reg_pool_nget("x0").borrow().clone(),
-            IRInsn::reg_pool_nget("x1").borrow().clone(),
-            IRInsn::reg_pool_nget("x2").borrow().clone()
-        ]);
+        let insn1 = IRInsn::from_string("add x0, x1, x2");
+        let insn2 = IRInsn::from_string("sub x0, x1, x2");
+        let insn3 = IRInsn::from_string("or x0, x1, x2");
+        let insn4 = IRInsn::from_string("xor x0, x1, x2");
+        let insn5 = IRInsn::from_string("and x0, x1, x2");
+        let insn6 = IRInsn::from_string("ori x0, x1, 2457");
+        let insn7 = IRInsn::from_string("srl x0, x1, x3");
+        let insn8 = IRInsn::from_string("sra x0, x1, x3");
+        let insn9 = IRInsn::from_string("sll x0, x1, x3");
+        let insn10 = IRInsn::from_string("slt x0, x1, x2");
+
+        // I-Type Insns Test
+        let insn11 = IRInsn::from_string("addi x0, x1, 2457");
+        let insn12 = IRInsn::from_string("andi x0, x1, 2457");
+        let insn13 = IRInsn::from_string("ori x0, x1, 2457");
+        let insn14 = IRInsn::from_string("xori x0, x1, 2457");
+
 
         ctx.execute(&insn1);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn1.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn2);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn2.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn3);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn3.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn4);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn4.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn5);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn5.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn6);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn6.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn7);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn7.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn8);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn8.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn9);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn9.to_string(), ctx.get_nreg("x0").get_i32(0));
         ctx.execute(&insn10);
-        println!("{}", ctx.get_nreg("x0").get_i32(0));
+        println!("{:<50} -> x0 = {}", insn10.to_string(), ctx.get_nreg("x0").get_i32(0));
+
+        ctx.execute(&insn11);
+        println!("{:<50} -> x0 = {}", insn11.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn12);
+        println!("{:<50} -> x0 = {}", insn12.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn13);
+        println!("{:<50} -> x0 = {}", insn13.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn14);
+        println!("{:<50} -> x0 = {}", insn14.to_string(), ctx.get_nreg("x0").get_i32(0));
 
     }
 

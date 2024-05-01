@@ -31,6 +31,8 @@ use std::{cmp, fmt, hash, mem};
 /// `IRTypeKind`: evo-ir enum types
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub enum IRTypeKind {
+    // Void type
+    Void,
 
     // Unsigned bits
     U1, U2, U3, U4, U5, U6, U7,
@@ -67,6 +69,7 @@ impl IRTypeKind {
     /// Converts `IRTypeKind` to string.
     pub fn to_string(&self) -> String {
         match self {
+            IRTypeKind::Void => "void".to_string(),
             IRTypeKind::I8 => "i8".to_string(),
             IRTypeKind::I16 => "i16".to_string(),
             IRTypeKind::I32 => "i32".to_string(),
@@ -144,6 +147,7 @@ impl IRTypeKind {
             return IRTypeKind::Struct(tys);
         }
         match s {
+            "void" => IRTypeKind::Void,
             "i8" => IRTypeKind::I8,
             "i16" => IRTypeKind::I16,
             "i32" => IRTypeKind::I32,
@@ -240,6 +244,11 @@ impl IRType {
                 v
             })
         })
+    }
+    
+    /// Returns an `void` type.
+    pub fn void() -> IRType {
+        IRType::get(IRTypeKind::Void)
     }
     
     /// Returns an `i8` type.
@@ -416,6 +425,7 @@ impl IRType {
     /// Return the size of current type in bytes.
     pub fn size(&self) -> usize {
         match self.kind() {
+            IRTypeKind::Void => 0,
             IRTypeKind::I8 => 1,
             IRTypeKind::I16 => 2,
             IRTypeKind::I32 => 4,
@@ -453,6 +463,7 @@ impl IRType {
     /// Returns the scale vec of current type: bits number
     pub fn scale(&self) -> Vec<usize> {
         match self.kind() {
+            IRTypeKind::Void => vec![0],
             IRTypeKind::U1 => vec![1],
             IRTypeKind::U2 => vec![2],
             IRTypeKind::U3 => vec![3],
@@ -483,7 +494,7 @@ impl IRType {
     /// Return types vec of current type
     pub fn types(&self) -> Vec<IRType> {
         match self.kind() {
-            IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
+            IRTypeKind::Void | IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
                 | IRTypeKind::U9 | IRTypeKind::U10 | IRTypeKind::U11 | IRTypeKind::U12 | IRTypeKind::U13 | IRTypeKind::U14 | IRTypeKind::U15
                 | IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
                 | IRTypeKind::U8 | IRTypeKind::U16 | IRTypeKind::U32 | IRTypeKind::U64 | IRTypeKind::U128

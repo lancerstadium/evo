@@ -50,6 +50,29 @@ impl IRValue {
         assert_eq!(self.size(), self.val.borrow().len());
     }
 
+    /// Set IRValue use vec<8> by index
+    pub fn set(&mut self, index: usize, value: IRValue) {
+        self.bound(index, value.scale_sum());
+        self.val.borrow_mut()[index..index + value.size()].copy_from_slice(&value.val.borrow());
+    }
+    
+    /// Get IRVale from vec<u8> by index and scale
+    pub fn get(&self, index: usize, scale: usize) -> IRValue {
+        self.bound(index, scale);
+        let offset = scale / 8;
+        let addition = scale % 8;
+        let is_full = addition > 0;
+        let cap = offset + if is_full { 1 } else { 0 };
+        let res = IRValue::new(IRType::array(IRType::u8(), cap));
+        for i in 0..offset {
+            res.val.borrow_mut()[i] = self.val.borrow()[index + i];
+        }
+        if is_full {
+            res.val.borrow_mut()[offset] = self.val.borrow()[index + offset] >> (8 - addition);
+        }
+        res
+    }
+
     /// just change value vec, must size equal
     pub fn set_val(&mut self, value: IRValue) {
         assert_eq!(value.size(), self.size());
@@ -266,7 +289,7 @@ impl IRValue {
         res as u8
     }
 
-    /// Get value by ubyte (u16 version)
+    /// Get value by uhalf (u16 version)
     pub fn get_uhalf(&self, index: usize, offset: usize, scale: usize) -> u16 {
         let offset_bytes = offset / 8;
         let offset_bits = offset % 8;
@@ -315,6 +338,91 @@ impl IRValue {
             let mask: u8 = (1 << scale) - 1;
             // 2. get value
             res = ((buf_val >> offset_bits) & mask) as u16;
+        }
+        res
+    }
+
+    /// Get value by uword (u32 version)
+    pub fn get_uword(&self, index: usize, offset: usize, scale: usize) -> u32 {
+        let offset_bytes = offset / 8;
+        let offset_bits = offset % 8;
+        let mut scale = scale;
+        // scale must <= 32
+        if scale > 32 {
+            scale = 32;
+            log_error!("Scale must <= 32");
+        }
+        self.bound(index + offset_bytes, scale);
+        if scale <= 16 {
+            return self.get_uhalf(index, offset, scale) as u32
+        }
+        let buffer = self.val.borrow();
+        let res: u32;
+        let flag = (offset_bits + scale) as i32 - 8;     // if > 0, have overflow
+        // Offset bits and load value to res
+        if offset_bits == 0 && scale == 32 {
+            // nomal value `10001010`, offset `0`, scale `32` -> `10001010`
+            res = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3]]);
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 7 {
+            // 0. get u64
+            let buf_val : u64 = u64::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3],
+                                                    buffer[index + offset_bytes + 4], buffer[index + offset_bytes + 5], buffer[index + offset_bytes + 6], buffer[index + offset_bytes + 7]]);
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 6 {
+            // 0. get u64
+            let buf_val : u64 = u64::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3],
+                                                    buffer[index + offset_bytes + 4], buffer[index + offset_bytes + 5], buffer[index + offset_bytes + 6], 0]);
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 5 {
+            // 0. get u64
+            let buf_val : u64 = u64::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3],
+                                                    buffer[index + offset_bytes + 4], buffer[index + offset_bytes + 5], 0, 0]);
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 4 {
+            // 0. get u64
+            let buf_val : u64 = u64::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3],
+                                                    buffer[index + offset_bytes + 4], 0, 0, 0]);
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 3 {
+            // 0. get u32
+            let buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], buffer[index + offset_bytes + 3]]);
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 2 {
+            // 0. get u32
+            let buf_val : u32 = u32::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1], buffer[index + offset_bytes + 2], 0]);
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 1 {
+            // 0. get u16
+            let buf_val : u16 = u16::from_le_bytes([buffer[index + offset_bytes], buffer[index + offset_bytes + 1]]);
+            // 1. get mask
+            let mask: u16 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
+        } else{
+            // 0. get u8
+            let buf_val : u8 = u8::from_le_bytes([buffer[index + offset_bytes]]);
+            // 1. get mask
+            let mask: u8 = (1 << scale) - 1;
+            // 2. get value
+            res = ((buf_val >> offset_bits) & mask) as u32;
         }
         res
     }
@@ -768,6 +876,221 @@ impl IRValue {
             buffer[index + offset_bytes + 1] = buf_bytes[1];
         }
 
+    }
+
+    /// `set_uword`: u32 version of set_ubyte
+    pub fn set_uword(&mut self, index: usize, offset: usize, scale: usize, value: u32) {
+        let offset_bytes = offset / 8;
+        let offset_bits = offset % 8;
+        let mut scale = scale;
+        // scale must <= 32
+        if scale > 32 {
+            scale = 32;
+            log_error!("Scale must <= 32");
+        }
+        self.bound(index + offset_bytes, scale);
+        if scale <= 16 {
+            self.set_uhalf(index, offset, scale, (value & 0xFFFF) as u16);
+            return
+        }
+        // if log(value + 1) > scale, warning
+        if value as u32 > ((1 as u32) << scale) - 1 {
+            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+        }
+        let mut buffer = self.val.borrow_mut();
+        let bytes = value.to_le_bytes();
+        let flag = (offset_bits + scale) as i32 - 32;     // if > 0, have overflow
+        // Offset bits and load value to buffer
+        if offset_bits == 0 && scale == 32 {
+            // nomal value `10001010`, offset `0`, scale `32` -> `10001010`
+            buffer[index + offset_bytes] = bytes[0];
+            buffer[index + offset_bytes + 1] = bytes[1];
+            buffer[index + offset_bytes + 2] = bytes[2];
+            buffer[index + offset_bytes + 3] = bytes[3];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 7 {
+            // 0. get u64
+            let mut buf_val : u64 = u64::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3], 
+                buffer[index + offset_bytes + 4], 
+                buffer[index + offset_bytes + 5], 
+                buffer[index + offset_bytes + 6], 
+                buffer[index + offset_bytes + 7]
+            ]);
+            let bytes_val : u64 = value as u64;
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+            buffer[index + offset_bytes + 4] = buf_bytes[4];
+            buffer[index + offset_bytes + 5] = buf_bytes[5];
+            buffer[index + offset_bytes + 6] = buf_bytes[6];
+            buffer[index + offset_bytes + 7] = buf_bytes[7];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 6 {
+            // 0. get u64
+            let mut buf_val : u64 = u64::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3], 
+                buffer[index + offset_bytes + 4], 
+                buffer[index + offset_bytes + 5], 
+                buffer[index + offset_bytes + 6], 
+                0
+            ]);
+            let bytes_val : u64 = value as u64;
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+            buffer[index + offset_bytes + 4] = buf_bytes[4];
+            buffer[index + offset_bytes + 5] = buf_bytes[5];
+            buffer[index + offset_bytes + 6] = buf_bytes[6];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 5 {
+            // 0. get u64
+            let mut buf_val : u64 = u64::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3], 
+                buffer[index + offset_bytes + 4], 
+                buffer[index + offset_bytes + 5], 
+                0, 
+                0
+            ]);
+            let bytes_val : u64 = value as u64;
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+            buffer[index + offset_bytes + 4] = buf_bytes[4];
+            buffer[index + offset_bytes + 5] = buf_bytes[5];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 4 {
+            // 0. get u64
+            let mut buf_val : u64 = u64::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3], 
+                buffer[index + offset_bytes + 4], 
+                0, 
+                0, 
+                0
+            ]);
+            let bytes_val : u64 = value as u64;
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+            buffer[index + offset_bytes + 4] = buf_bytes[4];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 3 {
+            // 0. get u32
+            let mut buf_val : u32 = u32::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3]
+            ]);
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 2 {
+            // 0. get u24
+            let mut buf_val : u32 = u32::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                0
+            ]);
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+        } else if flag > 0 && buffer.len() > index + offset_bytes + 1 {
+            // 0. get u16
+            let mut buf_val : u16 = u16::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1]
+            ]);
+            let bytes_val : u16 = value as u16;
+            // 1. get mask
+            let mask: u16 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+        } else {
+            // 0. get u32
+            let mut buf_val: u32 = buffer[index + offset_bytes] as u32;
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            buffer[index + offset_bytes] = buf_val as u8;
+            buffer[index + offset_bytes + 1] = (buf_val >> 8) as u8;
+            buffer[index + offset_bytes + 2] = (buf_val >> 16) as u8;
+            buffer[index + offset_bytes + 3] = (buf_val >> 24) as u8;
+        }
     }
 
     /// Set value by 8-bit: index by bytes and offset by bits
@@ -1370,7 +1693,10 @@ impl IRValue {
 impl Default for IRValue {
     /// Default value type is i32
     fn default() -> Self {
-        IRValue::i32(0)
+        Self {
+            ty: IRType::void(),
+            val: RefCell::new(Vec::new()),
+        }
     }
 }
 
@@ -1582,6 +1908,11 @@ mod val_test {
         val.set_uhalf(0, 15, 16, 8253);
         assert_eq!(val.bin(0, -1, true), "0B00010000 00011110 10000000 00000000");
         assert_eq!(val.get_uhalf(0, 15, 16), 8253);
+
+        let mut val = IRValue::u64(0);
+        val.set_uword(0, 19, 31, 0x0FFFFFFF);
+        assert_eq!(val.bin(0, -1, true), "0B00000000 00000000 01111111 11111111 11111111 11111000 00000000 00000000");
+        assert_eq!(val.get_uword(0, 19, 31), 0x0FFFFFFF);
 
         let val = IRValue::u12(232);
         assert_eq!(val.hex(0, -1, false), "0xe8 00");
