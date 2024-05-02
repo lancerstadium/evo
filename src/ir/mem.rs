@@ -487,18 +487,20 @@ impl IRProcess {
     #[cfg(not(feature = "no-log"))]
     pub fn pool_info_tbl() -> String {
         let mut info = String::new();
-        info.push_str(&format!("┌─────┬────────────────┬────────┬─────────┬───────────┬─────────┐\n"));
-        info.push_str(&format!("│ PID │      TIDs      │  Code  │   Mem   │   Stack   │ TStatus │\n"));
+        info.push_str(&format!("┌─────┬──────────┬────────────────┬────────┬─────────┬───────────┬─────────┐\n"));
+        info.push_str(&format!("│ PID │   name   │      TIDs      │  Code  │   Mem   │   Stack   │ TStatus │\n"));
         Self::IR_PROCESS_POOL.with(|pool| {
             let borrowed_pool = pool.borrow();
             for i in 0..borrowed_pool.len() {
                 let proc = borrowed_pool[i].borrow();
                 let thread = proc.cur_thread.borrow();
+                // name first 8 char
+                let name_fmt = proc.name.chars().take(8).collect::<String>();
                 // make Vec<usize> to string: Get first 5 TID nums, other TIDs will be replaced by ...
                 let mut tid_fmt = proc.threads_id.borrow().iter().map(
                     |tid| tid.to_string()
                 ).take(5).collect::<Vec<String>>().join(",");
-                if  proc.threads_id.borrow().len() > 5 {
+                if proc.threads_id.borrow().len() > 5 {
                     tid_fmt.push_str("...");
                 }
                 let code_fmt = Self::usize_to_string(proc.code_segment.borrow().len());
@@ -506,9 +508,10 @@ impl IRProcess {
                 let stack_pc = thread.stack_scale() as f64 / IRContext::STACK_SIZE as f64 * 100.0;
                 let stack_fmt = format!("{:.2}%", stack_pc);
                 let status_fmt = thread.status().to_string();
-                info.push_str(&format!("├─────┼────────────────┼────────┼─────────┼───────────┼─────────┤\n"));
-                info.push_str(&format!("│ {:^3} │ {:^14} │ {:^6} │ {:^7} │ {:^9} │ {:^16} │\n", 
+                info.push_str(&format!("├─────┼──────────┼────────────────┼────────┼─────────┼───────────┼─────────┤\n"));
+                info.push_str(&format!("│ {:^3} │ {:^8} │ {:^14} │ {:^6} │ {:^7} │ {:^9} │ {:^16} │\n", 
                     pool.borrow()[i].borrow().id, 
+                    name_fmt,
                     tid_fmt,
                     code_fmt,
                     mem_fmt,
@@ -517,7 +520,7 @@ impl IRProcess {
                 ));
             }
         });
-        info.push_str(&format!("└─────┴────────────────┴────────┴─────────┴───────────┴─────────┘\n"));
+        info.push_str(&format!("└─────┴──────────┴────────────────┴────────┴─────────┴───────────┴─────────┘\n"));
         info
     }
 
