@@ -22,6 +22,8 @@ use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt;
+#[cfg(not(feature = "no-log"))]
+use colored::*;
 
 // use crate::util::log::Span;
 use crate::ir::val::IRValue;
@@ -53,6 +55,18 @@ pub enum IRThreadStatus {
 }
 
 impl IRThreadStatus {
+    #[cfg(not(feature = "no-log"))]
+    pub fn to_string(&self) -> String {
+        match self {
+            IRThreadStatus::Ready => "Ready".blue().to_string(),
+            IRThreadStatus::Running => "Running".green().to_string(),
+            IRThreadStatus::Blocked => "Blocked".yellow().to_string(),
+            IRThreadStatus::Terminated => "Terminated".red().to_string(),
+            IRThreadStatus::Unknown => "Unknown".purple().to_string(),
+        }
+    }
+
+    #[cfg(feature = "no-log")]
     pub fn to_string(&self) -> String {
         match self {
             IRThreadStatus::Ready => String::from("Ready"),
@@ -119,6 +133,14 @@ impl IRThread {
         idx
     }
 
+    pub fn info(&self) -> String {
+        let mut info = String::new();
+        let stk_pc = self.stack_scale() as f64 / IRContext::STACK_SIZE as f64 * 100.0;
+        let stk_fmt = format!("{:.2}%", stk_pc);
+        info.push_str(&format!("│ {:^3} │ {:^3} │ {:>3}  │ {:^9} │ {:^16} │\n", self.id, self.proc_id,self.reg_num(), stk_fmt, self.status.to_string()));
+        info
+    }
+
 
     // ================= IRThread.pool =================== //
 
@@ -135,19 +157,15 @@ impl IRThread {
     /// Push thread into pool and return index
     pub fn pool_push(thread: IRThread) -> usize {
         Self::IR_THREAD_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(thread))));
-        let mut thread = Self::pool_last().1.borrow_mut().clone();
-        thread.id = Self::IR_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
+        let thread_ptr = Self::pool_last().1;
+        thread_ptr.borrow_mut().id = Self::IR_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
         let mut init_regs = Vec::new();
-        // let mut init_stack = Vec::new();
         if IRContext::is_32() {
             init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::i32(0)))).collect::<Vec<_>>();
-            // init_stack = (0..IRContext::STACK_SIZE / 4).map(|_| Rc::new(RefCell::new(IRValue::u32(0)))).collect::<Vec<_>>();
         } else if IRContext::is_64() {
             init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::i64(0)))).collect::<Vec<_>>();
-            // init_stack = (0..IRContext::STACK_SIZE / 8).map(|_| Rc::new(RefCell::new(IRValue::u64(0)))).collect::<Vec<_>>();
         }
-        thread.registers.borrow_mut().extend(init_regs);
-        // thread.stack.borrow_mut().extend(init_stack);
+        thread_ptr.borrow_mut().registers.borrow_mut().extend(init_regs);
         Self::pool_last().0
     }
 
@@ -180,6 +198,21 @@ impl IRThread {
     /// Check is in pool
     pub fn pool_is_in(index: usize) -> bool {
         Self::IR_THREAD_POOL.with(|pool| pool.borrow_mut().get(index).is_some())
+    }
+
+    /// Info all thread
+    pub fn pool_info() -> String {
+        let mut info = String::new();
+        info.push_str(&format!("┌─────┬─────┬──────┬───────────┬─────────┐\n"));
+        info.push_str(&format!("│ TID │ PID │ Regs │   Stack   │ TStatus │\n"));
+        Self::IR_THREAD_POOL.with(|pool| {
+            for i in 0..pool.borrow().len() {
+                info.push_str(&format!("├─────┼─────┼──────┼───────────┼─────────┤\n"));
+                info.push_str(&format!("{}", pool.borrow()[i].borrow().info()));
+            }
+        });
+        info.push_str(&format!("└─────┴─────┴──────┴───────────┴─────────┘\n"));
+        info
     }
 
     // ================= IRThread.reg ==================== //
@@ -526,7 +559,7 @@ impl IRProcess {
         threads
     }
 
-    /// New thread
+    /// New thread: Use a pure new thread, If you wanr a new thread fork from current, use`fork_thread`
     pub fn new_thread(&self) -> Rc<RefCell<IRThread>> {
         let thread_id = IRThread::init(self.id);
         self.threads_id.borrow_mut().push(thread_id);
@@ -537,7 +570,28 @@ impl IRProcess {
     pub fn set_thread(&mut self) -> Rc<RefCell<IRThread>> {
         let thread_id = self.threads_id.borrow()[0];
         self.cur_thread = IRThread::pool_get(thread_id);
+        self.cur_thread.borrow_mut().set_status(IRThreadStatus::Running);
         self.cur_thread.clone()
+    }
+
+    /// fork thread from current: copy thread reg and stack, set thread
+    pub fn fork_thread(&mut self) -> Rc<RefCell<IRThread>> {
+        // 1. Get new thread
+        let new_thread = self.new_thread();
+        // 2. Copy reg and stack
+        new_thread.borrow_mut().registers = self.cur_thread.borrow().registers.clone();
+        new_thread.borrow_mut().stack = self.cur_thread.borrow().stack.clone();
+        // 3. Set Status
+        self.cur_thread.borrow_mut().set_status(IRThreadStatus::Ready);
+        // 4. swap threads_id vec[0] to new thread
+        let temp_id = self.threads_id.borrow()[0];
+        let new_id = new_thread.borrow().id;
+        self.threads_id.borrow_mut()[0] = new_id;
+        self.threads_id.borrow_mut().pop();
+        self.threads_id.borrow_mut().push(temp_id);
+        // 5. Set thread Running
+        self.set_thread();
+        new_thread
     }
 
 

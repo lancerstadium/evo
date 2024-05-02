@@ -992,7 +992,7 @@ impl Default for IRContext {
 mod ctx_test {
 
     use super::*;
-    use crate::ir::op::IROperand;
+    use crate::ir::{mem::IRThread, op::IROperand};
 
     #[test]
     fn insn_info() {
@@ -1033,6 +1033,25 @@ mod ctx_test {
         println!("{}", insn4);
     }
 
+    #[test]
+    fn mem_info() {
+        let ctx = IRContext::init();
+        println!("{}", ctx.proc.borrow().info());
+        let mut p0 = ctx.proc.borrow_mut().clone();
+        p0.id = 6;
+        
+        let t0 = p0.cur_thread.clone();
+        t0.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(1), IRValue::u64(2)]));
+        println!("{}", IRThread::pool_info());
+        let t1 = p0.fork_thread();
+        t1.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(3), IRValue::u64(4)]));
+        println!("{}", IRThread::pool_info());
+        let t2 = p0.fork_thread();
+        t2.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(5), IRValue::u64(6)]));
+        println!("{}", IRThread::pool_info());
+
+        println!("{}", p0.info());
+    }
 
     #[test]
     fn ctx_info() {
@@ -1054,7 +1073,6 @@ mod ctx_test {
 
         p0.write_mem(13, IRValue::i32(-65535));
         println!("{}", p0.read_mem(13, 2));
-
     }
 
 
