@@ -70,7 +70,7 @@ impl ArchInfo for IRContext {
     // =================== IRCtx.const ===================== //
 
     // Set Constants
-    const NAME: &'static str = "evo32";
+    const NAME: &'static str = "riscv32";
     const BYTE_SIZE: usize = 1;
     const ADDR_SIZE: usize = 32;
     const WORD_SIZE: usize = 32;
@@ -1035,7 +1035,6 @@ mod ctx_test {
     #[test]
     fn mem_info() {
         let ctx = IRContext::init();
-        println!("{}", ctx.proc.borrow().info());
         let p0 = ctx.proc;
         println!("{}", IRProcess::pool_info_tbl());
 
@@ -1052,7 +1051,8 @@ mod ctx_test {
         t4.borrow_mut().status = IRThreadStatus::Unknown;
         
         p0.borrow_mut().set_thread(3);
-        IRProcess::init("test");
+        let p1 = IRProcess::init("test");
+        p1.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(1), IRValue::u64(2), IRValue::u64(3), IRValue::u64(4)]));
 
         let t5 = p0.borrow_mut().fork_thread();
         t5.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(11), IRValue::u64(12)]));

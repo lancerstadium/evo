@@ -423,15 +423,15 @@ impl IRProcess {
     /// Push process into pool and return index
     pub fn pool_push(process: IRProcess) -> usize {
         Self::IR_PROCESS_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(process))));
-        let mut proc = Self::pool_last().1.borrow_mut().clone();
-        proc.id = Self::IR_PROCESS_POOL.with(|pool| pool.borrow().len() - 1);
-        let thread_id = IRThread::init(proc.id);
-        proc.threads_id.borrow_mut().push(thread_id);
-        proc.cur_thread = IRThread::pool_get(thread_id);
+        let proc = Self::pool_last().1;
+        proc.borrow_mut().id = Self::IR_PROCESS_POOL.with(|pool| pool.borrow().len() - 1);
+        let thread_id = IRThread::init(proc.borrow().id);
+        proc.borrow_mut().threads_id.borrow_mut().push(thread_id);
+        proc.borrow_mut().cur_thread = IRThread::pool_get(thread_id);
         if IRContext::is_32() {
-            proc.mem_segment.borrow_mut().set_type(IRType::array(IRType::u32(), IRContext::MEM_SIZE / 4));
+            proc.borrow_mut().mem_segment.borrow_mut().set_type(IRType::array(IRType::u32(), IRContext::MEM_SIZE / 4));
         } else if IRContext::is_64() {
-            proc.mem_segment.borrow_mut().set_type(IRType::array(IRType::u64(), IRContext::MEM_SIZE / 8));
+            proc.borrow_mut().mem_segment.borrow_mut().set_type(IRType::array(IRType::u64(), IRContext::MEM_SIZE / 8));
         }
         Self::pool_last().0
     }
@@ -706,6 +706,17 @@ impl IRProcess {
         self.cur_thread.borrow().get_pc()
     }
 
+    // ================= IRProcess.stack ================= //
+
+    /// stack pop
+    pub fn stack_pop(&self) -> IRValue {
+        self.cur_thread.borrow_mut().stack_pop()
+    }
+
+    /// stack push
+    pub fn stack_push(&self, value: IRValue) {
+        self.cur_thread.borrow_mut().stack_push(value)
+    }
 
     // ================= IRProcess.status ================ //
 
