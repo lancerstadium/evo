@@ -21,6 +21,7 @@ use std::cmp;
 use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::fmt;
 
 // use crate::util::log::Span;
 use crate::ir::val::IRValue;
@@ -34,10 +35,45 @@ use crate::ir::ty::IRType;
 
 
 // ============================================================================== //
-//                              mem::IRThread
+//                              mem::IRThreadStatus
 // ============================================================================== //
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum IRThreadStatus {
+    /// Ready: Thread is ready
+    Ready,
+    /// Running: Thread is running
+    Running,
+    /// Blocked: Thread is blocked
+    Blocked,
+    /// Terminated: Thread is terminated
+    Terminated,
+    /// Unknown: Thread status is unknown
+    Unknown,
+}
 
+impl IRThreadStatus {
+    pub fn to_string(&self) -> String {
+        match self {
+            IRThreadStatus::Ready => String::from("Ready"),
+            IRThreadStatus::Running => String::from("Running"),
+            IRThreadStatus::Blocked => String::from("Blocked"),
+            IRThreadStatus::Terminated => String::from("Terminated"),
+            IRThreadStatus::Unknown => String::from("Unknown"),
+        }
+    }
+}
+
+impl fmt::Display for IRThreadStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
+
+// ============================================================================== //
+//                              mem::IRThread
+// ============================================================================== //
 
 /// 1. `threads`: Thread Handle (Local Thread): contains (registers, stack)
 /// 2. `registers`: Register File, Store register value
@@ -54,6 +90,8 @@ pub struct IRThread {
     pub stack: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
     /// Dispatch label table
     pub labels : Rc<RefCell<Vec<String>>>,
+    /// Thread status
+    pub status : IRThreadStatus,
 }
 
 
@@ -74,6 +112,7 @@ impl IRThread {
             registers: Rc::new(RefCell::new(Vec::new())),
             stack: Rc::new(RefCell::new(Vec::new())),
             labels: Rc::new(RefCell::new(Vec::new())),
+            status: IRThreadStatus::Ready,
         };
         // Store in thread pool
         let idx = Self::pool_push(thread);
@@ -250,6 +289,18 @@ impl IRThread {
         IRProcess::pool_get(self.proc_id)
     }
 
+    // ================= IRThread.status ================= //
+
+    /// get status
+    pub fn status(&self) -> &IRThreadStatus {
+        &self.status
+    }
+
+    /// set status
+    pub fn set_status(&mut self, status: IRThreadStatus) {
+        self.status = status;
+    }
+
 }
 
 
@@ -261,6 +312,7 @@ impl default::Default for IRThread {
             registers: Rc::new(RefCell::new(Vec::new())),
             stack: Rc::new(RefCell::new(Vec::new())),
             labels: Rc::new(RefCell::new(Vec::new())),
+            status: IRThreadStatus::Ready,
         }
     }
 }
@@ -270,6 +322,9 @@ impl cmp::PartialEq for IRThread {
         self.proc_id == other.proc_id
     }
 }
+
+
+
 
 // ============================================================================== //
 //                              mem::IRProcess
@@ -289,7 +344,7 @@ pub struct IRProcess {
     /// `threads_id`: Threads ID
     pub threads_id: Rc<RefCell<Vec<usize>>>,
     /// `cur_thread`: current thread
-    pub cur_thread: Rc<RefCell<IRThread>>,
+    pub cur_thread: Rc<RefCell<IRThread>>
 }
 
 
@@ -526,6 +581,19 @@ impl IRProcess {
     /// Get reg pc
     pub fn get_pc(&self) -> IRValue {
         self.cur_thread.borrow().get_pc()
+    }
+
+
+    // ================= IRProcess.status ================ //
+
+    /// set status
+    pub fn set_status(&self, status: IRThreadStatus) {
+        self.cur_thread.borrow_mut().set_status(status)
+    }
+
+    /// get status
+    pub fn status(&self) -> IRThreadStatus {
+        self.cur_thread.borrow().status().clone()
     }
 }
 

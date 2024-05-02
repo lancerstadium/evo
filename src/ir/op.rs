@@ -877,6 +877,15 @@ impl IRInsn {
         self.byt.get_uword(0, 12, 20)
     }
 
+    pub fn imm_j(&self) -> u32 {
+        let imm0 = self.byt.get_uhalf(0, 21, 10);
+        let imm1 = self.byt.get_ubyte(0, 20, 1);
+        let imm2 = self.byt.get_ubyte(0, 12, 8);
+        let imm3 = self.byt.get_ubyte(0, 31, 1);
+        let res = (imm0 as u32) | ((imm1 as u32) << 11) | ((imm2 as u32) << 19) | ((imm3 as u32) << 20);
+        res
+    }
+
     fn set_rs1(&mut self, rs1: u8) {
         self.byt.set_ubyte(0, 15, 5, rs1);
     }
@@ -915,6 +924,17 @@ impl IRInsn {
         self.byt.set_uword(0, 12, 20, imm);
     }
 
+    fn set_imm_j(&mut self, imm: u32) {
+        let imm0 = (imm & 0x3ff) as u16;
+        let imm1 = ((imm >> 11) & 0x1) as u8;
+        let imm2 = ((imm >> 19) & 0xff) as u8;
+        let imm3 = ((imm >> 20) & 0x1) as u8;
+        self.byt.set_uhalf(0, 21, 10, imm0);
+        self.byt.set_ubyte(0, 20, 1, imm1);
+        self.byt.set_ubyte(0, 12, 8, imm2);
+        self.byt.set_ubyte(0, 31, 1, imm3);
+    }
+
     /// Apply IROperand to IROpcode, get new IRInsn
     /// 
     /// ## Byte Code
@@ -922,22 +942,27 @@ impl IRInsn {
     /// - Fill bytes according following format:
     /// 
     /// ```txt
-    ///  32|31  25|24 20|19 15|14  12|11   7|6  0| bits
-    ///    ┌──────┬─────┬─────┬──────┬──────┬────┐
-    ///    │  f7  │ rs2 │ rs1 │  f3  │  rd  │ op │  R
-    ///    ├──────┴─────┼─────┼──────┼──────┼────┤
-    ///    │   imm[12]  │ rs1 │  f3  │  rd  │ op │  I
-    ///    ├──────┬─────┼─────┼──────┼──────┼────┤
-    ///    │ imm1 │ rs2 │ rs1 │  f3  │ imm0 │ op │  S
-    ///    ├─┬────┼─────┼─────┼──────┼────┬─┼────┤
-    ///    │3│ i1 │ rs2 │ rs1 │  f3  │ i0 │2│ op │  B
-    ///    ├─┴────┴─────┴─────┴──────┼────┴─┼────┤
-    ///    │         imm[20]         │  rd  │ op │  U
-    ///    ├─┬──────────────┬─┬──────┼──────┼────┤
-    ///    │4│     imm1     │3│  i2  │  rd  │ op │  J
-    ///    └─┴──────────────┴─┴──────┴──────┴────┘
+    ///  32|31    25|24 20|19 15|  12|11   7|6  0| bits
+    ///    ┌────────┬─────┬─────┬────┬──────┬────┐
+    ///    │   f7   │ rs2 │ rs1 │ f3 │  rd  │ op │  R
+    ///    ├────────┴─────┼─────┼────┼──────┼────┤
+    ///    │    imm[12]   │ rs1 │ f3 │  rd  │ op │  I
+    ///    ├────────┬─────┼─────┼────┼──────┼────┤
+    ///    │  imm1  │ rs2 │ rs1 │ f3 │ imm0 │ op │  S
+    ///    ├─┬──────┼─────┼─────┼────┼────┬─┼────┤
+    ///    │3│  i1  │ rs2 │ rs1 │ f3 │ i0 │2│ op │  B
+    ///    ├─┴──────┴─────┴─────┴────┼────┴─┼────┤
+    ///    │          imm[20]        │  rd  │ op │  U
+    ///    ├─┬──────────┬─┬──────────┼──────┼────┤
+    ///    │3│   imm0   │1│   imm2   │  rd  │ op │  J
+    ///    └─┴──────────┴─┴──────────┴──────┴────┘
     /// ```
     pub fn encode(&mut self, opr: Vec<IROperand>) -> IRInsn {
+        if opr.len() == 0 {
+            let mut res = self.clone();
+            res.is_applied = true;
+            return res;
+        }
         let mut opr = opr;
         // Check syms
         if self.check_syms(opr.clone()) {
@@ -1008,16 +1033,25 @@ impl IRInsn {
                     opr.push(IROperand::imm(IRValue::u20(imm)));
                 },
                 IROpcodeKind::J(_, _) => {
-                    // TODO: Add IROpcodeKind::J
+                    // rd: u5 -> 7->11
+                    let rd = opr[0].val().get_byte(0);
+                    self.set_rd(rd);
+                    // imm: J
+                    let imm = opr[1].val().get_word(0);
+                    self.set_imm_j(imm);
+                    // refresh imm
+                    opr.pop();
+                    opr.push(IROperand::imm(IRValue::u20(imm)));
                 },
                 _ => {
                     // Do nothing
                 },
             }
             // refresh status
-            self.opr = opr;
-            self.is_applied = true;
-            self.clone()
+            let mut res = self.clone();
+            res.opr = opr;
+            res.is_applied = true;
+            res
         } else {
             // Error
             log_error!("Apply operands failed: {} ", self.opc.name());
@@ -1030,6 +1064,13 @@ impl IRInsn {
     pub fn from_string(str: &'static str) -> IRInsn {
         // 1. Deal with string
         let str = str.trim();
+        // Check if the string has space
+        if !str.contains(' ') {
+            let name = str;
+            let mut res = IRInsn::insn_pool_nget(name).borrow().clone();
+            res = res.encode(vec![]);
+            return res;
+        }
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
         // 3. Find Insn from pool
