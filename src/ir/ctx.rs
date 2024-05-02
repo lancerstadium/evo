@@ -89,7 +89,7 @@ impl IRContext {
     /// Init a `IRContext`
     pub fn init() -> Self {
         let ctx = Self {
-            proc: Rc::new(RefCell::new(IRProcess::default())),
+            proc: IRProcess::init("main"),
             itp: Self::pool_init()
         };
         ctx
@@ -894,7 +894,6 @@ impl IRContext {
         Some(Rc::new(RefCell::new(itp)))
     }
 
-
     /// Clear Temp Insn Pool
     pub fn pool_clr() {
         // 1. Check is init
@@ -1037,25 +1036,29 @@ mod ctx_test {
     fn mem_info() {
         let ctx = IRContext::init();
         println!("{}", ctx.proc.borrow().info());
-        let mut p0 = ctx.proc.borrow_mut().clone();
-        p0.id = 6;
+        let p0 = ctx.proc;
+        println!("{}", IRProcess::pool_info_tbl());
 
-        let t0 = p0.cur_thread.clone();
+        let t0 = p0.borrow_mut().cur_thread.clone();
         t0.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(1), IRValue::u64(2)]));
         println!("{}", IRThread::pool_info_tbl());
-        let t1 = p0.fork_thread();
+        let t1 = p0.borrow_mut().fork_thread();
         t1.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(3), IRValue::u64(4)]));
         println!("{}", IRThread::pool_info_tbl());
-        let t2 = p0.fork_thread();
+        let t2 = p0.borrow_mut().fork_thread();
         t2.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(5), IRValue::u64(6)]));
         println!("{}", IRThread::pool_info_tbl());
-        let t3 = p0.fork_thread();
+        let t3 = p0.borrow_mut().fork_thread();
         t3.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(7), IRValue::u64(8)]));
         println!("{}", IRThread::pool_info_tbl());
-        let t4 = p0.fork_thread();
+        let t4 = p0.borrow_mut().fork_thread();
         t4.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(9), IRValue::u64(10)]));
+        t4.borrow_mut().status = IRThreadStatus::Unknown;
+        
+        p0.borrow_mut().set_thread(3);
         println!("{}", IRThread::pool_info_tbl());
-
+        println!("{}", p0.borrow().info());
+        
         println!("{}", IRProcess::pool_info_tbl());
     }
 
