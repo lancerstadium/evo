@@ -40,6 +40,9 @@ pub enum IRTypeKind {
     // Additional Unsigned bits
     U9, U10, U11, U12, U13, U14, U15,
 
+    // Additional Unsigned bits plus
+    U17, U18, U19, U20, U21, U22, U23, U24, U25, U26, U27, U28, U29, U30, U31,
+
     // Integer type
     I8, I16, I32, I64, I128, U8, U16, U32, U64, U128,
 
@@ -91,6 +94,21 @@ impl IRTypeKind {
             IRTypeKind::U14 => "u14".to_string(),
             IRTypeKind::U15 => "u15".to_string(),
             IRTypeKind::U16 => "u16".to_string(),
+            IRTypeKind::U17 => "u17".to_string(),
+            IRTypeKind::U18 => "u18".to_string(),
+            IRTypeKind::U19 => "u19".to_string(),
+            IRTypeKind::U20 => "u20".to_string(),
+            IRTypeKind::U21 => "u21".to_string(),
+            IRTypeKind::U22 => "u22".to_string(),
+            IRTypeKind::U23 => "u23".to_string(),
+            IRTypeKind::U24 => "u24".to_string(),
+            IRTypeKind::U25 => "u25".to_string(),
+            IRTypeKind::U26 => "u26".to_string(),
+            IRTypeKind::U27 => "u27".to_string(),
+            IRTypeKind::U28 => "u28".to_string(),
+            IRTypeKind::U29 => "u29".to_string(),
+            IRTypeKind::U30 => "u30".to_string(),
+            IRTypeKind::U31 => "u31".to_string(),
             IRTypeKind::U32 => "u32".to_string(),
             IRTypeKind::U64 => "u64".to_string(),
             IRTypeKind::U128 => "u128".to_string(),
@@ -161,7 +179,29 @@ impl IRTypeKind {
             "u6" => IRTypeKind::Array(IRType::u1(), 6),
             "u7" => IRTypeKind::Array(IRType::u1(), 7),
             "u8" => IRTypeKind::U8,
+            "u9" => IRTypeKind::U9,
+            "u10" => IRTypeKind::U10,
+            "u11" => IRTypeKind::U11,
+            "u12" => IRTypeKind::U12,
+            "u13" => IRTypeKind::U13,
+            "u14" => IRTypeKind::U14,
+            "u15" => IRTypeKind::U15,
             "u16" => IRTypeKind::U16,
+            "u17" => IRTypeKind::U17,
+            "u18" => IRTypeKind::U18,
+            "u19" => IRTypeKind::U19,
+            "u20" => IRTypeKind::U20,
+            "u21" => IRTypeKind::U21,
+            "u22" => IRTypeKind::U22,
+            "u23" => IRTypeKind::U23,
+            "u24" => IRTypeKind::U24,
+            "u25" => IRTypeKind::U25,
+            "u26" => IRTypeKind::U26,
+            "u27" => IRTypeKind::U27,
+            "u28" => IRTypeKind::U28,
+            "u29" => IRTypeKind::U29,
+            "u30" => IRTypeKind::U30,
+            "u31" => IRTypeKind::U31,
             "u32" => IRTypeKind::U32,
             "u64" => IRTypeKind::U64,
             "u128" => IRTypeKind::U128,
@@ -356,6 +396,81 @@ impl IRType {
         IRType::get(IRTypeKind::U16)
     }
 
+    /// Returns an `u17` type.
+    pub fn u17() -> IRType {
+        IRType::get(IRTypeKind::U17)
+    }
+
+    /// Returns an `u18` type.
+    pub fn u18() -> IRType {
+        IRType::get(IRTypeKind::U18)
+    }
+
+    /// Returns an `u19` type.
+    pub fn u19() -> IRType {
+        IRType::get(IRTypeKind::U19)
+    }
+
+    /// Returns an `u20` type.
+    pub fn u20() -> IRType {
+        IRType::get(IRTypeKind::U20)
+    }
+
+    /// Returns an `u21` type.
+    pub fn u21() -> IRType {
+        IRType::get(IRTypeKind::U21)
+    }
+
+    /// Returns an `u22` type.
+    pub fn u22() -> IRType {
+        IRType::get(IRTypeKind::U22)
+    }
+
+    /// Returns an `u23` type.
+    pub fn u23() -> IRType {
+        IRType::get(IRTypeKind::U23)
+    }
+
+    /// Returns an `u24` type.
+    pub fn u24() -> IRType {
+        IRType::get(IRTypeKind::U24)
+    }
+
+    /// Returns an `u25` type.
+    pub fn u25() -> IRType {
+        IRType::get(IRTypeKind::U25)
+    }
+
+    /// Returns an `u26` type.
+    pub fn u26() -> IRType {
+        IRType::get(IRTypeKind::U26)
+    }
+
+    /// Returns an `u27` type.
+    pub fn u27() -> IRType {
+        IRType::get(IRTypeKind::U27)
+    }
+
+    /// Returns an `u28` type.
+    pub fn u28() -> IRType {
+        IRType::get(IRTypeKind::U28)
+    }
+
+    /// Returns an `u29` type.
+    pub fn u29() -> IRType {
+        IRType::get(IRTypeKind::U29)
+    }
+
+    /// Returns an `u30` type.
+    pub fn u30() -> IRType {
+        IRType::get(IRTypeKind::U30)
+    }
+
+    /// Returns an `u31` type.
+    pub fn u31() -> IRType {
+        IRType::get(IRTypeKind::U31)
+    }
+
     /// Returns an `u32` type.
     pub fn u32() -> IRType {
         IRType::get(IRTypeKind::U32)
@@ -447,6 +562,21 @@ impl IRType {
             IRTypeKind::U14 => 2,
             IRTypeKind::U15 => 2,
             IRTypeKind::U16 => 2,
+            IRTypeKind::U17 => 3,
+            IRTypeKind::U18 => 3,
+            IRTypeKind::U19 => 3,
+            IRTypeKind::U20 => 3,
+            IRTypeKind::U21 => 3,
+            IRTypeKind::U22 => 3,
+            IRTypeKind::U23 => 3,
+            IRTypeKind::U24 => 3,
+            IRTypeKind::U25 => 4,
+            IRTypeKind::U26 => 4,
+            IRTypeKind::U27 => 4,
+            IRTypeKind::U28 => 4,
+            IRTypeKind::U29 => 4,
+            IRTypeKind::U30 => 4,
+            IRTypeKind::U31 => 4,
             IRTypeKind::U32 => 4,
             IRTypeKind::U64 => 8,
             IRTypeKind::U128 => 16,
@@ -480,6 +610,21 @@ impl IRType {
             IRTypeKind::U14 => vec![14],
             IRTypeKind::U15 => vec![15],
             IRTypeKind::I16 | IRTypeKind::U16 | IRTypeKind::F16 => vec![16],
+            IRTypeKind::U17 => vec![17],
+            IRTypeKind::U18 => vec![18],
+            IRTypeKind::U19 => vec![19],
+            IRTypeKind::U20 => vec![20],
+            IRTypeKind::U21 => vec![21],
+            IRTypeKind::U22 => vec![22],
+            IRTypeKind::U23 => vec![23],
+            IRTypeKind::U24 => vec![24],
+            IRTypeKind::U25 => vec![25],
+            IRTypeKind::U26 => vec![26],
+            IRTypeKind::U27 => vec![27],
+            IRTypeKind::U28 => vec![28],
+            IRTypeKind::U29 => vec![29],
+            IRTypeKind::U30 => vec![30],
+            IRTypeKind::U31 => vec![31],
             IRTypeKind::I32 | IRTypeKind::U32 | IRTypeKind::F32 => vec![32],
             IRTypeKind::I64 | IRTypeKind::U64 | IRTypeKind::F64 => vec![64],
             IRTypeKind::I128 | IRTypeKind::U128 | IRTypeKind::F128 => vec![128],
@@ -496,6 +641,9 @@ impl IRType {
         match self.kind() {
             IRTypeKind::Void | IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
                 | IRTypeKind::U9 | IRTypeKind::U10 | IRTypeKind::U11 | IRTypeKind::U12 | IRTypeKind::U13 | IRTypeKind::U14 | IRTypeKind::U15
+                | IRTypeKind::U17 | IRTypeKind::U18 | IRTypeKind::U19 | IRTypeKind::U20 | IRTypeKind::U21 | IRTypeKind::U22 | IRTypeKind::U23
+                | IRTypeKind::U24 | IRTypeKind::U25 | IRTypeKind::U26 | IRTypeKind::U27 | IRTypeKind::U28 | IRTypeKind::U29 | IRTypeKind::U30
+                | IRTypeKind::U31
                 | IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
                 | IRTypeKind::U8 | IRTypeKind::U16 | IRTypeKind::U32 | IRTypeKind::U64 | IRTypeKind::U128
                 | IRTypeKind::F16 | IRTypeKind::F32 | IRTypeKind::F64 | IRTypeKind::F128 => vec![self.clone()],

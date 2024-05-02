@@ -762,10 +762,10 @@ impl IRValue {
             scale = 8;
             log_error!("Scale must <= 8");
         }
-        self.bound(index + offset_bytes, scale);
+        self.bound(index + offset_bytes, scale + offset_bits);
         // if log(value + 1) > scale, warning
         if value as u16 > ((1 as u16) << scale) - 1 {
-            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+            log_warning!("Value(u8) {} is too large for 2^{} - 1", value, scale);
         }
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
@@ -808,14 +808,14 @@ impl IRValue {
             scale = 16;
             log_error!("Scale must <= 16");
         }
-        self.bound(index + offset_bytes, scale);
+        self.bound(index + offset_bytes, scale + offset_bits);
         if scale <= 8 {
             self.set_ubyte(index, offset, scale, (value & 0xFF) as u8);
             return
         }
         // If log(value + 1) > scale, warning
         if value as u32 > ((1 as u32) << scale) - 1 {
-            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+            log_warning!("Value(u16) {} is too large for 2^{} - 1", value, scale);
         }
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
@@ -898,14 +898,14 @@ impl IRValue {
             scale = 32;
             log_error!("Scale must <= 32");
         }
-        self.bound(index + offset_bytes, scale);
+        self.bound(index + offset_bytes, scale + offset_bits);
         if scale <= 16 {
             self.set_uhalf(index, offset, scale, (value & 0xFFFF) as u16);
             return
         }
         // if log(value + 1) > scale, warning
-        if value as u32 > ((1 as u32) << scale) - 1 {
-            log_warning!("Value {} is too large for 2^{} - 1", value, scale);
+        if value as u64 > ((1 as u64) << scale) - 1 {
+            log_warning!("Value(u32) {} is too large for 2^{} - 1", value, scale);
         }
         let mut buffer = self.val.borrow_mut();
         let bytes = value.to_le_bytes();
@@ -1028,11 +1028,75 @@ impl IRValue {
             buffer[index + offset_bytes + 3] = buf_bytes[3];
             buffer[index + offset_bytes + 4] = buf_bytes[4];
         } else if flag > 0 && buffer.len() > index + offset_bytes + 3 {
+            // 0. get u64
+            let mut buf_val : u64 = u64::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 3], 
+                0, 
+                0, 
+                0, 
+                0
+            ]);
+            let bytes_val : u64 = value as u64;
+            // 1. get mask
+            let mask: u64 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+            buffer[index + offset_bytes + 3] = buf_bytes[3];
+        } else if buffer.len() > index + offset_bytes + 2 {
             // 0. get u32
             let mut buf_val : u32 = u32::from_le_bytes([
                 buffer[index + offset_bytes], 
                 buffer[index + offset_bytes + 1], 
-                buffer[index + offset_bytes + 2], 
+                buffer[index + offset_bytes + 2],
+                0
+            ]);
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+            buffer[index + offset_bytes + 2] = buf_bytes[2];
+        } else if buffer.len() > index + offset_bytes + 1 {
+            // 0. get u32
+            let mut buf_val : u32 = u32::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                0,
+                0
+            ]);
+            let bytes_val : u32 = value as u32;
+            // 1. get mask
+            let mask: u32 = (1 << scale) - 1;
+            // 2. clear buf_val
+            buf_val &= !(mask << offset_bits);
+            // 3. set value
+            buf_val |= (bytes_val & mask) << offset_bits;
+            // 4. set buf_val
+            let buf_bytes = buf_val.to_le_bytes();
+            buffer[index + offset_bytes] = buf_bytes[0];
+            buffer[index + offset_bytes + 1] = buf_bytes[1];
+        } else {
+            // 0. get u32
+            let mut buf_val : u32 = u32::from_le_bytes([
+                buffer[index + offset_bytes], 
+                buffer[index + offset_bytes + 1], 
+                buffer[index + offset_bytes + 2],
                 buffer[index + offset_bytes + 3]
             ]);
             let bytes_val : u32 = value as u32;
@@ -1048,56 +1112,6 @@ impl IRValue {
             buffer[index + offset_bytes + 1] = buf_bytes[1];
             buffer[index + offset_bytes + 2] = buf_bytes[2];
             buffer[index + offset_bytes + 3] = buf_bytes[3];
-        } else if flag > 0 && buffer.len() > index + offset_bytes + 2 {
-            // 0. get u24
-            let mut buf_val : u32 = u32::from_le_bytes([
-                buffer[index + offset_bytes], 
-                buffer[index + offset_bytes + 1], 
-                buffer[index + offset_bytes + 2], 
-                0
-            ]);
-            let bytes_val : u32 = value as u32;
-            // 1. get mask
-            let mask: u32 = (1 << scale) - 1;
-            // 2. clear buf_val
-            buf_val &= !(mask << offset_bits);
-            // 3. set value
-            buf_val |= (bytes_val & mask) << offset_bits;
-            // 4. set buf_val
-            let buf_bytes = buf_val.to_le_bytes();
-            buffer[index + offset_bytes] = buf_bytes[0];
-            buffer[index + offset_bytes + 1] = buf_bytes[1];
-            buffer[index + offset_bytes + 2] = buf_bytes[2];
-        } else if flag > 0 && buffer.len() > index + offset_bytes + 1 {
-            // 0. get u16
-            let mut buf_val : u16 = u16::from_le_bytes([
-                buffer[index + offset_bytes], 
-                buffer[index + offset_bytes + 1]
-            ]);
-            let bytes_val : u16 = value as u16;
-            // 1. get mask
-            let mask: u16 = (1 << scale) - 1;
-            // 2. clear buf_val
-            buf_val &= !(mask << offset_bits);
-            // 3. set value
-            buf_val |= (bytes_val & mask) << offset_bits;
-            // 4. set buf_val
-            let buf_bytes = buf_val.to_le_bytes();
-            buffer[index + offset_bytes] = buf_bytes[0];
-            buffer[index + offset_bytes + 1] = buf_bytes[1];
-        } else {
-            // 0. get u16
-            let mut buf_val = u16::from_le_bytes([buffer[index + offset_bytes], 0]);
-            let bytes_val : u16 = value as u16;
-            // 1. get mask
-            let mask: u16 = (1 << scale) - 1;
-            // 2. clear buf_val
-            buf_val &= !(mask << offset_bits);
-            // 3. set value
-            buf_val |= (bytes_val & mask) << offset_bits;
-            // 4. set buf_val
-            let buf_bytes = buf_val.to_le_bytes();
-            buffer[index + offset_bytes] = buf_bytes[0];
         }
     }
 
@@ -1115,6 +1129,16 @@ impl IRValue {
         let bytes = value.to_le_bytes();
         buffer[index] = bytes[0];
         buffer[index + 1] = bytes[1];
+    }
+
+    /// Set value by 24-bit
+    pub fn set_24bit(&mut self, index: usize, value: u32) {
+        self.bound(index, 24);
+        let mut buffer = self.val.borrow_mut();
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
+        buffer[index + 1] = bytes[1];
+        buffer[index + 2] = bytes[2];
     }
 
     /// Set value by 32-bit
@@ -1153,6 +1177,12 @@ impl IRValue {
     pub fn set_u16(&mut self, index: usize, value: u16) {
         self.set_kind(IRTypeKind::U16);
         self.set_16bit(index, value);
+    }
+
+    /// set value by unsigned 24-bit
+    pub fn set_u24(&mut self, index: usize, value: u32) {
+        self.set_kind(IRTypeKind::U24);
+        self.set_24bit(index, value);
     }
 
     /// Set value by unsigned 32-bit
@@ -1562,6 +1592,112 @@ impl IRValue {
         val
     }
 
+    /// Get value from u17
+    pub fn u17(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u17());
+        val.set_uword(0, 0, 17, value);
+        val
+    }
+
+    /// Get value from u18
+    pub fn u18(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u18());
+        val.set_uword(0, 0, 18, value);
+        val
+    }
+
+    /// Get value from u19
+    pub fn u19(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u19());
+        val.set_uword(0, 0, 19, value);
+        val
+    }
+
+    /// Get value from u20
+    pub fn u20(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u20());
+        val.set_uword(0, 0, 20, value);
+        val
+    }
+
+    /// Get value from u21
+    pub fn u21(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u21());
+        val.set_uword(0, 0, 21, value);
+        val
+    }
+
+    /// Get value from u22
+    pub fn u22(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u22());
+        val.set_uword(0, 0, 22, value);
+        val
+    }
+
+    /// Get value from u23
+    pub fn u23(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u23());
+        val.set_uword(0, 0, 23, value);
+        val
+    }
+
+    /// Get value from u24
+    pub fn u24(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u24());
+        val.set_uword(0, 0, 24, value);
+        val
+    }
+
+    /// Get value from u25
+    pub fn u25(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u25());
+        val.set_uword(0, 0, 25, value);
+        val
+    }
+
+    /// Get value from u26
+    pub fn u26(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u26());
+        val.set_uword(0, 0, 26, value);
+        val
+    }
+
+    /// Get value from u27
+    pub fn u27(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u27());
+        val.set_uword(0, 0, 27, value);
+        val
+    }
+
+    /// Get value from u28
+    pub fn u28(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u28());
+        val.set_uword(0, 0, 28, value);
+        val
+    }
+
+    /// Get value from u29
+    pub fn u29(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u29());
+        val.set_uword(0, 0, 29, value);
+        val
+    }
+
+    /// Get value from u30
+    pub fn u30(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u30());
+        val.set_uword(0, 0, 30, value);
+        val
+    }
+
+    /// Get value from u31
+    pub fn u31(value: u32) -> IRValue {
+        let mut val = IRValue::new(IRType::u31());
+        val.set_uword(0, 0, 31, value);
+        val
+    }
+
+
     /// Get value from u32
     pub fn u32(value: u32) -> IRValue {
         let mut val = IRValue::new(IRType::u32());
@@ -1900,14 +2036,14 @@ mod val_test {
         val.set_ubyte(0, 0, 5, 3);
         assert_eq!(val.bin(0, -1, false), "0b00000011 00000000 00000000 00000000");
 
-        let mut val = IRValue::u32(0);
+        let mut val = IRValue::u28(0);
         val.set_ubyte(0, 2, 8, 255);
-        assert_eq!(val.bin(0, -1, false), "0b11111100 00000011 00000000 00000000");
+        assert_eq!(val.bin_scale(0, -1, true), "0B0000 00000000 00000011 11111100");
 
         let mut val = IRValue::u7(127);
-        val.set_ubyte(0, 5, 3, 5);
-        assert_eq!(val.bin(0, -1, false), "0b10111111");
-        val.set_ubyte(0, 1, 7, 0);
+        val.set_ubyte(0, 2, 3, 5);
+        assert_eq!(val.bin(0, -1, false), "0b01110111");
+        val.set_ubyte(0, 1, 6, 0);
         assert_eq!(val.bin(0, -1, false), "0b00000001");
         val.set_ubyte(0, 2, 5, 31);
         assert_eq!(val.bin(0, -1, false), "0b01111101");
@@ -1916,11 +2052,19 @@ mod val_test {
         val.set_uhalf(0, 15, 16, 8253);
         assert_eq!(val.bin(0, -1, true), "0B00010000 00011110 10000000 00000000");
         assert_eq!(val.get_uhalf(0, 15, 16), 8253);
+        val.set_uhalf(0, 22, 10, 1023);  
+        assert_eq!(val.bin(0, -1, true), "0B11111111 11011110 10000000 00000000");
+
+        let mut val = IRValue::u16(0);
+        val.set_uhalf(0, 7, 9, 1023);
+        assert_eq!(val.bin(0, -1, true), "0B11111111 10000000");
 
         let mut val = IRValue::u64(0);
         val.set_uword(0, 19, 31, 0x0FFFFFFF);
         assert_eq!(val.bin(0, -1, true), "0B00000000 00000000 01111111 11111111 11111111 11111000 00000000 00000000");
         assert_eq!(val.get_uword(0, 19, 31), 0x0FFFFFFF);
+
+        // But a 32 maybe when scale > 8 and offset > 8
 
         let val = IRValue::u12(232);
         assert_eq!(val.hex(0, -1, false), "0xe8 00");

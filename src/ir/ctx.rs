@@ -1001,7 +1001,7 @@ mod ctx_test {
         let insn3 = IRInsn::from_string("or x0, x1, x2");
         let insn4 = IRInsn::from_string("xor x0, x1, x2");
         let insn5 = IRInsn::from_string("and x0, x1, x2");
-        let insn6 = IRInsn::from_string("ori x0, x1, 2457");
+        let insn6 = IRInsn::from_string("sltu x0, x1, x2");
         let insn7 = IRInsn::from_string("srl x0, x1, x3");
         let insn8 = IRInsn::from_string("sra x0, x1, x3");
         let insn9 = IRInsn::from_string("sll x0, x1, x3");
@@ -1034,8 +1034,8 @@ mod ctx_test {
         let insn30 = IRInsn::from_string("bgeu x0, x1, 23");
 
         // U-Type Insns Test
-        // let insn31 = IRInsn::from_string("lui x0, 2457");
-        // let insn32 = IRInsn::from_string("auipc x0, 2457");
+        let insn31 = IRInsn::from_string("lui x0, 255");
+        let insn32 = IRInsn::from_string("auipc x0, 255");
 
         ctx.execute(&insn1);
         println!("{:<50} -> x0 = {}", insn1.to_string(), ctx.get_nreg("x0").get_i32(0));
@@ -1105,10 +1105,9 @@ mod ctx_test {
         ctx.execute(&insn30);
         println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
 
-        // ctx.execute(&insn31);
-        // println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
-        // ctx.execute(&insn32);
-        // println!("{:<50} -> pc = {}", insn30.to_string(), ctx.get_pc());
+        ctx.execute(&insn31);
+        println!("{:<50} -> x0 = {}", insn31.to_string(), ctx.get_nreg("x0").get_i32(0));
+        ctx.execute(&insn32);
+        println!("{:<50} -> x0 = {}", insn32.to_string(), ctx.get_nreg("x0").get_i32(0));
     }
-
 }
