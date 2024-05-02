@@ -99,9 +99,9 @@ pub struct IRThread {
     /// self Thread ID
     pub id: usize,
     /// `registers`: Register File, Store register value
-    pub registers: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
+    pub registers: Vec<Rc<RefCell<IRValue>>>,
     /// `stack`: Stack, Store stack value
-    pub stack: Rc<RefCell<Vec<Rc<RefCell<IRValue>>>>>,
+    pub stack: Vec<Rc<RefCell<IRValue>>>,
     /// Dispatch label table
     pub labels : Rc<RefCell<Vec<String>>>,
     /// Thread status
@@ -123,8 +123,8 @@ impl IRThread {
         thread = Self {
             id : 0,
             proc_id,
-            registers: Rc::new(RefCell::new(Vec::new())),
-            stack: Rc::new(RefCell::new(Vec::new())),
+            registers: Vec::new(),
+            stack: Vec::new(),
             labels: Rc::new(RefCell::new(Vec::new())),
             status: IRThreadStatus::Ready,
         };
@@ -133,7 +133,7 @@ impl IRThread {
         idx
     }
 
-    pub fn info(&self) -> String {
+    pub fn info_tbl(&self) -> String {
         let mut info = String::new();
         let stk_pc = self.stack_scale() as f64 / IRContext::STACK_SIZE as f64 * 100.0;
         let stk_fmt = format!("{:.2}%", stk_pc);
@@ -165,7 +165,7 @@ impl IRThread {
         } else if IRContext::is_64() {
             init_regs = (0..IRContext::REG_NUM).map(|_| Rc::new(RefCell::new(IRValue::i64(0)))).collect::<Vec<_>>();
         }
-        thread_ptr.borrow_mut().registers.borrow_mut().extend(init_regs);
+        thread_ptr.borrow_mut().registers.extend(init_regs);
         Self::pool_last().0
     }
 
@@ -201,14 +201,14 @@ impl IRThread {
     }
 
     /// Info all thread
-    pub fn pool_info() -> String {
+    pub fn pool_info_tbl() -> String {
         let mut info = String::new();
         info.push_str(&format!("┌─────┬─────┬──────┬───────────┬─────────┐\n"));
         info.push_str(&format!("│ TID │ PID │ Regs │   Stack   │ TStatus │\n"));
         Self::IR_THREAD_POOL.with(|pool| {
             for i in 0..pool.borrow().len() {
                 info.push_str(&format!("├─────┼─────┼──────┼───────────┼─────────┤\n"));
-                info.push_str(&format!("{}", pool.borrow()[i].borrow().info()));
+                info.push_str(&format!("{}", pool.borrow()[i].borrow().info_tbl()));
             }
         });
         info.push_str(&format!("└─────┴─────┴──────┴───────────┴─────────┘\n"));
@@ -219,14 +219,14 @@ impl IRThread {
 
     /// set reg value by index
     pub fn set_reg(&self, index: usize, value: IRValue) {
-        let regs = self.registers.borrow_mut().clone();
+        let regs = self.registers.clone();
         regs[index].borrow_mut().change(value);
         // println!("vec: {:?}", regs);
     }
 
     /// get reg value by index
     pub fn get_reg(&self, index: usize) -> IRValue {
-        let val = self.registers.borrow_mut()[index].borrow().clone();
+        let val = self.registers[index].borrow().clone();
         val
     }
 
@@ -245,9 +245,9 @@ impl IRThread {
     /// set reg zero
     pub fn set_reg_zero(&self, index: usize) {
         if IRContext::is_32() {
-            self.registers.borrow_mut()[index].replace(IRValue::u32(0));
+            self.registers[index].replace(IRValue::u32(0));
         } else if IRContext::is_64() {
-            self.registers.borrow_mut()[index].replace(IRValue::u64(0));
+            self.registers[index].replace(IRValue::u64(0));
         }
     }
 
@@ -262,14 +262,14 @@ impl IRThread {
         }
         for i in ss..ee {
             let reg = IRInsn::reg_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers.borrow()[i].borrow().clone().bin(0, -1, true)));
+            info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers[i].borrow().clone().bin(0, -1, true)));
         }
         info
     }
 
     /// get reg num
     pub fn reg_num(&self) -> usize {
-        self.registers.borrow().len()
+        self.registers.len()
     }
 
     /// Get pc: ABI x2 is pc
@@ -285,34 +285,34 @@ impl IRThread {
     // ================= IRThread.stark ================== //
 
     /// stack push value
-    pub fn stack_push(&self, value: IRValue) {
-        self.stack.borrow_mut().push(Rc::new(RefCell::new(value)));
+    pub fn stack_push(&mut self, value: IRValue) {
+        self.stack.push(Rc::new(RefCell::new(value)));
     }
 
     /// stack pop value
-    pub fn stack_pop(&self) -> IRValue {
-        self.stack.borrow_mut().pop().unwrap().borrow().clone()
+    pub fn stack_pop(&mut self) -> IRValue {
+        self.stack.pop().unwrap().borrow().clone()
     }
 
     /// stack clear
-    pub fn stack_clr(&self) {
-        self.stack.borrow_mut().clear();
+    pub fn stack_clr(&mut self) {
+        self.stack.clear();
     }
 
     /// stack last value
     pub fn stack_last(&self) -> IRValue {
-        self.stack.borrow().last().unwrap().borrow().clone()
+        self.stack.last().unwrap().borrow().clone()
     }
 
     /// stack len: stack vec size
     pub fn stack_len(&self) -> usize {
-        self.stack.borrow().len()
+        self.stack.len()
     }
 
     /// stack scale: stack scale size
     pub fn stack_scale(&self) -> usize {
         // Sum all IRValue scale
-        self.stack.borrow().iter().map(|v| v.borrow().scale_sum()).sum()
+        self.stack.iter().map(|v| v.borrow().scale_sum()).sum()
     }
 
     // ================= IRThread.proc =================== //
@@ -342,8 +342,8 @@ impl default::Default for IRThread {
         Self {
             id: 0,
             proc_id: 0,
-            registers: Rc::new(RefCell::new(Vec::new())),
-            stack: Rc::new(RefCell::new(Vec::new())),
+            registers: Vec::new(),
+            stack: Vec::new(),
             labels: Rc::new(RefCell::new(Vec::new())),
             status: IRThreadStatus::Ready,
         }
@@ -481,6 +481,60 @@ impl IRProcess {
     /// Check is in pool
     pub fn pool_is_in(index: usize) -> bool {
         Self::IR_PROCESS_POOL.with(|pool| pool.borrow_mut().get(index).is_some())
+    }
+
+    /// Info all process
+    pub fn pool_info_tbl() -> String {
+        let mut info = String::new();
+        info.push_str(&format!("┌─────┬────────────────┬────────┬───────────┬─────────┐\n"));
+        info.push_str(&format!("│ PID │      TIDs      │  Code  │   Stack   │ TStatus │\n"));
+        Self::IR_PROCESS_POOL.with(|pool| {
+            let borrowed_pool = pool.borrow();
+            for i in 0..borrowed_pool.len() {
+                let proc = borrowed_pool[i].borrow();
+                let thread = proc.cur_thread.borrow();
+
+                // make Vec<usize> to string: Get first 5 TID nums, other TIDs will be replaced by ...
+                let mut tid_fmt = proc.threads_id.borrow().iter().map(
+                    |tid| tid.to_string()
+                ).take(5).collect::<Vec<String>>().join(",");
+                if  proc.threads_id.borrow().len() > 5 {
+                    tid_fmt.push_str("...");
+                }
+                let code_fmt = Self::usize_to_string(proc.code_segment.borrow().len());
+                
+                let stack_pc = thread.stack_scale() as f64 / IRContext::STACK_SIZE as f64 * 100.0;
+                let stack_fmt = format!("{:.2}%", stack_pc);
+                let status_fmt = thread.status().to_string();
+                info.push_str(&format!("├─────┼────────────────┼────────┼───────────┼─────────┤\n"));
+                info.push_str(&format!("│ {:<3} │ {:^14} │ {:^6} │ {:^9} │ {:^16} │\n", 
+                    pool.borrow()[i].borrow().id, 
+                    tid_fmt,
+                    code_fmt,
+                    stack_fmt,
+                    status_fmt
+                ));
+            }
+        });
+        info.push_str(&format!("└─────┴────────────────┴────────┴───────────┴─────────┘\n"));
+        info
+    }
+
+    /// usize to store String: B, KB, MB, GB
+    pub fn usize_to_string(size: usize) -> String {
+        let mut size = size;
+        let mut unit = "B";
+        if size >= 1024 && size < 1024 * 1024 {
+            size /= 1024;
+            unit = "KB";
+        } else if size >= 1024 * 1024 && size < 1024 * 1024 * 1024 {
+            size /= 1024 * 1024;
+            unit = "MB";
+        } else if size >= 1024 * 1024 * 1024 && size < 1024 * 1024 * 1024 * 1024 {
+            size /= 1024 * 1024 * 1024;
+            unit = "GB";
+        }
+        format!("{}{}", size, unit)
     }
 
 

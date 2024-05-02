@@ -1039,18 +1039,24 @@ mod ctx_test {
         println!("{}", ctx.proc.borrow().info());
         let mut p0 = ctx.proc.borrow_mut().clone();
         p0.id = 6;
-        
+
         let t0 = p0.cur_thread.clone();
         t0.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(1), IRValue::u64(2)]));
-        println!("{}", IRThread::pool_info());
+        println!("{}", IRThread::pool_info_tbl());
         let t1 = p0.fork_thread();
         t1.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(3), IRValue::u64(4)]));
-        println!("{}", IRThread::pool_info());
+        println!("{}", IRThread::pool_info_tbl());
         let t2 = p0.fork_thread();
         t2.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(5), IRValue::u64(6)]));
-        println!("{}", IRThread::pool_info());
+        println!("{}", IRThread::pool_info_tbl());
+        let t3 = p0.fork_thread();
+        t3.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(7), IRValue::u64(8)]));
+        println!("{}", IRThread::pool_info_tbl());
+        let t4 = p0.fork_thread();
+        t4.borrow_mut().stack_push(IRValue::array(vec![IRValue::u64(9), IRValue::u64(10)]));
+        println!("{}", IRThread::pool_info_tbl());
 
-        println!("{}", p0.info());
+        println!("{}", IRProcess::pool_info_tbl());
     }
 
     #[test]
