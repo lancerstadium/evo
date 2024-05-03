@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 colored = "1.7.1"
+libc = "0.2"
+goblin = "0.2.0"

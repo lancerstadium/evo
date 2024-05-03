@@ -57,7 +57,7 @@ impl IRContext {
     /// Init a `IRContext`
     pub fn init() -> Self {
         let ctx = Self {
-            proc: IRProcess::init("main"),
+            proc: IRProcess::init(Self::name()),
             itp: Self::pool_init()
         };
         ctx

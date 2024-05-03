@@ -22,6 +22,15 @@ use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt;
+
+use std::fs::File;
+use std::os::unix::io::AsRawFd;
+use std::io::Read;
+use std::ffi::CStr;
+use goblin::elf::Elf;
+use libc::{c_void, MAP_PRIVATE, MAP_FIXED, PROT_EXEC, PROT_READ, PROT_WRITE, MAP_FAILED, mmap, munmap};
+
+
 #[cfg(not(feature = "no-log"))]
 use colored::*;
 
@@ -31,10 +40,131 @@ use crate::ir::val::IRValue;
 use crate::ir::ctx::IRContext;
 use crate::arch::info::ArchInfo;
 use crate::ir::op::IRInsn;
+use crate::log_error;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::ir::ty::IRType;
 
+
+
+// ============================================================================== //
+//                              mem::MemoryTool
+// ============================================================================== //
+
+#[derive(Debug, Clone)]
+pub struct MemoryTool {
+
+
+}
+
+impl MemoryTool {
+
+    /// usize to store String: B, KB, MB, GB
+    pub fn usize_to_string(size: usize) -> String {
+        let mut size = size;
+        let mut unit = "B";
+        if size >= 1024 && size < 1024 * 1024 {
+            size /= 1024;
+            unit = "KB";
+        } else if size >= 1024 * 1024 && size < 1024 * 1024 * 1024 {
+            size /= 1024 * 1024;
+            unit = "MB";
+        } else if size >= 1024 * 1024 * 1024 && size < 1024 * 1024 * 1024 * 1024 {
+            size /= 1024 * 1024 * 1024;
+            unit = "GB";
+        }
+        format!("{}{}", size, unit)
+    }
+
+    /// Elf loader
+    pub fn elf_loader(path: &str) -> Vec<(*mut u8, usize)> {
+        // 1. Get ELF File
+        let mut file = File::open(path).unwrap();
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).unwrap();
+
+        // 2. Parse ELF
+        let elf = Elf::parse(&buffer).unwrap();
+
+        // 3. Get entry point
+        // let entry_point = elf.header.e_entry as usize;
+        let mut load_segs: Vec<(*mut u8, usize)> = Vec::new();
+
+
+        // 4. Map .text segments
+        for phdr in elf.program_headers {
+            if phdr.p_type == goblin::elf::program_header::PT_LOAD {
+                // 4.1 Get segment info
+                let segment_offset = phdr.p_offset as usize;
+                let segment_size = phdr.p_filesz as usize;
+                // let segment_vaddr = phdr.p_vaddr as *mut c_void;
+                // let segment_vaddr = std::ptr::null_mut();
+                let segment_flags = match phdr.p_flags {
+                    0x1 => PROT_EXEC,  // 可执行
+                    0x2 => PROT_WRITE, // 可写
+                    0x4 => PROT_READ,  // 可读
+                    _ => 0,
+                };
+    
+                // 4.2 Map segment to ptr
+                let ptr = unsafe {
+                    mmap(0 as *mut c_void, segment_size, segment_flags, MAP_PRIVATE | MAP_FIXED, file.as_raw_fd(), segment_offset as libc::off_t)
+                };
+    
+                // 4.3 Check mmap
+                if ptr == MAP_FAILED {
+                    let err_msg = unsafe {
+                        let err_code = *libc::__errno_location();
+                        let c_err_msg = libc::strerror(err_code);
+                        CStr::from_ptr(c_err_msg).to_string_lossy().into_owned()
+                    };
+                    log_error!("mmap failed: {}", err_msg);
+                    // panic!("mmap failed");
+                }
+
+                // 4.4 Push to Vec
+                load_segs.push((ptr as *mut u8, segment_size));
+            }
+        }
+
+        load_segs
+    }
+
+    /// Elf unloader
+    pub fn elf_unloader(load_segs: Vec<(*mut u8, usize)>) {
+        for (ptr, size) in load_segs {
+            unsafe { munmap(ptr as *mut c_void, size) };
+        }
+    }
+
+    /// Segs to IRValue
+    pub fn segs_to_val(segs: Vec<(*mut u8, usize)>) -> Vec<IRValue> {
+        let mut val = Vec::new();
+        for (ptr, size) in segs {
+            
+            let val_refcell: RefCell<Vec<u8>> = unsafe {
+                let slice = std::slice::from_raw_parts_mut(ptr, size);
+                RefCell::new(Vec::from(slice))
+            };
+            val.push(IRValue::array_u8(val_refcell));
+        }
+        val
+    }
+}
+
+
+#[cfg(test)]
+mod memtool_test {
+
+    use super::*;
+
+    #[test]
+    fn elf_test() {
+        let segs = MemoryTool::elf_loader("/home/lancer/item/evo-rs/test/hello.elf");
+        println!("segs: {:?}", segs);
+        MemoryTool::elf_unloader(segs);
+    }
+}
 
 
 // ============================================================================== //
@@ -488,15 +618,15 @@ impl IRProcess {
     #[cfg(not(feature = "no-log"))]
     pub fn pool_info_tbl() -> String {
         let mut info = String::new();
-        info.push_str(&format!("┌─────┬──────────┬────────────────┬────────┬─────────┬───────────┬─────────┐\n"));
-        info.push_str(&format!("│ PID │   name   │      TIDs      │  Code  │   Mem   │   Stack   │ TStatus │\n"));
+        info.push_str(&format!("┌─────┬────────────┬────────────────┬────────┬─────────┬───────────┬─────────┐\n"));
+        info.push_str(&format!("│ PID │    name    │      TIDs      │  Code  │   Mem   │   Stack   │ TStatus │\n"));
         Self::IR_PROCESS_POOL.with(|pool| {
             let borrowed_pool = pool.borrow();
             for i in 0..borrowed_pool.len() {
                 let proc = borrowed_pool[i].borrow();
                 let thread = proc.cur_thread.borrow();
-                // name first 8 char
-                let name_fmt = proc.name.chars().take(8).collect::<String>();
+                // name first 10 char
+                let name_fmt = proc.name.chars().take(10).collect::<String>();
                 // make Vec<usize> to string: Get first 5 TID nums, other TIDs will be replaced by ...
                 let mut tid_fmt = proc.threads_id.borrow().iter().map(
                     |tid| tid.to_string()
@@ -504,13 +634,13 @@ impl IRProcess {
                 if proc.threads_id.borrow().len() > 5 {
                     tid_fmt.push_str("...");
                 }
-                let code_fmt = Self::usize_to_string(proc.code_segment.borrow().len());
-                let mem_fmt = Self::usize_to_string(proc.mem_segment.borrow().scale_sum() / 8);
+                let code_fmt = MemoryTool::usize_to_string(proc.code_segment.borrow().len());
+                let mem_fmt = MemoryTool::usize_to_string(proc.mem_segment.borrow().scale_sum() / 8);
                 let stack_pc = thread.stack_scale() as f64 / IRContext::STACK_SIZE as f64 * 100.0;
                 let stack_fmt = format!("{:.2}%", stack_pc);
                 let status_fmt = thread.status().to_string();
-                info.push_str(&format!("├─────┼──────────┼────────────────┼────────┼─────────┼───────────┼─────────┤\n"));
-                info.push_str(&format!("│ {:^3} │ {:^8} │ {:^14} │ {:^6} │ {:^7} │ {:^9} │ {:^16} │\n", 
+                info.push_str(&format!("├─────┼────────────┼────────────────┼────────┼─────────┼───────────┼─────────┤\n"));
+                info.push_str(&format!("│ {:^3} │ {:^10} │ {:^14} │ {:^6} │ {:^7} │ {:^9} │ {:^16} │\n", 
                     pool.borrow()[i].borrow().id, 
                     name_fmt,
                     tid_fmt,
@@ -521,25 +651,8 @@ impl IRProcess {
                 ));
             }
         });
-        info.push_str(&format!("└─────┴──────────┴────────────────┴────────┴─────────┴───────────┴─────────┘\n"));
+        info.push_str(&format!("└─────┴────────────┴────────────────┴────────┴─────────┴───────────┴─────────┘\n"));
         info
-    }
-
-    /// usize to store String: B, KB, MB, GB
-    pub fn usize_to_string(size: usize) -> String {
-        let mut size = size;
-        let mut unit = "B";
-        if size >= 1024 && size < 1024 * 1024 {
-            size /= 1024;
-            unit = "KB";
-        } else if size >= 1024 * 1024 && size < 1024 * 1024 * 1024 {
-            size /= 1024 * 1024;
-            unit = "MB";
-        } else if size >= 1024 * 1024 * 1024 && size < 1024 * 1024 * 1024 * 1024 {
-            size /= 1024 * 1024 * 1024;
-            unit = "GB";
-        }
-        format!("{}{}", size, unit)
     }
 
 

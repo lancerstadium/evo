@@ -1929,6 +1929,15 @@ impl IRValue {
         val
     }
 
+    /// Get value from array u8
+    pub fn array_u8(value: RefCell<Vec<u8>>) -> IRValue {
+        // Set kind
+        let mut val = IRValue::new(IRType::array(IRType::u8(), value.borrow().len()));
+        // Set local Vec to new Vec
+        val.val = value;
+        val
+    }
+
     /// Get value from array
     pub fn array(value: Vec<IRValue>) -> IRValue {
         // Set kind
