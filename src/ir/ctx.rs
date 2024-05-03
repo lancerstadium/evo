@@ -1002,6 +1002,8 @@ mod ctx_test {
         IRContext::init();
         let insn1 = IRInsn::decode(IRValue::from_string("0B01000000 10000000 00001111 10110011"));  // sub x32, x0, x8
         println!("{}", insn1);
+        let insn2 = IRInsn::decode(IRValue::from_string("0B00000000 00001000 00110000 00110011"));  // sltu x0, x16, x0
+        println!("{}", insn2);
 
     }
 

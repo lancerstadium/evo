@@ -796,10 +796,11 @@ impl IRInsn {
     pub fn to_string(&self) -> String {
         let mut info = String::new();
         info.push_str(&format!("{:<6} ", self.opc.name()));
-        for opr in self.opr.iter() {
-            info.push_str(&format!("{}", opr.to_string()));
+        for i in 0..self.opr.len() {
+            let r = self.opr[i].clone();
+            info.push_str(&format!("{}", r.to_string()));
             // if iter not last push `,`
-            if opr != self.opr.last().unwrap() {
+            if i < self.opr.len() - 1 {
                 info.push_str(&format!(", "));
             }
         }
