@@ -822,11 +822,11 @@ impl IRInsn {
     // ==================== IRInsn.code ==================== //
 
     /// Get Byte Code of IRInsn
-    pub fn code(&self) -> Vec<u8> {
+    pub fn code(&self) -> IRValue {
         if !self.is_applied {
             log_error!("Code not applied: {} ", self.opc.name());
         }
-        self.byt.val.borrow().clone()
+        self.byt.clone()
     }
 
     pub fn funct7(&self) -> u8 {
@@ -1054,7 +1054,7 @@ impl IRInsn {
             res
         } else {
             // Error
-            log_error!("Apply operands failed: {} ", self.opc.name());
+            log_error!("Apply operands failed: {} , check syms", self.opc.name());
             // Revert
             IRInsn::undef()
         }
@@ -1072,8 +1072,6 @@ impl IRInsn {
         // 2. decode opc
         res.byt = value;
         let mut opr = vec![];
-        println!("{}", res.byt.bin(0, -1, true));
-        println!("opcode: {:08b}, funct3: {:08b}, funct7: {:08b}", res.opcode(), res.funct3(), res.funct7());
         match (res.opcode(), res.funct3(), res.funct7()) {
             // 2.1 R-Type
             (0b0110011, f3, f7) => {
@@ -1084,7 +1082,6 @@ impl IRInsn {
                 opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
                 // c. rs2
                 opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
-                println!("decode: {}", res);
                 // find insn
                 match (f3, f7) {
                     (0b000, 0b0000000) => res = IRInsn::insn_pool_nget("add").borrow().clone(),
@@ -1102,13 +1099,66 @@ impl IRInsn {
                     }
                 }
             },
+            // 2.2 I-Type
+            (0b0010011, f3, 0b0000000) => {
+                // Get oprands
+                // a. rd
+                opr.push(IRInsn::reg_pool_get(res.rd() as usize).borrow().clone());
+                // b. rs1
+                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                // c. imm
+                opr.push(IROperand::imm(IRValue::bit(12, res.imm_i() as i128)));
+                // find insn
+                match f3 {
+                    0b000 => res = IRInsn::insn_pool_nget("addi").borrow().clone(),
+                    0b010 => res = IRInsn::insn_pool_nget("slti").borrow().clone(),
+                    0b011 => res = IRInsn::insn_pool_nget("sltiu").borrow().clone(),
+                    0b100 => res = IRInsn::insn_pool_nget("xori").borrow().clone(),
+                    0b110 => res = IRInsn::insn_pool_nget("ori").borrow().clone(),
+                    0b111 => res = IRInsn::insn_pool_nget("andi").borrow().clone(),
+                    _ => {}
+                }
+            },
+            // 2.3 S-Type
+            (0b0100011, f3, 0b0000000) => {
+                // Get oprands
+                // a. imm
+                opr.push(IROperand::imm(IRValue::bit(12, res.imm_s() as i128)));
+                // b. rs1
+                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                // c. rs2
+                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                // find insn
+                match f3 {
+                    0b000 => res = IRInsn::insn_pool_nget("sb").borrow().clone(),
+                    0b001 => res = IRInsn::insn_pool_nget("sh").borrow().clone(),
+                    0b010 => res = IRInsn::insn_pool_nget("sw").borrow().clone(),
+                    _ => {}
+                }
+            },
+            // 2.4 B-Type
+            (0b1100011, f3, 0b0000000) => {
+                // Get oprands
+                // a. imm
+                opr.push(IROperand::imm(IRValue::bit(12, res.imm_b() as i128)));
+                // b. rs1
+                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                // c. rs2
+                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                // find insn
+                match f3 {
+                    0b000 => res = IRInsn::insn_pool_nget("beq").borrow().clone(),
+                    0b001 => res = IRInsn::insn_pool_nget("bne").borrow().clone(),
+                    _ => {}
+                }
+            }
             _ => {
 
             }
 
         }
-        res.encode(opr);
-        res
+        // 3. encode
+        res.encode(opr)
     }
 
 

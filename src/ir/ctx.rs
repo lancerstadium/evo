@@ -1001,7 +1001,7 @@ mod ctx_test {
     fn insn_from() {
         let ctx = IRContext::init();
         let insn = IRInsn::decode(IRValue::from_string("0B01000000 10000000 00001111 10110011"));
-        println!("{}", insn.info());
+        println!("{}", insn.code().bin(0, -1, true));
     }
 
     #[test]
