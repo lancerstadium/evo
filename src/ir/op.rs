@@ -1122,12 +1122,12 @@ impl IRInsn {
             // 2.3 S-Type
             (0b0100011, f3, 0b0000000) => {
                 // Get oprands
-                // a. imm
-                opr.push(IROperand::imm(IRValue::bit(12, res.imm_s() as i128)));
-                // b. rs1
+                // a. rs1
                 opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // c. rs2
+                // b. rs2
                 opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                // c. imm
+                opr.push(IROperand::imm(IRValue::bit(12, res.imm_s() as i128)));
                 // find insn
                 match f3 {
                     0b000 => res = IRInsn::insn_pool_nget("sb").borrow().clone(),
@@ -1139,12 +1139,12 @@ impl IRInsn {
             // 2.4 B-Type
             (0b1100011, f3, 0b0000000) => {
                 // Get oprands
-                // a. imm
-                opr.push(IROperand::imm(IRValue::bit(12, res.imm_b() as i128)));
-                // b. rs1
+                // a. rs1
                 opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // c. rs2
+                // b. rs2
                 opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                // c. imm
+                opr.push(IROperand::imm(IRValue::bit(12, res.imm_b() as i128)));
                 // find insn
                 match f3 {
                     0b000 => res = IRInsn::insn_pool_nget("beq").borrow().clone(),
