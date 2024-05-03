@@ -120,38 +120,38 @@ impl IRContext {
             return None;
         }
         // 2. Init regs pool
-        IRInsn::reg("x0", IRValue::u5(0));
-        IRInsn::reg("x1", IRValue::u5(1));
-        IRInsn::reg("x2", IRValue::u5(2));
-        IRInsn::reg("x3", IRValue::u5(3));
-        IRInsn::reg("x4", IRValue::u5(4));
-        IRInsn::reg("x5", IRValue::u5(5));
-        IRInsn::reg("x6", IRValue::u5(6));
-        IRInsn::reg("x7", IRValue::u5(7));
-        IRInsn::reg("x8", IRValue::u5(8));
-        IRInsn::reg("x9", IRValue::u5(9));
-        IRInsn::reg("x10", IRValue::u5(10));
-        IRInsn::reg("x11", IRValue::u5(11));
-        IRInsn::reg("x12", IRValue::u5(12));
-        IRInsn::reg("x13", IRValue::u5(13));
-        IRInsn::reg("x14", IRValue::u5(14));
-        IRInsn::reg("x15", IRValue::u5(15));
-        IRInsn::reg("x16", IRValue::u5(16));
-        IRInsn::reg("x17", IRValue::u5(17));
-        IRInsn::reg("x18", IRValue::u5(18));
-        IRInsn::reg("x19", IRValue::u5(19));
-        IRInsn::reg("x20", IRValue::u5(20));
-        IRInsn::reg("x21", IRValue::u5(21));
-        IRInsn::reg("x22", IRValue::u5(22));
-        IRInsn::reg("x23", IRValue::u5(23));
-        IRInsn::reg("x24", IRValue::u5(24));
-        IRInsn::reg("x25", IRValue::u5(25));
-        IRInsn::reg("x26", IRValue::u5(26));
-        IRInsn::reg("x27", IRValue::u5(27));
-        IRInsn::reg("x28", IRValue::u5(28));
-        IRInsn::reg("x29", IRValue::u5(29));
-        IRInsn::reg("x30", IRValue::u5(30));
-        IRInsn::reg("x31", IRValue::u5(31));
+        IRInsn::reg("x0", IRValue::bit(5, 0));
+        IRInsn::reg("x1", IRValue::bit(5, 1));
+        IRInsn::reg("x2", IRValue::bit(5, 2));
+        IRInsn::reg("x3", IRValue::bit(5, 3));
+        IRInsn::reg("x4", IRValue::bit(5, 4));
+        IRInsn::reg("x5", IRValue::bit(5, 5));
+        IRInsn::reg("x6", IRValue::bit(5, 6));
+        IRInsn::reg("x7", IRValue::bit(5, 7));
+        IRInsn::reg("x8", IRValue::bit(5, 8));
+        IRInsn::reg("x9", IRValue::bit(5, 9));
+        IRInsn::reg("x10", IRValue::bit(5, 10));
+        IRInsn::reg("x11", IRValue::bit(5, 11));
+        IRInsn::reg("x12", IRValue::bit(5, 12));
+        IRInsn::reg("x13", IRValue::bit(5, 13));
+        IRInsn::reg("x14", IRValue::bit(5, 14));
+        IRInsn::reg("x15", IRValue::bit(5, 15));
+        IRInsn::reg("x16", IRValue::bit(5, 16));
+        IRInsn::reg("x17", IRValue::bit(5, 17));
+        IRInsn::reg("x18", IRValue::bit(5, 18));
+        IRInsn::reg("x19", IRValue::bit(5, 19));
+        IRInsn::reg("x20", IRValue::bit(5, 20));
+        IRInsn::reg("x21", IRValue::bit(5, 21));
+        IRInsn::reg("x22", IRValue::bit(5, 22));
+        IRInsn::reg("x23", IRValue::bit(5, 23));
+        IRInsn::reg("x24", IRValue::bit(5, 24));
+        IRInsn::reg("x25", IRValue::bit(5, 25));
+        IRInsn::reg("x26", IRValue::bit(5, 26));
+        IRInsn::reg("x27", IRValue::bit(5, 27));
+        IRInsn::reg("x28", IRValue::bit(5, 28));
+        IRInsn::reg("x29", IRValue::bit(5, 29));
+        IRInsn::reg("x30", IRValue::bit(5, 30));
+        IRInsn::reg("x31", IRValue::bit(5, 31));
 
         // 3. Init insns & insns interpreter
         let itp = IRInterpreter::init();
@@ -193,7 +193,7 @@ impl IRContext {
                 proc0.set_reg(insn.rd() as usize, IRValue::i32(res));
             }
         );
-        IRInterpreter::def_insn("or"  , vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011",
+        IRInterpreter::def_insn("or"  , vec![1, 1, 1], "R", "0B0000000. ........ .110.... .0110011",
             |ctx, insn| {
                 // ======== rd = rs1 | rs2 ======== //
                 if !insn.is_applied {
@@ -229,7 +229,7 @@ impl IRContext {
                 proc0.set_reg(insn.rd() as usize, IRValue::u32(res));
             }
         );
-        IRInterpreter::def_insn("and" , vec![1, 1, 1], "R", "0B0000000. ........ .110.... .0110011",
+        IRInterpreter::def_insn("and" , vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011",
             |ctx, insn| {
                 // ======== rd = rs1 & rs2 ======== //
                 if !insn.is_applied {
@@ -632,7 +632,6 @@ impl IRContext {
                 proc0.set_status(IRThreadStatus::Blocked);
             }
         );
-
         // Type:S 
         IRInterpreter::def_insn("sb", vec![1, 1, 0], "S", "0B........ ........ .000.... .0100011",
             |ctx, insn| {
@@ -972,13 +971,11 @@ mod ctx_test {
         let insn2 = IRInsn::apply(
             "sub", vec![
                 IRInsn::reg_pool_nget("x31").borrow().clone(), 
-                IRInsn::reg_pool_nget("x2").borrow().clone(), 
+                IRInsn::reg_pool_nget("x0").borrow().clone(), 
                 IRInsn::reg_pool_nget("x8").borrow().clone()
             ]
         );
         println!("{}", insn2.bin(0, -1, true));
-        println!("{}", insn2);
-
         let insn3 = IRInsn::apply(
             "srl", vec![
                 IRInsn::reg_pool_nget("x31").borrow().clone(), 
@@ -998,6 +995,13 @@ mod ctx_test {
         );
         println!("{}", insn4.bin(0, -1, true));
         println!("{}", insn4);
+    }
+
+    #[test]
+    fn insn_from() {
+        let ctx = IRContext::init();
+        let insn = IRInsn::decode(IRValue::from_string("0B01000000 10000000 00001111 10110011"));
+        println!("{}", insn.info());
     }
 
     #[test]
@@ -1193,4 +1197,5 @@ mod ctx_test {
         ctx.execute(&insn36);
         println!("{:<50} -> status = {}", insn36.to_string(), ctx.status());
     }
+
 }

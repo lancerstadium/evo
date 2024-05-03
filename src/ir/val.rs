@@ -54,7 +54,7 @@ impl IRValue {
         *self = value;
     }
 
-    /// append IRvalue Align by u8 version
+    /// Append IRvalue Align by u8 version: you will reserve scale info
     pub fn append(&mut self, value: IRValue) {
         // 1. Change the Kind to tuple: (self, value)
         self.set_kind(IRTypeKind::Tuple(vec![self.ty.clone(), value.ty.clone()]));
@@ -66,40 +66,53 @@ impl IRValue {
         self.set_align(true);
     }
 
-    /// concat IRvalue No Align
-    pub fn concat(&mut self, value: IRValue) {
+    /// Concat IRvalue No Align: you will lost scale info
+    pub fn concat(&mut self, value: IRValue) -> &mut IRValue {
         // 1. Change the Kind to array u8
         let l_scale = self.scale_sum();
         let r_scale = value.scale_sum();
-        let arr_len = (l_scale + r_scale + 7) / 8;
+        let arr_len = (l_scale + r_scale) / 8 + ((l_scale + r_scale) % 8 > 0) as usize;
+        let sum_scale = l_scale + r_scale;
+        let is_bits = self.ty.kind().is_bit() && value.ty.kind().is_bit();
         let l_extra_bits = l_scale % 8;
-        let l_arr_len = (l_scale + 7) / 8;
-        self.set_kind(IRTypeKind::Array(IRType::u8(), arr_len));
+        let l_arr_len = l_scale / 8 + (l_scale % 8 > 0) as usize;
+        let mask = (1 << l_extra_bits) - 1;
         // 2. Pop self val vec util len == l_arr_len
         while self.val.borrow().len() > l_arr_len {
             self.val.borrow_mut().pop();
         }
         // 3. Concat the val vec
         if l_extra_bits > 0 {
+            let mut l_byte : u8;
+            let mut r_byte : u8;
             for i in 0..value.val.borrow().len() {
-                let mut l_byte = self.val.borrow_mut().pop().unwrap();
-                let mut r_byte = value.val.borrow()[i];
-                l_byte = l_byte << (8 - l_extra_bits);
-                r_byte = r_byte >> l_extra_bits;
-                self.val.borrow_mut().push(l_byte | r_byte);
-                if i == value.val.borrow().len() - 1 {
-                    break;
+                if i == 0 {
+                    // first time read must: l[3:1] + r[5:1] -> l[8:4]
+                    l_byte = self.val.borrow_mut().pop().unwrap();
+                    r_byte = value.val.borrow()[i].clone();
+                } else {
+                    // next time read must: l[8:6] -> l[3:1] + r[5:1] -> l[8:4]
+                    l_byte = value.val.borrow()[i - 1].clone() >> (8 - l_extra_bits);
+                    r_byte = value.val.borrow()[i].clone();
                 }
-                self.val.borrow_mut().push(value.val.borrow()[i + 1]);
+                l_byte = l_byte & mask;
+                r_byte = r_byte << l_extra_bits;
+                self.val.borrow_mut().push(l_byte | r_byte);
             }
         } else {
             self.val.borrow_mut().extend_from_slice(&value.val.borrow());
         }
-        println!("{}", self.bin(0, -1, true));
+        // Change type
+        if is_bits {
+            self.set_kind(IRTypeKind::Bit(sum_scale));
+        } else {
+            self.set_kind(IRTypeKind::Array(IRType::u8(), arr_len));
+        }
         // 4. Check the size
         assert_eq!(self.size(), self.val.borrow().len());
         // 5. set align mode
         self.set_align(false);
+        self
     }
 
     /// Set IRValue use vec<8> by index
@@ -136,7 +149,7 @@ impl IRValue {
         self.val = value.val;
     }
 
-    /// Set align mode
+    /// Set align mode: if set this use scale to search
     pub fn set_align(&mut self, is_align: bool) {
         if is_align {
             self.flag |= 0b0001_0000;
@@ -531,6 +544,14 @@ impl IRValue {
         u64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
     }
 
+    /// Get value by 128-bit
+    pub fn get_u128(&self, index: usize) -> u128 {
+        self.bound(index, 128);
+        let buffer = self.val.borrow();
+        u128::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7],
+            buffer[index + 8], buffer[index + 9], buffer[index + 10], buffer[index + 11], buffer[index + 12], buffer[index + 13], buffer[index + 14], buffer[index + 15]])
+    }
+
     /// Get value by signed 8-bit
     pub fn get_i8(&self, index: usize) -> i8 {
         self.bound(index, 8);
@@ -557,6 +578,14 @@ impl IRValue {
         self.bound(index, 64);
         let buffer = self.val.borrow();
         i64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
+    }
+
+    /// Get value by signed 128-bit
+    pub fn get_i128(&self, index: usize) -> i128 {
+        self.bound(index, 128);
+        let buffer = self.val.borrow();
+        i128::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7],
+            buffer[index + 8], buffer[index + 9], buffer[index + 10], buffer[index + 11], buffer[index + 12], buffer[index + 13], buffer[index + 14], buffer[index + 15]])
     }
 
     /// Get value by float
@@ -1233,6 +1262,29 @@ impl IRValue {
         buffer[index + 7] = bytes[7];
     }
 
+    /// Set value by 128-bit
+    pub fn set_128bit(&mut self, index: usize, value: u128) {
+        self.bound(index, 128);
+        let mut buffer = self.val.borrow_mut();
+        let bytes = value.to_le_bytes();
+        buffer[index] = bytes[0];
+        buffer[index + 1] = bytes[1];
+        buffer[index + 2] = bytes[2];
+        buffer[index + 3] = bytes[3];
+        buffer[index + 4] = bytes[4];
+        buffer[index + 5] = bytes[5];
+        buffer[index + 6] = bytes[6];
+        buffer[index + 7] = bytes[7];
+        buffer[index + 8] = bytes[8];
+        buffer[index + 9] = bytes[9];
+        buffer[index + 10] = bytes[10];
+        buffer[index + 11] = bytes[11];
+        buffer[index + 12] = bytes[12];
+        buffer[index + 13] = bytes[13];
+        buffer[index + 14] = bytes[14];
+        buffer[index + 15] = bytes[15];
+    }
+
     /// Set value by unsigned 8-bit
     pub fn set_u8(&mut self, index: usize, value: u8) {
         self.set_kind(IRTypeKind::U8);
@@ -1263,6 +1315,12 @@ impl IRValue {
         self.set_64bit(index, value);
     }
 
+    /// Set value by unsigned 128-bit
+    pub fn set_u128(&mut self, index: usize, value: u128) {
+        self.set_kind(IRTypeKind::U128);
+        self.set_128bit(index, value);
+    }
+
     /// Set value by signed 8-bit
     pub fn set_i8(&mut self, index: usize, value: i8) {
         self.set_kind(IRTypeKind::I8);
@@ -1285,6 +1343,12 @@ impl IRValue {
     pub fn set_i64(&mut self, index: usize, value: i64) {
         self.set_kind(IRTypeKind::I64);
         self.set_64bit(index, value as u64);
+    }
+
+    /// Set value by signed 128-bit
+    pub fn set_i128(&mut self, index: usize, value: i128) {
+        self.set_kind(IRTypeKind::I128);
+        self.set_128bit(index, value as u128);
     }
 
     /// Set value by float
@@ -1548,13 +1612,40 @@ impl IRValue {
 
 
     /// Get value from Bit: scale & u128
-    pub fn bit(scale : usize, value: u128) -> IRValue {
+    pub fn ubit(scale : usize, value: u128) -> IRValue {
         let mut val = IRValue::new(IRType::bit(scale));
         // Get Vec<u8> from u128 and get first val.size item
         let mut bit_vec = u128::to_le_bytes(value).to_vec();
         bit_vec.resize(val.size(), 0);
+        // Set Scale Addition, otherwise 0
+        let offset_bytes = scale / 8;
+        let offset_bits = scale % 8;
+        if offset_bits != 0 {
+            bit_vec[offset_bytes] &= (1 << offset_bits) - 1;
+        }
         val.val = RefCell::new(bit_vec);
         val
+    }
+
+    /// Get Value from Bit: scale & i128
+    pub fn ibit(scale : usize, value: i128) -> IRValue {
+        let mut val = IRValue::new(IRType::bit(scale));
+        // Get Vec<u8> from i128 and get first val.size item
+        let mut bit_vec = i128::to_le_bytes(value).to_vec();
+        bit_vec.resize(val.size(), 0);
+        // Set Scale Addition, otherwise 0
+        let offset_bytes = scale / 8;
+        let offset_bits = scale % 8;
+        if offset_bits != 0 {
+            bit_vec[offset_bytes] &= (1 << offset_bits) - 1;
+        }
+        val.val = RefCell::new(bit_vec);
+        val
+    }
+
+    /// Get value from Bit: scale & i128
+    pub fn bit(scale : usize, value: i128) -> IRValue {
+        IRValue::ibit(scale, value)
     }
 
     /// Get value from u8 -> u1
@@ -1814,6 +1905,13 @@ impl IRValue {
     pub fn i64(value: i64) -> IRValue {
         let mut val = IRValue::new(IRType::i64());
         val.set_i64(0, value);
+        val
+    }
+
+    /// Get value from i128
+    pub fn i128(value: i128) -> IRValue {
+        let mut val = IRValue::new(IRType::i128());
+        val.set_i128(0, value);
         val
     }
 
@@ -2148,12 +2246,19 @@ mod val_test {
         assert_eq!(val.hex(0, -1, false), "0xe8 00");
 
 
-        let mut val = IRValue::bit(20, 0xCFCF);
-        assert_eq!(val.bin_scale(0, -1, true), "0B0000 11001111 11001111");
-        let val2 = IRValue::bit(20, 0xAAAA);
+        let mut val = IRValue::ubit(19, 0x5CFCF);
+        assert_eq!(val.bin_scale(0, -1, false), "0b11001111 11001111 101");
+        let val2 = IRValue::bit(21, 0x1AF0FF);
+        assert_eq!(val2.bin_scale(0, -1, false), "0b11111111 11110000 11010");
         val.concat(val2);
-        println!("{}", val.bin_scale(0, -1, true));
+        assert_eq!(val.bin_scale(0, -1, false), "0b11001111 11001111 11111101 10000111 11010111");
 
+        let mut val1 = IRValue::bit(12, 0xFFFFFFF);
+        let val2 = IRValue::bit(31, 0x0);
+        let val3 = IRValue::bit(29, 0xAAAAAAA);
+        let val4 = IRValue::bit(66, 0xFFFFFFFF);
+        val1.concat(val2).concat(val3).concat(val4);
+        assert_eq!("b'138", val1.ty.to_string());
     }
 
 }

@@ -253,6 +253,14 @@ impl IRTypeKind {
         }
     }
 
+    /// TypeKind is bit
+    pub fn is_bit(&self) -> bool {
+        match self {
+            IRTypeKind::Bit(_) => true,
+            _ => false
+        }
+    }
+
 }
 
 /// Set string for `IRTypeKind`.
@@ -556,7 +564,7 @@ impl IRType {
     pub fn size(&self) -> usize {
         match self.kind() {
             IRTypeKind::Void => 0,
-            IRTypeKind::Bit(n) => (n + 7) / 8,
+            IRTypeKind::Bit(n) => n / 8 + (n % 8 != 0) as usize,
             IRTypeKind::I8 => 1,
             IRTypeKind::I16 => 2,
             IRTypeKind::I32 => 4,

@@ -202,9 +202,9 @@ impl IROperand {
     pub fn info(&self) -> String {
         match self.kind() {
             IROperandKind::Imm(_) => self.to_string(),
-            IROperandKind::Reg(_, val) => {
+            IROperandKind::Reg(_, _) => {
                 let idx_str = self.val().bin_scale(0, -1, true);
-                format!("{:<9} ({:>2}: {})", self.to_string(), val.to_string(), idx_str)
+                format!("{:<9} ({})", self.to_string(), idx_str)
             },
             IROperandKind::Mem(_, _, _, _) => self.to_string(),
             IROperandKind::Label(_, _) => self.to_string(),
@@ -838,7 +838,7 @@ impl IRInsn {
     }
 
     pub fn opcode(&self) -> u8 {
-        self.byt.get_ubyte(0, 25, 7)
+        self.byt.get_ubyte(0, 0, 6)
     }
 
     pub fn rs1(&self) -> u8 {
@@ -991,7 +991,7 @@ impl IRInsn {
                     self.set_imm_i(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::u12(imm)));
+                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
                 },
                 IROpcodeKind::S(_, _) => {
                     // rs2: u5 -> 20->24
@@ -1005,7 +1005,7 @@ impl IRInsn {
                     self.set_imm_s(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::u12(imm)));
+                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
                 },
                 IROpcodeKind::B(_, _) => {
                     // rs2: u5 -> 20->24
@@ -1019,7 +1019,7 @@ impl IRInsn {
                     self.set_imm_b(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::u12(imm)));
+                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
                 },
                 IROpcodeKind::U(_, _) => {
                     // rd: u5 -> 7->11
@@ -1030,7 +1030,7 @@ impl IRInsn {
                     self.set_imm_u(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::u20(imm)));
+                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
                 },
                 IROpcodeKind::J(_, _) => {
                     // rd: u5 -> 7->11
@@ -1041,7 +1041,7 @@ impl IRInsn {
                     self.set_imm_j(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::u20(imm)));
+                    opr.push(IROperand::imm(IRValue::bit(20, imm as i128)));
                 },
                 _ => {
                     // Do nothing
@@ -1059,6 +1059,59 @@ impl IRInsn {
             IRInsn::undef()
         }
     }
+
+
+    /// decode from IRValue
+    pub fn decode(value: IRValue) -> IRInsn {
+        let mut res = IRInsn::undef();
+        // 1. check scale
+        if value.scale_sum() != 32 {
+            log_error!("Invalid insn scale: {}", value.scale_sum());
+            return res;
+        }
+        // 2. decode opc
+        res.byt = value;
+        let mut opr = vec![];
+        println!("{}", res.byt.bin(0, -1, true));
+        println!("opcode: {:08b}, funct3: {:08b}, funct7: {:08b}", res.opcode(), res.funct3(), res.funct7());
+        match (res.opcode(), res.funct3(), res.funct7()) {
+            // 2.1 R-Type
+            (0b0110011, f3, f7) => {
+                // Get oprands
+                // a. rd
+                opr.push(IRInsn::reg_pool_get(res.rd() as usize).borrow().clone());
+                // b. rs1
+                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                // c. rs2
+                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                println!("decode: {}", res);
+                // find insn
+                match (f3, f7) {
+                    (0b000, 0b0000000) => res = IRInsn::insn_pool_nget("add").borrow().clone(),
+                    (0b000, 0b0100000) => res = IRInsn::insn_pool_nget("sub").borrow().clone(),
+                    (0b100, 0b0000000) => res = IRInsn::insn_pool_nget("xor").borrow().clone(),
+                    (0b110, 0b0000000) => res = IRInsn::insn_pool_nget("or").borrow().clone(),
+                    (0b111, 0b0000000) => res = IRInsn::insn_pool_nget("and").borrow().clone(),
+                    (0b001, 0b0000000) => res = IRInsn::insn_pool_nget("sll").borrow().clone(),
+                    (0b101, 0b0000000) => res = IRInsn::insn_pool_nget("srl").borrow().clone(),
+                    (0b101, 0b0100000) => res = IRInsn::insn_pool_nget("sra").borrow().clone(),
+                    (0b010, 0b0000000) => res = IRInsn::insn_pool_nget("slt").borrow().clone(),
+                    (0b011, 0b0000000) => res = IRInsn::insn_pool_nget("sltu").borrow().clone(),
+                    _ => {
+
+                    }
+                }
+            },
+            _ => {
+
+            }
+
+        }
+        res.encode(opr);
+        res
+    }
+
+
 
     /// From string to IRInsn
     pub fn from_string(str: &'static str) -> IRInsn {
