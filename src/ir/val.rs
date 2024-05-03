@@ -22,7 +22,21 @@ use crate::{log_fatal, log_error};
 #[derive(Debug, Clone, PartialEq)]
 pub struct IRValue {
     pub ty: IRType,
-    pub val: RefCell<Vec<u8>>
+    pub val: RefCell<Vec<u8>>,
+    /// ### Value flag:
+    /// ```txt
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ │ │ └── is constant
+    /// │ │ │ │ │ │ └──── is mutable
+    /// │ │ │ │ │ └────── is pointer
+    /// │ │ │ │ └──────── <reserved>
+    /// │ │ │ └────────── is align by u8
+    /// │ │ └──────────── <reserved>
+    /// │ └────────────── <reserved>
+    /// └──────────────── <reserved>
+    /// ```
+    pub flag: u8
 }
 
 impl IRValue {
@@ -32,7 +46,7 @@ impl IRValue {
         let size = ty.size();
         let buffer = vec![0; size];
         let val = RefCell::new(buffer);
-        IRValue { ty, val }
+        IRValue { ty, val, flag:0 }
     }
 
     /// change new IRValue to Self
@@ -40,7 +54,7 @@ impl IRValue {
         *self = value;
     }
 
-    /// append IRvalue
+    /// append IRvalue Align by u8 version
     pub fn append(&mut self, value: IRValue) {
         // 1. Change the Kind to tuple: (self, value)
         self.set_kind(IRTypeKind::Tuple(vec![self.ty.clone(), value.ty.clone()]));
@@ -48,6 +62,44 @@ impl IRValue {
         self.val.borrow_mut().extend_from_slice(&value.val.borrow());
         // 3. Check the size
         assert_eq!(self.size(), self.val.borrow().len());
+        // 4. set align mode
+        self.set_align(true);
+    }
+
+    /// concat IRvalue No Align
+    pub fn concat(&mut self, value: IRValue) {
+        // 1. Change the Kind to array u8
+        let l_scale = self.scale_sum();
+        let r_scale = value.scale_sum();
+        let arr_len = (l_scale + r_scale + 7) / 8;
+        let l_extra_bits = l_scale % 8;
+        let l_arr_len = (l_scale + 7) / 8;
+        self.set_kind(IRTypeKind::Array(IRType::u8(), arr_len));
+        // 2. Pop self val vec util len == l_arr_len
+        while self.val.borrow().len() > l_arr_len {
+            self.val.borrow_mut().pop();
+        }
+        // 3. Concat the val vec
+        if l_extra_bits > 0 {
+            for i in 0..value.val.borrow().len() {
+                let mut l_byte = self.val.borrow_mut().pop().unwrap();
+                let mut r_byte = value.val.borrow()[i];
+                l_byte = l_byte << (8 - l_extra_bits);
+                r_byte = r_byte >> l_extra_bits;
+                self.val.borrow_mut().push(l_byte | r_byte);
+                if i == value.val.borrow().len() - 1 {
+                    break;
+                }
+                self.val.borrow_mut().push(value.val.borrow()[i + 1]);
+            }
+        } else {
+            self.val.borrow_mut().extend_from_slice(&value.val.borrow());
+        }
+        println!("{}", self.bin(0, -1, true));
+        // 4. Check the size
+        assert_eq!(self.size(), self.val.borrow().len());
+        // 5. set align mode
+        self.set_align(false);
     }
 
     /// Set IRValue use vec<8> by index
@@ -77,6 +129,20 @@ impl IRValue {
     pub fn set_val(&mut self, value: IRValue) {
         assert_eq!(value.size(), self.size());
         self.val = value.val;
+    }
+
+    /// just change value vec and mutable
+    pub fn set_val_mut(&mut self, value: IRValue) {
+        self.val = value.val;
+    }
+
+    /// Set align mode
+    pub fn set_align(&mut self, is_align: bool) {
+        if is_align {
+            self.flag |= 0b0001_0000;
+        } else {
+            self.flag &= 0b1110_1111;
+        }
     }
 
     // ==================== IRValue.ctl ==================== //
@@ -1480,6 +1546,17 @@ impl IRValue {
         val
     }
 
+
+    /// Get value from Bit: scale & u128
+    pub fn bit(scale : usize, value: u128) -> IRValue {
+        let mut val = IRValue::new(IRType::bit(scale));
+        // Get Vec<u8> from u128 and get first val.size item
+        let mut bit_vec = u128::to_le_bytes(value).to_vec();
+        bit_vec.resize(val.size(), 0);
+        val.val = RefCell::new(bit_vec);
+        val
+    }
+
     /// Get value from u8 -> u1
     pub fn u1(value: u8) -> IRValue {
         let mut val = IRValue::new(IRType::u1());
@@ -1840,6 +1917,7 @@ impl Default for IRValue {
         Self {
             ty: IRType::void(),
             val: RefCell::new(Vec::new()),
+            flag: 0
         }
     }
 }
@@ -2068,6 +2146,13 @@ mod val_test {
 
         let val = IRValue::u12(232);
         assert_eq!(val.hex(0, -1, false), "0xe8 00");
+
+
+        let mut val = IRValue::bit(20, 0xCFCF);
+        assert_eq!(val.bin_scale(0, -1, true), "0B0000 11001111 11001111");
+        let val2 = IRValue::bit(20, 0xAAAA);
+        val.concat(val2);
+        println!("{}", val.bin_scale(0, -1, true));
 
     }
 

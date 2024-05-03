@@ -34,6 +34,9 @@ pub enum IRTypeKind {
     // Void type
     Void,
 
+    // Bit type
+    Bit(usize),
+
     // Unsigned bits
     U1, U2, U3, U4, U5, U6, U7,
 
@@ -73,6 +76,7 @@ impl IRTypeKind {
     pub fn to_string(&self) -> String {
         match self {
             IRTypeKind::Void => "void".to_string(),
+            IRTypeKind::Bit(n) => format!("b'{}", n),
             IRTypeKind::I8 => "i8".to_string(),
             IRTypeKind::I16 => "i16".to_string(),
             IRTypeKind::I32 => "i32".to_string(),
@@ -126,6 +130,12 @@ impl IRTypeKind {
 
     /// Converts `string` to `IRTypeKind`.
     pub fn from_string(s: &str) -> IRTypeKind {
+        // Bit: b'23
+        if s.starts_with("b'") {
+            let s = &s[2..];
+            let n = s.parse().unwrap();
+            return IRTypeKind::Bit(n)
+        }
         // Array: [ty; len]
         if s.starts_with("[") && s.ends_with("]") {
             let s = &s[1..s.len()-1];
@@ -289,6 +299,11 @@ impl IRType {
     /// Returns an `void` type.
     pub fn void() -> IRType {
         IRType::get(IRTypeKind::Void)
+    }
+
+    /// Returns an `bit` type: scale is the width of bit.
+    pub fn bit(scale: usize) -> IRType {
+        IRType::get(IRTypeKind::Bit(scale))
     }
     
     /// Returns an `i8` type.
@@ -541,6 +556,7 @@ impl IRType {
     pub fn size(&self) -> usize {
         match self.kind() {
             IRTypeKind::Void => 0,
+            IRTypeKind::Bit(n) => (n + 7) / 8,
             IRTypeKind::I8 => 1,
             IRTypeKind::I16 => 2,
             IRTypeKind::I32 => 4,
@@ -594,6 +610,7 @@ impl IRType {
     pub fn scale(&self) -> Vec<usize> {
         match self.kind() {
             IRTypeKind::Void => vec![0],
+            IRTypeKind::Bit(n) => vec![*n],
             IRTypeKind::U1 => vec![1],
             IRTypeKind::U2 => vec![2],
             IRTypeKind::U3 => vec![3],
@@ -639,7 +656,7 @@ impl IRType {
     /// Return types vec of current type
     pub fn types(&self) -> Vec<IRType> {
         match self.kind() {
-            IRTypeKind::Void | IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
+            IRTypeKind::Void | IRTypeKind::Bit(_) | IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
                 | IRTypeKind::U9 | IRTypeKind::U10 | IRTypeKind::U11 | IRTypeKind::U12 | IRTypeKind::U13 | IRTypeKind::U14 | IRTypeKind::U15
                 | IRTypeKind::U17 | IRTypeKind::U18 | IRTypeKind::U19 | IRTypeKind::U20 | IRTypeKind::U21 | IRTypeKind::U22 | IRTypeKind::U23
                 | IRTypeKind::U24 | IRTypeKind::U25 | IRTypeKind::U26 | IRTypeKind::U27 | IRTypeKind::U28 | IRTypeKind::U29 | IRTypeKind::U30
