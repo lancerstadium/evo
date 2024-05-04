@@ -24,12 +24,13 @@ use std::cell::RefCell;
 use std::fmt;
 
 use std::fs::File;
-use std::os::unix::io::AsRawFd;
 use std::io::Read;
 use std::ffi::CStr;
-use goblin::elf::Elf;
-use libc::{c_void, MAP_PRIVATE, MAP_FIXED, PROT_EXEC, PROT_READ, PROT_WRITE, MAP_FAILED, mmap, munmap};
-
+use std::ptr;
+use goblin::elf::{Elf, header::Header};
+use libc::{c_void, MAP_PRIVATE, MAP_ANONYMOUS, PROT_READ, PROT_WRITE, MAP_FAILED, mmap, munmap};
+// use std::path::PathBuf;
+// use std::os::unix::io::AsRawFd;
 
 #[cfg(not(feature = "no-log"))]
 use colored::*;
@@ -76,79 +77,152 @@ impl MemoryTool {
         format!("{}{}", size, unit)
     }
 
+    /// Elf class info
+    pub fn elf_class_info(e_class: u8) -> String {
+        match e_class {
+            1 => "ELF32",
+            2 => "ELF64",
+            _ => "Unknown",
+        }.to_string()
+    }
+
+    /// Elf data info
+    pub fn elf_data_info(e_data: u8) -> String {
+        match e_data {
+            1 => "2's complement, little endian",
+            2 => "2's complement, big endian",
+            _ => "Unknown",
+        }.to_string()
+    }
+
+    /// Elf Version info
+    pub fn elf_version_info(e_version: u8) -> String {
+        match e_version {
+            0 => "Invalid",
+            1 => "Current",
+            _ => "Unknown",
+        }.to_string()
+    }
+
+    /// Elf osabi info
+    pub fn elf_osabi_info(e_osabi: u8) -> String {
+        match e_osabi {
+            0 => "Unix System V",
+            3 => "Linux",
+            6 => "Sun Solaris",
+            8 => "IBM AIX",
+            _ => "Unknown",
+        }.to_string()
+    }
+
+    /// Elf machine info
+    pub fn elf_machine_info(e_machine: u16) -> String {
+        match e_machine {
+            243 => "riscv",
+            _ => "Unknown",
+        }.to_string()
+    }
+
+    /// Print elf header
+    fn elf_header_info(header: &Header) {
+        println!("ELF header:");
+        println!("  Magic:   {}", header.e_ident.to_vec().iter().map(|x| format!("{:02x}", x)).collect::<Vec<String>>().join(" "));
+        println!("  Class:                             {} ({})", header.e_ident[4], MemoryTool::elf_class_info(header.e_ident[4]));
+        println!("  Data:                              {} ({})", header.e_ident[5], MemoryTool::elf_data_info(header.e_ident[5]));
+        println!("  Version:                           {} ({})", header.e_ident[6], MemoryTool::elf_version_info(header.e_ident[6]));
+        println!("  OS/ABI:                            {} ({})", header.e_ident[7], MemoryTool::elf_osabi_info(header.e_ident[7]));
+        println!("  ABI Version:                       {}", header.e_ident[8]);
+        println!("  Type:                              {}", header.e_type);
+        println!("  Machine:                           {} ({})", header.e_machine, MemoryTool::elf_machine_info(header.e_machine));
+        println!("  Version:                           {}", header.e_version);
+        println!("  Entry point address:               0x{:x}", header.e_entry);
+        println!("  Start of program headers:          {} (bytes into file)", header.e_phoff);
+        println!("  Start of section headers:          {} (bytes into file)", header.e_shoff);
+        println!("  Flags:                             0x{:x}", header.e_flags);
+        println!("  Size of this header:               {} (bytes)", header.e_ehsize);
+        println!("  Size of program headers:           {} (bytes)", header.e_phentsize);
+        println!("  Number of program headers:         {}", header.e_phnum);
+        println!("  Size of section headers:           {} (bytes)", header.e_shentsize);
+        println!("  Number of section headers:         {}", header.e_shnum);
+        println!("  Section header string table index: {}", header.e_shstrndx);
+    }
+
+
     /// Elf loader
-    pub fn elf_loader(path: &str) -> Vec<(*mut u8, usize)> {
+    pub fn elf_loader(path: &str) -> Option<(*mut u8, usize, usize)> {
         // 1. Get ELF File
         let mut file = File::open(path).unwrap();
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).unwrap();
-
+    
         // 2. Parse ELF
         let elf = Elf::parse(&buffer).unwrap();
 
+        // print ELF header info: file name, file size, entry point, architecture, endiness, bits, platform
+        Self::elf_header_info(&elf.header);
+    
         // 3. Get entry point
-        // let entry_point = elf.header.e_entry as usize;
-        let mut load_segs: Vec<(*mut u8, usize)> = Vec::new();
-
-
-        // 4. Map .text segments
+        let entry_point = elf.header.e_entry as usize;
+    
+        // 4. Calculate total size of all segments
+        let total_size: usize = elf.program_headers.iter().filter(|phdr| phdr.p_type == goblin::elf::program_header::PT_LOAD).map(|phdr| phdr.p_filesz as usize).sum();
+    
+        // 5. Map the entire file to a continuous memory region
+        let file_ptr = unsafe {
+            mmap(
+                ptr::null_mut(),
+                total_size,
+                PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS,
+                -1,
+                0,
+            )
+        };
+    
+        // 6. Check mmap
+        if file_ptr == MAP_FAILED {
+            let err_msg = unsafe {
+                let err_code = *libc::__errno_location();
+                let c_err_msg = libc::strerror(err_code);
+                CStr::from_ptr(c_err_msg).to_string_lossy().into_owned()
+            };
+            log_error!("mmap failed: {}", err_msg);
+            return None;
+        }
+    
+        // 7. Copy file contents to mapped memory
+        let mut offset = 0;
         for phdr in elf.program_headers {
             if phdr.p_type == goblin::elf::program_header::PT_LOAD {
-                // 4.1 Get segment info
-                let segment_offset = phdr.p_offset as usize;
                 let segment_size = phdr.p_filesz as usize;
-                // let segment_vaddr = phdr.p_vaddr as *mut c_void;
-                // let segment_vaddr = std::ptr::null_mut();
-                let segment_flags = match phdr.p_flags {
-                    0x1 => PROT_EXEC,  // 可执行
-                    0x2 => PROT_WRITE, // 可写
-                    0x4 => PROT_READ,  // 可读
-                    _ => 0,
-                };
-    
-                // 4.2 Map segment to ptr
-                let ptr = unsafe {
-                    mmap(0 as *mut c_void, segment_size, segment_flags, MAP_PRIVATE | MAP_FIXED, file.as_raw_fd(), segment_offset as libc::off_t)
-                };
-    
-                // 4.3 Check mmap
-                if ptr == MAP_FAILED {
-                    let err_msg = unsafe {
-                        let err_code = *libc::__errno_location();
-                        let c_err_msg = libc::strerror(err_code);
-                        CStr::from_ptr(c_err_msg).to_string_lossy().into_owned()
-                    };
-                    log_error!("mmap failed: {}", err_msg);
-                    // panic!("mmap failed");
+                let segment_offset = phdr.p_offset as usize;
+                let segment_ptr = (file_ptr as usize + offset) as *mut u8;
+                // Modify entry point
+                unsafe {
+                    ptr::copy(buffer.as_ptr().add(segment_offset), segment_ptr, segment_size);
                 }
-
-                // 4.4 Push to Vec
-                load_segs.push((ptr as *mut u8, segment_size));
+                offset += segment_size;
             }
         }
-
-        load_segs
+    
+        Some((file_ptr as *mut u8, total_size, entry_point))
     }
+    
 
     /// Elf unloader
-    pub fn elf_unloader(load_segs: Vec<(*mut u8, usize)>) {
-        for (ptr, size) in load_segs {
-            unsafe { munmap(ptr as *mut c_void, size) };
-        }
+    pub fn elf_unloader(load_segs: (*mut u8, usize, usize)) {
+        let (ptr, size, _) = load_segs;
+        unsafe { munmap(ptr as *mut c_void, size) };
     }
 
-    /// Segs to IRValue
-    pub fn segs_to_val(segs: Vec<(*mut u8, usize)>) -> Vec<IRValue> {
-        let mut val = Vec::new();
-        for (ptr, size) in segs {
-            
-            let val_refcell: RefCell<Vec<u8>> = unsafe {
-                let slice = std::slice::from_raw_parts_mut(ptr, size);
-                RefCell::new(Vec::from(slice))
-            };
-            val.push(IRValue::array_u8(val_refcell));
-        }
-        val
+    /// Seg to IRValue
+    pub fn seg_to_val(seg: (*mut u8, usize, usize)) -> IRValue {
+        let (ptr, size, _) = seg;
+        let val_refcell: RefCell<Vec<u8>> = unsafe {
+            let slice = std::slice::from_raw_parts_mut(ptr, size);
+            RefCell::new(Vec::from(slice))
+        };
+        IRValue::array_u8(val_refcell)
     }
 }
 
@@ -160,9 +234,19 @@ mod memtool_test {
 
     #[test]
     fn elf_test() {
-        let segs = MemoryTool::elf_loader("/home/lancer/item/evo-rs/test/hello.elf");
-        println!("segs: {:?}", segs);
-        MemoryTool::elf_unloader(segs);
+        let seg = MemoryTool::elf_loader("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
+        println!("segs: {:?}", seg);
+        let val = MemoryTool::seg_to_val(seg);
+        println!("val: {}", val.hex(0, -1, false));
+
+        // Read Mem
+        for i in 0..20 {
+            let insn_val = val.get(seg.2 + i * 4, 32);
+            let insn = IRInsn::decode(insn_val.clone());
+            println!("Mem: {}  -> Dec: {}", insn_val.bin(0, -1, true), insn);
+        }
+
+        MemoryTool::elf_unloader(seg);
     }
 }
 

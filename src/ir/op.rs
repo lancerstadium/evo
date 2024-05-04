@@ -591,7 +591,7 @@ impl IRInsn {
     /// Get Undef Insn
     pub fn undef() -> IRInsn {
         IRInsn {
-            opc: IROpcode::new("insn", Vec::new(), "Undef"),
+            opc: IROpcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
             byt: IRValue::u32(0),
