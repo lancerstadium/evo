@@ -135,7 +135,7 @@ impl MemoryTool {
         println!("  Type:                              {}", header.e_type);
         println!("  Machine:                           {} ({})", header.e_machine, MemoryTool::elf_machine_info(header.e_machine));
         println!("  Version:                           {}", header.e_version);
-        println!("  Entry point address:               0x{:x}", header.e_entry);
+        println!("  Entry point address:               0x{:x} ({})", header.e_entry, header.e_entry);
         println!("  Start of program headers:          {} (bytes into file)", header.e_phoff);
         println!("  Start of section headers:          {} (bytes into file)", header.e_shoff);
         println!("  Flags:                             0x{:x}", header.e_flags);
@@ -149,7 +149,7 @@ impl MemoryTool {
 
 
     /// Elf loader
-    pub fn elf_loader(path: &str) -> Option<(*mut u8, usize, usize)> {
+    pub fn elf_load(path: &str) -> Option<(*mut u8, usize, usize)> {
         // 1. Get ELF File
         let mut file = File::open(path).unwrap();
         let mut buffer = Vec::new();
@@ -197,7 +197,8 @@ impl MemoryTool {
                 let segment_size = phdr.p_filesz as usize;
                 let segment_offset = phdr.p_offset as usize;
                 let segment_ptr = (file_ptr as usize + offset) as *mut u8;
-                // Modify entry point
+                println!("Segment: {} - {} = {} bytes, vaddr: 0x{:x}", segment_offset, segment_offset + segment_size, segment_size, phdr.p_vaddr);
+                // Find .text segment and modify entry point index to it
                 unsafe {
                     ptr::copy(buffer.as_ptr().add(segment_offset), segment_ptr, segment_size);
                 }
@@ -210,7 +211,7 @@ impl MemoryTool {
     
 
     /// Elf unloader
-    pub fn elf_unloader(load_segs: (*mut u8, usize, usize)) {
+    pub fn elf_unload(load_segs: (*mut u8, usize, usize)) {
         let (ptr, size, _) = load_segs;
         unsafe { munmap(ptr as *mut c_void, size) };
     }
@@ -234,19 +235,19 @@ mod memtool_test {
 
     #[test]
     fn elf_test() {
-        let seg = MemoryTool::elf_loader("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
+        let seg = MemoryTool::elf_load("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
-        println!("val: {}", val.hex(0, -1, false));
+        // println!("val: {}", val.hex(0, -1, false));
 
         // Read Mem
         for i in 0..20 {
-            let insn_val = val.get(seg.2 + i * 4, 32);
+            let insn_val = val.get( seg.2 + i * 4, 32);
             let insn = IRInsn::decode(insn_val.clone());
             println!("Mem: {}  -> Dec: {}", insn_val.bin(0, -1, true), insn);
         }
 
-        MemoryTool::elf_unloader(seg);
+        MemoryTool::elf_unload(seg);
     }
 }
 
