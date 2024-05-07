@@ -40,7 +40,7 @@ use crate::ir::val::IRValue;
 // use crate::log_error;
 use crate::ir::ctx::IRContext;
 use crate::arch::info::ArchInfo;
-use crate::ir::op::IRInsn;
+use crate::ir::insn::IRInsn;
 use crate::log_error;
 use crate::log_warning;
 use crate::util::log::Span;
@@ -235,7 +235,7 @@ mod memtool_test {
 
     #[test]
     fn elf_test() {
-        let seg = MemoryTool::elf_load("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
+        let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
         // println!("val: {}", val.hex(0, -1, false));

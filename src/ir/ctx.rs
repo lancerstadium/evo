@@ -12,7 +12,7 @@ use crate::log_warning;
 use crate::util::log::Span;
 use crate::arch::info::ArchInfo;
 use crate::ir::val::IRValue;
-use crate::ir::op::IRInsn;
+use crate::ir::insn::IRInsn;
 use crate::ir::mem::IRProcess;
 use crate::ir::itp::IRInterpreter;
 use crate::ir::mem::IRThreadStatus;

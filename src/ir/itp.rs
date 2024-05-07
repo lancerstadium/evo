@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::ir::ctx::IRContext;
-use crate::ir::op::IRInsn;
+use crate::ir::insn::IRInsn;
 
 
 
