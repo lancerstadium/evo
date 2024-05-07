@@ -2,41 +2,7 @@
 // ============================================================================== //
 //                                 Use Mods
 // ============================================================================== //
-use std::fmt::{self};
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::collections::HashMap;
-
-
-// ============================================================================== //
-//                               info::ArchModeKind
-// ============================================================================== //
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum ArchModeKind {
-
-    /// Little-endian 16-bit
-    L16 = 0b000,
-    /// Little-endian 32-bit
-    L32 = 0b001,
-    /// Little-endian 64-bit
-    L64 = 0b010,
-    /// Little-endian 128-bit
-    L128 = 0b011,
-
-    /// Big-endian 16-bit
-    B16 = 0b100,
-    /// Big-endian 32-bit
-    B32 = 0b101,
-    /// Big-endian 64-bit
-    B64 = 0b110,
-    /// Big-endian 128-bit
-    B128 = 0b111,
-
-
-}
-
-
+use std::{default, fmt};
 
 // ============================================================================== //
 //                                info::ArchMode
@@ -58,19 +24,27 @@ pub struct ArchMode {
     /// └──────────────── Reserved
     /// ```
     pub flag: u8,
+
 }
 
 impl ArchMode {
 
-    pub fn new(flag: u8) -> Self {
+    pub const BIT128: u8 = 0b11;
+    pub const BIT64: u8 = 0b10;
+    pub const BIT32: u8 = 0b01;
+    pub const BIT16: u8 = 0b00;
+    pub const LITTLE_ENDIAN: u8 = 0b000;
+    pub const BIG_ENDIAN: u8 = 0b100;
+    
+    pub const fn new(flag: u8) -> Self {
         Self { flag }
     }
 
-    pub fn width_flag(&self) -> u8 {
+    pub const fn width_flag(&self) -> u8 {
         self.flag & 0b0000_0011
     }
 
-    pub fn width(&self) -> usize {
+    pub const fn width(&self) -> usize {
         match self.width_flag() {
             0b00 => 16,
             0b01 => 32,
@@ -80,32 +54,32 @@ impl ArchMode {
         }
     }
 
-    pub fn is_16bit(&self) -> bool {
+    pub const fn is_16bit(&self) -> bool {
         (self.flag & 0b0000_0011) == 0b00
     }
 
-    pub fn is_32bit(&self) -> bool {
+    pub const fn is_32bit(&self) -> bool {
         (self.flag & 0b0000_0011) == 0b01
     }
 
-    pub fn is_64bit(&self) -> bool {
+    pub const fn is_64bit(&self) -> bool {
         (self.flag & 0b0000_0011) == 0b10
     }
 
-    pub fn is_128bit(&self) -> bool {
+    pub const fn is_128bit(&self) -> bool {
         (self.flag & 0b0000_0011) == 0b11
     }
 
-    pub fn is_little_endian(&self) -> bool {
+    pub const fn is_little_endian(&self) -> bool {
         (self.flag & 0b0000_0100) == 0
     }
 
-    pub fn is_big_endian(&self) -> bool {
+    pub const fn is_big_endian(&self) -> bool {
         (self.flag & 0b0000_0100) != 0
     }
 
     /// width to string
-    pub fn width_to_string(&self) -> &str {
+    pub const fn width_to_string(&self) -> &str {
         match self.width_flag() {
             0b00 => "16",
             0b01 => "32",
@@ -133,18 +107,18 @@ impl ArchMode {
 //                                info::ArchKind
 // ============================================================================== //
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum ArchKind {
     /// evo: ir arch
-    EVO(ArchMode),
+    EVO,
     /// risc-v
-    RISCV(ArchMode),
+    RISCV,
     /// arm
-    ARM(ArchMode),
+    ARM,
     /// x86
-    X86(ArchMode),
+    X86,
     /// mips
-    MIPS(ArchMode),
+    MIPS,
     /// Undefined Arch Kind
     UNDEF,
 }
@@ -152,129 +126,29 @@ pub enum ArchKind {
 
 impl ArchKind {
 
-
-    pub fn mode(&self) -> ArchMode {
+    pub const fn to_string(&self) -> &'static str {
         match self {
-            ArchKind::EVO(mode) => *mode,
-            ArchKind::RISCV(mode) => *mode,
-            ArchKind::ARM(mode) => *mode,
-            ArchKind::X86(mode) => *mode,
-            ArchKind::MIPS(mode) => *mode,
-            _ => ArchMode::new(0b000),
-        }
-    }
-
-    pub fn is_64bit(&self) -> bool {
-        match self {
-            ArchKind::EVO(mode) => mode.is_64bit(),
-            ArchKind::RISCV(mode) => mode.is_64bit(),
-            ArchKind::ARM(mode) => mode.is_64bit(),
-            ArchKind::X86(mode) => mode.is_64bit(),
-            ArchKind::MIPS(mode) => mode.is_64bit(),
-            _ => false,
-        }
-    }
-
-    pub fn is_32bit(&self) -> bool {
-        match self {
-            ArchKind::EVO(mode) => mode.is_32bit(),
-            ArchKind::RISCV(mode) => mode.is_32bit(),
-            ArchKind::ARM(mode) => mode.is_32bit(),
-            ArchKind::X86(mode) => mode.is_32bit(),
-            ArchKind::MIPS(mode) => mode.is_32bit(),
-            _ => false,
-        }
-    }
-
-    pub fn is_little_endian(&self) -> bool {
-        match self {
-            ArchKind::EVO(mode) => mode.is_little_endian(),
-            ArchKind::RISCV(mode) => mode.is_little_endian(),
-            ArchKind::ARM(mode) => mode.is_little_endian(),
-            ArchKind::X86(mode) => mode.is_little_endian(),
-            ArchKind::MIPS(mode) => mode.is_little_endian(),
-            _ => false,
-        }
-    }
-
-    pub fn is_big_endian(&self) -> bool {
-        match self {
-            ArchKind::EVO(mode) => mode.is_big_endian(),
-            ArchKind::RISCV(mode) => mode.is_big_endian(),
-            ArchKind::ARM(mode) => mode.is_big_endian(),
-            ArchKind::X86(mode) => mode.is_big_endian(),
-            ArchKind::MIPS(mode) => mode.is_big_endian(),
-            _ => false,
-        }
-    }
-
-    pub fn addr_scale(&self) -> usize {
-        match self {
-            ArchKind::EVO(mode) => mode.width(),
-            ArchKind::RISCV(mode) => mode.width(),
-            ArchKind::ARM(mode) => mode.width(),
-            ArchKind::X86(mode) => mode.width(),
-            ArchKind::MIPS(mode) => mode.width(),
-            _ => 0,
-        }
-    }
-
-    pub fn int_scale(&self) -> usize {
-        match self {
-            ArchKind::EVO(mode) => mode.width(),
-            ArchKind::RISCV(mode) => mode.width(),
-            ArchKind::ARM(mode) => mode.width(),
-            ArchKind::X86(mode) => mode.width(),
-            ArchKind::MIPS(mode) => mode.width(),
-            _ => 0,
-        }
-    }
-
-    pub fn float_scale(&self) -> usize {
-        match self {
-            ArchKind::EVO(mode) => mode.width(),
-            ArchKind::RISCV(mode) => mode.width(),
-            ArchKind::ARM(mode) => mode.width(),
-            ArchKind::X86(mode) => mode.width(),
-            ArchKind::MIPS(mode) => mode.width(),
-            _ => 0,
-        }
-    }
-
-    pub fn double_scale(&self) -> usize {
-        match self {
-            ArchKind::EVO(mode) => mode.width() * 2,
-            ArchKind::RISCV(mode) => mode.width() * 2,
-            ArchKind::ARM(mode) => mode.width() * 2,
-            ArchKind::X86(mode) => mode.width() * 2,
-            ArchKind::MIPS(mode) => mode.width() * 2,
-            _ => 0,
-        }
-    }
-
-    pub fn to_string (&self) -> String {
-        match self {
-            ArchKind::EVO(mode) => format!("evo{}", mode.width_to_string()),
-            ArchKind::RISCV(mode) => format!("riscv{}", mode.width_to_string()),
-            ArchKind::ARM(mode) => format!("arm{}", mode.width_to_string()),
-            ArchKind::X86(mode) => format!("x86_{}", mode.width_to_string()),
-            ArchKind::MIPS(mode) => format!("mips{}", mode.width_to_string()),
-            _ => "UNDEF".to_string(),
+            ArchKind::EVO => "evo",
+            ArchKind::RISCV => "riscv",
+            ArchKind::ARM => "arm",
+            ArchKind::X86 => "x86",
+            ArchKind::MIPS => "mips",
+            _ => "UNDEF",
         }
     }
 
     pub fn from_string(s: &str) -> ArchKind {
         let s = s.trim();
         if s.starts_with("evo") {
-            ArchKind::EVO(ArchMode::width_from_string(&s[3..]))
+            ArchKind::EVO
         } else if s.starts_with("riscv") {
-            ArchKind::RISCV(ArchMode::width_from_string(&s[5..]))
+            ArchKind::RISCV
         } else if s.starts_with("arm") {
-            ArchKind::ARM(ArchMode::width_from_string(&s[3..]))
+            ArchKind::ARM
         } else if s.starts_with("x86") {
-            ArchKind::X86(ArchMode::width_from_string(&s[3..]))
+            ArchKind::X86
         } else if s.starts_with("mips") {
-            ArchKind::MIPS(ArchMode::width_from_string(&s[4..]))
+            ArchKind::MIPS
         } else {
             ArchKind::UNDEF
         }
@@ -297,98 +171,53 @@ impl fmt::Display for ArchKind {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Arch {
+    pub name: &'static str,
     pub kind: ArchKind,
+    pub mode: ArchMode,
     pub reg_num: usize,
 }
 
 
 impl Arch {
 
-    thread_local! {
-        /// Arch Pool
-        pub static ARCH_POOL: Rc<RefCell<HashMap<String, Arch>>> = Rc::new(RefCell::new(HashMap::new()));
-    }
-
-    pub fn def(kind: ArchKind, reg_num: usize) -> Self {
+    pub const fn def(kind: ArchKind, mode_flag: u8, reg_num: usize) -> Self {
+        let mode = ArchMode::new(mode_flag);
         let name = ArchKind::to_string(&kind);
-        let arch = Self {
+        Self {
+            name,
             kind,
+            mode,
             reg_num,
-        };
-        Self::pool_nset(name.clone(), arch.clone());
-        Self::pool_nget(name)
+        }
     }
 
-    /// Def arch by string
-    pub fn defs(s: &str, reg_num: usize) -> Self {
-        Self::def(ArchKind::from_string(s), reg_num)
+    pub const fn addr_scale(&self) -> usize {
+        self.mode.width()
     }
 
-    // ==================== arch.pool ====================== //
-
-    /// Get Arch from pool by name
-    pub fn pool_nget(name: String) -> Arch {
-        Self::ARCH_POOL.with(|pool| {
-            let pool = pool.borrow();
-            pool.get(&name).map(|arch| arch.clone()).unwrap()
-        })
+    pub const fn int_scale(&self) -> usize {
+        self.mode.width()
     }
 
-    /// Set Arch to pool by name
-    pub fn pool_nset(name: String, arch: Arch) {
-        Self::ARCH_POOL.with(|pool| {
-            pool.borrow_mut().insert(name, arch);
-        })
+    pub const fn float_scale(&self) -> usize {
+        self.mode.width()
     }
 
-    /// Delete Arch from pool by name
-    pub fn pool_ndel(name: String) {
-        Self::ARCH_POOL.with(|pool| {
-            pool.borrow_mut().remove(&name);
-        })
+    pub const fn double_scale(&self) -> usize {
+        self.mode.width() * 2
     }
-
-    /// Clear Arch pool
-    pub fn pool_clr() {
-        Self::ARCH_POOL.with(|pool| {
-            pool.borrow_mut().clear();
-        })
-    }
-
-    /// Info of Arch pool
-    pub fn pool_info() -> String {
-        Self::ARCH_POOL.with(|pool| {
-            let pool = pool.borrow();
-            let mut info = String::new();
-            info.push_str(format!("Arch Pool(Nums={}):\n", Self::pool_size()).as_str());
-            for (_, arch) in pool.iter() {
-                info += &format!("- {} ({}, {}, reg_num = {})\n", 
-                    arch,
-                    if arch.kind.is_64bit() { "64-bit" } else { "32-bit" },
-                    if arch.kind.is_little_endian() { "Little-Endian" } else { "Big-Endian" },
-                    arch.reg_num
-                );
-            }
-            info
-        })
-    }
-
-    pub fn pool_size() -> usize {
-        Self::ARCH_POOL.with(|pool| {
-            pool.borrow().len()
-        })
-    }
-
 
     pub fn to_string (&self) -> String {
-        format!("{}", self.kind.to_string())
+        match self.kind {
+            ArchKind::EVO => format!("evo{}", self.mode.width_to_string()),
+            ArchKind::RISCV => format!("riscv{}", self.mode.width_to_string()),
+            ArchKind::ARM => format!("arm{}", self.mode.width_to_string()),
+            ArchKind::X86 => format!("x86_{}", self.mode.width_to_string()),
+            ArchKind::MIPS => format!("mips{}", self.mode.width_to_string()),
+            _ => "UNDEF".to_string(),
+        }
     }
 
-    pub fn from_string(s: &str) -> Self {
-        let s = s.trim();
-        let kind = ArchKind::from_string(s);
-        Arch::def(kind, 32)
-    }
 }
 
 
@@ -398,37 +227,12 @@ impl fmt::Display for Arch {
     }
 }
 
-
-// ============================================================================== //
-//                                info::ArchInfo
-// ============================================================================== //
-
-
-/// `ArchInfo`: Config information of the architecture
-pub trait ArchInfo {
-
-    // ====================== Const ====================== //
-
-    /// Arch name: like "evoir"
-    const NAME: &'static str;
-    /// Number of bytes in a byte: *1*, 2, 4
-    const BYTE_SIZE: usize;
-    /// Number of bytes in a addr(ptr/reg.size: 0x00 ~ 2^ADDR_SIZE): 8, 16, *32*, 64
-    const ADDR_SIZE: usize;
-    /// Number of bytes in a word(interger): 8, 16, **32**, 64
-    const WORD_SIZE: usize;
-    /// Number of bytes in a (float): **32**, 64
-    const FLOAT_SIZE: usize;
-    /// Base of Addr: 0x04000000
-    const BASE_ADDR: usize;
-    /// Mem size: default 4MB = 4 * 1024 * 1024
-    const MEM_SIZE: usize;
-    /// Stack Mem size: default 1MB = 1 * 1024 * 1024
-    const STACK_SIZE: usize;
-    /// Number of Registers: 8, 16, **32**, 64
-    const REG_NUM: usize;
-
+impl default::Default for Arch {
+    fn default() -> Self {
+        Arch::def(ArchKind::EVO, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32)
+    }
 }
+
 
 
 
@@ -447,31 +251,19 @@ mod arch_info_test {
     #[test]
     fn arch_kind() {
 
-        let mode = ArchMode::new(ArchModeKind::L64 as u8);
+        let mode = ArchMode::new(0b010);
         assert_eq!(mode.is_64bit(), true);
         assert_eq!(mode.is_32bit(), false);
         assert_eq!(mode.is_128bit(), false);
         assert_eq!(mode.is_little_endian(), true);
         assert_eq!(mode.is_big_endian(), false);
-        let kind = ArchKind::EVO(mode);
-        assert_eq!(kind.to_string(), "evo64");
-
-        let kind2 = ArchKind::RISCV(ArchMode::new(0b001));
-        assert_eq!(kind2.to_string(), "riscv32");
-
-        let kind3 = ArchKind::X86(ArchMode::new(0b010));
-        assert_eq!(kind3.to_string(), "x86_64");
-
-        let kind4 = ArchKind::from_string("evo64");
-        assert_eq!(kind4, ArchKind::EVO(ArchMode::new(ArchModeKind::L64 as u8)));
     }
 
 
     #[test]
     fn arch_from() {
 
-        let arch = Arch::defs("evo64", 32);
+        let arch = Arch::def(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
         println!("{}", arch);
-        println!("{}", Arch::pool_info());
     }
 }

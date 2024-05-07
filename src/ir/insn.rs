@@ -8,119 +8,123 @@ use std::fmt::{self};
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::arch::info::Arch;
 use crate::log_error;
 use crate::util::log::Span;
-use crate::ir::op::{IROpcode, IROpcodeKind, IROperand};
-use crate::ir::val::IRValue;
+use crate::ir::op::{Opcode, OpcodeKind, Operand};
+use crate::ir::val::Value;
 
 
 // ============================================================================== //
 //                                insn::Instruction
 // ============================================================================== //
 
-/// `IRInsn`: IR instruction
+/// `Instruction`: IR instruction
 #[derive(Debug, Clone, PartialEq)]
-pub struct IRInsn {
-    pub opc : IROpcode,
-    pub opr : Vec<IROperand>,
+pub struct Instruction {
+    pub opc : Opcode,
+    pub opr : Vec<Operand>,
     pub opb : &'static str,
-    pub byt : IRValue,
+    pub byt : Value,
+    pub arch : Arch,
     pub is_applied : bool,
 }
 
-impl IRInsn {
+impl Instruction {
 
     // Init Opcode POOL
     thread_local! {
-        /// Register Map (Shared Global)
-        pub static IR_REG_POOL : Rc<RefCell<Vec<Rc<RefCell<IROperand>>>>> = Rc::new(RefCell::new(Vec::new()));
-        /// Insn Map (Shared Global)
-        pub static IR_INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<IRInsn>>>>> = Rc::new(RefCell::new(Vec::new()));
+        /// Register pool (Shared Global)
+        pub static REG_POOL : Rc<RefCell<Vec<Rc<RefCell<Operand>>>>> = Rc::new(RefCell::new(Vec::new()));
+        /// IR Insn pool (Shared Global)
+        pub static INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<Instruction>>>>> = Rc::new(RefCell::new(Vec::new()));
     }
 
     /// Get Undef Insn
-    pub fn undef() -> IRInsn {
-        IRInsn {
-            opc: IROpcode::new(".insn", Vec::new(), "Undef"),
+    pub fn undef() -> Instruction {
+        Instruction {
+            opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
-            byt: IRValue::u32(0),
+            byt: Value::u32(0),
+            arch: Arch::default(),
             is_applied: false,
         }
     }
 
-    /// Define IRInsn Temp and add to pool
-    pub fn def(name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> IRInsn {
-        let opc = IROpcode::new(name, syms, ty);
-        let insn = IRInsn {
+    /// Define Instruction Temp and add to pool
+    pub fn def(arch: &Arch, name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> Instruction {
+        let opc = Opcode::new(name, syms, ty);
+        let insn = Instruction {
             opc: opc.clone(),
             opr: Vec::new(),
             opb,
-            byt: IRValue::from_string(opb),
+            byt: Value::from_string(opb),
+            arch: arch.clone(),
             is_applied: false,
         };
         // add to pool
-        IRInsn::insn_pool_push(insn);
+        Instruction::insn_pool_push(insn);
         // return
-        IRInsn::insn_pool_nget(name).borrow().clone()
+        Instruction::insn_pool_nget(name).borrow().clone()
     }
 
     /// Define Register Temp and add to pool
-    pub fn reg(name: &'static str, val: IRValue) -> IROperand {
-        let reg = IROperand::reg(name, val);
+    pub fn reg(name: &'static str, val: Value) -> Operand {
+        let reg = Operand::reg(name, val);
         Self::reg_pool_push(reg.clone());
         Self::reg_pool_nget(name).borrow().clone()
     }
 
-    /// apply temp to IRInsn
-    pub fn apply(name: &'static str, opr: Vec<IROperand>) -> IRInsn {
-        let mut insn = IRInsn::insn_pool_nget(name).borrow().clone();
+    /// apply temp to Instruction
+    pub fn apply(name: &'static str, opr: Vec<Operand>) -> Instruction {
+        let mut insn = Instruction::insn_pool_nget(name).borrow().clone();
         insn.encode(opr)
     }
 
-    // ================= IRInsn.insn_pool ================== //
+    // ================= Instruction.insn_pool ================== //
 
     /// delete Insn from pool
     pub fn insn_pool_del(name: &'static str) {
         // Get index
         let idx = Self::insn_pool_idx(name);
         // Delete
-        Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().remove(idx));
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().remove(idx));
     }
 
     /// Get Insn index from pool
     pub fn insn_pool_idx(name: &'static str) -> usize {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
+        Self::INSN_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
     }
 
     /// get Insn from pool
-    pub fn insn_pool_nget(name: &'static str) -> Rc<RefCell<IRInsn>> {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
+    pub fn insn_pool_nget(name: &'static str) -> Rc<RefCell<Instruction>> {
+        Self::INSN_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
     }
 
     /// Set Insn from pool
-    pub fn insn_pool_nset(name: &'static str, insn: IRInsn) {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(insn));
+    pub fn insn_pool_nset(name: &'static str, insn: Instruction) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(insn));
     }
 
     /// Insert Insn from pool
-    pub fn insn_pool_push(insn: IRInsn) {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(insn))));
+    pub fn insn_pool_push(insn: Instruction) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(insn))));
     }
 
     /// Get Insn from pool
-    pub fn insn_pool_get(index: usize) -> Rc<RefCell<IRInsn>> {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow()[index].clone())
+    pub fn insn_pool_get(index: usize) -> Rc<RefCell<Instruction>> {
+        Self::INSN_POOL.with(|pool| pool.borrow()[index].clone())
     }
 
     /// Set Insn from pool
-    pub fn insn_pool_set(index: usize, insn: IRInsn) {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow_mut()[index].replace(insn));
+    pub fn insn_pool_set(index: usize, insn: Instruction) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut()[index].replace(insn));
     }
 
     /// Clear Temp Insn Pool
     pub fn insn_pool_clr() {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow_mut().clear());
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().clear());
     }
 
     /// Get info of Insn Pool
@@ -137,59 +141,59 @@ impl IRInsn {
 
     /// Get size of Insn Pool
     pub fn insn_pool_size() -> usize {
-        Self::IR_INSN_POOL.with(|pool| pool.borrow().len())
+        Self::INSN_POOL.with(|pool| pool.borrow().len())
     }
 
-    // ================== IRInsn.reg_pool ================== //
+    // ================== Instruction.reg_pool ================== //
 
     /// Pool set reg by index
-    pub fn reg_pool_set(idx: usize, reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
+    pub fn reg_pool_set(idx: usize, reg: Operand) {
+        Self::REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
     }
 
     /// Pool push reg
-    pub fn reg_pool_push(reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
+    pub fn reg_pool_push(reg: Operand) {
+        Self::REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
     }
 
     /// Pool get reg refenence by index
-    pub fn reg_pool_get(idx: usize) -> Rc<RefCell<IROperand>> {
-        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].clone())
+    pub fn reg_pool_get(idx: usize) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool| pool.borrow()[idx].clone())
     }
 
     /// Pool set reg `index` value by index
-    pub fn reg_pool_set_val(idx: usize, val: IRValue) { 
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
+    pub fn reg_pool_set_val(idx: usize, val: Value) { 
+        Self::REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
     }
 
     /// Pool get reg `index` value by index
-    pub fn reg_pool_get_val(idx: usize) -> IRValue {
-        Self::IR_REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
+    pub fn reg_pool_get_val(idx: usize) -> Value {
+        Self::REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
     }
 
     /// Pool set reg by name
-    pub fn reg_pool_nset(name: &'static str , reg: IROperand) {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
+    pub fn reg_pool_nset(name: &'static str , reg: Operand) {
+        Self::REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
     }
 
     /// Pool get reg refenence by name
-    pub fn reg_pool_nget(name: &'static str) -> Rc<RefCell<IROperand>> {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
+    pub fn reg_pool_nget(name: &'static str) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
     }
 
     /// Pool get reg pool idx by name
     pub fn reg_pool_idx(name: &'static str) -> usize {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
+        Self::REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
     }
 
     /// Pool clear
     pub fn reg_pool_clr() {
-        Self::IR_REG_POOL.with(|pool| pool.borrow_mut().clear());
+        Self::REG_POOL.with(|pool| pool.borrow_mut().clear());
     }
 
     /// Pool size
     pub fn reg_pool_size() -> usize {
-        Self::IR_REG_POOL.with(|pool| pool.borrow().len())
+        Self::REG_POOL.with(|pool| pool.borrow().len())
     }
 
     /// Pool info
@@ -205,29 +209,29 @@ impl IRInsn {
 
 
 
-    // ==================== IRInsn.get ===================== //
+    // ==================== Instruction.get ===================== //
     
-    /// Get byte size of IRInsn
+    /// Get byte size of Instruction
     pub fn size(&self) -> usize {
         self.byt.size()
     }
 
-    /// Name of IRInsn
+    /// Name of Instruction
     pub fn name(&self) -> &'static str {
         self.opc.name()
     }
 
-    /// Syms of IRInsn
+    /// Syms of Instruction
     pub fn syms(&self) -> Vec<i32> {
         self.opc.syms()
     }
 
-    /// Show binary byte string of IRInsn
+    /// Show binary byte string of Instruction
     pub fn bin(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
         self.byt.bin(index, byte_num, big_endian)
     }
 
-    /// Show type of IRInsn
+    /// Show type of Instruction
     pub fn ty(&self) -> &'static str {
         self.opc.ty()
     }
@@ -257,23 +261,23 @@ impl IRInsn {
         info
     }
 
-    // ==================== IRInsn.sym ===================== //
+    // ==================== Instruction.sym ===================== //
 
-    /// Check IROperand Syms
-    pub fn check_syms(&self, opr: Vec<IROperand>) -> bool {
+    /// Check Operand Syms
+    pub fn check_syms(&self, opr: Vec<Operand>) -> bool {
         self.opc.check_syms(opr.iter().map(|x| x.sym()).collect())
     }
 
-    /// Reset IROperand Syms
-    pub fn set_syms(&mut self, opr: Vec<IROperand>) {
+    /// Reset Operand Syms
+    pub fn set_syms(&mut self, opr: Vec<Operand>) {
         self.opc.set_syms(opr.iter().map(|x| x.sym()).collect());
     }
 
 
-    // ==================== IRInsn.code ==================== //
+    // ==================== Instruction.code ==================== //
 
-    /// Get Byte Code of IRInsn
-    pub fn code(&self) -> IRValue {
+    /// Get Byte Code of Instruction
+    pub fn code(&self) -> Value {
         if !self.is_applied {
             log_error!("Code not applied: {} ", self.opc.name());
         }
@@ -402,7 +406,7 @@ impl IRInsn {
         }
     }
 
-    /// Apply IROperand to IROpcode, get new IRInsn
+    /// Apply Operand to Opcode, get new Instruction
     /// 
     /// ## Byte Code
     /// - Refence: RISC-V ISA Spec.
@@ -424,7 +428,7 @@ impl IRInsn {
     ///    │3│   imm0   │1│   imm2   │  rd  │ op │  J
     ///    └─┴──────────┴─┴──────────┴──────┴────┘
     /// ```
-    pub fn encode(&mut self, opr: Vec<IROperand>) -> IRInsn {
+    pub fn encode(&mut self, opr: Vec<Operand>) -> Instruction {
         if opr.len() == 0 {
             let mut res = self.clone();
             res.is_applied = true;
@@ -435,7 +439,7 @@ impl IRInsn {
         if self.check_syms(opr.clone()) {
             // match opcode type kind and fill bytes by opreands
             match self.opc.kind() {
-                IROpcodeKind::R(_, _) => {
+                OpcodeKind::R(_, _) => {
                     // rd: u5 -> 7->11
                     let rd = opr[0].val().get_byte(0);
                     self.set_rd(rd);
@@ -446,7 +450,7 @@ impl IRInsn {
                     let rs2 = opr[2].val().get_byte(0);
                     self.set_rs2(rs2);
                 },
-                IROpcodeKind::I(_, _) => {
+                OpcodeKind::I(_, _) => {
                     // rd: u5 -> 7->11
                     let rd = opr[0].val().get_byte(0);
                     self.set_rd(rd);
@@ -458,9 +462,9 @@ impl IRInsn {
                     self.set_imm_i(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
+                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
                 },
-                IROpcodeKind::S(_, _) => {
+                OpcodeKind::S(_, _) => {
                     // rs2: u5 -> 20->24
                     let rs2 = opr[0].val().get_byte(0);
                     self.set_rs2(rs2);
@@ -472,9 +476,9 @@ impl IRInsn {
                     self.set_imm_s(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
+                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
                 },
-                IROpcodeKind::B(_, _) => {
+                OpcodeKind::B(_, _) => {
                     // rs2: u5 -> 20->24
                     let rs2 = opr[0].val().get_byte(0);
                     self.set_rs2(rs2);
@@ -486,9 +490,9 @@ impl IRInsn {
                     self.set_imm_b(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
+                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
                 },
-                IROpcodeKind::U(_, _) => {
+                OpcodeKind::U(_, _) => {
                     // rd: u5 -> 7->11
                     let rd = opr[0].val().get_byte(0);
                     self.set_rd(rd);
@@ -497,9 +501,9 @@ impl IRInsn {
                     self.set_imm_u(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::bit(12, imm as i128)));
+                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
                 },
-                IROpcodeKind::J(_, _) => {
+                OpcodeKind::J(_, _) => {
                     // rd: u5 -> 7->11
                     let rd = opr[0].val().get_byte(0);
                     self.set_rd(rd);
@@ -508,7 +512,7 @@ impl IRInsn {
                     self.set_imm_j(imm);
                     // refresh imm
                     opr.pop();
-                    opr.push(IROperand::imm(IRValue::bit(20, imm as i128)));
+                    opr.push(Operand::imm(Value::bit(20, imm as i128)));
                 },
                 _ => {
                     // Do nothing
@@ -523,14 +527,14 @@ impl IRInsn {
             // Error
             log_error!("Apply operands failed: {} , check syms", self.opc.name());
             // Revert
-            IRInsn::undef()
+            Instruction::undef()
         }
     }
 
 
-    /// decode from IRValue
-    pub fn decode(value: IRValue) -> IRInsn {
-        let mut res = IRInsn::undef();
+    /// decode from Value
+    pub fn decode(value: Value) -> Instruction {
+        let mut res = Instruction::undef();
         // 1. check scale
         if value.scale_sum() != 32 {
             log_error!("Invalid insn scale: {}", value.scale_sum());
@@ -544,23 +548,23 @@ impl IRInsn {
             (0b0110011, f3, f7) => {
                 // Get oprands
                 // a. rd
-                opr.push(IRInsn::reg_pool_get(res.rd() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
                 // b. rs1
-                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
                 // c. rs2
-                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
                 // find insn
                 match (f3, f7) {
-                    (0b000, 0b0000000) => res = IRInsn::insn_pool_nget("add").borrow().clone(),
-                    (0b000, 0b0100000) => res = IRInsn::insn_pool_nget("sub").borrow().clone(),
-                    (0b100, 0b0000000) => res = IRInsn::insn_pool_nget("xor").borrow().clone(),
-                    (0b110, 0b0000000) => res = IRInsn::insn_pool_nget("or").borrow().clone(),
-                    (0b111, 0b0000000) => res = IRInsn::insn_pool_nget("and").borrow().clone(),
-                    (0b001, 0b0000000) => res = IRInsn::insn_pool_nget("sll").borrow().clone(),
-                    (0b101, 0b0000000) => res = IRInsn::insn_pool_nget("srl").borrow().clone(),
-                    (0b101, 0b0100000) => res = IRInsn::insn_pool_nget("sra").borrow().clone(),
-                    (0b010, 0b0000000) => res = IRInsn::insn_pool_nget("slt").borrow().clone(),
-                    (0b011, 0b0000000) => res = IRInsn::insn_pool_nget("sltu").borrow().clone(),
+                    (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
+                    (0b000, 0b0100000) => res = Instruction::insn_pool_nget("sub").borrow().clone(),
+                    (0b100, 0b0000000) => res = Instruction::insn_pool_nget("xor").borrow().clone(),
+                    (0b110, 0b0000000) => res = Instruction::insn_pool_nget("or").borrow().clone(),
+                    (0b111, 0b0000000) => res = Instruction::insn_pool_nget("and").borrow().clone(),
+                    (0b001, 0b0000000) => res = Instruction::insn_pool_nget("sll").borrow().clone(),
+                    (0b101, 0b0000000) => res = Instruction::insn_pool_nget("srl").borrow().clone(),
+                    (0b101, 0b0100000) => res = Instruction::insn_pool_nget("sra").borrow().clone(),
+                    (0b010, 0b0000000) => res = Instruction::insn_pool_nget("slt").borrow().clone(),
+                    (0b011, 0b0000000) => res = Instruction::insn_pool_nget("sltu").borrow().clone(),
                     _ => {
 
                     }
@@ -570,19 +574,19 @@ impl IRInsn {
             (0b0010011, f3, 0b0000000) => {
                 // Get oprands
                 // a. rd
-                opr.push(IRInsn::reg_pool_get(res.rd() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
                 // b. rs1
-                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
                 // c. imm
-                opr.push(IROperand::imm(IRValue::bit(12, res.imm_i() as i128)));
+                opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
                 // find insn
                 match f3 {
-                    0b000 => res = IRInsn::insn_pool_nget("addi").borrow().clone(),
-                    0b010 => res = IRInsn::insn_pool_nget("slti").borrow().clone(),
-                    0b011 => res = IRInsn::insn_pool_nget("sltiu").borrow().clone(),
-                    0b100 => res = IRInsn::insn_pool_nget("xori").borrow().clone(),
-                    0b110 => res = IRInsn::insn_pool_nget("ori").borrow().clone(),
-                    0b111 => res = IRInsn::insn_pool_nget("andi").borrow().clone(),
+                    0b000 => res = Instruction::insn_pool_nget("addi").borrow().clone(),
+                    0b010 => res = Instruction::insn_pool_nget("slti").borrow().clone(),
+                    0b011 => res = Instruction::insn_pool_nget("sltiu").borrow().clone(),
+                    0b100 => res = Instruction::insn_pool_nget("xori").borrow().clone(),
+                    0b110 => res = Instruction::insn_pool_nget("ori").borrow().clone(),
+                    0b111 => res = Instruction::insn_pool_nget("andi").borrow().clone(),
                     _ => {}
                 }
             },
@@ -590,16 +594,16 @@ impl IRInsn {
             (0b0100011, f3, 0b0000000) => {
                 // Get oprands
                 // a. rs1
-                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
                 // b. rs2
-                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
                 // c. imm
-                opr.push(IROperand::imm(IRValue::bit(12, res.imm_s() as i128)));
+                opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
                 // find insn
                 match f3 {
-                    0b000 => res = IRInsn::insn_pool_nget("sb").borrow().clone(),
-                    0b001 => res = IRInsn::insn_pool_nget("sh").borrow().clone(),
-                    0b010 => res = IRInsn::insn_pool_nget("sw").borrow().clone(),
+                    0b000 => res = Instruction::insn_pool_nget("sb").borrow().clone(),
+                    0b001 => res = Instruction::insn_pool_nget("sh").borrow().clone(),
+                    0b010 => res = Instruction::insn_pool_nget("sw").borrow().clone(),
                     _ => {}
                 }
             },
@@ -607,15 +611,15 @@ impl IRInsn {
             (0b1100011, f3, 0b0000000) => {
                 // Get oprands
                 // a. rs1
-                opr.push(IRInsn::reg_pool_get(res.rs1() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
                 // b. rs2
-                opr.push(IRInsn::reg_pool_get(res.rs2() as usize).borrow().clone());
+                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
                 // c. imm
-                opr.push(IROperand::imm(IRValue::bit(12, res.imm_b() as i128)));
+                opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
                 // find insn
                 match f3 {
-                    0b000 => res = IRInsn::insn_pool_nget("beq").borrow().clone(),
-                    0b001 => res = IRInsn::insn_pool_nget("bne").borrow().clone(),
+                    0b000 => res = Instruction::insn_pool_nget("beq").borrow().clone(),
+                    0b001 => res = Instruction::insn_pool_nget("bne").borrow().clone(),
                     _ => {}
                 }
             }
@@ -630,21 +634,21 @@ impl IRInsn {
 
 
 
-    /// From string to IRInsn
-    pub fn from_string(str: &'static str) -> IRInsn {
+    /// From string to Instruction
+    pub fn from_string(str: &'static str) -> Instruction {
         // 1. Deal with string
         let str = str.trim();
         // Check if the string has space
         if !str.contains(' ') {
             let name = str;
-            let mut res = IRInsn::insn_pool_nget(name).borrow().clone();
+            let mut res = Instruction::insn_pool_nget(name).borrow().clone();
             res = res.encode(vec![]);
             return res;
         }
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
         // 3. Find Insn from pool
-        let res = IRInsn::insn_pool_nget(part.next().unwrap().trim());
+        let res = Instruction::insn_pool_nget(part.next().unwrap().trim());
         // 4. Collect extra part: Divide by `,` and Get Operands str
         let extra_part = part.next().unwrap();
         let opr = extra_part.split(',').collect::<Vec<_>>();
@@ -652,20 +656,20 @@ impl IRInsn {
         let opr_sym = res.borrow().syms();
         let mut opr_vec = Vec::new();
         for i in 0..opr_sym.len() {
-            let mut r = IROperand::from_string(opr_sym[i], opr[i].trim());
+            let mut r = Operand::from_string(opr_sym[i], opr[i].trim());
             if opr_sym[i] == 0 {
-                r = IROperand::imm(IRValue::u32(r.val().get_word(0)));
+                r = Operand::imm(Value::u32(r.val().get_word(0)));
             }
             opr_vec.push(r);
         }
-        // 5. Encode IRInsn
+        // 5. Encode Instruction
         let res = res.borrow_mut().encode(opr_vec);
         res
     }
 }
 
 
-impl fmt::Display for IRInsn {
+impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.to_string())
     }
@@ -675,16 +679,16 @@ impl fmt::Display for IRInsn {
 
 
 // ============================================================================== //
-//                                insn::IRBasicBlock
+//                                insn::BasicBlock
 // ============================================================================== //
 
 
-/// IRBasicBlock
-pub struct IRBasicBlock {
+/// BasicBlock
+pub struct BasicBlock {
     
-    pub src_insns: Vec<IRInsn>,
-    pub ir_insns: Vec<IRInsn>,
-    pub trg_insns: Vec<IRInsn>,
+    pub src_insns: Vec<Instruction>,
+    pub ir_insns: Vec<Instruction>,
+    pub trg_insns: Vec<Instruction>,
     pub liveness_regs: Vec<usize>,
 
     /// If the block is lifted to EVO ir arch: src -> ir
@@ -694,10 +698,10 @@ pub struct IRBasicBlock {
 }
 
 
-impl IRBasicBlock {
+impl BasicBlock {
 
 
-    pub fn init(src_insns: Vec<IRInsn>) -> IRBasicBlock {
+    pub fn init(src_insns: Vec<Instruction>) -> BasicBlock {
         Self {
             src_insns,
             ir_insns: vec![],

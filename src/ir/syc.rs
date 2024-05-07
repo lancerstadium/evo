@@ -13,7 +13,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use libc::c_void;
 
-use crate::ir::ctx::IRContext;
+use crate::ir::cpu::CPUState;
 
 // ============================================================================== //
 //                             syc::Syscaller
@@ -32,17 +32,17 @@ impl Syscaller {
 
     thread_local! {
         /// Syscall Pool
-        pub static SYSCALL_POOL: Rc<RefCell<HashMap<usize, (&'static str, fn(&IRContext) -> u64)>>> = Rc::new(RefCell::new(HashMap::new()));
+        pub static SYSCALL_POOL: Rc<RefCell<HashMap<usize, (&'static str, fn(&CPUState) -> u64)>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     /// Define syscall
-    pub fn def(id : usize, name: &'static str, call: fn(&IRContext) -> u64) {
+    pub fn def(id : usize, name: &'static str, call: fn(&CPUState) -> u64) {
         Self::pool_set(id, name, call)
     }
 
     /// Call syscall
-    pub fn call(ctx: &IRContext, syscall_id: usize) -> u64 {
-        Self::pool_get(syscall_id).1(ctx)
+    pub fn call(cpu: &CPUState, syscall_id: usize) -> u64 {
+        Self::pool_get(syscall_id).1(cpu)
     }
 
     // =================== Syscall.ctl ======================= //
@@ -50,19 +50,19 @@ impl Syscaller {
     /// Init a Syscaller pool
     pub fn pool_init() {
         Syscaller::def(93, "exit",
-            |ctx| {
+            |cpu| {
                 // ========= Exit Program ========= //
                 // 1. Get x10/a0 Reg
-                let code = ctx.get_nreg("x10").get_i32(0);
+                let code = cpu.get_nreg("x10").get_i32(0);
                 // 2. Exit
                 unsafe { libc::exit(code) };
             }
         );
         Syscaller::def(57, "close",
-            |ctx| {
+            |cpu| {
                 // ========= Close File ========= //
                 // 1. Get x10/a0 Reg
-                let fd = ctx.get_nreg("x10").get_i32(0);
+                let fd = cpu.get_nreg("x10").get_i32(0);
                 // 2. Close file
                 let ret;
                 unsafe { ret = libc::close(fd) };
@@ -71,14 +71,14 @@ impl Syscaller {
             }
         );
         Syscaller::def(63, "read",
-            |ctx| {
+            |cpu| {
                 // ========= Read File ========= //
                 // 1. Get x10/a0 Reg
-                let fd = ctx.get_nreg("x10").get_i32(0);
+                let fd = cpu.get_nreg("x10").get_i32(0);
                 // 2. Get x11/a1 Reg
-                let bufptr = ctx.get_nreg("x11").get_i32(0) as *mut c_void;
+                let bufptr = cpu.get_nreg("x11").get_i32(0) as *mut c_void;
                 // 3. Get x12/a2 Reg
-                let count = ctx.get_nreg("x12").get_i32(0) as usize;
+                let count = cpu.get_nreg("x12").get_i32(0) as usize;
                 // 4. Read file
                 let ret;
                 unsafe { ret = libc::read(fd, bufptr, count) };
@@ -87,14 +87,14 @@ impl Syscaller {
             }
         );
         Syscaller::def(64, "write",
-            |ctx| {
+            |cpu| {
                 // ========= Write File ========= //
                 // 1. Get x10/a0 Reg
-                let fd = ctx.get_nreg("x10").get_i32(0);
+                let fd = cpu.get_nreg("x10").get_i32(0);
                 // 2. Get x11/a1 Reg
-                let bufptr = ctx.get_nreg("x11").get_i32(0) as *const c_void;
+                let bufptr = cpu.get_nreg("x11").get_i32(0) as *const c_void;
                 // 3. Get x12/a2 Reg
-                let count = ctx.get_nreg("x12").get_i32(0) as usize;
+                let count = cpu.get_nreg("x12").get_i32(0) as usize;
                 // 4. Write file
                 let ret;
                 unsafe { ret = libc::write(fd, bufptr, count) };
@@ -103,12 +103,12 @@ impl Syscaller {
             }
         );
         Syscaller::def(80, "fstat",
-            |ctx| {
+            |cpu| {
                 // ========= Stat File ========= //
                 // 1. Get x10/a0 Reg
-                let fd = ctx.get_nreg("x10").get_i32(0);
+                let fd = cpu.get_nreg("x10").get_i32(0);
                 // 2. Get x11/a1 Reg
-                let buf = ctx.get_nreg("x11").get_i32(0) as *mut libc::stat;
+                let buf = cpu.get_nreg("x11").get_i32(0) as *mut libc::stat;
                 // 3. Stat file
                 let ret;
                 unsafe { ret = libc::fstat(fd, buf) };
@@ -117,12 +117,12 @@ impl Syscaller {
             }
         );
         Syscaller::def(169, "gettimeofday",
-            |ctx| {
+            |cpu| {
                 // ========= Get Time ========= //
                 // 1. Get x10/a0 Reg
-                let tv = ctx.get_nreg("x10").get_i32(0) as *mut libc::timeval;
+                let tv = cpu.get_nreg("x10").get_i32(0) as *mut libc::timeval;
                 // 2. Get x11/a1 Reg
-                let tz = ctx.get_nreg("x11").get_i32(0) as *mut libc::timezone;
+                let tz = cpu.get_nreg("x11").get_i32(0) as *mut libc::timezone;
                 // 3. Get Time
                 let ret;
                 unsafe { ret = libc::gettimeofday(tv, tz) };
@@ -131,10 +131,10 @@ impl Syscaller {
             }
         );
         Syscaller::def(214, "brk",
-            |ctx| {
+            |cpu| {
                 // ========= Get Time ========= //
                 // 1. Get x10/a0 Reg
-                let addr = ctx.get_nreg("x10").get_i32(0) as *mut c_void;
+                let addr = cpu.get_nreg("x10").get_i32(0) as *mut c_void;
                 // 2. Get x11/a1 Reg
                 let ret;
                 unsafe { ret = libc::brk(addr) };
@@ -145,14 +145,14 @@ impl Syscaller {
     }
 
     /// Get syscall
-    pub fn pool_get(id : usize) -> (&'static str, fn(&IRContext) -> u64) {
+    pub fn pool_get(id : usize) -> (&'static str, fn(&CPUState) -> u64) {
         Self::SYSCALL_POOL.with(|pool| {
             pool.borrow().get(&id).unwrap().clone()
         })
     }
 
     /// Set syscall
-    pub fn pool_set(id : usize, name: &'static str, call: fn(&IRContext) -> u64) {
+    pub fn pool_set(id : usize, name: &'static str, call: fn(&CPUState) -> u64) {
         Self::SYSCALL_POOL.with(|pool| {
             pool.borrow_mut().insert(id, (name, call));
         })

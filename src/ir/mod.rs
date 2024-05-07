@@ -6,5 +6,5 @@ pub mod op;
 pub mod insn;
 pub mod mem;
 pub mod syc;
-pub mod ctx;
+pub mod cpu;
 pub mod itp;

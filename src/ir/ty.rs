@@ -25,12 +25,12 @@ use std::{cmp, fmt, hash, mem};
 
 
 // ============================================================================== //
-//                                 ty::IRTypeKind
+//                                 ty::TypesKind
 // ============================================================================== //
 
-/// `IRTypeKind`: evo-ir enum types
+/// `TypesKind`: evo-ir enum types
 #[derive(Hash, Clone, PartialEq, Eq)]
-pub enum IRTypeKind {
+pub enum TypesKind {
     // Void type
     Void,
 
@@ -53,88 +53,88 @@ pub enum IRTypeKind {
     F16, F32, F64, F128,
 
     // Array type
-    Array(IRType, usize),
+    Array(Types, usize),
 
     // Pointer type
-    Ptr(IRType),
+    Ptr(Types),
 
     // Tuple type
-    Tuple(Vec<IRType>),
+    Tuple(Vec<Types>),
 
     // Function type
-    Func(Vec<IRType>, IRType),
+    Func(Vec<Types>, Types),
 
     // Struct type
-    Struct(Vec<IRType>),
+    Struct(Vec<Types>),
 
 }
 
-/// Get string for `IRTypeKind`.
-impl IRTypeKind {
+/// Get string for `TypesKind`.
+impl TypesKind {
 
-    /// Converts `IRTypeKind` to string.
+    /// Converts `TypesKind` to string.
     pub fn to_string(&self) -> String {
         match self {
-            IRTypeKind::Void => "void".to_string(),
-            IRTypeKind::Bit(n) => format!("b'{}", n),
-            IRTypeKind::I8 => "i8".to_string(),
-            IRTypeKind::I16 => "i16".to_string(),
-            IRTypeKind::I32 => "i32".to_string(),
-            IRTypeKind::I64 => "i64".to_string(),
-            IRTypeKind::I128 => "i128".to_string(),
-            IRTypeKind::U1 => "u1".to_string(),
-            IRTypeKind::U2 => "u2".to_string(),
-            IRTypeKind::U3 => "u3".to_string(),
-            IRTypeKind::U4 => "u4".to_string(),
-            IRTypeKind::U5 => "u5".to_string(),
-            IRTypeKind::U6 => "u6".to_string(),
-            IRTypeKind::U7 => "u7".to_string(),
-            IRTypeKind::U8 => "u8".to_string(),
-            IRTypeKind::U9 => "u9".to_string(),
-            IRTypeKind::U10 => "u10".to_string(),
-            IRTypeKind::U11 => "u11".to_string(),
-            IRTypeKind::U12 => "u12".to_string(),
-            IRTypeKind::U13 => "u13".to_string(),
-            IRTypeKind::U14 => "u14".to_string(),
-            IRTypeKind::U15 => "u15".to_string(),
-            IRTypeKind::U16 => "u16".to_string(),
-            IRTypeKind::U17 => "u17".to_string(),
-            IRTypeKind::U18 => "u18".to_string(),
-            IRTypeKind::U19 => "u19".to_string(),
-            IRTypeKind::U20 => "u20".to_string(),
-            IRTypeKind::U21 => "u21".to_string(),
-            IRTypeKind::U22 => "u22".to_string(),
-            IRTypeKind::U23 => "u23".to_string(),
-            IRTypeKind::U24 => "u24".to_string(),
-            IRTypeKind::U25 => "u25".to_string(),
-            IRTypeKind::U26 => "u26".to_string(),
-            IRTypeKind::U27 => "u27".to_string(),
-            IRTypeKind::U28 => "u28".to_string(),
-            IRTypeKind::U29 => "u29".to_string(),
-            IRTypeKind::U30 => "u30".to_string(),
-            IRTypeKind::U31 => "u31".to_string(),
-            IRTypeKind::U32 => "u32".to_string(),
-            IRTypeKind::U64 => "u64".to_string(),
-            IRTypeKind::U128 => "u128".to_string(),
-            IRTypeKind::F16 => "f16".to_string(),
-            IRTypeKind::F32 => "f32".to_string(),
-            IRTypeKind::F64 => "f64".to_string(),
-            IRTypeKind::F128 => "f128".to_string(),
-            IRTypeKind::Array(ty, len) => format!("[{}; {}]", ty.to_string(), len),
-            IRTypeKind::Tuple(tys) => format!("({})", tys.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
-            IRTypeKind::Ptr(ty) => format!("*{}", ty.to_string()),
-            IRTypeKind::Func(args, ret) => format!("({}) -> {}", args.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", "), ret.to_string()),
-            IRTypeKind::Struct(fields) => format!("struct {{{}}}", fields.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
+            TypesKind::Void => "void".to_string(),
+            TypesKind::Bit(n) => format!("b'{}", n),
+            TypesKind::I8 => "i8".to_string(),
+            TypesKind::I16 => "i16".to_string(),
+            TypesKind::I32 => "i32".to_string(),
+            TypesKind::I64 => "i64".to_string(),
+            TypesKind::I128 => "i128".to_string(),
+            TypesKind::U1 => "u1".to_string(),
+            TypesKind::U2 => "u2".to_string(),
+            TypesKind::U3 => "u3".to_string(),
+            TypesKind::U4 => "u4".to_string(),
+            TypesKind::U5 => "u5".to_string(),
+            TypesKind::U6 => "u6".to_string(),
+            TypesKind::U7 => "u7".to_string(),
+            TypesKind::U8 => "u8".to_string(),
+            TypesKind::U9 => "u9".to_string(),
+            TypesKind::U10 => "u10".to_string(),
+            TypesKind::U11 => "u11".to_string(),
+            TypesKind::U12 => "u12".to_string(),
+            TypesKind::U13 => "u13".to_string(),
+            TypesKind::U14 => "u14".to_string(),
+            TypesKind::U15 => "u15".to_string(),
+            TypesKind::U16 => "u16".to_string(),
+            TypesKind::U17 => "u17".to_string(),
+            TypesKind::U18 => "u18".to_string(),
+            TypesKind::U19 => "u19".to_string(),
+            TypesKind::U20 => "u20".to_string(),
+            TypesKind::U21 => "u21".to_string(),
+            TypesKind::U22 => "u22".to_string(),
+            TypesKind::U23 => "u23".to_string(),
+            TypesKind::U24 => "u24".to_string(),
+            TypesKind::U25 => "u25".to_string(),
+            TypesKind::U26 => "u26".to_string(),
+            TypesKind::U27 => "u27".to_string(),
+            TypesKind::U28 => "u28".to_string(),
+            TypesKind::U29 => "u29".to_string(),
+            TypesKind::U30 => "u30".to_string(),
+            TypesKind::U31 => "u31".to_string(),
+            TypesKind::U32 => "u32".to_string(),
+            TypesKind::U64 => "u64".to_string(),
+            TypesKind::U128 => "u128".to_string(),
+            TypesKind::F16 => "f16".to_string(),
+            TypesKind::F32 => "f32".to_string(),
+            TypesKind::F64 => "f64".to_string(),
+            TypesKind::F128 => "f128".to_string(),
+            TypesKind::Array(ty, len) => format!("[{}; {}]", ty.to_string(), len),
+            TypesKind::Tuple(tys) => format!("({})", tys.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
+            TypesKind::Ptr(ty) => format!("*{}", ty.to_string()),
+            TypesKind::Func(args, ret) => format!("({}) -> {}", args.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", "), ret.to_string()),
+            TypesKind::Struct(fields) => format!("struct {{{}}}", fields.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
         }
     }
 
-    /// Converts `string` to `IRTypeKind`.
-    pub fn from_string(s: &str) -> IRTypeKind {
+    /// Converts `string` to `TypesKind`.
+    pub fn from_string(s: &str) -> TypesKind {
         // Bit: b'23
         if s.starts_with("b'") {
             let s = &s[2..];
             let n = s.parse().unwrap();
-            return IRTypeKind::Bit(n)
+            return TypesKind::Bit(n)
         }
         // Array: [ty; len]
         if s.starts_with("[") && s.ends_with("]") {
@@ -142,102 +142,102 @@ impl IRTypeKind {
             // Every parts should deal with side space
             // find last `;`
             let pos = s.rfind(';').unwrap();
-            let ty = IRType::from_string(s[..pos].trim());
+            let ty = Types::from_string(s[..pos].trim());
             let len = s[pos+1..].trim().parse().unwrap();
-            return IRTypeKind::Array(ty, len)
+            return TypesKind::Array(ty, len)
         }
         // Pointer: *ty
         if s.starts_with("*") {
             let s = &s[1..];
-            let ty = IRType::from_string(s.trim());
-            return IRTypeKind::Ptr(ty);
+            let ty = Types::from_string(s.trim());
+            return TypesKind::Ptr(ty);
         }
         // Tuple: (ty1, ty2, ...)
         if s.starts_with("(") && s.ends_with(")") {
             let s = &s[1..s.len()-1];
             let parts = s.split(',');
-            let tys = parts.map(|ty| IRType::from_string(ty.trim())).collect();
-            return IRTypeKind::Tuple(tys);
+            let tys = parts.map(|ty| Types::from_string(ty.trim())).collect();
+            return TypesKind::Tuple(tys);
         }
         // Function: (ty1, ty2, ...) -> ty
         if s.starts_with("(") {
             let s = &s[1..];
             let mut parts = s.split(") ->");
-            let args = parts.next().unwrap().split(',').map(|ty| IRType::from_string(ty.trim())).collect();
-            let ret = IRType::from_string(parts.next().unwrap().trim());
-            return IRTypeKind::Func(args, ret);
+            let args = parts.next().unwrap().split(',').map(|ty| Types::from_string(ty.trim())).collect();
+            let ret = Types::from_string(parts.next().unwrap().trim());
+            return TypesKind::Func(args, ret);
         }
         // Struct: struct {ty1, ty2, ...}
         if s.starts_with("struct {") && s.ends_with("}") {
             let s = &s[8..s.len()-1];
             let parts = s.split(',');
-            let tys = parts.map(|ty| IRType::from_string(ty.trim())).collect();
-            return IRTypeKind::Struct(tys);
+            let tys = parts.map(|ty| Types::from_string(ty.trim())).collect();
+            return TypesKind::Struct(tys);
         }
         match s {
-            "void" => IRTypeKind::Void,
-            "i8" => IRTypeKind::I8,
-            "i16" => IRTypeKind::I16,
-            "i32" => IRTypeKind::I32,
-            "i64" => IRTypeKind::I64,
-            "i128" => IRTypeKind::I128,
-            "u1" => IRTypeKind::U1,
-            "u2" => IRTypeKind::U2,
-            "u3" => IRTypeKind::Array(IRType::u1(), 3),
-            "u4" => IRTypeKind::Array(IRType::u1(), 4),
-            "u5" => IRTypeKind::Array(IRType::u1(), 5),
-            "u6" => IRTypeKind::Array(IRType::u1(), 6),
-            "u7" => IRTypeKind::Array(IRType::u1(), 7),
-            "u8" => IRTypeKind::U8,
-            "u9" => IRTypeKind::U9,
-            "u10" => IRTypeKind::U10,
-            "u11" => IRTypeKind::U11,
-            "u12" => IRTypeKind::U12,
-            "u13" => IRTypeKind::U13,
-            "u14" => IRTypeKind::U14,
-            "u15" => IRTypeKind::U15,
-            "u16" => IRTypeKind::U16,
-            "u17" => IRTypeKind::U17,
-            "u18" => IRTypeKind::U18,
-            "u19" => IRTypeKind::U19,
-            "u20" => IRTypeKind::U20,
-            "u21" => IRTypeKind::U21,
-            "u22" => IRTypeKind::U22,
-            "u23" => IRTypeKind::U23,
-            "u24" => IRTypeKind::U24,
-            "u25" => IRTypeKind::U25,
-            "u26" => IRTypeKind::U26,
-            "u27" => IRTypeKind::U27,
-            "u28" => IRTypeKind::U28,
-            "u29" => IRTypeKind::U29,
-            "u30" => IRTypeKind::U30,
-            "u31" => IRTypeKind::U31,
-            "u32" => IRTypeKind::U32,
-            "u64" => IRTypeKind::U64,
-            "u128" => IRTypeKind::U128,
-            "f16" => IRTypeKind::F16,
-            "f32" => IRTypeKind::F32,
-            "f64" => IRTypeKind::F64,
-            "f128" => IRTypeKind::F128,
+            "void" => TypesKind::Void,
+            "i8" => TypesKind::I8,
+            "i16" => TypesKind::I16,
+            "i32" => TypesKind::I32,
+            "i64" => TypesKind::I64,
+            "i128" => TypesKind::I128,
+            "u1" => TypesKind::U1,
+            "u2" => TypesKind::U2,
+            "u3" => TypesKind::Array(Types::u1(), 3),
+            "u4" => TypesKind::Array(Types::u1(), 4),
+            "u5" => TypesKind::Array(Types::u1(), 5),
+            "u6" => TypesKind::Array(Types::u1(), 6),
+            "u7" => TypesKind::Array(Types::u1(), 7),
+            "u8" => TypesKind::U8,
+            "u9" => TypesKind::U9,
+            "u10" => TypesKind::U10,
+            "u11" => TypesKind::U11,
+            "u12" => TypesKind::U12,
+            "u13" => TypesKind::U13,
+            "u14" => TypesKind::U14,
+            "u15" => TypesKind::U15,
+            "u16" => TypesKind::U16,
+            "u17" => TypesKind::U17,
+            "u18" => TypesKind::U18,
+            "u19" => TypesKind::U19,
+            "u20" => TypesKind::U20,
+            "u21" => TypesKind::U21,
+            "u22" => TypesKind::U22,
+            "u23" => TypesKind::U23,
+            "u24" => TypesKind::U24,
+            "u25" => TypesKind::U25,
+            "u26" => TypesKind::U26,
+            "u27" => TypesKind::U27,
+            "u28" => TypesKind::U28,
+            "u29" => TypesKind::U29,
+            "u30" => TypesKind::U30,
+            "u31" => TypesKind::U31,
+            "u32" => TypesKind::U32,
+            "u64" => TypesKind::U64,
+            "u128" => TypesKind::U128,
+            "f16" => TypesKind::F16,
+            "f32" => TypesKind::F32,
+            "f64" => TypesKind::F64,
+            "f128" => TypesKind::F128,
             _ => panic!("Invalid type: {}", s),
         }
     }
 
 
-    // ==================== IRType.is ====================== //
+    // ==================== Types.is ====================== //
 
     /// TypeKind is signed
     pub fn is_signed(&self) -> bool {
         match self {
-            IRTypeKind::I8
-            | IRTypeKind::I16
-            | IRTypeKind::I32
-            | IRTypeKind::I64
-            | IRTypeKind::I128
-            | IRTypeKind::F16
-            | IRTypeKind::F32
-            | IRTypeKind::F64
-            | IRTypeKind::F128 => true,
+            TypesKind::I8
+            | TypesKind::I16
+            | TypesKind::I32
+            | TypesKind::I64
+            | TypesKind::I128
+            | TypesKind::F16
+            | TypesKind::F32
+            | TypesKind::F64
+            | TypesKind::F128 => true,
             _ => false
         }
     }
@@ -245,10 +245,10 @@ impl IRTypeKind {
     /// TypeKind is float
     pub fn is_float(&self) -> bool {
         match self {
-            IRTypeKind::F16
-            | IRTypeKind::F32
-            | IRTypeKind::F64
-            | IRTypeKind::F128 => true,
+            TypesKind::F16
+            | TypesKind::F32
+            | TypesKind::F64
+            | TypesKind::F128 => true,
             _ => false
         }
     }
@@ -256,15 +256,15 @@ impl IRTypeKind {
     /// TypeKind is bit
     pub fn is_bit(&self) -> bool {
         match self {
-            IRTypeKind::Bit(_) => true,
+            TypesKind::Bit(_) => true,
             _ => false
         }
     }
 
 }
 
-/// Set string for `IRTypeKind`.
-impl fmt::Display for IRTypeKind {
+/// Set string for `TypesKind`.
+impl fmt::Display for TypesKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_string())
     }
@@ -272,28 +272,28 @@ impl fmt::Display for IRTypeKind {
 
 
 // ============================================================================== //
-//                                    ty::IRType
+//                                    ty::Types
 // ============================================================================== //
 
-/// `IRType`: evo-ir type
+/// `Types`: evo-ir type
 #[derive(Clone, Eq)]
-pub struct IRType(Rc<IRTypeKind>);
+pub struct Types(Rc<TypesKind>);
 
 
-impl IRType {
+impl Types {
 
     // Init type pool.
     thread_local! {
         /// Pool of all created types.
-        static TYPE_POOL: RefCell<HashMap<IRTypeKind, IRType>> = RefCell::new(HashMap::new());
+        static TYPE_POOL: RefCell<HashMap<TypesKind, Types>> = RefCell::new(HashMap::new());
         /// Size of pointers.
         static PTR_SIZE: Cell<usize> = Cell::new(mem::size_of::<*const ()>());
     }
 
-    // ==================== IRType.get ===================== //
+    // ==================== Types.get ===================== //
 
-    /// Returns a type by the given `IRTypeKind`.
-    pub fn get(type_kind: IRTypeKind) -> IRType {
+    /// Returns a type by the given `TypesKind`.
+    pub fn get(type_kind: TypesKind) -> Types {
         Self::TYPE_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             pool.get(&type_kind).cloned().unwrap_or_else(|| {
@@ -305,391 +305,391 @@ impl IRType {
     }
     
     /// Returns an `void` type.
-    pub fn void() -> IRType {
-        IRType::get(IRTypeKind::Void)
+    pub fn void() -> Types {
+        Types::get(TypesKind::Void)
     }
 
     /// Returns an `bit` type: scale is the width of bit.
-    pub fn bit(scale: usize) -> IRType {
-        IRType::get(IRTypeKind::Bit(scale))
+    pub fn bit(scale: usize) -> Types {
+        Types::get(TypesKind::Bit(scale))
     }
     
     /// Returns an `i8` type.
-    pub fn i8() -> IRType {
-        IRType::get(IRTypeKind::I8)
+    pub fn i8() -> Types {
+        Types::get(TypesKind::I8)
     }
 
     /// Returns an `i16` type.
-    pub fn i16() -> IRType {
-        IRType::get(IRTypeKind::I16)
+    pub fn i16() -> Types {
+        Types::get(TypesKind::I16)
     }
 
     /// Returns an `i32` type.
-    pub fn i32() -> IRType {
-        IRType::get(IRTypeKind::I32)
+    pub fn i32() -> Types {
+        Types::get(TypesKind::I32)
     }
 
     /// Returns an `i64` type.
-    pub fn i64() -> IRType {
-        IRType::get(IRTypeKind::I64)
+    pub fn i64() -> Types {
+        Types::get(TypesKind::I64)
     }
 
     /// Returns an `i128` type.
-    pub fn i128() -> IRType {
-        IRType::get(IRTypeKind::I128)
+    pub fn i128() -> Types {
+        Types::get(TypesKind::I128)
     }
 
     /// Returns an `u1` type.
-    pub fn u1() -> IRType {
-        IRType::get(IRTypeKind::U1)
+    pub fn u1() -> Types {
+        Types::get(TypesKind::U1)
     }
 
     /// Returns an `u2` type.
-    pub fn u2() -> IRType {
-        IRType::get(IRTypeKind::U2)
+    pub fn u2() -> Types {
+        Types::get(TypesKind::U2)
     }
 
     /// Returns an `u3` type.
-    pub fn u3() -> IRType {
-        IRType::get(IRTypeKind::U3)
+    pub fn u3() -> Types {
+        Types::get(TypesKind::U3)
     }
 
     /// Returns an `u4` type.
-    pub fn u4() -> IRType {
-        IRType::get(IRTypeKind::U4)
+    pub fn u4() -> Types {
+        Types::get(TypesKind::U4)
     }
 
     /// Returns an `u5` type.
-    pub fn u5() -> IRType {
-        IRType::get(IRTypeKind::U5)
+    pub fn u5() -> Types {
+        Types::get(TypesKind::U5)
     }
 
     /// Returns an `u6` type.
-    pub fn u6() -> IRType {
-        IRType::get(IRTypeKind::U6)
+    pub fn u6() -> Types {
+        Types::get(TypesKind::U6)
     }
 
     /// Returns an `u7` type.
-    pub fn u7() -> IRType {
-        IRType::get(IRTypeKind::U7)
+    pub fn u7() -> Types {
+        Types::get(TypesKind::U7)
     }
 
     /// Returns an `u8` type.
-    pub fn u8() -> IRType {
-        IRType::get(IRTypeKind::U8)
+    pub fn u8() -> Types {
+        Types::get(TypesKind::U8)
     }
 
     /// Returns an `u9` type.
-    pub fn u9() -> IRType {
-        IRType::get(IRTypeKind::U9)
+    pub fn u9() -> Types {
+        Types::get(TypesKind::U9)
     }
 
     /// Returns an `u10` type.
-    pub fn u10() -> IRType {
-        IRType::get(IRTypeKind::U10)
+    pub fn u10() -> Types {
+        Types::get(TypesKind::U10)
     }
 
     /// Returns an `u11` type.
-    pub fn u11() -> IRType {
-        IRType::get(IRTypeKind::U11)
+    pub fn u11() -> Types {
+        Types::get(TypesKind::U11)
     }
 
     /// Returns an `u12` type.
-    pub fn u12() -> IRType {
-        IRType::get(IRTypeKind::U12)
+    pub fn u12() -> Types {
+        Types::get(TypesKind::U12)
     }
 
     /// Returns an `u13` type.
-    pub fn u13() -> IRType {
-        IRType::get(IRTypeKind::U13)
+    pub fn u13() -> Types {
+        Types::get(TypesKind::U13)
     }
 
     /// Returns an `u14` type.
-    pub fn u14() -> IRType {
-        IRType::get(IRTypeKind::U14)
+    pub fn u14() -> Types {
+        Types::get(TypesKind::U14)
     }
 
     /// Returns an `u15` type.
-    pub fn u15() -> IRType {
-        IRType::get(IRTypeKind::U15)
+    pub fn u15() -> Types {
+        Types::get(TypesKind::U15)
     }
 
     /// Returns an `u16` type.
-    pub fn u16() -> IRType {
-        IRType::get(IRTypeKind::U16)
+    pub fn u16() -> Types {
+        Types::get(TypesKind::U16)
     }
 
     /// Returns an `u17` type.
-    pub fn u17() -> IRType {
-        IRType::get(IRTypeKind::U17)
+    pub fn u17() -> Types {
+        Types::get(TypesKind::U17)
     }
 
     /// Returns an `u18` type.
-    pub fn u18() -> IRType {
-        IRType::get(IRTypeKind::U18)
+    pub fn u18() -> Types {
+        Types::get(TypesKind::U18)
     }
 
     /// Returns an `u19` type.
-    pub fn u19() -> IRType {
-        IRType::get(IRTypeKind::U19)
+    pub fn u19() -> Types {
+        Types::get(TypesKind::U19)
     }
 
     /// Returns an `u20` type.
-    pub fn u20() -> IRType {
-        IRType::get(IRTypeKind::U20)
+    pub fn u20() -> Types {
+        Types::get(TypesKind::U20)
     }
 
     /// Returns an `u21` type.
-    pub fn u21() -> IRType {
-        IRType::get(IRTypeKind::U21)
+    pub fn u21() -> Types {
+        Types::get(TypesKind::U21)
     }
 
     /// Returns an `u22` type.
-    pub fn u22() -> IRType {
-        IRType::get(IRTypeKind::U22)
+    pub fn u22() -> Types {
+        Types::get(TypesKind::U22)
     }
 
     /// Returns an `u23` type.
-    pub fn u23() -> IRType {
-        IRType::get(IRTypeKind::U23)
+    pub fn u23() -> Types {
+        Types::get(TypesKind::U23)
     }
 
     /// Returns an `u24` type.
-    pub fn u24() -> IRType {
-        IRType::get(IRTypeKind::U24)
+    pub fn u24() -> Types {
+        Types::get(TypesKind::U24)
     }
 
     /// Returns an `u25` type.
-    pub fn u25() -> IRType {
-        IRType::get(IRTypeKind::U25)
+    pub fn u25() -> Types {
+        Types::get(TypesKind::U25)
     }
 
     /// Returns an `u26` type.
-    pub fn u26() -> IRType {
-        IRType::get(IRTypeKind::U26)
+    pub fn u26() -> Types {
+        Types::get(TypesKind::U26)
     }
 
     /// Returns an `u27` type.
-    pub fn u27() -> IRType {
-        IRType::get(IRTypeKind::U27)
+    pub fn u27() -> Types {
+        Types::get(TypesKind::U27)
     }
 
     /// Returns an `u28` type.
-    pub fn u28() -> IRType {
-        IRType::get(IRTypeKind::U28)
+    pub fn u28() -> Types {
+        Types::get(TypesKind::U28)
     }
 
     /// Returns an `u29` type.
-    pub fn u29() -> IRType {
-        IRType::get(IRTypeKind::U29)
+    pub fn u29() -> Types {
+        Types::get(TypesKind::U29)
     }
 
     /// Returns an `u30` type.
-    pub fn u30() -> IRType {
-        IRType::get(IRTypeKind::U30)
+    pub fn u30() -> Types {
+        Types::get(TypesKind::U30)
     }
 
     /// Returns an `u31` type.
-    pub fn u31() -> IRType {
-        IRType::get(IRTypeKind::U31)
+    pub fn u31() -> Types {
+        Types::get(TypesKind::U31)
     }
 
     /// Returns an `u32` type.
-    pub fn u32() -> IRType {
-        IRType::get(IRTypeKind::U32)
+    pub fn u32() -> Types {
+        Types::get(TypesKind::U32)
     }
 
     /// Returns an `u64` type.
-    pub fn u64() -> IRType {
-        IRType::get(IRTypeKind::U64)
+    pub fn u64() -> Types {
+        Types::get(TypesKind::U64)
     }
 
     /// Returns an `u128` type.
-    pub fn u128() -> IRType {
-        IRType::get(IRTypeKind::U128)
+    pub fn u128() -> Types {
+        Types::get(TypesKind::U128)
     }
 
     /// Returns an `f16` type.
-    pub fn f16() -> IRType {
-        IRType::get(IRTypeKind::F16)
+    pub fn f16() -> Types {
+        Types::get(TypesKind::F16)
     }
 
     /// Returns an `f32` type.
-    pub fn f32() -> IRType {
-        IRType::get(IRTypeKind::F32)
+    pub fn f32() -> Types {
+        Types::get(TypesKind::F32)
     }
 
     /// Returns an `f64` type.
-    pub fn f64() -> IRType {
-        IRType::get(IRTypeKind::F64)
+    pub fn f64() -> Types {
+        Types::get(TypesKind::F64)
     }
 
     /// Returns an `f128` type.
-    pub fn f128() -> IRType {
-        IRType::get(IRTypeKind::F128)
+    pub fn f128() -> Types {
+        Types::get(TypesKind::F128)
     }
 
     /// Returns an `array` type.
-    pub fn array(ty: IRType, size: usize) -> IRType {
+    pub fn array(ty: Types, size: usize) -> Types {
         assert!(size != 0, "array size cannot be 0");
-        IRType::get(IRTypeKind::Array(ty, size))
+        Types::get(TypesKind::Array(ty, size))
     }
 
     /// Returns an `ptr` type.
-    pub fn ptr(ty: IRType) -> IRType {
-        IRType::get(IRTypeKind::Ptr(ty))
+    pub fn ptr(ty: Types) -> Types {
+        Types::get(TypesKind::Ptr(ty))
     }
 
     /// Returns an `func` type.
-    pub fn func(args: Vec<IRType>, ret: IRType) -> IRType {
-        IRType::get(IRTypeKind::Func(args, ret))
+    pub fn func(args: Vec<Types>, ret: Types) -> Types {
+        Types::get(TypesKind::Func(args, ret))
     }
 
     /// Returns an `tuple` type.
-    pub fn tuple(tys: Vec<IRType>) -> IRType {
-        IRType::get(IRTypeKind::Tuple(tys))
+    pub fn tuple(tys: Vec<Types>) -> Types {
+        Types::get(TypesKind::Tuple(tys))
     }
 
     /// Returns an `struct` type.
-    pub fn stc(fields: Vec<IRType>) -> IRType {
-        IRType::get(IRTypeKind::Struct(fields))
+    pub fn stc(fields: Vec<Types>) -> Types {
+        Types::get(TypesKind::Struct(fields))
     }
 
     /// Return a reference to the current type.
-    pub fn kind(&self) -> &IRTypeKind {
+    pub fn kind(&self) -> &TypesKind {
         &self.0
     }
 
     /// Return the size of current type in bytes.
     pub fn size(&self) -> usize {
         match self.kind() {
-            IRTypeKind::Void => 0,
-            IRTypeKind::Bit(n) => n / 8 + (n % 8 != 0) as usize,
-            IRTypeKind::I8 => 1,
-            IRTypeKind::I16 => 2,
-            IRTypeKind::I32 => 4,
-            IRTypeKind::I64 => 8,
-            IRTypeKind::I128 => 16,
-            IRTypeKind::U1 => 1,
-            IRTypeKind::U2 => 1,
-            IRTypeKind::U3 => 1,
-            IRTypeKind::U4 => 1,
-            IRTypeKind::U5 => 1,
-            IRTypeKind::U6 => 1,
-            IRTypeKind::U7 => 1,
-            IRTypeKind::U8 => 1,
-            IRTypeKind::U9 => 2,
-            IRTypeKind::U10 => 2,
-            IRTypeKind::U11 => 2,
-            IRTypeKind::U12 => 2,
-            IRTypeKind::U13 => 2,
-            IRTypeKind::U14 => 2,
-            IRTypeKind::U15 => 2,
-            IRTypeKind::U16 => 2,
-            IRTypeKind::U17 => 3,
-            IRTypeKind::U18 => 3,
-            IRTypeKind::U19 => 3,
-            IRTypeKind::U20 => 3,
-            IRTypeKind::U21 => 3,
-            IRTypeKind::U22 => 3,
-            IRTypeKind::U23 => 3,
-            IRTypeKind::U24 => 3,
-            IRTypeKind::U25 => 4,
-            IRTypeKind::U26 => 4,
-            IRTypeKind::U27 => 4,
-            IRTypeKind::U28 => 4,
-            IRTypeKind::U29 => 4,
-            IRTypeKind::U30 => 4,
-            IRTypeKind::U31 => 4,
-            IRTypeKind::U32 => 4,
-            IRTypeKind::U64 => 8,
-            IRTypeKind::U128 => 16,
-            IRTypeKind::F16 => 2,
-            IRTypeKind::F32 => 4,
-            IRTypeKind::F64 => 8,
-            IRTypeKind::F128 => 16,
-            IRTypeKind::Array(ty, len) => ty.size() * len,
-            IRTypeKind::Tuple(tys) => tys.iter().map(|ty| ty.size()).sum(),
-            IRTypeKind::Ptr(..) | IRTypeKind::Func(..) | IRTypeKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| ptr_size.get()),
+            TypesKind::Void => 0,
+            TypesKind::Bit(n) => n / 8 + (n % 8 != 0) as usize,
+            TypesKind::I8 => 1,
+            TypesKind::I16 => 2,
+            TypesKind::I32 => 4,
+            TypesKind::I64 => 8,
+            TypesKind::I128 => 16,
+            TypesKind::U1 => 1,
+            TypesKind::U2 => 1,
+            TypesKind::U3 => 1,
+            TypesKind::U4 => 1,
+            TypesKind::U5 => 1,
+            TypesKind::U6 => 1,
+            TypesKind::U7 => 1,
+            TypesKind::U8 => 1,
+            TypesKind::U9 => 2,
+            TypesKind::U10 => 2,
+            TypesKind::U11 => 2,
+            TypesKind::U12 => 2,
+            TypesKind::U13 => 2,
+            TypesKind::U14 => 2,
+            TypesKind::U15 => 2,
+            TypesKind::U16 => 2,
+            TypesKind::U17 => 3,
+            TypesKind::U18 => 3,
+            TypesKind::U19 => 3,
+            TypesKind::U20 => 3,
+            TypesKind::U21 => 3,
+            TypesKind::U22 => 3,
+            TypesKind::U23 => 3,
+            TypesKind::U24 => 3,
+            TypesKind::U25 => 4,
+            TypesKind::U26 => 4,
+            TypesKind::U27 => 4,
+            TypesKind::U28 => 4,
+            TypesKind::U29 => 4,
+            TypesKind::U30 => 4,
+            TypesKind::U31 => 4,
+            TypesKind::U32 => 4,
+            TypesKind::U64 => 8,
+            TypesKind::U128 => 16,
+            TypesKind::F16 => 2,
+            TypesKind::F32 => 4,
+            TypesKind::F64 => 8,
+            TypesKind::F128 => 16,
+            TypesKind::Array(ty, len) => ty.size() * len,
+            TypesKind::Tuple(tys) => tys.iter().map(|ty| ty.size()).sum(),
+            TypesKind::Ptr(..) | TypesKind::Func(..) | TypesKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| ptr_size.get()),
         }
     }
 
     /// Returns the scale vec of current type: bits number
     pub fn scale(&self) -> Vec<usize> {
         match self.kind() {
-            IRTypeKind::Void => vec![0],
-            IRTypeKind::Bit(n) => vec![*n],
-            IRTypeKind::U1 => vec![1],
-            IRTypeKind::U2 => vec![2],
-            IRTypeKind::U3 => vec![3],
-            IRTypeKind::U4 => vec![4],
-            IRTypeKind::U5 => vec![5],
-            IRTypeKind::U6 => vec![6],
-            IRTypeKind::U7 => vec![7],
-            IRTypeKind::I8 | IRTypeKind::U8 => vec![8], 
-            IRTypeKind::U9 => vec![9],
-            IRTypeKind::U10 => vec![10],
-            IRTypeKind::U11 => vec![11],
-            IRTypeKind::U12 => vec![12],
-            IRTypeKind::U13 => vec![13],
-            IRTypeKind::U14 => vec![14],
-            IRTypeKind::U15 => vec![15],
-            IRTypeKind::I16 | IRTypeKind::U16 | IRTypeKind::F16 => vec![16],
-            IRTypeKind::U17 => vec![17],
-            IRTypeKind::U18 => vec![18],
-            IRTypeKind::U19 => vec![19],
-            IRTypeKind::U20 => vec![20],
-            IRTypeKind::U21 => vec![21],
-            IRTypeKind::U22 => vec![22],
-            IRTypeKind::U23 => vec![23],
-            IRTypeKind::U24 => vec![24],
-            IRTypeKind::U25 => vec![25],
-            IRTypeKind::U26 => vec![26],
-            IRTypeKind::U27 => vec![27],
-            IRTypeKind::U28 => vec![28],
-            IRTypeKind::U29 => vec![29],
-            IRTypeKind::U30 => vec![30],
-            IRTypeKind::U31 => vec![31],
-            IRTypeKind::I32 | IRTypeKind::U32 | IRTypeKind::F32 => vec![32],
-            IRTypeKind::I64 | IRTypeKind::U64 | IRTypeKind::F64 => vec![64],
-            IRTypeKind::I128 | IRTypeKind::U128 | IRTypeKind::F128 => vec![128],
+            TypesKind::Void => vec![0],
+            TypesKind::Bit(n) => vec![*n],
+            TypesKind::U1 => vec![1],
+            TypesKind::U2 => vec![2],
+            TypesKind::U3 => vec![3],
+            TypesKind::U4 => vec![4],
+            TypesKind::U5 => vec![5],
+            TypesKind::U6 => vec![6],
+            TypesKind::U7 => vec![7],
+            TypesKind::I8 | TypesKind::U8 => vec![8], 
+            TypesKind::U9 => vec![9],
+            TypesKind::U10 => vec![10],
+            TypesKind::U11 => vec![11],
+            TypesKind::U12 => vec![12],
+            TypesKind::U13 => vec![13],
+            TypesKind::U14 => vec![14],
+            TypesKind::U15 => vec![15],
+            TypesKind::I16 | TypesKind::U16 | TypesKind::F16 => vec![16],
+            TypesKind::U17 => vec![17],
+            TypesKind::U18 => vec![18],
+            TypesKind::U19 => vec![19],
+            TypesKind::U20 => vec![20],
+            TypesKind::U21 => vec![21],
+            TypesKind::U22 => vec![22],
+            TypesKind::U23 => vec![23],
+            TypesKind::U24 => vec![24],
+            TypesKind::U25 => vec![25],
+            TypesKind::U26 => vec![26],
+            TypesKind::U27 => vec![27],
+            TypesKind::U28 => vec![28],
+            TypesKind::U29 => vec![29],
+            TypesKind::U30 => vec![30],
+            TypesKind::U31 => vec![31],
+            TypesKind::I32 | TypesKind::U32 | TypesKind::F32 => vec![32],
+            TypesKind::I64 | TypesKind::U64 | TypesKind::F64 => vec![64],
+            TypesKind::I128 | TypesKind::U128 | TypesKind::F128 => vec![128],
             // [u32; 5] => scale = [32, 32, 32, 32, 32]
-            IRTypeKind::Array(ty, len) => (0..*len).map(|_| ty.size() * 8).collect(),
+            TypesKind::Array(ty, len) => (0..*len).map(|_| ty.size() * 8).collect(),
             // ((u32, u32), u32) => scale = [64, 32]
-            IRTypeKind::Tuple(tys) => tys.iter().map(|ty| ty.size() * 8).collect(),
-            IRTypeKind::Ptr(..) | IRTypeKind::Func(..) | IRTypeKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| vec![ptr_size.get() * 8]),
+            TypesKind::Tuple(tys) => tys.iter().map(|ty| ty.size() * 8).collect(),
+            TypesKind::Ptr(..) | TypesKind::Func(..) | TypesKind::Struct(..) => Self::PTR_SIZE.with(|ptr_size| vec![ptr_size.get() * 8]),
         }
     }
 
     /// Return types vec of current type
-    pub fn types(&self) -> Vec<IRType> {
+    pub fn types(&self) -> Vec<Types> {
         match self.kind() {
-            IRTypeKind::Void | IRTypeKind::Bit(_) | IRTypeKind::U1 | IRTypeKind::U2 | IRTypeKind::U3 | IRTypeKind::U4 | IRTypeKind::U5 | IRTypeKind::U6 | IRTypeKind::U7
-                | IRTypeKind::U9 | IRTypeKind::U10 | IRTypeKind::U11 | IRTypeKind::U12 | IRTypeKind::U13 | IRTypeKind::U14 | IRTypeKind::U15
-                | IRTypeKind::U17 | IRTypeKind::U18 | IRTypeKind::U19 | IRTypeKind::U20 | IRTypeKind::U21 | IRTypeKind::U22 | IRTypeKind::U23
-                | IRTypeKind::U24 | IRTypeKind::U25 | IRTypeKind::U26 | IRTypeKind::U27 | IRTypeKind::U28 | IRTypeKind::U29 | IRTypeKind::U30
-                | IRTypeKind::U31
-                | IRTypeKind:: I8 | IRTypeKind::I16 | IRTypeKind::I32 | IRTypeKind::I64 | IRTypeKind::I128
-                | IRTypeKind::U8 | IRTypeKind::U16 | IRTypeKind::U32 | IRTypeKind::U64 | IRTypeKind::U128
-                | IRTypeKind::F16 | IRTypeKind::F32 | IRTypeKind::F64 | IRTypeKind::F128 => vec![self.clone()],
-            IRTypeKind::Ptr(ty) => vec![ty.clone()],
-            IRTypeKind::Func(args, ret) => args.clone().into_iter().chain(vec![ret.clone()]).collect(),
-            IRTypeKind::Array(ty, len) => (0..*len).map(|_| ty.clone()).collect(), 
-            IRTypeKind::Tuple(tys) => tys.clone(),
-            IRTypeKind::Struct(fields) => fields.clone(),
+            TypesKind::Void | TypesKind::Bit(_) | TypesKind::U1 | TypesKind::U2 | TypesKind::U3 | TypesKind::U4 | TypesKind::U5 | TypesKind::U6 | TypesKind::U7
+                | TypesKind::U9 | TypesKind::U10 | TypesKind::U11 | TypesKind::U12 | TypesKind::U13 | TypesKind::U14 | TypesKind::U15
+                | TypesKind::U17 | TypesKind::U18 | TypesKind::U19 | TypesKind::U20 | TypesKind::U21 | TypesKind::U22 | TypesKind::U23
+                | TypesKind::U24 | TypesKind::U25 | TypesKind::U26 | TypesKind::U27 | TypesKind::U28 | TypesKind::U29 | TypesKind::U30
+                | TypesKind::U31
+                | TypesKind:: I8 | TypesKind::I16 | TypesKind::I32 | TypesKind::I64 | TypesKind::I128
+                | TypesKind::U8 | TypesKind::U16 | TypesKind::U32 | TypesKind::U64 | TypesKind::U128
+                | TypesKind::F16 | TypesKind::F32 | TypesKind::F64 | TypesKind::F128 => vec![self.clone()],
+            TypesKind::Ptr(ty) => vec![ty.clone()],
+            TypesKind::Func(args, ret) => args.clone().into_iter().chain(vec![ret.clone()]).collect(),
+            TypesKind::Array(ty, len) => (0..*len).map(|_| ty.clone()).collect(), 
+            TypesKind::Tuple(tys) => tys.clone(),
+            TypesKind::Struct(fields) => fields.clone(),
         }
     }
 
 
-    /// Returns a new `IRType` from string
-    pub fn from_string(s: &str) -> IRType {
-        IRType::get(IRTypeKind::from_string(s))
+    /// Returns a new `Types` from string
+    pub fn from_string(s: &str) -> Types {
+        Types::get(TypesKind::from_string(s))
     }
 
-    // ==================== IRType.set ===================== //
+    // ==================== Types.set ===================== //
 
-    /// Set IRType by Given `IRTypeKind`
-    pub fn set(&mut self, kind: IRTypeKind) {
+    /// Set Types by Given `TypesKind`
+    pub fn set(&mut self, kind: TypesKind) {
         self.0 = Rc::new(kind);
     }
 
@@ -703,8 +703,8 @@ impl IRType {
 }
 
 
-impl cmp::PartialEq for IRType {
-    /// Compare two `IRType`
+impl cmp::PartialEq for Types {
+    /// Compare two `Types`
     fn eq(&self, other: &Self) -> bool {
         // 1. Compare size
         if self.size() != other.size() {
@@ -718,22 +718,22 @@ impl cmp::PartialEq for IRType {
     }
 }
 
-impl fmt::Display for IRType {
-    /// Format `IRType`
+impl fmt::Display for Types {
+    /// Format `Types`
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl fmt::Debug for IRType {
-    /// Format `IRType`
+impl fmt::Debug for Types {
+    /// Format `Types`
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl hash::Hash for IRType {
-    /// Hash `IRType`
+impl hash::Hash for Types {
+    /// Hash `Types`
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         Rc::as_ptr(&self.0).hash(state);
     }
@@ -758,120 +758,120 @@ mod ty_test {
 
     #[test]
     fn type_from() {
-        assert_eq!(IRType::from_string("i8"), IRType::i8());
-        assert_eq!(IRType::from_string("i16"), IRType::i16());
-        assert_eq!(IRType::from_string("i32"), IRType::i32());
-        assert_eq!(IRType::from_string("i64"), IRType::i64());
-        assert_eq!(IRType::from_string("i128"), IRType::i128());
-        assert_eq!(IRType::from_string("u1"), IRType::u1());
-        assert_eq!(IRType::from_string("u8"), IRType::u8());
-        assert_eq!(IRType::from_string("u16"), IRType::u16());
-        assert_eq!(IRType::from_string("u32"), IRType::u32());
-        assert_eq!(IRType::from_string("u64"), IRType::u64());
-        assert_eq!(IRType::from_string("u128"), IRType::u128());
-        assert_eq!(IRType::from_string("f16"), IRType::f16());
-        assert_eq!(IRType::from_string("f32"), IRType::f32());
-        assert_eq!(IRType::from_string("f64"), IRType::f64());
+        assert_eq!(Types::from_string("i8"), Types::i8());
+        assert_eq!(Types::from_string("i16"), Types::i16());
+        assert_eq!(Types::from_string("i32"), Types::i32());
+        assert_eq!(Types::from_string("i64"), Types::i64());
+        assert_eq!(Types::from_string("i128"), Types::i128());
+        assert_eq!(Types::from_string("u1"), Types::u1());
+        assert_eq!(Types::from_string("u8"), Types::u8());
+        assert_eq!(Types::from_string("u16"), Types::u16());
+        assert_eq!(Types::from_string("u32"), Types::u32());
+        assert_eq!(Types::from_string("u64"), Types::u64());
+        assert_eq!(Types::from_string("u128"), Types::u128());
+        assert_eq!(Types::from_string("f16"), Types::f16());
+        assert_eq!(Types::from_string("f32"), Types::f32());
+        assert_eq!(Types::from_string("f64"), Types::f64());
 
-        assert_eq!(IRType::from_string("[i32; 10]"), IRType::array(IRType::i32(), 10));
-        assert_eq!(IRType::from_string("[[i32; 10]; 3]"), IRType::array(IRType::array(IRType::i32(), 10), 3));
-        assert_eq!(IRType::from_string("*i32"), IRType::ptr(IRType::i32()));
+        assert_eq!(Types::from_string("[i32; 10]"), Types::array(Types::i32(), 10));
+        assert_eq!(Types::from_string("[[i32; 10]; 3]"), Types::array(Types::array(Types::i32(), 10), 3));
+        assert_eq!(Types::from_string("*i32"), Types::ptr(Types::i32()));
 
-        assert_eq!(IRType::from_string("(i32, f64)"), IRType::tuple(vec![IRType::i32(), IRType::f64()]));
-        assert_eq!(IRType::from_string("(i32, f64) -> f64"), IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()));
-        assert_eq!(IRType::from_string("struct {i32, f64}"), IRType::stc(vec![IRType::i32(), IRType::f64()]));
+        assert_eq!(Types::from_string("(i32, f64)"), Types::tuple(vec![Types::i32(), Types::f64()]));
+        assert_eq!(Types::from_string("(i32, f64) -> f64"), Types::func(vec![Types::i32(), Types::f64()], Types::f64()));
+        assert_eq!(Types::from_string("struct {i32, f64}"), Types::stc(vec![Types::i32(), Types::f64()]));
     }
 
     #[test]
     fn type_to() {
-        assert_eq!(format!("{}", IRType::i8()), "i8");
-        assert_eq!(format!("{}", IRType::i16()), "i16");
-        assert_eq!(format!("{}", IRType::i32()), "i32");
-        assert_eq!(format!("{}", IRType::i64()), "i64");
-        assert_eq!(format!("{}", IRType::i128()), "i128");
-        assert_eq!(format!("{}", IRType::u1()), "u1");
-        assert_eq!(format!("{}", IRType::u2()), "u2");
-        assert_eq!(format!("{}", IRType::u8()), "u8");
-        assert_eq!(format!("{}", IRType::u16()), "u16");
-        assert_eq!(format!("{}", IRType::u32()), "u32");
-        assert_eq!(format!("{}", IRType::u64()), "u64");
-        assert_eq!(format!("{}", IRType::u128()), "u128");
-        assert_eq!(format!("{}", IRType::f16()), "f16");
-        assert_eq!(format!("{}", IRType::f32()), "f32");
-        assert_eq!(format!("{}", IRType::f64()), "f64");
-        assert_eq!(format!("{}", IRType::f128()), "f128");
-        assert_eq!(format!("{}", IRType::array(IRType::i32(), 10)), "[i32; 10]");
-        assert_eq!(format!("{}", IRType::array(IRType::array(IRType::i32(), 10), 3)), "[[i32; 10]; 3]");
-        assert_eq!(format!("{}", IRType::ptr(IRType::ptr(IRType::f64()))), "**f64");
-        assert_eq!(format!("{}", IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64())), "(i32, f64) -> f64");
-        assert_eq!(format!("{}", IRType::tuple(vec![IRType::i32(), IRType::f64()])), "(i32, f64)");
-        assert_eq!(format!("{}", IRType::stc(vec![IRType::i32(), IRType::f64()])), "struct {i32, f64}");
+        assert_eq!(format!("{}", Types::i8()), "i8");
+        assert_eq!(format!("{}", Types::i16()), "i16");
+        assert_eq!(format!("{}", Types::i32()), "i32");
+        assert_eq!(format!("{}", Types::i64()), "i64");
+        assert_eq!(format!("{}", Types::i128()), "i128");
+        assert_eq!(format!("{}", Types::u1()), "u1");
+        assert_eq!(format!("{}", Types::u2()), "u2");
+        assert_eq!(format!("{}", Types::u8()), "u8");
+        assert_eq!(format!("{}", Types::u16()), "u16");
+        assert_eq!(format!("{}", Types::u32()), "u32");
+        assert_eq!(format!("{}", Types::u64()), "u64");
+        assert_eq!(format!("{}", Types::u128()), "u128");
+        assert_eq!(format!("{}", Types::f16()), "f16");
+        assert_eq!(format!("{}", Types::f32()), "f32");
+        assert_eq!(format!("{}", Types::f64()), "f64");
+        assert_eq!(format!("{}", Types::f128()), "f128");
+        assert_eq!(format!("{}", Types::array(Types::i32(), 10)), "[i32; 10]");
+        assert_eq!(format!("{}", Types::array(Types::array(Types::i32(), 10), 3)), "[[i32; 10]; 3]");
+        assert_eq!(format!("{}", Types::ptr(Types::ptr(Types::f64()))), "**f64");
+        assert_eq!(format!("{}", Types::func(vec![Types::i32(), Types::f64()], Types::f64())), "(i32, f64) -> f64");
+        assert_eq!(format!("{}", Types::tuple(vec![Types::i32(), Types::f64()])), "(i32, f64)");
+        assert_eq!(format!("{}", Types::stc(vec![Types::i32(), Types::f64()])), "struct {i32, f64}");
     }
 
     #[test]
     fn type_eq() {
-        assert_eq!(IRType::i8(), IRType::i8());
-        assert_eq!(IRType::array(IRType::i32(), 6), IRType::array(IRType::i32(), 6));
+        assert_eq!(Types::i8(), Types::i8());
+        assert_eq!(Types::array(Types::i32(), 6), Types::array(Types::i32(), 6));
     }
 
     #[test]
     fn type_size() {
 
-        assert_eq!(IRType::i8().size(), 1);
-        assert_eq!(IRType::i16().size(), 2);
-        assert_eq!(IRType::i32().size(), 4);
-        assert_eq!(IRType::i64().size(), 8);
-        assert_eq!(IRType::i128().size(), 16);
-        assert_eq!(IRType::u1().size(), 1);
-        assert_eq!(IRType::u8().size(), 1);
-        assert_eq!(IRType::u16().size(), 2);
-        assert_eq!(IRType::u32().size(), 4);
-        assert_eq!(IRType::u64().size(), 8);
-        assert_eq!(IRType::u128().size(), 16);
-        assert_eq!(IRType::f16().size(), 2);
-        assert_eq!(IRType::f32().size(), 4);
-        assert_eq!(IRType::f64().size(), 8);
-        assert_eq!(IRType::f128().size(), 16);
+        assert_eq!(Types::i8().size(), 1);
+        assert_eq!(Types::i16().size(), 2);
+        assert_eq!(Types::i32().size(), 4);
+        assert_eq!(Types::i64().size(), 8);
+        assert_eq!(Types::i128().size(), 16);
+        assert_eq!(Types::u1().size(), 1);
+        assert_eq!(Types::u8().size(), 1);
+        assert_eq!(Types::u16().size(), 2);
+        assert_eq!(Types::u32().size(), 4);
+        assert_eq!(Types::u64().size(), 8);
+        assert_eq!(Types::u128().size(), 16);
+        assert_eq!(Types::f16().size(), 2);
+        assert_eq!(Types::f32().size(), 4);
+        assert_eq!(Types::f64().size(), 8);
+        assert_eq!(Types::f128().size(), 16);
 
-        assert_eq!(IRType::array(IRType::i32(), 10).size(), 10 * 4);
-        assert_eq!(IRType::array(IRType::array(IRType::i32(), 10), 3).size(), 3 * 10 * 4);
-        assert_eq!(IRType::ptr(IRType::f64()).size(), mem::size_of::<usize>());
+        assert_eq!(Types::array(Types::i32(), 10).size(), 10 * 4);
+        assert_eq!(Types::array(Types::array(Types::i32(), 10), 3).size(), 3 * 10 * 4);
+        assert_eq!(Types::ptr(Types::f64()).size(), mem::size_of::<usize>());
 
-        IRType::set_ptr_size(4);
-        assert_eq!(IRType::ptr(IRType::f64()).size(), 4);
-        assert_eq!(IRType::array(IRType::ptr(IRType::i32()), 5).size(), 4 * 5);
-        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).size(), 8);
-        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).size(), 4);
-        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).size(), 4);
+        Types::set_ptr_size(4);
+        assert_eq!(Types::ptr(Types::f64()).size(), 4);
+        assert_eq!(Types::array(Types::ptr(Types::i32()), 5).size(), 4 * 5);
+        assert_eq!(Types::tuple(vec![Types::i32(), Types::f32()]).size(), 8);
+        assert_eq!(Types::func(vec![Types::i32(), Types::f64()], Types::f64()).size(), 4);
+        assert_eq!(Types::stc(vec![Types::i32(), Types::f32()]).size(), 4);
     } 
 
 
     #[test]
     fn type_scale() {
-        assert_eq!(IRType::i32().scale(), vec![32]);
-        assert_eq!(IRType::u1().scale(), vec![1]);
-        assert_eq!(IRType::u7().scale(), vec![7]);
+        assert_eq!(Types::i32().scale(), vec![32]);
+        assert_eq!(Types::u1().scale(), vec![1]);
+        assert_eq!(Types::u7().scale(), vec![7]);
 
-        assert_eq!(IRType::array(IRType::i32(), 5).scale(), vec![32, 32, 32, 32, 32]);
-        assert_eq!(IRType::array(IRType::array(IRType::i32(), 5), 3).scale(), vec![160, 160, 160]);
-        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).scale(), vec![32, 32]);
-        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).scale(), vec![64]);
+        assert_eq!(Types::array(Types::i32(), 5).scale(), vec![32, 32, 32, 32, 32]);
+        assert_eq!(Types::array(Types::array(Types::i32(), 5), 3).scale(), vec![160, 160, 160]);
+        assert_eq!(Types::tuple(vec![Types::i32(), Types::f32()]).scale(), vec![32, 32]);
+        assert_eq!(Types::stc(vec![Types::i32(), Types::f32()]).scale(), vec![64]);
         
-        IRType::set_ptr_size(4);
-        assert_eq!(IRType::ptr(IRType::f64()).scale(), vec![32]);
-        assert_eq!(IRType::array(IRType::ptr(IRType::i32()), 5).scale(), vec![32, 32, 32, 32, 32]);
-        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).scale(), vec![32]);
+        Types::set_ptr_size(4);
+        assert_eq!(Types::ptr(Types::f64()).scale(), vec![32]);
+        assert_eq!(Types::array(Types::ptr(Types::i32()), 5).scale(), vec![32, 32, 32, 32, 32]);
+        assert_eq!(Types::func(vec![Types::i32(), Types::f64()], Types::f64()).scale(), vec![32]);
     }
 
 
     #[test]
     fn type_types() {
-        assert_eq!(IRType::i32().types(), vec![IRType::i32()]);
-        assert_eq!(IRType::array(IRType::i32(), 5).types(), vec![IRType::i32(), IRType::i32(), IRType::i32(), IRType::i32(), IRType::i32()]);
-        assert_eq!(IRType::array(IRType::array(IRType::i32(), 5), 3).types(), vec![IRType::array(IRType::i32(), 5), IRType::array(IRType::i32(), 5), IRType::array(IRType::i32(), 5)]);
-        assert_eq!(IRType::tuple(vec![IRType::i32(), IRType::f32()]).types(), vec![IRType::i32(), IRType::f32()]);
-        assert_eq!(IRType::stc(vec![IRType::i32(), IRType::f32()]).types(), vec![IRType::i32(), IRType::f32()]);
-        assert_eq!(IRType::func(vec![IRType::i32(), IRType::f64()], IRType::f64()).types(), vec![IRType::i32(), IRType::f64(), IRType::f64()]);
+        assert_eq!(Types::i32().types(), vec![Types::i32()]);
+        assert_eq!(Types::array(Types::i32(), 5).types(), vec![Types::i32(), Types::i32(), Types::i32(), Types::i32(), Types::i32()]);
+        assert_eq!(Types::array(Types::array(Types::i32(), 5), 3).types(), vec![Types::array(Types::i32(), 5), Types::array(Types::i32(), 5), Types::array(Types::i32(), 5)]);
+        assert_eq!(Types::tuple(vec![Types::i32(), Types::f32()]).types(), vec![Types::i32(), Types::f32()]);
+        assert_eq!(Types::stc(vec![Types::i32(), Types::f32()]).types(), vec![Types::i32(), Types::f32()]);
+        assert_eq!(Types::func(vec![Types::i32(), Types::f64()], Types::f64()).types(), vec![Types::i32(), Types::f64(), Types::f64()]);
     }
 
 }
