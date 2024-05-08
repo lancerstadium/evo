@@ -498,14 +498,14 @@ impl CPUThread {
         self.registers.len()
     }
 
-    /// Get pc: ABI x2 is pc
+    /// Get pc: ABI pc
     pub fn get_pc(&self) -> Value {
-        self.get_nreg("x2")
+        self.get_nreg("pc")
     }
 
-    /// Set pc: ABI x2 is pc
+    /// Set pc: ABI pc
     pub fn set_pc(&self, value: Value) {
-        self.set_nreg("x2", value)
+        self.set_nreg("pc", value)
     }
 
     // ================= CPUThread.stark ================== //

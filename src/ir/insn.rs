@@ -22,6 +22,32 @@ use crate::ir::val::Value;
 /// `Instruction`: IR instruction
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
+    /// ### Instruction flag
+    /// ```txt
+    /// (0-7):
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ │ ├─┘
+    /// │ │ │ │ │ │ └──── (0-1) 00 is 16-bit, 01 is 32-bit, 10 is 64-bit, 11 is 128-bit
+    /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
+    /// │ │ │ │ └──────── (3) 0: all signed operands, 1: have unsigned operands
+    /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: <Reserved>
+    /// │ │ │ │         │ (4-7) 0010: COND_EQ, 0011: COND_NE
+    /// ├─┴─┴─┘         │ (4-7) 0100: COND_LT, 0101: COND_GE
+    /// └───────────────┴ (4-7) 0110: COND_LE, 0111: COND_GT
+    /// (8-15):
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ │ │ └── (8) 0: is not branch, 1: is branch
+    /// │ │ │ │ │ │ └──── (9) 0: is not jump, 1: is jump
+    /// │ │ │ │ │ └────── (10) 0: is not exit, 1: is exit
+    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ └────────── <Reserved>
+    /// │ │ └──────────── <Reserved>
+    /// │ └────────────── <Reserved>
+    /// └──────────────── <Reserved>
+    /// ```
+    pub flag: u16,
     pub opc : Opcode,
     pub opr : Vec<Operand>,
     pub opb : &'static str,
@@ -29,6 +55,31 @@ pub struct Instruction {
     pub arch : Arch,
     pub is_applied : bool,
 }
+/// all signed operands
+pub const OPRS_SIG: u16 = 0b0000;
+/// have unsigned operands
+pub const OPRS_USD: u16 = 0b1000;
+/// no condition
+pub const COND_NO: u16 = 0b0000_0000;
+/// x == y
+pub const COND_EQ: u16 = 0b0001_0000;
+/// x != y
+pub const COND_NE: u16 = 0b0010_0000;
+/// x < y
+pub const COND_LT: u16 = 0b0100_0000;
+/// x >= y
+pub const COND_GE: u16 = 0b0101_0000;
+/// x <= y
+pub const COND_LE: u16 = 0b0110_0000;
+/// x > y
+pub const COND_GT: u16 = 0b0111_0000;
+/// is branch insn
+pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
+/// is jump insn
+pub const INSN_JP: u16 = 0b0000_0010_0000_0000;
+/// is exit insn
+pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
+
 
 impl Instruction {
 
@@ -43,6 +94,7 @@ impl Instruction {
     /// Get Undef Insn
     pub fn undef() -> Instruction {
         Instruction {
+            flag: 0,
             opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
@@ -53,9 +105,10 @@ impl Instruction {
     }
 
     /// Define Instruction Temp and add to pool
-    pub fn def(arch: &Arch, name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> Instruction {
+    pub fn def(arch: &Arch, name: &'static str, flag: u16, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> Instruction {
         let opc = Opcode::new(name, syms, ty);
         let insn = Instruction {
+            flag: flag,
             opc: opc.clone(),
             opr: Vec::new(),
             opb,

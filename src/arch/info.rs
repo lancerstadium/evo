@@ -15,6 +15,7 @@ use std::cell::RefCell;
 pub struct ArchMode {
     /// ### Arch Mode flag
     /// ```txt
+    /// (0-7):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
     /// │ │ │ │ │ │ ├─┘
@@ -26,24 +27,24 @@ pub struct ArchMode {
     /// │ └────────────── <Reserved>
     /// └──────────────── <Reserved>
     /// ```
-    pub flag: u8,
+    pub flag: u16,
 
 }
 
-impl ArchMode {
+pub const BIT128: u16 = 0b11;
+pub const BIT64: u16 = 0b10;
+pub const BIT32: u16 = 0b01;
+pub const BIT16: u16 = 0b00;
+pub const LITTLE_ENDIAN: u16 = 0b000;
+pub const BIG_ENDIAN: u16 = 0b100;
 
-    pub const BIT128: u8 = 0b11;
-    pub const BIT64: u8 = 0b10;
-    pub const BIT32: u8 = 0b01;
-    pub const BIT16: u8 = 0b00;
-    pub const LITTLE_ENDIAN: u8 = 0b000;
-    pub const BIG_ENDIAN: u8 = 0b100;
+impl ArchMode {
     
-    pub const fn new(flag: u8) -> Self {
+    pub const fn new(flag: u16) -> Self {
         Self { flag }
     }
 
-    pub const fn width_flag(&self) -> u8 {
+    pub const fn width_flag(&self) -> u16 {
         self.flag & 0b0000_0011
     }
 
@@ -197,7 +198,7 @@ impl Arch {
 
     // ==================== Arch.ctl ======================= //
 
-    pub const fn new(kind: ArchKind, mode_flag: u8, reg_num: usize) -> Self {
+    pub const fn new(kind: ArchKind, mode_flag: u16, reg_num: usize) -> Self {
         let mode = ArchMode::new(mode_flag);
         let name = ArchKind::to_string(&kind);
         Self {
@@ -300,7 +301,7 @@ impl fmt::Display for Arch {
 
 impl default::Default for Arch {
     fn default() -> Self {
-        Arch::new(ArchKind::EVO, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32)
+        Arch::new(ArchKind::EVO, BIT32 | LITTLE_ENDIAN, 32)
     }
 }
 
@@ -334,7 +335,7 @@ mod arch_info_test {
     #[test]
     fn arch_from() {
 
-        let arch = Arch::new(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
+        let arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 32);
         let arch = Arch::def(arch);
         println!("{}", arch);
         println!("{}", Arch::pool_info());

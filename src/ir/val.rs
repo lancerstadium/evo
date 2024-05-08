@@ -36,7 +36,7 @@ pub struct Value {
     /// │ └────────────── <reserved>
     /// └──────────────── <reserved>
     /// ```
-    pub flag: u8
+    pub flag: u16
 }
 
 impl Value {
@@ -152,9 +152,9 @@ impl Value {
     /// Set align mode: if set this use scale to search
     pub fn set_align(&mut self, is_align: bool) {
         if is_align {
-            self.flag |= 0b0001_0000;
+            self.flag |= 0x0010;
         } else {
-            self.flag &= 0b1110_1111;
+            self.flag &= 0xffef;
         }
     }
 

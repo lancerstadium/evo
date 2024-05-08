@@ -8,7 +8,7 @@ use std::cell::RefCell;
 
 use crate::log_warning;
 use crate::util::log::Span;
-use crate::arch::info::{Arch, ArchKind, ArchMode};
+use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
 use crate::ir::val::Value;
 use crate::ir::insn::Instruction;
 use crate::ir::itp::Interpreter;
@@ -17,7 +17,7 @@ use crate::ir::mem::CPUThreadStatus;
 
 
 
-pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
+pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 33);
 
 
 
@@ -57,12 +57,13 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     Instruction::reg("x29", Value::bit(5, 29));
     Instruction::reg("x30", Value::bit(5, 30));
     Instruction::reg("x31", Value::bit(5, 31));
+    Instruction::reg("pc" , Value::bit(5, 32));
 
     // 3. Init insns & insns interpreter
     let itp = Interpreter::def(&RISCV32_ARCH);
     // RISCV Instruction Format:                                           32|31  25|24 20|19 15|  |11  7|6    0|
     // Type: R                                [rd, rs1, rs2]                 |  f7  | rs2 | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("add" , vec![1, 1, 1], "R", "0B0000000. ........ .000.... .0110011", 
+    itp.borrow_mut().def_insn("add" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .000.... .0110011", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
             if !insn.is_applied {
@@ -80,7 +81,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sub" , vec![1, 1, 1], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("sub" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0100000. ........ .000.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
             if !insn.is_applied {
@@ -98,7 +99,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("or"  , vec![1, 1, 1], "R", "0B0000000. ........ .110.... .0110011",
+    itp.borrow_mut().def_insn("or"  , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .110.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 | rs2 ======== //
             if !insn.is_applied {
@@ -116,7 +117,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("xor" , vec![1, 1, 1], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("xor" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .100.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
             if !insn.is_applied {
@@ -134,7 +135,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("and" , vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011",
+    itp.borrow_mut().def_insn("and" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 & rs2 ======== //
             if !insn.is_applied {
@@ -152,7 +153,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("sll" , vec![1, 1, 1], "R", "0B0000000. ........ .001.... .0110011",
+    itp.borrow_mut().def_insn("sll" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .001.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 << rs2 ======== //
             if !insn.is_applied {
@@ -170,7 +171,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srl" , vec![1, 1, 1], "R", "0B0000000. ........ .101.... .0110011",
+    itp.borrow_mut().def_insn("srl" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
             if !insn.is_applied {
@@ -188,7 +189,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("sra" , vec![1, 1, 1], "R", "0B0100000. ........ .101.... .0110011",
+    itp.borrow_mut().def_insn("sra" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0100000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
             if !insn.is_applied {
@@ -206,7 +207,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("slt" , vec![1, 1, 1], "R", "0B0000000. ........ .010.... .0110011",
+    itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .010.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
             if !insn.is_applied {
@@ -224,7 +225,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sltu", vec![1, 1, 1], "R", "0B0000000. ........ .011.... .0110011",
+    itp.borrow_mut().def_insn("sltu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .011.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
             if !insn.is_applied {
@@ -243,7 +244,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: I                                [rd, rs1, imm]                 |    imm     | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("addi", vec![1, 1, 0], "I", "0B........ ........ .000.... .0010011",
+    itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 + imm ======== //
             if !insn.is_applied {
@@ -261,7 +262,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("xori", vec![1, 1, 0], "I", "0B........ ........ .100.... .0010011",
+    itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .100.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 ^ imm ======== //
             if !insn.is_applied {
@@ -279,7 +280,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("ori" , vec![1, 1, 0], "I", "0B........ ........ .110.... .0010011",
+    itp.borrow_mut().def_insn("ori" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .110.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 | imm ======== //
             if !insn.is_applied {
@@ -297,7 +298,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("andi", vec![1, 1, 0], "I", "0B........ ........ .111.... .0010011",
+    itp.borrow_mut().def_insn("andi", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .111.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 & imm ======== //
             if !insn.is_applied {
@@ -315,7 +316,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("slli", vec![1, 1, 0], "I", "0B0000000. ........ .001.... .0010011",
+    itp.borrow_mut().def_insn("slli", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0000000. ........ .001.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 << imm[0:4] ======= //
             if !insn.is_applied {
@@ -333,7 +334,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srli", vec![1, 1, 0], "I", "0B0000000. ........ .101.... .0010011",
+    itp.borrow_mut().def_insn("srli", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0000000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
             if !insn.is_applied {
@@ -351,7 +352,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srai", vec![1, 1, 0], "I", "0B0100000. ........ .101.... .0010011",
+    itp.borrow_mut().def_insn("srai", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0100000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
             if !insn.is_applied {
@@ -369,7 +370,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("slti", vec![1, 1, 0], "I", "0B........ ........ .010.... .0010011",
+    itp.borrow_mut().def_insn("slti", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .010.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
             if !insn.is_applied {
@@ -387,7 +388,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sltiu",vec![1, 1, 0], "I", "0B........ ........ .011.... .0010011",
+    itp.borrow_mut().def_insn("sltiu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .011.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
             if !insn.is_applied {
@@ -405,7 +406,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("lb", vec![1, 1, 0], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("lb", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -423,7 +424,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lh", vec![1, 1, 0], "I", "0B........ ........ .001.... .0000011", 
+    itp.borrow_mut().def_insn("lh", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .001.... .0000011", 
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -441,7 +442,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lw", vec![1, 1, 0], "I", "0B........ ........ .010.... .0000011",
+    itp.borrow_mut().def_insn("lw", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .010.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -459,7 +460,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lbu", vec![1, 1, 0], "I", "0B........ ........ .100.... .0000011",
+    itp.borrow_mut().def_insn("lbu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .100.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -477,7 +478,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
     );
-    itp.borrow_mut().def_insn("lhu", vec![1, 1, 0], "I", "0B........ ........ .101.... .0000011",
+    itp.borrow_mut().def_insn("lhu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .101.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -495,7 +496,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
     );
-    itp.borrow_mut().def_insn("jalr", vec![1, 1, 0], "I", "0B........ ........ .000.... .1100111",
+    itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .1100111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = rs1 + imm ======== //
             if !insn.is_applied {
@@ -513,7 +514,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_pc(Value::i32(rs1 + imm));
         }
     );
-    itp.borrow_mut().def_insn("ecall", vec![], "I", "0B00000000 0000.... .000.... .1110111",
+    itp.borrow_mut().def_insn("ecall", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0000.... .000.... .1110111",
         |cpu, insn| {
             // ======== ecall ======== //
             if !insn.is_applied {
@@ -525,7 +526,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_status(CPUThreadStatus::Blocked);
         }
     );
-    itp.borrow_mut().def_insn("ebreak", vec![], "I", "0B00000000 0001.... .000.... .1110111",
+    itp.borrow_mut().def_insn("ebreak", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0001.... .000.... .1110111",
         |cpu, insn| {
             // ======== ebreak ======== //
             if !insn.is_applied {
@@ -538,7 +539,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type:S 
-    itp.borrow_mut().def_insn("sb", vec![1, 1, 0], "S", "0B........ ........ .000.... .0100011",
+    itp.borrow_mut().def_insn("sb", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .000.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -556,7 +557,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.write_mem((rs1 + imm) as usize, Value::i8(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sh", vec![1, 1, 0], "S", "0B........ ........ .001.... .0100011",
+    itp.borrow_mut().def_insn("sh", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .001.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -574,7 +575,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.write_mem((rs1 + imm) as usize, Value::i16(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sw", vec![1, 1, 0], "S", "0B........ ........ .010.... .0100011",
+    itp.borrow_mut().def_insn("sw", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .010.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -593,7 +594,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: B
-    itp.borrow_mut().def_insn("beq", vec![1, 1, 0], "B", "0B........ ........ .000.... .1100011",
+    itp.borrow_mut().def_insn("beq", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .000.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 == rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -613,7 +614,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bne", vec![1, 1, 0], "B", "0B........ ........ .001.... .1100011",
+    itp.borrow_mut().def_insn("bne", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .001.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 != rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -633,7 +634,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("blt", vec![1, 1, 0], "B", "0B........ ........ .100.... .1100011",
+    itp.borrow_mut().def_insn("blt", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .100.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -653,7 +654,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bge", vec![1, 1, 0], "B", "0B........ ........ .101.... .1100011",
+    itp.borrow_mut().def_insn("bge", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .101.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -673,7 +674,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bltu", vec![1, 1, 0], "B", "0B........ ........ .110.... .1100011",
+    itp.borrow_mut().def_insn("bltu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .110.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -693,7 +694,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bgeu", vec![1, 1, 0], "B", "0B........ ........ .111.... .1100011",
+    itp.borrow_mut().def_insn("bgeu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .111.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -714,7 +715,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: U
-    itp.borrow_mut().def_insn("lui", vec![1, 0], "U", "0B........ ........ ........ .0110111",
+    itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0110111",
         |cpu, insn| {
             // ======== rd = imm << 12 ======== //
             if !insn.is_applied {
@@ -728,7 +729,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(imm << 12));
         }
     );
-    itp.borrow_mut().def_insn("auipc", vec![1, 0], "U", "0B........ ........ ........ .0010111",
+    itp.borrow_mut().def_insn("auipc", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0010111",
         |cpu, insn| {
             // ======== rd = pc + imm << 12 ======== //
             if !insn.is_applied {
@@ -743,7 +744,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: J
-    itp.borrow_mut().def_insn("jal", vec![1, 0], "J", "0B........ ........ ........ .1101111",
+    itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![1, 0], "J", "0B........ ........ ........ .1101111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = pc + imm ======== //
             if !insn.is_applied {
