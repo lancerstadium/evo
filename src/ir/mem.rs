@@ -34,7 +34,7 @@ use libc::{c_void, MAP_PRIVATE, MAP_ANONYMOUS, PROT_READ, PROT_WRITE, MAP_FAILED
 
 #[cfg(not(feature = "no-log"))]
 use colored::*;
-
+use crate::arch::info::Arch;
 // use crate::util::log::Span;
 use crate::ir::val::Value;
 // use crate::log_error;
@@ -367,10 +367,10 @@ impl CPUThread {
         let thread_ptr = Self::pool_last().1;
         thread_ptr.borrow_mut().id = Self::CPU_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
         let mut init_regs = Vec::new();
-        if CPUState::is_32() {
-            init_regs = (0..CPUState::reg_num()).map(|_| Rc::new(RefCell::new(Value::i32(0)))).collect::<Vec<_>>();
-        } else if CPUState::is_64() {
-            init_regs = (0..CPUState::reg_num()).map(|_| Rc::new(RefCell::new(Value::i64(0)))).collect::<Vec<_>>();
+        if CPUState::is_ir_32() {
+            init_regs = (0..CPUState::ir_reg_num()).map(|_| Rc::new(RefCell::new(Value::i32(0)))).collect::<Vec<_>>();
+        } else if CPUState::is_ir_64() {
+            init_regs = (0..CPUState::ir_reg_num()).map(|_| Rc::new(RefCell::new(Value::i64(0)))).collect::<Vec<_>>();
         }
         thread_ptr.borrow_mut().registers.extend(init_regs);
         Self::pool_last().0
@@ -422,7 +422,7 @@ impl CPUThread {
                 info.push_str(&format!("├─────┼─────┼──────┼───────────┼─────────┤\n"));
                 info.push_str(&format!("│ {:^3} │ {:^3} │ {:>3}  │ {:^9} │ {:^16} │\n", 
                     thread.id, thread.proc_id, 
-                    thread.reg_num(), stk_fmt, 
+                    thread.ir_reg_num(), stk_fmt, 
                     thread.status.to_string()
                 ));
             }
@@ -459,9 +459,9 @@ impl CPUThread {
 
     /// set reg zero
     pub fn set_reg_zero(&self, index: usize) {
-        if CPUState::is_32() {
+        if CPUState::is_ir_32() {
             self.registers[index].replace(Value::u32(0));
-        } else if CPUState::is_64() {
+        } else if CPUState::is_ir_64() {
             self.registers[index].replace(Value::u64(0));
         }
     }
@@ -483,7 +483,7 @@ impl CPUThread {
     }
 
     /// get reg num
-    pub fn reg_num(&self) -> usize {
+    pub fn ir_reg_num(&self) -> usize {
         self.registers.len()
     }
 
@@ -581,6 +581,8 @@ impl cmp::PartialEq for CPUThread {
 /// `CPUProcess`: Process Handle (Global Thread): contains (Code Segment, Data Segment, threads)
 #[derive(Debug, Clone, PartialEq)]
 pub struct CPUProcess {
+    /// `arch`: CPU Process arch
+    pub arch: &'static Arch,
     /// `id`: Process ID
     pub id: usize,
     /// `name`: Process Name
@@ -605,11 +607,12 @@ impl CPUProcess {
     // ================= CPUProcess.ctl =================== //
 
     /// Init `CPUProcess`
-    pub fn init(name: &'static str) -> Rc<RefCell<CPUProcess>> {
+    pub fn init(arch: &'static Arch) -> Rc<RefCell<CPUProcess>> {
         let proc : CPUProcess;
         proc = Self {
+            arch,
             id:0,
-            name,
+            name: arch.name,
             code_segment: Rc::new(RefCell::new(Vec::new())),
             mem_segment: Rc::new(RefCell::new(Value::default())),
             threads_id: Rc::new(RefCell::new(Vec::new())),
@@ -643,9 +646,9 @@ impl CPUProcess {
         let thread_id = CPUThread::init(proc.borrow().id);
         proc.borrow_mut().threads_id.borrow_mut().push(thread_id);
         proc.borrow_mut().cur_thread = CPUThread::pool_get(thread_id);
-        if CPUState::is_32() {
+        if CPUState::is_ir_32() {
             proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u32(), CPUState::MEM_SIZE / 4));
-        } else if CPUState::is_64() {
+        } else if CPUState::is_ir_64() {
             proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u64(), CPUState::MEM_SIZE / 8));
         }
         Self::pool_last().0
@@ -750,7 +753,7 @@ impl CPUProcess {
             self.name, self.code_segment.borrow().len(), 
             self.mem_segment.borrow().scale_sum() / 8, CPUState::MEM_SIZE,
             self.threads_id.borrow().clone(), 
-            self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num(), 
+            self.cur_thread.borrow().id, self.cur_thread.borrow().ir_reg_num(), 
             self.cur_thread.borrow().stack_scale(), CPUState::STACK_SIZE));
         info
     }
@@ -774,7 +777,7 @@ impl CPUProcess {
     /// Write mem value: by 32 or 64-bit / index
     pub fn write_mem(&self, index: usize, value: Value) {
         let idx :usize;
-        if CPUState::is_64() {
+        if CPUState::is_ir_64() {
             idx = index * 8;
         } else {
             idx = index * 4;
@@ -794,7 +797,7 @@ impl CPUProcess {
         }
         let idx :usize;
         let scale :usize;
-        if CPUState::is_64() {
+        if CPUState::is_ir_64() {
             idx = index * 8;
             scale = 64;
         } else {
@@ -890,8 +893,8 @@ impl CPUProcess {
     }
 
     /// get reg num
-    pub fn reg_num(&self) -> usize {
-        self.cur_thread.borrow().reg_num()
+    pub fn ir_reg_num(&self) -> usize {
+        self.cur_thread.borrow().ir_reg_num()
     }
 
     /// Set reg pc
@@ -928,4 +931,3 @@ impl CPUProcess {
         self.cur_thread.borrow().status().clone()
     }
 }
-

@@ -2,16 +2,18 @@
 //! 
 //!
 
+
 // ============================================================================== //
 //                                 Use Mods
 // ============================================================================== //
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::arch::evo::def::EVO_ARCH;
+use crate::arch::riscv::def::RISCV32_ARCH;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::arch::info::Arch;
-use crate::arch::evo::def::{EVO_ARCH, evo_itp_init};
 use crate::ir::val::Value;
 use crate::ir::insn::Instruction;
 use crate::ir::mem::CPUProcess;
@@ -30,7 +32,8 @@ pub trait CPUConfig {
 
     // ====================== Const ====================== //
 
-    const ARCH: Arch;
+    /// IR Architecture
+    const IR_ARCH : Arch;
     /// Base of Addr: 0x04000000
     const BASE_ADDR: usize;
     /// Mem size: default 4MB = 4 * 1024 * 1024
@@ -49,18 +52,18 @@ pub trait CPUConfig {
 /// `CPUState`: Context of the `evo-ir` architecture
 #[derive(Clone, PartialEq)]
 pub struct CPUState {
+    pub src_arch: &'static Arch,
     /// `proc`: Process Handle
     pub proc: Rc<RefCell<CPUProcess>>,
-    /// `itp`: Interpreter
+    /// `itp`: EVO IR Interpreter
     pub itp: Option<Rc<RefCell<Interpreter>>>,
 }
 
 impl CPUConfig for CPUState {
 
     // =================== IRCtx.const ===================== //
-
-    const ARCH: Arch = EVO_ARCH;
     // Set Constants
+    const IR_ARCH : Arch = EVO_ARCH;
     const BASE_ADDR: usize = 0x04000000;
     const MEM_SIZE: usize = 4 * 1024 * 1024;
     const STACK_SIZE: usize = 1 * 1024 * 1024;
@@ -72,10 +75,11 @@ impl CPUState {
     // =================== IRCtx.ctl ======================= //
 
     /// Init a `CPUState`
-    pub fn init() -> Self {
+    pub fn init(src_arch: &'static Arch) -> Self {
         let cpu = Self {
-            proc: CPUProcess::init(Self::name()),
-            itp: evo_itp_init()
+            src_arch,
+            proc: CPUProcess::init(src_arch),
+            itp: Interpreter::itp_pool_init(&Self::IR_ARCH),
         };
         cpu
     }
@@ -89,29 +93,38 @@ impl CPUState {
 
     // =================== IRCtx.get ======================= //
 
+    /// Get ir name
+    pub const fn ir_name() -> &'static str {
+        Self::IR_ARCH.name
+    }
+
+    /// Get ir reg num
+    pub const fn ir_reg_num() -> usize {
+        Self::IR_ARCH.reg_num
+    }
+
+    /// Get ir Arch
+    pub const fn ir_arch() -> &'static Arch {
+        &Self::IR_ARCH
+    }
+
+    /// Get guest/source Arch Rc
+    pub const fn src_arch(&self) -> &'static Arch {
+        self.src_arch
+    }
     /// Get Arch string
-    pub fn to_string () -> String {
-        format!("{}", Self::name())
+    pub fn to_string (&self) -> String {
+        format!("{}", self.src_arch)
     }
 
     /// Get CPUConfig string
-    pub fn info() -> String {
-        format!("{}", Self::ARCH)
+    pub fn info(&self) -> String {
+        format!("src: {}, ir: {}", self.src_arch, Self::ir_name())
     }
 
-    /// Get Name
-    pub const fn name() -> &'static str {
-        Self::ARCH.name
-    }
-
-    /// Get reg num
-    pub const fn reg_num() -> usize {
-        Self::ARCH.reg_num
-    }
-
-    /// Get Arch Rc
-    pub const fn arch() -> &'static Arch {
-        &Self::ARCH
+    /// Get src Name
+    pub const fn src_name(&self) -> &'static str {
+        self.src_arch.name
     }
 
     // =================== IRCtx.is ======================== //
@@ -122,13 +135,13 @@ impl CPUState {
     }
 
     /// Check if is_32
-    pub const fn is_32() -> bool {
-        Self::ARCH.mode.is_32bit()
+    pub const fn is_ir_32() -> bool {
+        Self::IR_ARCH.mode.is_32bit()
     }
 
     /// Check if is_64
-    pub const fn is_64() -> bool {
-        Self::ARCH.mode.is_64bit()
+    pub const fn is_ir_64() -> bool {
+        Self::IR_ARCH.mode.is_64bit()
     }
 
     /// Clear Temp Insn Pool
@@ -216,7 +229,7 @@ impl CPUState {
 impl Default for CPUState {
     /// Set default function for `CPUState`.
     fn default() -> Self {
-        Self::init()
+        Self::init(&RISCV32_ARCH)
     }
 }
 
@@ -237,7 +250,7 @@ mod cpu_test {
 
     #[test]
     fn insn_info() {
-        CPUState::init();
+        CPUState::init(&RISCV32_ARCH);
 
         let insn1 = Instruction::insn_pool_nget("sub").borrow().clone();
         println!("{}", insn1.info());
@@ -274,7 +287,7 @@ mod cpu_test {
 
     #[test]
     fn insn_decode() {
-        CPUState::init();
+        CPUState::init(&RISCV32_ARCH);
         let insn1 = Instruction::decode(Value::from_string("0B01000000 10000000 00001111 10110011"));  // sub x32, x0, x8
         println!("{}", insn1);
         let insn2 = Instruction::decode(Value::from_string("0B00000000 00001000 00110000 00110011"));  // sltu x0, x16, x0
@@ -285,7 +298,7 @@ mod cpu_test {
 
     #[test]
     fn mem_info() {
-        let cpu = CPUState::init();
+        let cpu = CPUState::init(&RISCV32_ARCH);
         let p0 = cpu.proc;
         println!("{}", CPUProcess::pool_info_tbl());
 
@@ -302,7 +315,7 @@ mod cpu_test {
         t4.borrow_mut().status = CPUThreadStatus::Unknown;
         
         p0.borrow_mut().set_thread(3);
-        let p1 = CPUProcess::init("test");
+        let p1 = CPUProcess::init(&RISCV32_ARCH);
         p1.borrow_mut().stack_push(Value::array(vec![Value::u64(1), Value::u64(2), Value::u64(3), Value::u64(4)]));
 
         let t5 = p0.borrow_mut().fork_thread();
@@ -317,7 +330,7 @@ mod cpu_test {
     #[test]
     fn cpu_info() {
         // println!("{}", CPUState::info());
-        let cpu = CPUState::init();
+        let cpu = CPUState::init(&RISCV32_ARCH);
 
         // Check pool info
         println!("{}", CPUState::pool_info());
@@ -339,7 +352,7 @@ mod cpu_test {
 
     #[test]
     fn cpu_excute() {
-        let cpu = CPUState::init();
+        let cpu = CPUState::init(&RISCV32_ARCH);
         cpu.set_nreg("x1", Value::i32(3));
         cpu.set_nreg("x2", Value::i32(5));
         cpu.set_nreg("x3", Value::i32(-32));

@@ -10,7 +10,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use crate::arch::evo::def::{EVO_ARCH, evo_itp_init};
 use crate::arch::info::Arch;
+use crate::arch::riscv::def::{riscv32_itp_init, RISCV32_ARCH};
 use crate::ir::cpu::CPUState;
 use crate::ir::insn::Instruction;
 
@@ -40,12 +42,13 @@ impl Interpreter {
     thread_local! {
         /// HashMap of insn interpreter functions pool
         pub static INTERP_FUNC_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static str), fn(&CPUState, &Instruction)>>> = Rc::new(RefCell::new(HashMap::new()));
+        pub static INTERP_POOL: Rc<RefCell<HashMap<&'static Arch, Rc<RefCell<Interpreter>>>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     // =================== IRItp.ctl ======================= //
 
-    /// Init a Interpreter
-    pub fn init(arch: &'static Arch) -> Interpreter {
+    /// Define a Interpreter and set in pool
+    pub fn def(arch: &'static Arch) -> Rc<RefCell<Interpreter>> {
         let v = Self { 
             arch,
             ift : Rc::new(RefCell::new(HashMap::new())),
@@ -54,17 +57,19 @@ impl Interpreter {
             #[cfg(feature = "perf")]
             insn_ident_size : 0
         };
-        v
+        // Store in pool
+        Self::itp_pool_set(arch, Rc::new(RefCell::new(v)));
+        Self::itp_pool_get(arch)
     }
 
     /// Define insn with func
     pub fn def_insn(&self, insn_name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str, func: fn(&CPUState, &Instruction)) {
         Instruction::def(self.arch, insn_name, syms, ty, opb);
-        self.def(insn_name, func);
+        self.def_func(insn_name, func);
     }
 
     /// Define an IRItp func
-    pub fn def(&self, insn_name: &'static str, func: fn(&CPUState, &Instruction)) {
+    pub fn def_func(&self, insn_name: &'static str, func: fn(&CPUState, &Instruction)) {
         Self::func_pool_nset(self.arch, insn_name, func);
     }
 
@@ -78,6 +83,38 @@ impl Interpreter {
 
 
     // =================== IRItp.pool ====================== //
+
+    /// route of itp pool
+    pub fn itp_pool_init(arch: &'static Arch) -> Option<Rc<RefCell<Interpreter>>> {
+        match *arch {
+            EVO_ARCH => evo_itp_init(),
+            RISCV32_ARCH => riscv32_itp_init(),
+            _ => None
+        }
+    }
+
+    pub fn itp_pool_is_in(arch: &'static Arch) -> bool {
+        Self::INTERP_POOL.with(|pool| pool.borrow().get(arch).is_some())
+    }
+
+    pub fn itp_pool_size() -> usize {
+        Self::INTERP_POOL.with(|pool| pool.borrow().len())
+    }
+
+    pub fn itp_pool_set(arch: &'static Arch, itp: Rc<RefCell<Interpreter>>) {
+        Self::INTERP_POOL.with(|pool| pool.borrow_mut().insert(arch, itp));
+    }
+
+    pub fn itp_pool_get(arch: &'static Arch) -> Rc<RefCell<Interpreter>> {
+        Self::INTERP_POOL.with(|pool| pool.borrow().get(arch).unwrap().clone())
+    }
+    pub fn itp_pool_del(arch: &'static Arch) {
+        Self::INTERP_POOL.with(|pool| pool.borrow_mut().remove(arch));
+    }
+
+    pub fn itp_pool_clr() {
+        Self::INTERP_POOL.with(|pool| pool.borrow_mut().clear());
+    }
 
     /// Get IRItp by name
     pub fn func_pool_nget(arch: &'static Arch, insn_name: &'static str) -> fn(&CPUState, &Instruction) {
@@ -134,4 +171,5 @@ impl Interpreter {
 
 
 }
+
 

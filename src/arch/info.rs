@@ -280,7 +280,7 @@ impl Arch {
 
     pub fn to_string (&self) -> String {
         match self.kind {
-            ArchKind::EVO => format!("evo{}", self.mode.width_to_string()),
+            ArchKind::EVO => format!("evo"),
             ArchKind::RISCV => format!("riscv{}", self.mode.width_to_string()),
             ArchKind::ARM => format!("arm{}", self.mode.width_to_string()),
             ArchKind::X86 => format!("x86_{}", self.mode.width_to_string()),

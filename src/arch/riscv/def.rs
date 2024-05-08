@@ -16,13 +16,12 @@ use crate::ir::mem::CPUThreadStatus;
 
 
 
-
-pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, ArchMode::BIT64 | ArchMode::LITTLE_ENDIAN, 128);
+pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
 
 
 
 /// Insn temp and Reg and Interpreter Pool Init
-pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
+pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
     // 2. Init regs pool
     Instruction::reg("x0", Value::bit(5, 0));
@@ -59,7 +58,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     Instruction::reg("x31", Value::bit(5, 31));
 
     // 3. Init insns & insns interpreter
-    let itp = Interpreter::def(&EVO_ARCH);
+    let itp = Interpreter::def(&RISCV32_ARCH);
     // RISCV Instruction Format:                                           32|31  25|24 20|19 15|  |11  7|6    0|
     // Type: R                                [rd, rs1, rs2]                 |  f7  | rs2 | rs1 |f3|  rd |  op  |
     itp.borrow_mut().def_insn("add" , vec![1, 1, 1], "R", "0B0000000. ........ .000.... .0110011", 
@@ -764,4 +763,19 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
 
     Some(itp)
+}
+
+
+
+#[cfg(test)]
+mod riscv_test {
+
+    use super::*;
+
+
+    #[test]
+    fn riscv_itp() {
+        let rv32_itp = Interpreter::itp_pool_init(&RISCV32_ARCH);
+        // rv32_itp.execute(cpu, insn);
+    }
 }
