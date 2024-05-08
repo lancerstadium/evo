@@ -24,7 +24,7 @@ use crate::ir::insn::Instruction;
 #[derive(Clone, PartialEq)]
 pub struct Interpreter {
     /// arch
-    pub arch: Arch,
+    pub arch: &'static Arch,
     /// Interface Function Table
     pub ift : Rc<RefCell<HashMap<usize, String>>>,
     /// Branch Instructions (For Branch Optimization)
@@ -39,13 +39,13 @@ impl Interpreter {
 
     thread_local! {
         /// HashMap of insn interpreter functions pool
-        pub static INTERP_FUNC_POOL: Rc<RefCell<HashMap<&'static str, fn(&CPUState, &Instruction)>>> = Rc::new(RefCell::new(HashMap::new()));
+        pub static INTERP_FUNC_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static str), fn(&CPUState, &Instruction)>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     // =================== IRItp.ctl ======================= //
 
     /// Init a Interpreter
-    pub fn init(arch: Arch) -> Interpreter {
+    pub fn init(arch: &'static Arch) -> Interpreter {
         let v = Self { 
             arch,
             ift : Rc::new(RefCell::new(HashMap::new())),
@@ -58,20 +58,20 @@ impl Interpreter {
     }
 
     /// Define insn with func
-    pub fn def_insn(&self, name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str, func: fn(&CPUState, &Instruction)) {
-        Instruction::def(&self.arch, name, syms, ty, opb);
-        Self::def(name, func);
+    pub fn def_insn(&self, insn_name: &'static str, syms: Vec<i32>, ty: &'static str, opb: &'static str, func: fn(&CPUState, &Instruction)) {
+        Instruction::def(self.arch, insn_name, syms, ty, opb);
+        self.def(insn_name, func);
     }
 
     /// Define an IRItp func
-    pub fn def(name: &'static str, func: fn(&CPUState, &Instruction)) {
-        Self::pool_set(name, func);
+    pub fn def(&self, insn_name: &'static str, func: fn(&CPUState, &Instruction)) {
+        Self::func_pool_nset(self.arch, insn_name, func);
     }
 
     /// Execute an instruction
     pub fn execute(&self, cpu: &CPUState, insn: &Instruction) {
         // 1. Get IRItp func
-        let func = Self::pool_get(insn.name());
+        let func = Self::func_pool_nget(self.arch, insn.name());
         // 2. Execute
         func(cpu, insn);
     }
@@ -80,51 +80,57 @@ impl Interpreter {
     // =================== IRItp.pool ====================== //
 
     /// Get IRItp by name
-    pub fn pool_get(name: &'static str) -> fn(&CPUState, &Instruction) {
+    pub fn func_pool_nget(arch: &'static Arch, insn_name: &'static str) -> fn(&CPUState, &Instruction) {
         Self::INTERP_FUNC_POOL.with(|pool| {
-            pool.borrow().get(name).unwrap().clone()
+            pool.borrow().get(&(arch, insn_name)).unwrap().clone()
         })
     }
 
     /// Set IRItp by name
-    pub fn pool_set(name: &'static str, func: fn(&CPUState, &Instruction)) {
+    pub fn func_pool_nset(arch: &'static Arch, insn_name: &'static str, func: fn(&CPUState, &Instruction)) {
         Self::INTERP_FUNC_POOL.with(|pool| {
-            pool.borrow_mut().insert(name, func);
+            pool.borrow_mut().insert((arch, insn_name), func);
         })
     }
 
     /// Delete IRItp by name
-    pub fn pool_del(name: &'static str) {
+    pub fn func_pool_ndel(arch: &'static Arch, insn_name: &'static str) {
         Self::INTERP_FUNC_POOL.with(|pool| {
-            pool.borrow_mut().remove(name);
+            pool.borrow_mut().remove(&(arch, insn_name));
         })
     }
 
+    /// Check is in pool
+    pub fn func_pool_is_in(arch: &'static Arch, insn_name: &'static str) -> bool {
+        Self::INTERP_FUNC_POOL.with(|pool| pool.borrow().get(&(arch, insn_name)).is_some())
+    }
+
+
+    /// Get IRItp pool size
+    pub fn func_pool_size() -> usize {
+        Self::INTERP_FUNC_POOL.with(|pool| pool.borrow().len())
+    }
+
+    /// Info of IRItp pool
+    pub fn func_pool_info() -> String {
+        let mut info = String::new();
+        info.push_str(&format!("Interpreter Func Pool(Nums={}): \n", Self::func_pool_size()));
+        // iter hashmap
+        Self::INTERP_FUNC_POOL.with(|pool| {
+            for (k, _) in pool.borrow().iter() {
+                info.push_str(&format!("- {:<10} [{}]\n", k.1, k.0));
+            }
+        });
+        info
+    }
+
     /// Clear IRItp pool
-    pub fn pool_clr() {
+    pub fn func_pool_clr() {
         Self::INTERP_FUNC_POOL.with(|pool| {
             pool.borrow_mut().clear();
         })
     }
-
-    /// Get IRItp pool size
-    pub fn pool_size() -> usize {
-        Self::INTERP_FUNC_POOL.with(|pool| pool.borrow().len())
-    }
-
-    /// Check is in pool
-    pub fn pool_is_in(name: &'static str) -> bool {
-        Self::INTERP_FUNC_POOL.with(|pool| pool.borrow().get(name).is_some())
-    }
-
-    /// Info of IRItp pool
-    pub fn pool_info() -> String {
-        let mut info = String::new();
-        info.push_str(&format!("Interpreter pool info: \n"));
-        info.push_str(&format!("  - size: {}\n", Self::pool_size()));
-        info
-    }
-
+    
 
 
 }

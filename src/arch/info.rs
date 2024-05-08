@@ -3,12 +3,15 @@
 //                                 Use Mods
 // ============================================================================== //
 use std::{default, fmt};
+use std::rc::Rc;
+use std::cell::RefCell;
+
 
 // ============================================================================== //
 //                                info::ArchMode
 // ============================================================================== //
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ArchMode {
     /// ### Arch Mode flag
     /// ```txt
@@ -17,11 +20,11 @@ pub struct ArchMode {
     /// │ │ │ │ │ │ ├─┘
     /// │ │ │ │ │ │ └──── (0-1) 00 is 16-bit, 01 is 32-bit, 10 is 64-bit, 11 is 128-bit
     /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │ └──────── Reserved
-    /// │ │ │ └────────── Reserved
-    /// │ │ └──────────── Reserved
-    /// │ └────────────── Reserved
-    /// └──────────────── Reserved
+    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ └────────── <Reserved>
+    /// │ │ └──────────── <Reserved>
+    /// │ └────────────── <Reserved>
+    /// └──────────────── <Reserved>
     /// ```
     pub flag: u8,
 
@@ -76,6 +79,13 @@ impl ArchMode {
 
     pub const fn is_big_endian(&self) -> bool {
         (self.flag & 0b0000_0100) != 0
+    }
+
+    pub const fn endian_to_string(&self) -> &str {
+        match self.is_little_endian() {
+            true => "little-endian",
+            false => "big-endian",
+        }
     }
 
     /// width to string
@@ -169,7 +179,7 @@ impl fmt::Display for ArchKind {
 //                                  info::Arch
 // ============================================================================== //
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Hash, Debug, PartialEq, Eq, Clone)]
 pub struct Arch {
     pub name: &'static str,
     pub kind: ArchKind,
@@ -180,7 +190,14 @@ pub struct Arch {
 
 impl Arch {
 
-    pub const fn def(kind: ArchKind, mode_flag: u8, reg_num: usize) -> Self {
+    thread_local! {
+        pub static ARCH_POOL: Rc<RefCell<Vec<Arch>>> = Rc::new(RefCell::new(Vec::new()));
+    }
+
+
+    // ==================== Arch.ctl ======================= //
+
+    pub const fn new(kind: ArchKind, mode_flag: u8, reg_num: usize) -> Self {
         let mode = ArchMode::new(mode_flag);
         let name = ArchKind::to_string(&kind);
         Self {
@@ -189,6 +206,11 @@ impl Arch {
             mode,
             reg_num,
         }
+    }
+
+    pub fn def(arch: Arch) -> Self {
+        Self::pool_push(arch);
+        Self::pool_last()
     }
 
     pub const fn addr_scale(&self) -> usize {
@@ -206,6 +228,55 @@ impl Arch {
     pub const fn double_scale(&self) -> usize {
         self.mode.width() * 2
     }
+
+
+    // =================== Arch.pool ======================= //
+
+    pub fn pool_push(arch: Arch) -> usize {
+        Self::ARCH_POOL.with(|pool| pool.borrow_mut().push(arch));
+        Self::ARCH_POOL.with(|pool| pool.borrow().len() - 1)
+    }
+
+    pub fn pool_get(idx: usize) -> Arch {
+        Self::ARCH_POOL.with(|pool| pool.borrow().get(idx).unwrap().clone())
+    }
+
+    pub fn pool_set(idx: usize, arch: Arch) {
+        Self::ARCH_POOL.with(|pool| pool.borrow_mut().get_mut(idx).unwrap().clone_from(&arch));
+    }
+
+    pub fn pool_last() -> Arch {
+        Self::ARCH_POOL.with(|pool| pool.borrow().last().unwrap().clone())
+    }
+
+    pub fn pool_del(idx: usize) {
+        Self::ARCH_POOL.with(|pool| pool.borrow_mut().remove(idx));
+    }
+
+    pub fn pool_clr() {
+        Self::ARCH_POOL.with(|pool| pool.borrow_mut().clear());
+    }
+
+    pub fn pool_size() -> usize {
+        Self::ARCH_POOL.with(|pool| pool.borrow().len())
+    }
+
+    pub fn pool_info() -> String {
+        let mut str = String::new();
+        str.push_str(format!("Arch Pool(Nums={}):\n", Self::pool_size()).as_str());
+        for i in 0..Self::pool_size() {
+            let arch = Self::pool_get(i);
+            str.push_str(format!("{}: {} (width={}, {}, reg_num={})\n", 
+                i, 
+                arch,
+                arch.mode.width_to_string(),
+                arch.mode.endian_to_string(),
+                arch.reg_num
+            ).as_str());
+        }
+        str
+    }
+
 
     pub fn to_string (&self) -> String {
         match self.kind {
@@ -229,7 +300,7 @@ impl fmt::Display for Arch {
 
 impl default::Default for Arch {
     fn default() -> Self {
-        Arch::def(ArchKind::EVO, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32)
+        Arch::new(ArchKind::EVO, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32)
     }
 }
 
@@ -263,7 +334,9 @@ mod arch_info_test {
     #[test]
     fn arch_from() {
 
-        let arch = Arch::def(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
+        let arch = Arch::new(ArchKind::RISCV, ArchMode::BIT32 | ArchMode::LITTLE_ENDIAN, 32);
+        let arch = Arch::def(arch);
         println!("{}", arch);
+        println!("{}", Arch::pool_info());
     }
 }
