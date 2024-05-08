@@ -34,11 +34,11 @@ use libc::{c_void, MAP_PRIVATE, MAP_ANONYMOUS, PROT_READ, PROT_WRITE, MAP_FAILED
 
 #[cfg(not(feature = "no-log"))]
 use colored::*;
+use crate::arch::evo::def::EVO_ARCH;
 use crate::arch::info::Arch;
 // use crate::util::log::Span;
 use crate::ir::val::Value;
 // use crate::log_error;
-use crate::ir::cpu::{CPUState, CPUConfig};
 use crate::ir::insn::Instruction;
 use crate::log_error;
 use crate::log_warning;
@@ -309,6 +309,10 @@ impl fmt::Display for CPUThreadStatus {
 /// 3. `stack`: Stack, Store stack value
 #[derive(Debug, Clone)]
 pub struct CPUThread {
+    /// `arch`
+    pub arch: &'static Arch,
+    /// `stack_size`
+    pub stack_size: usize,
     /// `proc_id`: Process ID
     pub proc_id: usize,
     /// self Thread ID
@@ -333,9 +337,14 @@ impl CPUThread {
 
     // ================= CPUThread.ctl ==================== //
 
-    pub fn init(proc_id: usize) -> usize {
+    pub fn init(proc: &CPUProcess) -> usize {
         let thread : CPUThread;
+        let proc_id = proc.id;
+        let stack_size = proc.stack_size;
+        let arch = proc.arch;
         thread = Self {
+            arch,
+            stack_size,
             id : 0,
             proc_id,
             registers: Vec::new(),
@@ -367,10 +376,11 @@ impl CPUThread {
         let thread_ptr = Self::pool_last().1;
         thread_ptr.borrow_mut().id = Self::CPU_THREAD_POOL.with(|pool| pool.borrow().len() - 1);
         let mut init_regs = Vec::new();
-        if CPUState::is_ir_32() {
-            init_regs = (0..CPUState::ir_reg_num()).map(|_| Rc::new(RefCell::new(Value::i32(0)))).collect::<Vec<_>>();
-        } else if CPUState::is_ir_64() {
-            init_regs = (0..CPUState::ir_reg_num()).map(|_| Rc::new(RefCell::new(Value::i64(0)))).collect::<Vec<_>>();
+        let reg_num = thread_ptr.borrow().arch.reg_num;
+        if thread_ptr.borrow().arch.mode.is_32bit() {
+            init_regs = (0..reg_num).map(|_| Rc::new(RefCell::new(Value::i32(0)))).collect::<Vec<_>>();
+        } else if thread_ptr.borrow().arch.mode.is_64bit() {
+            init_regs = (0..reg_num).map(|_| Rc::new(RefCell::new(Value::i64(0)))).collect::<Vec<_>>();
         }
         thread_ptr.borrow_mut().registers.extend(init_regs);
         Self::pool_last().0
@@ -417,7 +427,8 @@ impl CPUThread {
             let borrowed_pool = pool.borrow();
             for i in 0..borrowed_pool.len() {
                 let thread = borrowed_pool[i].borrow();
-                let stk_pc = thread.stack_scale() as f64 / CPUState::STACK_SIZE as f64 * 100.0;
+                let stack_size = thread.stack_size;
+                let stk_pc = thread.stack_scale() as f64 / stack_size as f64 * 100.0;
                 let stk_fmt = format!("{:.2}%", stk_pc);
                 info.push_str(&format!("├─────┼─────┼──────┼───────────┼─────────┤\n"));
                 info.push_str(&format!("│ {:^3} │ {:^3} │ {:>3}  │ {:^9} │ {:^16} │\n", 
@@ -459,10 +470,10 @@ impl CPUThread {
 
     /// set reg zero
     pub fn set_reg_zero(&self, index: usize) {
-        if CPUState::is_ir_32() {
-            self.registers[index].replace(Value::u32(0));
-        } else if CPUState::is_ir_64() {
-            self.registers[index].replace(Value::u64(0));
+        if self.arch.mode.is_32bit() {
+            self.registers[index].replace(Value::i32(0));
+        } else if self.arch.mode.is_64bit() {
+            self.registers[index].replace(Value::i64(0));
         }
     }
 
@@ -555,6 +566,8 @@ impl CPUThread {
 impl default::Default for CPUThread {
     fn default() -> Self {
         Self {
+            arch: &EVO_ARCH,
+            stack_size: 0,
             id: 0,
             proc_id: 0,
             registers: Vec::new(),
@@ -583,6 +596,12 @@ impl cmp::PartialEq for CPUThread {
 pub struct CPUProcess {
     /// `arch`: CPU Process arch
     pub arch: &'static Arch,
+    /// `base_addr`
+    pub base_addr: usize,
+    /// `mem_size`:
+    pub mem_size: usize,
+    /// `stack_size`:
+    pub stack_size: usize,
     /// `id`: Process ID
     pub id: usize,
     /// `name`: Process Name
@@ -607,10 +626,13 @@ impl CPUProcess {
     // ================= CPUProcess.ctl =================== //
 
     /// Init `CPUProcess`
-    pub fn init(arch: &'static Arch) -> Rc<RefCell<CPUProcess>> {
+    pub fn init(arch: &'static Arch, base_addr: usize, mem_size: usize, stack_size: usize) -> Rc<RefCell<CPUProcess>> {
         let proc : CPUProcess;
         proc = Self {
             arch,
+            base_addr,
+            mem_size,
+            stack_size,
             id:0,
             name: arch.name,
             code_segment: Rc::new(RefCell::new(Vec::new())),
@@ -643,13 +665,14 @@ impl CPUProcess {
         Self::CPU_PROCESS_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(process))));
         let proc = Self::pool_last().1;
         proc.borrow_mut().id = Self::CPU_PROCESS_POOL.with(|pool| pool.borrow().len() - 1);
-        let thread_id = CPUThread::init(proc.borrow().id);
+        let thread_id = CPUThread::init(&*proc.borrow());
         proc.borrow_mut().threads_id.borrow_mut().push(thread_id);
         proc.borrow_mut().cur_thread = CPUThread::pool_get(thread_id);
-        if CPUState::is_ir_32() {
-            proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u32(), CPUState::MEM_SIZE / 4));
-        } else if CPUState::is_ir_64() {
-            proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u64(), CPUState::MEM_SIZE / 8));
+        let mem_size = proc.borrow().mem_size;
+        if proc.borrow().arch.mode.is_32bit() {
+            proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u32(), mem_size / 4));
+        } else if proc.borrow().arch.mode.is_64bit() {
+            proc.borrow_mut().mem_segment.borrow_mut().set_type(Types::array(Types::u64(), mem_size / 8));
         }
         Self::pool_last().0
     }
@@ -721,9 +744,10 @@ impl CPUProcess {
                 if proc.threads_id.borrow().len() > 5 {
                     tid_fmt.push_str("...");
                 }
+                let stack_size = proc.stack_size;
                 let code_fmt = MemoryTool::usize_to_string(proc.code_segment.borrow().len());
                 let mem_fmt = MemoryTool::usize_to_string(proc.mem_segment.borrow().scale_sum() / 8);
-                let stack_pc = thread.stack_scale() as f64 / CPUState::STACK_SIZE as f64 * 100.0;
+                let stack_pc = thread.stack_scale() as f64 / stack_size as f64 * 100.0;
                 let stack_fmt = format!("{:.2}%", stack_pc);
                 let status_fmt = thread.status().to_string();
                 info.push_str(&format!("├─────┼────────────┼────────────────┼────────┼─────────┼───────────┼─────────┤\n"));
@@ -751,10 +775,10 @@ impl CPUProcess {
         info.push_str(&format!("Process {} info: \n", self.id));
         info.push_str(&format!("- name: {}\n- code seg size: {}\n- mem seg size: {} / {}\n- threads: {:?}\n- thread id: {}\n- thread reg num: {}\n- thread stack size: {} / {}\n", 
             self.name, self.code_segment.borrow().len(), 
-            self.mem_segment.borrow().scale_sum() / 8, CPUState::MEM_SIZE,
+            self.mem_segment.borrow().scale_sum() / 8, self.mem_size,
             self.threads_id.borrow().clone(), 
             self.cur_thread.borrow().id, self.cur_thread.borrow().ir_reg_num(), 
-            self.cur_thread.borrow().stack_scale(), CPUState::STACK_SIZE));
+            self.cur_thread.borrow().stack_scale(), self.stack_size));
         info
     }
 
@@ -776,8 +800,9 @@ impl CPUProcess {
 
     /// Write mem value: by 32 or 64-bit / index
     pub fn write_mem(&self, index: usize, value: Value) {
+        let is_64 = self.arch.mode.is_64bit();
         let idx :usize;
-        if CPUState::is_ir_64() {
+        if is_64 {
             idx = index * 8;
         } else {
             idx = index * 4;
@@ -787,6 +812,7 @@ impl CPUProcess {
 
     /// Read mem value: by 32 or 64-bit / index (num=[1-16])
     pub fn read_mem(&self, index: usize, num: usize) -> Value {
+        let is_64 = self.arch.mode.is_64bit();
         let mut num = num;
         if num <= 0 {
             log_warning!("Read Mem: num: {} <= 0", num);
@@ -797,7 +823,7 @@ impl CPUProcess {
         }
         let idx :usize;
         let scale :usize;
-        if CPUState::is_ir_64() {
+        if is_64 {
             idx = index * 8;
             scale = 64;
         } else {
@@ -820,7 +846,7 @@ impl CPUProcess {
 
     /// New thread: Use a pure new thread, If you wanr a new thread fork from current, use`fork_thread`
     pub fn new_thread(&self) -> Rc<RefCell<CPUThread>> {
-        let thread_id = CPUThread::init(self.id);
+        let thread_id = CPUThread::init(self);
         self.threads_id.borrow_mut().push(thread_id);
         CPUThread::pool_get(thread_id)
     }

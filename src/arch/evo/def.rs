@@ -25,8 +25,8 @@ pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, ArchMode::BIT64 | ArchMode::
 pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
     // 2. Init regs pool
-    Instruction::reg("x0", Value::bit(5, 0));
-    Instruction::reg("x1", Value::bit(5, 1));
+    Instruction::reg("t0", Value::bit(5, 0));
+    Instruction::reg("t1", Value::bit(5, 1));
     Instruction::reg("x2", Value::bit(5, 2));
     Instruction::reg("x3", Value::bit(5, 3));
     Instruction::reg("x4", Value::bit(5, 4));
@@ -35,16 +35,16 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     Instruction::reg("x7", Value::bit(5, 7));
     Instruction::reg("x8", Value::bit(5, 8));
     Instruction::reg("x9", Value::bit(5, 9));
-    Instruction::reg("x10", Value::bit(5, 10));
-    Instruction::reg("x11", Value::bit(5, 11));
-    Instruction::reg("x12", Value::bit(5, 12));
-    Instruction::reg("x13", Value::bit(5, 13));
-    Instruction::reg("x14", Value::bit(5, 14));
-    Instruction::reg("x15", Value::bit(5, 15));
-    Instruction::reg("x16", Value::bit(5, 16));
-    Instruction::reg("x17", Value::bit(5, 17));
-    Instruction::reg("x18", Value::bit(5, 18));
-    Instruction::reg("x19", Value::bit(5, 19));
+    Instruction::reg("t10", Value::bit(5, 10));
+    Instruction::reg("t11", Value::bit(5, 11));
+    Instruction::reg("t12", Value::bit(5, 12));
+    Instruction::reg("t13", Value::bit(5, 13));
+    Instruction::reg("t14", Value::bit(5, 14));
+    Instruction::reg("t15", Value::bit(5, 15));
+    Instruction::reg("t16", Value::bit(5, 16));
+    Instruction::reg("t17", Value::bit(5, 17));
+    Instruction::reg("t18", Value::bit(5, 18));
+    Instruction::reg("t19", Value::bit(5, 19));
     Instruction::reg("x20", Value::bit(5, 20));
     Instruction::reg("x21", Value::bit(5, 21));
     Instruction::reg("x22", Value::bit(5, 22));
@@ -521,7 +521,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
                 return;
             }
             let proc0 = cpu.proc.borrow().clone();
-            // System will do next part according to register `a7`(x17)
+            // System will do next part according to register `a7`(t17)
             proc0.set_status(CPUThreadStatus::Blocked);
         }
     );
@@ -533,7 +533,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
                 return;
             }
             let proc0 = cpu.proc.borrow().clone();
-            // Debugger will do next part according to register `a7`(x17)
+            // Debugger will do next part according to register `a7`(t17)
             proc0.set_status(CPUThreadStatus::Blocked);
         }
     );
@@ -764,4 +764,155 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
 
     Some(itp)
+}
+
+
+
+
+#[cfg(test)]
+mod evo_test {
+
+    use super::*;
+    use crate::ir::cpu::CPUState;
+
+
+    #[test]
+    fn evo_itp() {
+        let cpu = CPUState::init(&EVO_ARCH, &EVO_ARCH, None, None, None);
+        cpu.set_nreg("t1", Value::i32(3));
+        cpu.set_nreg("x2", Value::i32(5));
+        cpu.set_nreg("x3", Value::i32(-32));
+        cpu.write_mem(26, Value::i32(0x1ffff));
+
+        // R-Type Insns Test
+        let insn1 = Instruction::from_string("add t0, t1, x2");
+        let insn2 = Instruction::from_string("sub t0, t1, x2");
+        let insn3 = Instruction::from_string("or t0, t1, x2");
+        let insn4 = Instruction::from_string("xor t0, t1, x2");
+        let insn5 = Instruction::from_string("and t0, t1, x2");
+        let insn6 = Instruction::from_string("sltu t0, t1, x2");
+        let insn7 = Instruction::from_string("srl t0, t1, x3");
+        let insn8 = Instruction::from_string("sra t0, t1, x3");
+        let insn9 = Instruction::from_string("sll t0, t1, x3");
+        let insn10 = Instruction::from_string("slt t0, t1, x2");
+
+        // I-Type Insns Test
+        let insn11 = Instruction::from_string("addi t0, t1, 2457");
+        let insn12 = Instruction::from_string("andi t0, t1, 2457");
+        let insn13 = Instruction::from_string("ori t0, t1, 2457");
+        let insn14 = Instruction::from_string("xori t0, t1, 2457");
+        let insn15 = Instruction::from_string("slti t0, t1, 2");
+        let insn16 = Instruction::from_string("sltiu t0, t1, 2");
+
+        let insn17 = Instruction::from_string("lb t0, t1, 23");
+        let insn18 = Instruction::from_string("lh t0, t1, 23");
+        let insn19 = Instruction::from_string("lw t0, t1, 23");
+        let insn20 = Instruction::from_string("lbu t0, t1, 23");
+        let insn21 = Instruction::from_string("lhu t0, t1, 23");
+
+        let insn22 = Instruction::from_string("sb t0, t1, 23");
+        let insn23 = Instruction::from_string("sh t0, t1, 23");
+        let insn24 = Instruction::from_string("sw t0, t1, 23");
+        
+        let insn34 = Instruction::from_string("jalr t0, t1, 23");
+        let insn35 = Instruction::from_string("ecall");
+        let insn36 = Instruction::from_string("ebreak");
+
+        // B-Type Insns Test
+        let insn25 = Instruction::from_string("beq t0, t1, 23");
+        let insn26 = Instruction::from_string("bne t0, t1, 23");
+        let insn27 = Instruction::from_string("blt t0, t1, 23");
+        let insn28 = Instruction::from_string("bge t0, t1, 23");
+        let insn29 = Instruction::from_string("bltu t0, t1, 23");
+        let insn30 = Instruction::from_string("bgeu t0, t1, 23");
+
+        // U-Type Insns Test
+        let insn31 = Instruction::from_string("lui t0, 255");
+        let insn32 = Instruction::from_string("auipc t0, 255");
+        // J-Type Insns Test
+        let insn33 = Instruction::from_string("jal t0, 23");
+
+        cpu.execute(&insn1);
+        println!("{:<50} -> t0 = {}", insn1.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn2);
+        println!("{:<50} -> t0 = {}", insn2.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn3);
+        println!("{:<50} -> t0 = {}", insn3.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn4);
+        println!("{:<50} -> t0 = {}", insn4.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn5);
+        println!("{:<50} -> t0 = {}", insn5.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn6);
+        println!("{:<50} -> t0 = {}", insn6.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn7);
+        println!("{:<50} -> t0 = {}", insn7.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn8);
+        println!("{:<50} -> t0 = {}", insn8.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn9);
+        println!("{:<50} -> t0 = {}", insn9.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn10);
+        println!("{:<50} -> t0 = {}", insn10.to_string(), cpu.get_nreg("t0").get_i32(0));
+
+        cpu.execute(&insn11);
+        println!("{:<50} -> t0 = {}", insn11.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn12);
+        println!("{:<50} -> t0 = {}", insn12.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn13);
+        println!("{:<50} -> t0 = {}", insn13.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn14);
+        println!("{:<50} -> t0 = {}", insn14.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn15);
+        println!("{:<50} -> t0 = {}", insn15.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn16);
+        println!("{:<50} -> t0 = {}", insn16.to_string(), cpu.get_nreg("t0").get_i32(0));
+
+        cpu.execute(&insn17);
+        println!("{:<50} -> t0 = {}", insn17.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn18);
+        println!("{:<50} -> t0 = {}", insn18.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn19);
+        println!("{:<50} -> t0 = {}", insn19.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn20);
+        println!("{:<50} -> t0 = {}", insn20.to_string(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn21);
+        println!("{:<50} -> t0 = {}", insn21.to_string(), cpu.get_nreg("t0").get_i32(0));
+
+        cpu.set_nreg("t0", Value::i32(56));
+        cpu.execute(&insn22);
+        println!("{:<50} -> mem = {}", insn22.to_string(), cpu.read_mem(26, 1).bin(0, 1, false));
+        cpu.set_nreg("t0", Value::i32(732));
+        cpu.execute(&insn23);
+        println!("{:<50} -> mem = {}", insn23.to_string(), cpu.read_mem(26, 1).bin(0, 2, false));
+        cpu.set_nreg("t0", Value::i32(-8739));
+        cpu.execute(&insn24);
+        println!("{:<50} -> mem = {}", insn24.to_string(), cpu.read_mem(26, 1).bin(0, 4, false));
+
+        cpu.execute(&insn25);
+        println!("{:<50} -> pc = {}", insn25.to_string(), cpu.get_pc());
+        cpu.execute(&insn26);
+        println!("{:<50} -> pc = {}", insn26.to_string(), cpu.get_pc());
+        cpu.execute(&insn27);
+        println!("{:<50} -> pc = {}", insn27.to_string(), cpu.get_pc());
+        cpu.execute(&insn28);
+        println!("{:<50} -> pc = {}", insn28.to_string(), cpu.get_pc());
+        cpu.execute(&insn29);
+        println!("{:<50} -> pc = {}", insn29.to_string(), cpu.get_pc());
+        cpu.execute(&insn30);
+        println!("{:<50} -> pc = {}", insn30.to_string(), cpu.get_pc());
+
+        cpu.execute(&insn31);
+        println!("{:<50} -> pc = {}, t0 = {}", insn31.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn32);
+        println!("{:<50} -> pc = {}, t0 = {}", insn32.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+
+        cpu.execute(&insn33);
+        println!("{:<50} -> pc = {}, t0 = {}", insn33.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+        cpu.execute(&insn34);
+        println!("{:<50} -> pc = {}, t0 = {}", insn34.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+
+        cpu.execute(&insn35);
+        println!("{:<50} -> status = {}", insn35.to_string(), cpu.status());
+        cpu.execute(&insn36);
+        println!("{:<50} -> status = {}", insn36.to_string(), cpu.status());
+    }
 }
