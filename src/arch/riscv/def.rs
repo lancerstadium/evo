@@ -10,7 +10,7 @@ use crate::{log_warning, log_error};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
 use crate::ir::val::Value;
-use crate::ir::op::{OpcodeKind, Operand};
+use crate::ir::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
 use crate::ir::insn::Instruction;
 use crate::ir::itp::Interpreter;
 use crate::ir::mem::CPUThreadStatus;
@@ -64,7 +64,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     let itp = Interpreter::def(&RISCV32_ARCH);
     // RISCV Instruction Format:                                           32|31  25|24 20|19 15|  |11  7|6    0|
     // Type: R                                [rd, rs1, rs2]                 |  f7  | rs2 | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("add" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .000.... .0110011", 
+    itp.borrow_mut().def_insn("add" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .000.... .0110011", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
             if !insn.is_applied {
@@ -82,7 +82,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sub" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("sub" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
             if !insn.is_applied {
@@ -100,7 +100,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("or"  , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .110.... .0110011",
+    itp.borrow_mut().def_insn("or"  , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .110.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 | rs2 ======== //
             if !insn.is_applied {
@@ -118,7 +118,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("xor" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("xor" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
             if !insn.is_applied {
@@ -136,7 +136,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("and" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .111.... .0110011",
+    itp.borrow_mut().def_insn("and" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .111.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 & rs2 ======== //
             if !insn.is_applied {
@@ -154,7 +154,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("sll" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .001.... .0110011",
+    itp.borrow_mut().def_insn("sll" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .001.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 << rs2 ======== //
             if !insn.is_applied {
@@ -172,7 +172,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srl" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .101.... .0110011",
+    itp.borrow_mut().def_insn("srl" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
             if !insn.is_applied {
@@ -190,7 +190,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("sra" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0100000. ........ .101.... .0110011",
+    itp.borrow_mut().def_insn("sra" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
             if !insn.is_applied {
@@ -208,7 +208,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .010.... .0110011",
+    itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .010.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
             if !insn.is_applied {
@@ -226,7 +226,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sltu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .011.... .0110011",
+    itp.borrow_mut().def_insn("sltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .011.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
             if !insn.is_applied {
@@ -245,7 +245,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: I                                [rd, rs1, imm]                 |    imm     | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .0010011",
+    itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 + imm ======== //
             if !insn.is_applied {
@@ -263,7 +263,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .100.... .0010011",
+    itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 ^ imm ======== //
             if !insn.is_applied {
@@ -281,7 +281,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("ori" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .110.... .0010011",
+    itp.borrow_mut().def_insn("ori" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .110.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 | imm ======== //
             if !insn.is_applied {
@@ -299,7 +299,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("andi", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .111.... .0010011",
+    itp.borrow_mut().def_insn("andi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .111.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 & imm ======== //
             if !insn.is_applied {
@@ -317,7 +317,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("slli", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0000000. ........ .001.... .0010011",
+    itp.borrow_mut().def_insn("slli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .001.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 << imm[0:4] ======= //
             if !insn.is_applied {
@@ -335,7 +335,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srli", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0000000. ........ .101.... .0010011",
+    itp.borrow_mut().def_insn("srli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
             if !insn.is_applied {
@@ -353,7 +353,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("srai", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B0100000. ........ .101.... .0010011",
+    itp.borrow_mut().def_insn("srai", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0100000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
             if !insn.is_applied {
@@ -371,7 +371,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(res));
         }
     );
-    itp.borrow_mut().def_insn("slti", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .010.... .0010011",
+    itp.borrow_mut().def_insn("slti", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .010.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
             if !insn.is_applied {
@@ -389,7 +389,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("sltiu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .011.... .0010011",
+    itp.borrow_mut().def_insn("sltiu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .011.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
             if !insn.is_applied {
@@ -407,7 +407,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(res));
         }
     );
-    itp.borrow_mut().def_insn("lb", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("lb", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -425,7 +425,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lh", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .001.... .0000011", 
+    itp.borrow_mut().def_insn("lh", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .001.... .0000011", 
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -443,7 +443,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lw", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .010.... .0000011",
+    itp.borrow_mut().def_insn("lw", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .010.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -461,7 +461,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
     );
-    itp.borrow_mut().def_insn("lbu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .100.... .0000011",
+    itp.borrow_mut().def_insn("lbu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -479,7 +479,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
     );
-    itp.borrow_mut().def_insn("lhu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .101.... .0000011",
+    itp.borrow_mut().def_insn("lhu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .101.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             if !insn.is_applied {
@@ -497,7 +497,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
     );
-    itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "I", "0B........ ........ .000.... .1100111",
+    itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .1100111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = rs1 + imm ======== //
             if !insn.is_applied {
@@ -540,7 +540,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type:S 
-    itp.borrow_mut().def_insn("sb", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .000.... .0100011",
+    itp.borrow_mut().def_insn("sb", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .000.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -558,7 +558,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.write_mem((rs1 + imm) as usize, Value::i8(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sh", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .001.... .0100011",
+    itp.borrow_mut().def_insn("sh", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .001.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -576,7 +576,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.write_mem((rs1 + imm) as usize, Value::i16(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sw", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "S", "0B........ ........ .010.... .0100011",
+    itp.borrow_mut().def_insn("sw", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             if !insn.is_applied {
@@ -595,7 +595,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: B
-    itp.borrow_mut().def_insn("beq", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .000.... .1100011",
+    itp.borrow_mut().def_insn("beq", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .000.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 == rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -615,7 +615,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bne", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .001.... .1100011",
+    itp.borrow_mut().def_insn("bne", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .001.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 != rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -635,7 +635,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("blt", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .100.... .1100011",
+    itp.borrow_mut().def_insn("blt", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .100.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -655,7 +655,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bge", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .101.... .1100011",
+    itp.borrow_mut().def_insn("bge", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .101.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -675,7 +675,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bltu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .110.... .1100011",
+    itp.borrow_mut().def_insn("bltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .110.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -695,7 +695,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             }
         }
     );
-    itp.borrow_mut().def_insn("bgeu", BIT32 | LITTLE_ENDIAN, vec![1, 1, 0], "B", "0B........ ........ .111.... .1100011",
+    itp.borrow_mut().def_insn("bgeu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .111.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
             if !insn.is_applied {
@@ -716,7 +716,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: U
-    itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0110111",
+    itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "U", "0B........ ........ ........ .0110111",
         |cpu, insn| {
             // ======== rd = imm << 12 ======== //
             if !insn.is_applied {
@@ -730,7 +730,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i32(imm << 12));
         }
     );
-    itp.borrow_mut().def_insn("auipc", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0010111",
+    itp.borrow_mut().def_insn("auipc", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "U", "0B........ ........ ........ .0010111",
         |cpu, insn| {
             // ======== rd = pc + imm << 12 ======== //
             if !insn.is_applied {
@@ -745,7 +745,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type: J
-    itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![1, 0], "J", "0B........ ........ ........ .1101111",
+    itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "J", "0B........ ........ ........ .1101111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = pc + imm ======== //
             if !insn.is_applied {
@@ -871,7 +871,7 @@ pub fn riscv32_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction 
         res
     } else {
         // Error
-        log_error!("Apply operands failed: {} , check syms", insn.opc.name());
+        log_error!("Encode operands failed: {} , check syms", insn.opc.name());
         // Revert
         Instruction::undef()
     }
@@ -995,6 +995,7 @@ mod riscv_test {
         cpu.set_nreg("x2", Value::i32(5));
         cpu.set_nreg("x3", Value::i32(-32));
         cpu.write_mem(26, Value::i32(0x1ffff));
+        // println!("{}", CPUState::pool_info());
 
         // R-Type Insns Test
         let insn1 = Instruction::from_string("add x0, x1, x2");
@@ -1045,86 +1046,86 @@ mod riscv_test {
         let insn33 = Instruction::from_string("jal x0, 23");
 
         cpu.execute(&insn1);
-        println!("{:<50} -> x0 = {}", insn1.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn1.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn2);
-        println!("{:<50} -> x0 = {}", insn2.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn2.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn3);
-        println!("{:<50} -> x0 = {}", insn3.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn3.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn4);
-        println!("{:<50} -> x0 = {}", insn4.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn4.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn5);
-        println!("{:<50} -> x0 = {}", insn5.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn5.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn6);
-        println!("{:<50} -> x0 = {}", insn6.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn6.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn7);
-        println!("{:<50} -> x0 = {}", insn7.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn7.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn8);
-        println!("{:<50} -> x0 = {}", insn8.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn8.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn9);
-        println!("{:<50} -> x0 = {}", insn9.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn9.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn10);
-        println!("{:<50} -> x0 = {}", insn10.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn10.to_string(), cpu.get_nreg("x0").get_i32(0));
 
         cpu.execute(&insn11);
-        println!("{:<50} -> x0 = {}", insn11.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn11.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn12);
-        println!("{:<50} -> x0 = {}", insn12.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn12.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn13);
-        println!("{:<50} -> x0 = {}", insn13.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn13.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn14);
-        println!("{:<50} -> x0 = {}", insn14.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn14.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn15);
-        println!("{:<50} -> x0 = {}", insn15.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn15.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn16);
-        println!("{:<50} -> x0 = {}", insn16.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn16.to_string(), cpu.get_nreg("x0").get_i32(0));
 
         cpu.execute(&insn17);
-        println!("{:<50} -> x0 = {}", insn17.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn17.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn18);
-        println!("{:<50} -> x0 = {}", insn18.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn18.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn19);
-        println!("{:<50} -> x0 = {}", insn19.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn19.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn20);
-        println!("{:<50} -> x0 = {}", insn20.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn20.to_string(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn21);
-        println!("{:<50} -> x0 = {}", insn21.to_string(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> x0 = {}", insn21.to_string(), cpu.get_nreg("x0").get_i32(0));
 
         cpu.set_nreg("x0", Value::i32(56));
         cpu.execute(&insn22);
-        println!("{:<50} -> mem = {}", insn22.to_string(), cpu.read_mem(26, 1).bin(0, 1, false));
+        println!("{:<60} -> mem = {}", insn22.to_string(), cpu.read_mem(26, 1).bin(0, 1, false));
         cpu.set_nreg("x0", Value::i32(732));
         cpu.execute(&insn23);
-        println!("{:<50} -> mem = {}", insn23.to_string(), cpu.read_mem(26, 1).bin(0, 2, false));
+        println!("{:<60} -> mem = {}", insn23.to_string(), cpu.read_mem(26, 1).bin(0, 2, false));
         cpu.set_nreg("x0", Value::i32(-8739));
         cpu.execute(&insn24);
-        println!("{:<50} -> mem = {}", insn24.to_string(), cpu.read_mem(26, 1).bin(0, 4, false));
+        println!("{:<60} -> mem = {}", insn24.to_string(), cpu.read_mem(26, 1).bin(0, 4, false));
 
         cpu.execute(&insn25);
-        println!("{:<50} -> pc = {}", insn25.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn25.to_string(), cpu.get_pc());
         cpu.execute(&insn26);
-        println!("{:<50} -> pc = {}", insn26.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn26.to_string(), cpu.get_pc());
         cpu.execute(&insn27);
-        println!("{:<50} -> pc = {}", insn27.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn27.to_string(), cpu.get_pc());
         cpu.execute(&insn28);
-        println!("{:<50} -> pc = {}", insn28.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn28.to_string(), cpu.get_pc());
         cpu.execute(&insn29);
-        println!("{:<50} -> pc = {}", insn29.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn29.to_string(), cpu.get_pc());
         cpu.execute(&insn30);
-        println!("{:<50} -> pc = {}", insn30.to_string(), cpu.get_pc());
+        println!("{:<60} -> pc = {}", insn30.to_string(), cpu.get_pc());
 
         cpu.execute(&insn31);
-        println!("{:<50} -> pc = {}, x0 = {}", insn31.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> pc = {}, x0 = {}", insn31.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn32);
-        println!("{:<50} -> pc = {}, x0 = {}", insn32.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> pc = {}, x0 = {}", insn32.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
 
         cpu.execute(&insn33);
-        println!("{:<50} -> pc = {}, x0 = {}", insn33.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> pc = {}, x0 = {}", insn33.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn34);
-        println!("{:<50} -> pc = {}, x0 = {}", insn34.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
+        println!("{:<60} -> pc = {}, x0 = {}", insn34.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
 
         cpu.execute(&insn35);
-        println!("{:<50} -> status = {}", insn35.to_string(), cpu.status());
+        println!("{:<60} -> status = {}", insn35.to_string(), cpu.status());
         cpu.execute(&insn36);
-        println!("{:<50} -> status = {}", insn36.to_string(), cpu.status());
+        println!("{:<60} -> status = {}", insn36.to_string(), cpu.status());
     }
 }

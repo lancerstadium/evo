@@ -66,7 +66,7 @@ impl Interpreter {
     }
 
     /// Define insn with func
-    pub fn def_insn(&self, insn_name: &'static str, flag: u16 , syms: Vec<i32>, ty: &'static str, opb: &'static str, func: fn(&CPUState, &Instruction)) {
+    pub fn def_insn(&self, insn_name: &'static str, flag: u16 , syms: Vec<u16>, ty: &'static str, opb: &'static str, func: fn(&CPUState, &Instruction)) {
         Instruction::def(self.arch, insn_name, flag, syms, ty, opb);
         self.def_func(insn_name, func);
     }

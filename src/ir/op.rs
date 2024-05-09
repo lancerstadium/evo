@@ -11,7 +11,7 @@ use std::cmp;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::log_error;
+use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::ir::val::Value;
 use crate::ir::ty::TypesKind;
@@ -43,6 +43,9 @@ pub enum OperandKind {
     /// Undefined
     Undef,
 }
+
+
+
 
 impl OperandKind {
 
@@ -119,30 +122,53 @@ impl OperandKind {
     }
 
     /// Get symbol of the operandKind
-    /// 0: Imm, 1: Reg, 2: Mem, 3: Label
-    pub fn sym(&self) -> i32 {
+    pub fn sym(&self) -> u16 {
         match self {
-            OperandKind::Imm(_) => 0,
-            OperandKind::Reg(_, _) => 1,
-            OperandKind::Mem(_, _, _, _) => 2,
-            OperandKind::Label(_, _) => 3,
-            _ => -1,
+            OperandKind::Imm(_) => OPR_IMM,
+            OperandKind::Reg(_, _) => OPR_REG,
+            OperandKind::Mem(_, _, _, _) => OPR_MEM,
+            OperandKind::Label(_, _) => OPR_LAB,
+            _ => OPR_UND,
         }
     }
 
     /// Get sym string
-    pub fn sym_str(sym: i32) -> &'static str {
-        match sym {
-            0 => "<Imm>",   // Imm
-            1 => "<Reg>",   // Reg
-            2 => "<Mem>",   // Mem
-            3 => "<Lab>",   // Label
-            _ => "<Und>",   // Undefined
+    pub fn sym_str(sym: u16) -> String {
+        let mut info = String::new();
+        info.push('<');
+        if sym == OPR_UND {
+            info.push_str("Und");
+            info.push('>');
+            return info;
         }
+        let mut is_gen = false;
+        if sym & OPR_IMM != 0 {
+            info.push_str("Imm");
+            is_gen = true;
+        }
+        if sym & OPR_REG != 0 {
+            info.push_str(if is_gen {"/Reg"} else {"Reg"});
+            is_gen = true;
+        }
+        if sym & OPR_MEM != 0 {
+            info.push_str(if is_gen {"/Mem"} else {"Mem"});
+            is_gen = true;
+        }
+        if sym & OPR_LAB != 0 {
+            info.push_str(if is_gen {"/Lab"} else {"Lab"});
+        }
+        info.push('>');
+        info
     }
 
 
 }
+
+pub const OPR_UND: u16 = 0b0000_0000;
+pub const OPR_IMM: u16 = 0b0000_0001;
+pub const OPR_REG: u16 = 0b0000_0010;
+pub const OPR_MEM: u16 = 0b0000_0100;
+pub const OPR_LAB: u16 = 0b0000_1000;
 
 
 impl fmt::Display for OperandKind {
@@ -164,12 +190,12 @@ impl Operand {
 
     // ================== Operand.new ==================== //
 
-    pub fn new(sym: i32) -> Self {
+    pub fn new(sym: u16) -> Self {
         match sym {
-            0 => Self::imm(Value::u32(0)),
-            1 => Self::reg("<Reg>", Value::u5(0)),
-            2 => Self::mem(Value::u32(0), Value::u32(0), Value::u32(0), Value::u32(0)),
-            3 => Self::label("<Lab>", Value::u32(0)),
+            OPR_IMM => Self::imm(Value::u32(0)),
+            OPR_REG => Self::reg("<Reg>", Value::u5(0)),
+            OPR_MEM => Self::mem(Value::u32(0), Value::u32(0), Value::u32(0), Value::u32(0)),
+            OPR_LAB => Self::label("<Lab>", Value::u32(0)),
             _ => Operand::imm(Value::u32(0)),
         }
     }
@@ -222,23 +248,22 @@ impl Operand {
 
     /// Get Operand value
     pub fn val(&self) -> Value {
-        self.0.borrow().val()
+        self.0.borrow_mut().val()
     }
 
     /// Get Operand name
     pub fn name(&self) -> &'static str {
-        self.0.borrow().name()
+        self.0.borrow_mut().name()
     }
 
     /// Get symbol of the operand
-    /// 0: Imm, 1: Reg, 2: Mem, 3: Label
-    pub fn sym(&self) -> i32 {
-        self.0.borrow().sym()
+    pub fn sym(&self) -> u16 {
+        self.0.borrow_mut().sym()
     }
 
     /// Get symbol str
-    pub fn sym_str(&self) -> &'static str {
-        OperandKind::sym_str(self.0.borrow().sym())
+    pub fn sym_str(&self) -> String {
+        OperandKind::sym_str(self.0.borrow_mut().sym())
     }
 
     // ================== Operand.set ==================== //
@@ -268,40 +293,125 @@ impl Operand {
 
     /// To String like: `val: kind`
     pub fn to_string(&self) -> String {
-        self.0.borrow().to_string()
+        self.0.borrow_mut().to_string()
     }
 
     /// From String like: `val: {kind}`
-    pub fn from_string(sym: i32, opr: &'static str) -> Self {
-        match sym {
-            0 => {
-                // Parse as Imm: `val`
-                let val = Value::from_string(opr);
-                Operand::imm(val)
-            },
-            1 => {
-                // Parse as Reg: `name`, find in reg pool
-                let name = opr.trim();
-                Instruction::reg_pool_nget(name).borrow_mut().clone()
-            },
-            2 => {
-                // Parse as Mem: `[base, idx, scale, disp]`
-                let mut opr = opr.trim()[1..opr.len()-1].split(',').collect::<Vec<_>>();
-                let base = Value::from_string(opr.remove(0).trim());
-                let idx = Value::from_string(opr.remove(0).trim());
-                let scale = Value::from_string(opr.remove(0).trim());
-                let disp = Value::from_string(opr.remove(0).trim());
-                Operand::mem(base, idx, scale, disp)
-            },
-            3 => {
-                // Parse as Label: `Label: val`
-                let mut opr = opr.split(':');
-                let name = opr.next().unwrap().trim();
-                let val = Value::from_string(opr.next().unwrap().trim());
-                Operand::label(name, val)
-            },
-            _ => Operand::undef(),
+    /// ### Lookup Address
+    /// Params:
+    /// 1. base/idx: Reg field
+    /// 2. scale: b'8 = (**b**/h/w/d: 1/2/4/8)
+    /// 3. disp : i32
+    /// #### 1 Direct Address
+    /// ```txt
+    /// [<Imm>]
+    /// ```
+    /// #### 2 Indirect Address
+    /// ```txt
+    /// [<Reg>]
+    /// ```
+    /// #### 3 Base + Disp Address
+    /// ```txt
+    /// [<Reg> + <Imm>]
+    ///   base    disp
+    /// ```
+    /// #### 4 Index Address
+    /// ```txt
+    /// [<Reg> + <Reg>]
+    ///   base    idx
+    /// 
+    /// [<Reg> + <Reg> + <Imm>]
+    ///   base    idx     disp
+    /// ```
+    /// #### 5 Scale index Address
+    /// ```txt
+    /// [<Reg> * <Imm>]
+    ///   idx    scale
+    /// 
+    /// [<Reg> * <Imm> + <Imm>]
+    ///   idx    scale    disp
+    /// 
+    /// [<Reg> + <Reg> * <Imm>]
+    ///   base    idx    scale
+    /// 
+    /// [<Reg> + <Reg> * <Imm> + <Imm>]
+    ///   base    idx    scale    disp
+    /// ```
+    pub fn from_string(sym: u16, opr: &'static str) -> Self {
+        let opr = opr.trim();
+        // 0. if sym == OPR_UND, return
+        if sym == OPR_UND {
+            return Self(Rc::new(RefCell::new(OperandKind::Undef)));
         }
+        // 1. Deal with reg
+        if (sym & OPR_REG != 0) && Instruction::reg_pool_is_in(opr) {
+            return Instruction::reg_pool_nget(opr).borrow_mut().clone();
+        }
+        // 2. Deal with mem: `[base + idx * scale + disp]`
+        if (sym & OPR_MEM != 0) && opr.starts_with('[') && opr.ends_with(']') {
+            // 2.1 del `[` and `]`
+            let opr = opr.trim_matches('[').trim_matches(']');
+            // 2.2 iter and deal with char
+            let mut base = Value::i32(0);
+            let mut idx = Value::i32(0);
+            let mut scale = Value::u8(1);
+            let mut disp = Value::i32(0);
+            let mut info = String::new();
+            for c in opr.chars() {
+                match c {
+                    ' ' => continue,
+                    '+' => {
+                        // check info is in reg pool: True find base Value
+                        if Instruction::reg_pool_is_in(&info) {
+                            let base_reg = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                            base = base_reg.val();
+                            // flush info
+                            info.clear();
+                        } else {    // False find scale Value
+                            scale = Value::from_string(&info);
+                            let val = scale.get_u8(0);
+                            // check if scale is [1, 2, 4, 8]
+                            if val != 1 && scale.get_u8(0) != 2 && scale.get_u8(0) != 4 && scale.get_u8(0) != 8 {
+                                log_warning!("Scale: {} is not in [1, 2, 4, 8]", scale.get_u8(0));
+                                scale.set_u8(0, 1);
+                            } else {
+                                scale.set_u8(0, val);
+                            }
+                            // flush info
+                            info.clear();
+                        }
+                    },
+                    '*' => {
+                        // check info is in reg pool: True find idx Value
+                        if Instruction::reg_pool_is_in(&info) {
+                            idx = Instruction::reg_pool_nget(&info).borrow_mut().clone().val();
+                            // flush info
+                            info.clear();
+                        }
+                    },
+                    // digital and english letter
+                    '0'..='9' | 'a'..='z' | 'A'..='Z' => info.push(c),
+                    _ => {
+                        break;
+                    }
+                }
+            }
+            if !info.is_empty() {
+                // check info is in reg pool: True find disp Value
+                disp = Value::from_string(&info);
+            }
+            return Operand::mem(base, idx, scale, disp);
+        }
+        // 3. Deal with imm: if all is digital and english letter
+        if (sym & OPR_IMM != 0) && opr.chars().all(|c| c.is_ascii_digit() || c.is_ascii_alphabetic()) {
+            return Operand::imm(Value::from_string(opr));
+        }
+        // 4. Deal with label
+        if (sym & OPR_LAB != 0) && opr.chars().all(|c| c.is_ascii_digit() || c.is_ascii_alphabetic()) {
+            return Operand::label(opr, Value::i32(0));
+        }
+        // 5. Deal with undef
+        Operand::undef()
     }
 
 }
@@ -323,20 +433,23 @@ impl fmt::Display for Operand {
 pub enum OpcodeKind {
 
     /// R-Type Opcode
-    R(&'static str, Vec<i32>),
+    R(&'static str, Vec<u16>),
     /// I-Type Opcode
-    I(&'static str, Vec<i32>),
+    I(&'static str, Vec<u16>),
     /// S-Type Opcode
-    S(&'static str, Vec<i32>),
+    S(&'static str, Vec<u16>),
     /// B-Type Opcode
-    B(&'static str, Vec<i32>),
+    B(&'static str, Vec<u16>),
     /// U-Type Opcode
-    U(&'static str, Vec<i32>),
+    U(&'static str, Vec<u16>),
     /// J-Type Opcode
-    J(&'static str, Vec<i32>),
+    J(&'static str, Vec<u16>),
+
+    /// X-Type Opcode
+    X(&'static str, Vec<u16>),
 
     /// Undef-Type Opcode
-    Undef(&'static str, Vec<i32>),
+    Undef(&'static str, Vec<u16>),
 }
 
 
@@ -351,6 +464,7 @@ impl OpcodeKind {
             OpcodeKind::B(name, _) => name,
             OpcodeKind::U(name, _) => name,
             OpcodeKind::J(name, _) => name,
+            OpcodeKind::X(name, _) => name,
             OpcodeKind::Undef(name, _) => name,
         }
     }
@@ -364,12 +478,13 @@ impl OpcodeKind {
             OpcodeKind::B(_, _) => "B",
             OpcodeKind::U(_, _) => "U",
             OpcodeKind::J(_, _) => "J",
+            OpcodeKind::X(_, _) => "X",
             OpcodeKind::Undef(_, _) => "Undef",
         }
     }
 
     /// Get Symbols of OpcodeKind
-    pub fn syms(&self) -> Vec<i32> {
+    pub fn syms(&self) -> Vec<u16> {
         match self {
             OpcodeKind::R(_, syms) => syms.clone(),
             OpcodeKind::I(_, syms) => syms.clone(),
@@ -377,12 +492,13 @@ impl OpcodeKind {
             OpcodeKind::B(_, syms) => syms.clone(),
             OpcodeKind::U(_, syms) => syms.clone(),
             OpcodeKind::J(_, syms) => syms.clone(),
+            OpcodeKind::X(_, syms) => syms.clone(),
             OpcodeKind::Undef(_, syms) => syms.clone(),
         }
     }
 
     /// Set Symbols of OpcodeKind
-    pub fn set_syms(&mut self, syms: Vec<i32>) {
+    pub fn set_syms(&mut self, syms: Vec<u16>) {
         match self {
             OpcodeKind::R(_, _) => {
                 *self = OpcodeKind::R(self.name(), syms);
@@ -402,6 +518,9 @@ impl OpcodeKind {
             OpcodeKind::J(_, _) => {
                 *self = OpcodeKind::J(self.name(), syms);
             },
+            OpcodeKind::X(_, _) => {
+                *self = OpcodeKind::X(self.name(), syms);
+            }
             OpcodeKind::Undef(_, _) => {
                 *self = OpcodeKind::J(self.name(), syms);
             },
@@ -409,26 +528,26 @@ impl OpcodeKind {
     }
 
     /// Check Symbols
-    pub fn check_syms (&self, syms: Vec<i32>) -> bool {
+    pub fn check_syms(&self, syms: Vec<u16>) -> bool {
         match self {
-            OpcodeKind::R(_, _) => {
-                self.syms() == syms
-            },
-            OpcodeKind::I(_, _) => {
-                self.syms() == syms
-            },
-            OpcodeKind::S(_, _) => {
-                self.syms() == syms
+            OpcodeKind::R(_, _) |
+            OpcodeKind::I(_, _) |
+            OpcodeKind::S(_, _) |
+            OpcodeKind::B(_, _) |
+            OpcodeKind::U(_, _) |
+            OpcodeKind::J(_, _) |
+            OpcodeKind::X(_, _) => {
+                // Get every sym and check
+                let mut is_same = true;
+                assert!(syms.len() == self.syms().len());
+                for i in 0..syms.len() {
+                    if self.syms()[i] != (syms[i] | self.syms()[i]) {
+                        is_same = false;
+                        break;
+                    }
+                }
+                is_same
             }
-            OpcodeKind::B(_, _) => {
-                self.syms() == syms
-            }
-            OpcodeKind::U(_, _) => {
-                self.syms() == syms
-            }
-            OpcodeKind::J(_, _) => {
-                self.syms() == syms
-            },
             OpcodeKind::Undef(_, _) => {
                 self.syms() == syms
             },
@@ -443,7 +562,8 @@ impl OpcodeKind {
             OpcodeKind::S(name, syms) |
             OpcodeKind::B(name, syms) |
             OpcodeKind::U(name, syms) |
-            OpcodeKind::J(name, syms) => {
+            OpcodeKind::J(name, syms) |
+            OpcodeKind::X(name, syms) => {
                 // Get syms and to string
                 let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
                 format!("{:<10} {}", name, sym_str)
@@ -476,7 +596,7 @@ pub struct Opcode(RefCell<OpcodeKind>);
 impl Opcode {
 
     /// New Type Opcode
-    pub fn new(name: &'static str, syms: Vec<i32>, ty: &'static str) -> Opcode {
+    pub fn new(name: &'static str, syms: Vec<u16>, ty: &'static str) -> Opcode {
         match ty {
             "R" => Opcode(RefCell::new(OpcodeKind::R(name, syms))),
             "I" => Opcode(RefCell::new(OpcodeKind::I(name, syms))),
@@ -484,6 +604,7 @@ impl Opcode {
             "B" => Opcode(RefCell::new(OpcodeKind::B(name, syms))),
             "U" => Opcode(RefCell::new(OpcodeKind::U(name, syms))),
             "J" => Opcode(RefCell::new(OpcodeKind::J(name, syms))),
+            "X" => Opcode(RefCell::new(OpcodeKind::X(name, syms))),
             "Undef" => Opcode(RefCell::new(OpcodeKind::Undef(name, syms))),
             _ => {
                 log_error!("Unknown type: {}", ty);
@@ -503,12 +624,12 @@ impl Opcode {
     }
 
     /// Get Symbols of Opcode
-    pub fn syms(&self) -> Vec<i32> {
+    pub fn syms(&self) -> Vec<u16> {
         self.0.borrow_mut().syms()
     }
 
     /// Check syms of Opcode
-    pub fn check_syms(&self, syms: Vec<i32>) -> bool {
+    pub fn check_syms(&self, syms: Vec<u16>) -> bool {
         self.0.borrow_mut().check_syms(syms)
     }
 
@@ -520,7 +641,7 @@ impl Opcode {
     // =================== Opcode.set ==================== //
 
     /// Set Symbols of Opcode
-    pub fn set_syms(&mut self, syms: Vec<i32>) {
+    pub fn set_syms(&mut self, syms: Vec<u16>) {
         self.0.borrow_mut().set_syms(syms);
     }
 
