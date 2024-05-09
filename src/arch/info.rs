@@ -30,12 +30,17 @@ pub struct ArchMode {
     pub flag: u16,
 
 }
-
+/// Arch mode width 128
 pub const BIT128: u16 = 0b11;
+/// Arch mode width 64
 pub const BIT64: u16 = 0b10;
+/// Arch mode width 32
 pub const BIT32: u16 = 0b01;
+/// Arch mode width 16
 pub const BIT16: u16 = 0b00;
+/// Arch mode endianness little
 pub const LITTLE_ENDIAN: u16 = 0b000;
+/// Arch mode endianness big
 pub const BIG_ENDIAN: u16 = 0b100;
 
 impl ArchMode {

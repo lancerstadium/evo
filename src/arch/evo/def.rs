@@ -1163,6 +1163,43 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
+    itp.borrow_mut().def_insn("extdl_i64" , BIT64 | LITTLE_ENDIAN | OPRS_SIG, vec![1, 1], "R", "0B0000000. ........ .100.... .0110011",
+        |cpu, insn| {
+            // ======== rd = rs1(i64 -> low i32) ======== //
+            if !insn.is_applied {
+                log_warning!("Insn not applied: {}", insn);
+                return;
+            }
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1(i64)
+            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i64(0);
+            // 2. Extract double low 32-bit
+            let res = ((rs1 << 32) >> 32) as u32;
+            // 3. Set rd(i64[31:0])
+            let mut rd = proc0.get_reg(insn.rd() as usize);
+            rd.set_uword(0, 0, 32, res);
+            proc0.set_reg(insn.rd() as usize, rd);
+        }
+    );
+    itp.borrow_mut().def_insn("extdh_i64" , BIT64 | LITTLE_ENDIAN | OPRS_SIG, vec![1, 1], "R", "0B0000000. ........ .100.... .0110011",
+        |cpu, insn| {
+            // ======== rd = rs1(i64 -> low i32) ======== //
+            if !insn.is_applied {
+                log_warning!("Insn not applied: {}", insn);
+                return;
+            }
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1(i64)
+            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i64(0);
+            // 2. Extract double high 32-bit
+            let res = (rs1 >> 32) as u32;
+            // 3. Set rd(i64[31:0])
+            let mut rd = proc0.get_reg(insn.rd() as usize);
+            rd.set_uword(0, 0, 32, res);
+            proc0.set_reg(insn.rd() as usize, rd);
+        }
+    );
+
 
 
     itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![1, 1, 1], "R", "0B0000000. ........ .010.... .0110011",
@@ -1810,6 +1847,9 @@ mod evo_test {
         let insn61 = Instruction::from_string("extw_u32 t0, t3");
         let insn62 = Instruction::from_string("extw_u64 t0, t3");
 
+        let insn63 = Instruction::from_string("extdh_i64 t0, t1");
+        let insn64 = Instruction::from_string("extdl_i64 t0, t1");
+
         cpu.execute(&insn1);
         println!("{:<50} -> t0 = {}", insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn2);
@@ -1937,8 +1977,10 @@ mod evo_test {
         println!("{:<50} -> t0 = {}", insn61.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn62);
         println!("{:<50} -> t0 = {}", insn62.to_string(), cpu.get_nreg("t0").get_i64(0));
-
-
+        cpu.execute(&insn63);
+        println!("{:<50} -> t0 = {}", insn63.to_string(), cpu.get_nreg("t0").get_i64(0));
+        cpu.execute(&insn64);
+        println!("{:<50} -> t0 = {}", insn64.to_string(), cpu.get_nreg("t0").get_i64(0));
 
 
         // cpu.set_nreg("t0", Value::i32(56));
