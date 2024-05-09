@@ -246,9 +246,9 @@ mod cpu_test {
     #[test]
     fn insn_decode() {
         CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
-        let insn1 = Instruction::decode(Value::from_string("0B01000000 10000000 00001111 10110011"));  // sub x32, x0, x8
+        let insn1 = Instruction::decode(&RISCV32_ARCH, Value::from_string("0B01000000 10000000 00001111 10110011"));  // sub x32, x0, x8
         println!("{}", insn1);
-        let insn2 = Instruction::decode(Value::from_string("0B00000000 00001000 00110000 00110011"));  // sltu x0, x16, x0
+        let insn2 = Instruction::decode(&RISCV32_ARCH, Value::from_string("0B00000000 00001000 00110000 00110011"));  // sltu x0, x16, x0
         println!("{}", insn2);
         println!("{}", insn2.arch);
 

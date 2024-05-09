@@ -8,10 +8,13 @@ use std::fmt::{self};
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::arch::evo::def::{evo_decode, evo_encode, EVO_ARCH};
 use crate::arch::info::Arch;
-use crate::log_error;
+use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
+use crate::arch::x86::def::X86_ARCH;
+use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::ir::op::{Opcode, OpcodeKind, Operand};
+use crate::ir::op::{Opcode, Operand};
 use crate::ir::val::Value;
 
 
@@ -28,23 +31,23 @@ use crate::ir::val::Value;
 /// 
 /// ```txt
 /// (32-bits):
-///    ┌────────┬─────┬─────┬────┬──────┬────┬─────┬──────────────────┐
-///  32│31    25│24 20│19 15│  12│11   7│6  0│ Typ │       Arch       │
-///    ├────────┼─────┼─────┼────┼──────┼────┼─────┼──────────────────┤
-///    │   f7   │ rs2 │ rs1 │ f3 │  rd  │ op │  R  │ RISC-V, EVO      │
-///    ├────────┴─────┼─────┼────┼──────┼────┼─────┼──────────────────┤
-///    │    imm[12]   │ rs1 │ f3 │  rd  │ op │  I  │ RISC-V, EVO      │
-///    ├────────┬─────┼─────┼────┼──────┼────┼─────┼──────────────────┤
-///    │  imm1  │ rs2 │ rs1 │ f3 │ imm0 │ op │  S  │ RISC-V           │
-///    ├─┬──────┼─────┼─────┼────┼────┬─┼────┼─────┼──────────────────┤
-///    │3│  i1  │ rs2 │ rs1 │ f3 │ i0 │2│ op │  B  │ RISC-V           │
-///    ├─┴──────┴─────┴─────┴────┼────┴─┼────┼─────┼──────────────────┤
-///    │          imm[20]        │  rd  │ op │  U  │ RISC-V           │
-///    ├─┬──────────┬─┬──────────┼──────┼────┼─────┼──────────────────┤
-///    │3│   imm0   │1│   imm2   │  rd  │ op │  J  │ RISC-V           │
-///    ├─┴──────────┴─┴──────────┴──────┴────┼─────┼──────────────────┤
-///    │   ?????                             │  ?  │ ?????            │
-///    └─────────────────────────────────────┴─────┴──────────────────┘
+///    ┌────────┬─────┬─────┬────┬──────┬────┬─────┬────────────────┐
+///  32│31    25│24 20│19 15│  12│11   7│6  0│ Typ │      Arch      │
+///    ├────────┼─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+///    │   f7   │ rs2 │ rs1 │ f3 │  rd  │ op │  R  │ RISC-V, EVO    │
+///    ├────────┴─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+///    │    imm[12]   │ rs1 │ f3 │  rd  │ op │  I  │ RISC-V, EVO    │
+///    ├────────┬─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+///    │  imm1  │ rs2 │ rs1 │ f3 │ imm0 │ op │  S  │ RISC-V         │
+///    ├─┬──────┼─────┼─────┼────┼────┬─┼────┼─────┼────────────────┤
+///    │3│  i1  │ rs2 │ rs1 │ f3 │ i0 │2│ op │  B  │ RISC-V         │
+///    ├─┴──────┴─────┴─────┴────┼────┴─┼────┼─────┼────────────────┤
+///    │          imm[20]        │  rd  │ op │  U  │ RISC-V         │
+///    ├─┬──────────┬─┬──────────┼──────┼────┼─────┼────────────────┤
+///    │3│   imm0   │1│   imm2   │  rd  │ op │  J  │ RISC-V         │
+///    ├─┴──────────┴─┴──────────┴──────┴────┼─────┼────────────────┤
+///    │   ?????                             │  ?  │ ?????          │
+///    └─────────────────────────────────────┴─────┴────────────────┘
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
@@ -78,8 +81,10 @@ pub struct Instruction {
     pub opr : Vec<Operand>,
     pub opb : &'static str,
     pub byt : Value,
-    pub arch : Arch,
+    pub arch : &'static Arch,
     pub is_applied : bool,
+    /// encode func
+    pub enc : Option<fn(&mut Instruction, Vec<Operand>) -> Instruction>,
 }
 /// have signed operands
 pub const OPRS_SIG: u16 = 0b0000;
@@ -125,13 +130,14 @@ impl Instruction {
             opr: Vec::new(),
             opb: "",
             byt: Value::u32(0),
-            arch: Arch::default(),
+            arch: &EVO_ARCH,
             is_applied: false,
+            enc: None,
         }
     }
 
     /// Define Instruction Temp and add to pool
-    pub fn def(arch: &Arch, name: &'static str, flag: u16, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> Instruction {
+    pub fn def(arch: &'static Arch, name: &'static str, flag: u16, syms: Vec<i32>, ty: &'static str, opb: &'static str) -> Instruction {
         let opc = Opcode::new(name, syms, ty);
         let insn = Instruction {
             flag: flag,
@@ -139,8 +145,9 @@ impl Instruction {
             opr: Vec::new(),
             opb,
             byt: Value::from_string(opb),
-            arch: arch.clone(),
+            arch,
             is_applied: false,
+            enc: Self::encode_pool_init(arch)
         };
         // add to pool
         Instruction::insn_pool_push(insn);
@@ -155,10 +162,52 @@ impl Instruction {
         Self::reg_pool_nget(name).borrow().clone()
     }
 
+    /// flush arch
+    pub fn flush_arch(&mut self, arch: &'static Arch) {
+        self.arch = arch;
+        self.enc = Self::encode_pool_init(arch);
+    }
+
+    /// Encode
+    pub fn encode(&mut self, opr: Vec<Operand>) -> Instruction {
+        self.enc.unwrap()(self, opr)
+    }
+
+    /// Decode: you should init pool first
+    pub fn decode(arch: &'static Arch, value: Value) -> Instruction {
+        Self::decode_pool_init(arch).unwrap()(value)
+    }
+
     /// apply temp to Instruction
     pub fn apply(name: &'static str, opr: Vec<Operand>) -> Instruction {
         let mut insn = Instruction::insn_pool_nget(name).borrow().clone();
         insn.encode(opr)
+    }
+
+    /// route of encode pool
+    pub fn encode_pool_init(arch: &'static Arch) -> Option<fn(&mut Instruction, Vec<Operand>) -> Instruction> {
+        match *arch {
+            EVO_ARCH => Some(evo_encode),
+            X86_ARCH => None,
+            RISCV32_ARCH => Some(riscv32_encode),
+            _ => {
+                log_warning!("Interpreter init fail, not support arch: {}", arch.name);
+                None
+            }
+        }
+    }
+
+    /// route of decode pool
+    pub fn decode_pool_init(arch: &'static Arch) -> Option<fn(value: Value) -> Instruction> {
+        match *arch {
+            EVO_ARCH => Some(evo_decode),
+            X86_ARCH => None,
+            RISCV32_ARCH => Some(riscv32_decode),
+            _ => {
+                log_warning!("Interpreter init fail, not support arch: {}", arch.name);
+                None
+            }
+        }
     }
 
     // ================= Instruction.insn_pool ================== //
@@ -213,7 +262,7 @@ impl Instruction {
         
         for i in 0..Self::insn_pool_size() {
             let insn = Self::insn_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {:<30} {} ({})\n", insn.info(), insn.ty(), insn.opb));
+            info.push_str(&format!("- {:<30}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }
@@ -420,30 +469,30 @@ impl Instruction {
         res
     }
 
-    fn set_rs1(&mut self, rs1: u8) {
+    pub fn set_rs1(&mut self, rs1: u8) {
         self.byt.set_ubyte(0, 15, 5, rs1);
     }
 
-    fn set_rs2(&mut self, rs2: u8) {
+    pub fn set_rs2(&mut self, rs2: u8) {
         self.byt.set_ubyte(0, 20, 5, rs2);
     }
 
-    fn set_rd(&mut self, rd: u8) {
+    pub fn set_rd(&mut self, rd: u8) {
         self.byt.set_ubyte(0, 7, 5, rd);
     }
 
-    fn set_imm_i(&mut self, imm: u16) {
+    pub fn set_imm_i(&mut self, imm: u16) {
         self.byt.set_uhalf(0, 20, 12, imm);
     }
 
-    fn set_imm_s(&mut self, imm: u16) {
+    pub fn set_imm_s(&mut self, imm: u16) {
         let imm0 = (imm & 0x1f) as u8;
         let imm1 = (imm >> 5) as u8;
         self.byt.set_ubyte(0, 7, 5, imm0);
         self.byt.set_ubyte(0, 25, 7, imm1);
     }
 
-    fn set_imm_b(&mut self, imm: u16) {
+    pub fn set_imm_b(&mut self, imm: u16) {
         let imm0 = (imm & 0xf) as u8;
         let imm1 = ((imm >> 5) & 0x3f) as u8;
         let imm2 = ((imm >> 11) & 0x1) as u8;
@@ -454,11 +503,11 @@ impl Instruction {
         self.byt.set_ubyte(0, 31, 1, imm3);
     }
 
-    fn set_imm_u(&mut self, imm: u32) {
+    pub fn set_imm_u(&mut self, imm: u32) {
         self.byt.set_uword(0, 12, 20, imm);
     }
 
-    fn set_imm_j(&mut self, imm: u32) {
+    pub fn set_imm_j(&mut self, imm: u32) {
         let imm0 = (imm & 0x3ff) as u16;
         let imm1 = ((imm >> 11) & 0x1) as u8;
         let imm2 = ((imm >> 19) & 0xff) as u8;
@@ -485,214 +534,214 @@ impl Instruction {
         }
     }
 
-    /// encode
-    pub fn encode(&mut self, opr: Vec<Operand>) -> Instruction {
-        if opr.len() == 0 {
-            let mut res = self.clone();
-            res.is_applied = true;
-            return res;
-        }
-        let mut opr = opr;
-        // Check syms
-        if self.check_syms(opr.clone()) {
-            // match opcode type kind and fill bytes by opreands
-            match self.opc.kind() {
-                OpcodeKind::R(_, _) => {
-                    if opr.len() >= 3 {
-                        // rs2: u5 -> 20->24
-                        let rs2 = opr[2].val().get_byte(0);
-                        self.set_rs2(rs2);
-                    }
-                    if opr.len() >= 2 {
-                        // rs1: u5 -> 15->19
-                        let rs1 = opr[1].val().get_byte(0);
-                        self.set_rs1(rs1);
-                    }
-                    // rd: u5 -> 7->11
-                    let rd = opr[0].val().get_byte(0);
-                    self.set_rd(rd);
-                },
-                OpcodeKind::I(_, _) => {
-                    // rd: u5 -> 7->11
-                    let rd = opr[0].val().get_byte(0);
-                    self.set_rd(rd);
-                    // rs1: u5 -> 15->19
-                    let rs1 = opr[1].val().get_byte(0);
-                    self.set_rs1(rs1);
-                    // imm: u12 -> 20->32
-                    let imm = opr[2].val().get_half(0);
-                    self.set_imm_i(imm);
-                    // refresh imm
-                    opr.pop();
-                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
-                },
-                OpcodeKind::S(_, _) => {
-                    // rs2: u5 -> 20->24
-                    let rs2 = opr[0].val().get_byte(0);
-                    self.set_rs2(rs2);
-                    // rs1: u5 -> 15->19
-                    let rs1 = opr[1].val().get_byte(0);
-                    self.set_rs1(rs1);
-                    // imm: S
-                    let imm = opr[2].val().get_half(0);
-                    self.set_imm_s(imm);
-                    // refresh imm
-                    opr.pop();
-                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
-                },
-                OpcodeKind::B(_, _) => {
-                    // rs2: u5 -> 20->24
-                    let rs2 = opr[0].val().get_byte(0);
-                    self.set_rs2(rs2);
-                    // rs1: u5 -> 15->19
-                    let rs1 = opr[1].val().get_byte(0);
-                    self.set_rs1(rs1);
-                    // imm: B
-                    let imm = opr[2].val().get_half(0);
-                    self.set_imm_b(imm);
-                    // refresh imm
-                    opr.pop();
-                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
-                },
-                OpcodeKind::U(_, _) => {
-                    // rd: u5 -> 7->11
-                    let rd = opr[0].val().get_byte(0);
-                    self.set_rd(rd);
-                    // imm: U
-                    let imm = opr[1].val().get_word(0);
-                    self.set_imm_u(imm);
-                    // refresh imm
-                    opr.pop();
-                    opr.push(Operand::imm(Value::bit(12, imm as i128)));
-                },
-                OpcodeKind::J(_, _) => {
-                    // rd: u5 -> 7->11
-                    let rd = opr[0].val().get_byte(0);
-                    self.set_rd(rd);
-                    // imm: J
-                    let imm = opr[1].val().get_word(0);
-                    self.set_imm_j(imm);
-                    // refresh imm
-                    opr.pop();
-                    opr.push(Operand::imm(Value::bit(20, imm as i128)));
-                },
-                _ => {
-                    // Do nothing
-                },
-            }
-            // refresh status
-            let mut res = self.clone();
-            res.opr = opr;
-            res.is_applied = true;
-            res
-        } else {
-            // Error
-            log_error!("Apply operands failed: {} , check syms", self.opc.name());
-            // Revert
-            Instruction::undef()
-        }
-    }
+    // /// encode
+    // pub fn encode(&mut self, opr: Vec<Operand>) -> Instruction {
+    //     if opr.len() == 0 {
+    //         let mut res = self.clone();
+    //         res.is_applied = true;
+    //         return res;
+    //     }
+    //     let mut opr = opr;
+    //     // Check syms
+    //     if self.check_syms(opr.clone()) {
+    //         // match opcode type kind and fill bytes by opreands
+    //         match self.opc.kind() {
+    //             OpcodeKind::R(_, _) => {
+    //                 if opr.len() >= 3 {
+    //                     // rs2: u5 -> 20->24
+    //                     let rs2 = opr[2].val().get_byte(0);
+    //                     self.set_rs2(rs2);
+    //                 }
+    //                 if opr.len() >= 2 {
+    //                     // rs1: u5 -> 15->19
+    //                     let rs1 = opr[1].val().get_byte(0);
+    //                     self.set_rs1(rs1);
+    //                 }
+    //                 // rd: u5 -> 7->11
+    //                 let rd = opr[0].val().get_byte(0);
+    //                 self.set_rd(rd);
+    //             },
+    //             OpcodeKind::I(_, _) => {
+    //                 // rd: u5 -> 7->11
+    //                 let rd = opr[0].val().get_byte(0);
+    //                 self.set_rd(rd);
+    //                 // rs1: u5 -> 15->19
+    //                 let rs1 = opr[1].val().get_byte(0);
+    //                 self.set_rs1(rs1);
+    //                 // imm: u12 -> 20->32
+    //                 let imm = opr[2].val().get_half(0);
+    //                 self.set_imm_i(imm);
+    //                 // refresh imm
+    //                 opr.pop();
+    //                 opr.push(Operand::imm(Value::bit(12, imm as i128)));
+    //             },
+    //             OpcodeKind::S(_, _) => {
+    //                 // rs2: u5 -> 20->24
+    //                 let rs2 = opr[0].val().get_byte(0);
+    //                 self.set_rs2(rs2);
+    //                 // rs1: u5 -> 15->19
+    //                 let rs1 = opr[1].val().get_byte(0);
+    //                 self.set_rs1(rs1);
+    //                 // imm: S
+    //                 let imm = opr[2].val().get_half(0);
+    //                 self.set_imm_s(imm);
+    //                 // refresh imm
+    //                 opr.pop();
+    //                 opr.push(Operand::imm(Value::bit(12, imm as i128)));
+    //             },
+    //             OpcodeKind::B(_, _) => {
+    //                 // rs2: u5 -> 20->24
+    //                 let rs2 = opr[0].val().get_byte(0);
+    //                 self.set_rs2(rs2);
+    //                 // rs1: u5 -> 15->19
+    //                 let rs1 = opr[1].val().get_byte(0);
+    //                 self.set_rs1(rs1);
+    //                 // imm: B
+    //                 let imm = opr[2].val().get_half(0);
+    //                 self.set_imm_b(imm);
+    //                 // refresh imm
+    //                 opr.pop();
+    //                 opr.push(Operand::imm(Value::bit(12, imm as i128)));
+    //             },
+    //             OpcodeKind::U(_, _) => {
+    //                 // rd: u5 -> 7->11
+    //                 let rd = opr[0].val().get_byte(0);
+    //                 self.set_rd(rd);
+    //                 // imm: U
+    //                 let imm = opr[1].val().get_word(0);
+    //                 self.set_imm_u(imm);
+    //                 // refresh imm
+    //                 opr.pop();
+    //                 opr.push(Operand::imm(Value::bit(12, imm as i128)));
+    //             },
+    //             OpcodeKind::J(_, _) => {
+    //                 // rd: u5 -> 7->11
+    //                 let rd = opr[0].val().get_byte(0);
+    //                 self.set_rd(rd);
+    //                 // imm: J
+    //                 let imm = opr[1].val().get_word(0);
+    //                 self.set_imm_j(imm);
+    //                 // refresh imm
+    //                 opr.pop();
+    //                 opr.push(Operand::imm(Value::bit(20, imm as i128)));
+    //             },
+    //             _ => {
+    //                 // Do nothing
+    //             },
+    //         }
+    //         // refresh status
+    //         let mut res = self.clone();
+    //         res.opr = opr;
+    //         res.is_applied = true;
+    //         res
+    //     } else {
+    //         // Error
+    //         log_error!("Apply operands failed: {} , check syms", self.opc.name());
+    //         // Revert
+    //         Instruction::undef()
+    //     }
+    // }
 
 
-    /// decode from Value
-    pub fn decode(value: Value) -> Instruction {
-        let mut res = Instruction::undef();
-        // 1. check scale
-        if value.scale_sum() != 32 {
-            log_error!("Invalid insn scale: {}", value.scale_sum());
-            return res;
-        }
-        // 2. decode opc
-        res.byt = value;
-        let mut opr = vec![];
-        match (res.opcode(), res.funct3(), res.funct7()) {
-            // 2.1 R-Type
-            (0b0110011, f3, f7) => {
-                // Get oprands
-                // a. rd
-                opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
-                // b. rs1
-                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // c. rs2
-                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
-                // find insn
-                match (f3, f7) {
-                    (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
-                    (0b000, 0b0100000) => res = Instruction::insn_pool_nget("sub").borrow().clone(),
-                    (0b100, 0b0000000) => res = Instruction::insn_pool_nget("xor").borrow().clone(),
-                    (0b110, 0b0000000) => res = Instruction::insn_pool_nget("or").borrow().clone(),
-                    (0b111, 0b0000000) => res = Instruction::insn_pool_nget("and").borrow().clone(),
-                    (0b001, 0b0000000) => res = Instruction::insn_pool_nget("sll").borrow().clone(),
-                    (0b101, 0b0000000) => res = Instruction::insn_pool_nget("srl").borrow().clone(),
-                    (0b101, 0b0100000) => res = Instruction::insn_pool_nget("sra").borrow().clone(),
-                    (0b010, 0b0000000) => res = Instruction::insn_pool_nget("slt").borrow().clone(),
-                    (0b011, 0b0000000) => res = Instruction::insn_pool_nget("sltu").borrow().clone(),
-                    _ => {
+    // /// decode from Value
+    // pub fn decode(value: Value) -> Instruction {
+    //     let mut res = Instruction::undef();
+    //     // 1. check scale
+    //     if value.scale_sum() != 32 {
+    //         log_error!("Invalid insn scale: {}", value.scale_sum());
+    //         return res;
+    //     }
+    //     // 2. decode opc
+    //     res.byt = value;
+    //     let mut opr = vec![];
+    //     match (res.opcode(), res.funct3(), res.funct7()) {
+    //         // 2.1 R-Type
+    //         (0b0110011, f3, f7) => {
+    //             // Get oprands
+    //             // a. rd
+    //             opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+    //             // b. rs1
+    //             opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+    //             // c. rs2
+    //             opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+    //             // find insn
+    //             match (f3, f7) {
+    //                 (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
+    //                 (0b000, 0b0100000) => res = Instruction::insn_pool_nget("sub").borrow().clone(),
+    //                 (0b100, 0b0000000) => res = Instruction::insn_pool_nget("xor").borrow().clone(),
+    //                 (0b110, 0b0000000) => res = Instruction::insn_pool_nget("or").borrow().clone(),
+    //                 (0b111, 0b0000000) => res = Instruction::insn_pool_nget("and").borrow().clone(),
+    //                 (0b001, 0b0000000) => res = Instruction::insn_pool_nget("sll").borrow().clone(),
+    //                 (0b101, 0b0000000) => res = Instruction::insn_pool_nget("srl").borrow().clone(),
+    //                 (0b101, 0b0100000) => res = Instruction::insn_pool_nget("sra").borrow().clone(),
+    //                 (0b010, 0b0000000) => res = Instruction::insn_pool_nget("slt").borrow().clone(),
+    //                 (0b011, 0b0000000) => res = Instruction::insn_pool_nget("sltu").borrow().clone(),
+    //                 _ => {
 
-                    }
-                }
-            },
-            // 2.2 I-Type
-            (0b0010011, f3, 0b0000000) => {
-                // Get oprands
-                // a. rd
-                opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
-                // b. rs1
-                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // c. imm
-                opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
-                // find insn
-                match f3 {
-                    0b000 => res = Instruction::insn_pool_nget("addi").borrow().clone(),
-                    0b010 => res = Instruction::insn_pool_nget("slti").borrow().clone(),
-                    0b011 => res = Instruction::insn_pool_nget("sltiu").borrow().clone(),
-                    0b100 => res = Instruction::insn_pool_nget("xori").borrow().clone(),
-                    0b110 => res = Instruction::insn_pool_nget("ori").borrow().clone(),
-                    0b111 => res = Instruction::insn_pool_nget("andi").borrow().clone(),
-                    _ => {}
-                }
-            },
-            // 2.3 S-Type
-            (0b0100011, f3, 0b0000000) => {
-                // Get oprands
-                // a. rs1
-                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // b. rs2
-                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
-                // c. imm
-                opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
-                // find insn
-                match f3 {
-                    0b000 => res = Instruction::insn_pool_nget("sb").borrow().clone(),
-                    0b001 => res = Instruction::insn_pool_nget("sh").borrow().clone(),
-                    0b010 => res = Instruction::insn_pool_nget("sw").borrow().clone(),
-                    _ => {}
-                }
-            },
-            // 2.4 B-Type
-            (0b1100011, f3, 0b0000000) => {
-                // Get oprands
-                // a. rs1
-                opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
-                // b. rs2
-                opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
-                // c. imm
-                opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
-                // find insn
-                match f3 {
-                    0b000 => res = Instruction::insn_pool_nget("beq").borrow().clone(),
-                    0b001 => res = Instruction::insn_pool_nget("bne").borrow().clone(),
-                    _ => {}
-                }
-            }
-            _ => {
+    //                 }
+    //             }
+    //         },
+    //         // 2.2 I-Type
+    //         (0b0010011, f3, 0b0000000) => {
+    //             // Get oprands
+    //             // a. rd
+    //             opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+    //             // b. rs1
+    //             opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+    //             // c. imm
+    //             opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
+    //             // find insn
+    //             match f3 {
+    //                 0b000 => res = Instruction::insn_pool_nget("addi").borrow().clone(),
+    //                 0b010 => res = Instruction::insn_pool_nget("slti").borrow().clone(),
+    //                 0b011 => res = Instruction::insn_pool_nget("sltiu").borrow().clone(),
+    //                 0b100 => res = Instruction::insn_pool_nget("xori").borrow().clone(),
+    //                 0b110 => res = Instruction::insn_pool_nget("ori").borrow().clone(),
+    //                 0b111 => res = Instruction::insn_pool_nget("andi").borrow().clone(),
+    //                 _ => {}
+    //             }
+    //         },
+    //         // 2.3 S-Type
+    //         (0b0100011, f3, 0b0000000) => {
+    //             // Get oprands
+    //             // a. rs1
+    //             opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+    //             // b. rs2
+    //             opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+    //             // c. imm
+    //             opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
+    //             // find insn
+    //             match f3 {
+    //                 0b000 => res = Instruction::insn_pool_nget("sb").borrow().clone(),
+    //                 0b001 => res = Instruction::insn_pool_nget("sh").borrow().clone(),
+    //                 0b010 => res = Instruction::insn_pool_nget("sw").borrow().clone(),
+    //                 _ => {}
+    //             }
+    //         },
+    //         // 2.4 B-Type
+    //         (0b1100011, f3, 0b0000000) => {
+    //             // Get oprands
+    //             // a. rs1
+    //             opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+    //             // b. rs2
+    //             opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+    //             // c. imm
+    //             opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
+    //             // find insn
+    //             match f3 {
+    //                 0b000 => res = Instruction::insn_pool_nget("beq").borrow().clone(),
+    //                 0b001 => res = Instruction::insn_pool_nget("bne").borrow().clone(),
+    //                 _ => {}
+    //             }
+    //         }
+    //         _ => {
 
-            }
+    //         }
 
-        }
-        // 3. encode
-        res.encode(opr)
-    }
+    //     }
+    //     // 3. encode
+    //     res.encode(opr)
+    // }
 
 
 

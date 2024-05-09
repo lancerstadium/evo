@@ -6,6 +6,8 @@ use std::{default, fmt};
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use super::evo::def::EVO_ARCH;
+
 
 // ============================================================================== //
 //                                info::ArchMode
@@ -306,7 +308,7 @@ impl fmt::Display for Arch {
 
 impl default::Default for Arch {
     fn default() -> Self {
-        Arch::new(ArchKind::EVO, BIT32 | LITTLE_ENDIAN, 32)
+        EVO_ARCH
     }
 }
 

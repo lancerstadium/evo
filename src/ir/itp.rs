@@ -10,9 +10,12 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use crate::log_warning;
+use crate::util::log::Span;
 use crate::arch::evo::def::{EVO_ARCH, evo_itp_init};
 use crate::arch::info::Arch;
 use crate::arch::riscv::def::{riscv32_itp_init, RISCV32_ARCH};
+use crate::arch::x86::def::{x86_itp_init, X86_ARCH};
 use crate::ir::cpu::CPUState;
 use crate::ir::insn::Instruction;
 
@@ -88,8 +91,12 @@ impl Interpreter {
     pub fn itp_pool_init(arch: &'static Arch) -> Option<Rc<RefCell<Interpreter>>> {
         match *arch {
             EVO_ARCH => evo_itp_init(),
+            X86_ARCH => x86_itp_init(),
             RISCV32_ARCH => riscv32_itp_init(),
-            _ => None
+            _ => {
+                log_warning!("Interpreter init fail, not support arch: {}", arch.name);
+                None
+            }
         }
     }
 

@@ -230,10 +230,14 @@ impl MemoryTool {
 #[cfg(test)]
 mod memtool_test {
 
+    use crate::arch::riscv::def::RISCV32_ARCH;
+    use crate::ir::cpu::CPUState;
+
     use super::*;
 
     #[test]
     fn elf_test() {
+        CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
         let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
@@ -242,7 +246,7 @@ mod memtool_test {
         // Read Mem
         for i in 0..20 {
             let insn_val = val.get( seg.2 + i * 4, 32);
-            let insn = Instruction::decode(insn_val.clone());
+            let insn = Instruction::decode(&RISCV32_ARCH, insn_val.clone());
             println!("Mem: {}  -> Dec: {}", insn_val.bin(0, -1, true), insn);
         }
 

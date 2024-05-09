@@ -438,40 +438,20 @@ impl OpcodeKind {
     /// To string
     pub fn to_string(&self) -> String {
         match self {
-            OpcodeKind::I(name, syms) => {
-                // Get syms and to string
-                let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
-            },
-            OpcodeKind::R(name, syms) => {
-                // Get syms and to string
-                let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
-            },
-            OpcodeKind::S(name, syms) => {
-                // Get syms and to string
-                let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
-            },
-            OpcodeKind::B(name, syms) => {
-                // Get syms and to string
-                let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
-            },
-            OpcodeKind::U(name, syms) => {
-                // Get syms and to string
-                let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
-            },
+            OpcodeKind::I(name, syms) |
+            OpcodeKind::R(name, syms) |
+            OpcodeKind::S(name, syms) |
+            OpcodeKind::B(name, syms) |
+            OpcodeKind::U(name, syms) |
             OpcodeKind::J(name, syms) => {
                 // Get syms and to string
                 let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
+                format!("{:<10} {}", name, sym_str)
             },
             OpcodeKind::Undef(name, syms) => {
                 // Get syms and to string
                 let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
-                format!("{:<6} {}", name, sym_str)
+                format!("{:<10} {}", name, sym_str)
             },
         }
     }
