@@ -30,7 +30,7 @@ pub struct Instruction {
     /// │ │ │ │ │ │ ├─┘
     /// │ │ │ │ │ │ └──── (0-1) 00 is 16-bit, 01 is 32-bit, 10 is 64-bit, 11 is 128-bit
     /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │ └──────── (3) 0: all signed operands, 1: have unsigned operands
+    /// │ │ │ │ └──────── (3) 0: have signed operands, 1: all unsigned operands
     /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: <Reserved>
     /// │ │ │ │         │ (4-7) 0010: COND_EQ, 0011: COND_NE
     /// ├─┴─┴─┘         │ (4-7) 0100: COND_LT, 0101: COND_GE
@@ -55,16 +55,16 @@ pub struct Instruction {
     pub arch : Arch,
     pub is_applied : bool,
 }
-/// all signed operands
+/// have signed operands
 pub const OPRS_SIG: u16 = 0b0000;
-/// have unsigned operands
+/// all unsigned operands
 pub const OPRS_USD: u16 = 0b1000;
 /// no condition
 pub const COND_NO: u16 = 0b0000_0000;
 /// x == y
-pub const COND_EQ: u16 = 0b0001_0000;
+pub const COND_EQ: u16 = 0b0010_0000;
 /// x != y
-pub const COND_NE: u16 = 0b0010_0000;
+pub const COND_NE: u16 = 0b0011_0000;
 /// x < y
 pub const COND_LT: u16 = 0b0100_0000;
 /// x >= y
@@ -302,7 +302,7 @@ impl Instruction {
     /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
     pub fn to_string(&self) -> String {
         let mut info = String::new();
-        info.push_str(&format!("{:<6} ", self.opc.name()));
+        info.push_str(&format!("{:<10} ", self.opc.name()));
         for i in 0..self.opr.len() {
             let r = self.opr[i].clone();
             info.push_str(&format!("{}", r.to_string()));
@@ -493,15 +493,19 @@ impl Instruction {
             // match opcode type kind and fill bytes by opreands
             match self.opc.kind() {
                 OpcodeKind::R(_, _) => {
+                    if opr.len() >= 3 {
+                        // rs2: u5 -> 20->24
+                        let rs2 = opr[2].val().get_byte(0);
+                        self.set_rs2(rs2);
+                    }
+                    if opr.len() >= 2 {
+                        // rs1: u5 -> 15->19
+                        let rs1 = opr[1].val().get_byte(0);
+                        self.set_rs1(rs1);
+                    }
                     // rd: u5 -> 7->11
                     let rd = opr[0].val().get_byte(0);
                     self.set_rd(rd);
-                    // rs1: u5 -> 15->19
-                    let rs1 = opr[1].val().get_byte(0);
-                    self.set_rs1(rs1);
-                    // rs2: u5 -> 20->24
-                    let rs2 = opr[2].val().get_byte(0);
-                    self.set_rs2(rs2);
                 },
                 OpcodeKind::I(_, _) => {
                     // rd: u5 -> 7->11
