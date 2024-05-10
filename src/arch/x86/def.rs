@@ -8,9 +8,9 @@ use std::cell::RefCell;
 
 use crate::{log_warning, log_error};
 use crate::util::log::Span;
-use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
+use crate::arch::info::{Arch, ArchKind, BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
 use crate::ir::val::Value;
-use crate::ir::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG, OPR_MEM};
+use crate::ir::op::{OpcodeKind, Operand, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
 use crate::ir::insn::{Instruction, INSN_SIG, INSN_USD};
 use crate::ir::itp::Interpreter;
 use crate::ir::mem::CPUThreadStatus;
@@ -76,33 +76,33 @@ pub const X86_64_ARCH: Arch = Arch::new(ArchKind::X86, BIT64 | LITTLE_ENDIAN, 16
 /// Insn temp and Reg and Interpreter Pool Init
 pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     // 1. Init regs pool
-    Instruction::reg("eax", Value::bit(3, 0));
-    Instruction::reg("ecx", Value::bit(3, 1));
-    Instruction::reg("edx", Value::bit(3, 2));
-    Instruction::reg("ebx", Value::bit(3, 3));
-    Instruction::reg("esp", Value::bit(3, 4));
-    Instruction::reg("ebp", Value::bit(3, 5));
-    Instruction::reg("esi", Value::bit(3, 6));
-    Instruction::reg("edi", Value::bit(3, 7));
+    Instruction::reg("eax", Value::bit(3, 0), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("ecx", Value::bit(3, 1), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("edx", Value::bit(3, 2), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("ebx", Value::bit(3, 3), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("esp", Value::bit(3, 4), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("ebp", Value::bit(3, 5), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("esi", Value::bit(3, 6), BIT32 | LITTLE_ENDIAN);
+    Instruction::reg("edi", Value::bit(3, 7), BIT32 | LITTLE_ENDIAN);
 
-    Instruction::reg("ax", Value::bit(3, 0));
-    Instruction::reg("cx", Value::bit(3, 1));
-    Instruction::reg("dx", Value::bit(3, 2));
-    Instruction::reg("bx", Value::bit(3, 3));
-    Instruction::reg("sp", Value::bit(3, 4));
-    Instruction::reg("bp", Value::bit(3, 5));
-    Instruction::reg("si", Value::bit(3, 6));
-    Instruction::reg("di", Value::bit(3, 7));
+    Instruction::reg("ax", Value::bit(3, 0), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("cx", Value::bit(3, 1), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("dx", Value::bit(3, 2), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("bx", Value::bit(3, 3), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("sp", Value::bit(3, 4), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("bp", Value::bit(3, 5), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("si", Value::bit(3, 6), BIT16 | LITTLE_ENDIAN);
+    Instruction::reg("di", Value::bit(3, 7), BIT16 | LITTLE_ENDIAN);
 
-    Instruction::reg("ah", Value::bit(3, 0));
-    Instruction::reg("ch", Value::bit(3, 1));
-    Instruction::reg("dh", Value::bit(3, 2));
-    Instruction::reg("bh", Value::bit(3, 3));
+    Instruction::reg("ah", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("ch", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("dh", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("bh", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
 
-    Instruction::reg("al", Value::bit(3, 0));
-    Instruction::reg("cl", Value::bit(3, 1));
-    Instruction::reg("dl", Value::bit(3, 2));
-    Instruction::reg("bl", Value::bit(3, 3));
+    Instruction::reg("al", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("cl", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("dl", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    Instruction::reg("bl", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&X86_ARCH);
@@ -174,9 +174,10 @@ mod x86_test {
         let cpu = CPUState::init(&X86_ARCH, &X86_ARCH, None, None, None);
         cpu.set_nreg("eax", Value::i32(12));
         cpu.set_nreg("ebx", Value::i32(3));
+        cpu.mem_write(26, Value::i32(0x1ffff));
         println!("{}", CPUState::pool_info());
 
-        let insn1 = Instruction::from_string("mov [eax], ebx");
+        let insn1 = Instruction::from_string("mov [ecx * 4], ebx");
         println!("{}  -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
     }
 

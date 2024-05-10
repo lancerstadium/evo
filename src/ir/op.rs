@@ -11,6 +11,7 @@ use std::cmp;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::arch::info::{BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::ir::val::Value;
@@ -30,8 +31,8 @@ pub enum OperandKind {
     /// |  val  |
     Imm(Value),
 
-    /// |  name*  |  idx   |
-    Reg(&'static str, Value),
+    /// |  name*  |  idx  | flag |
+    Reg(&'static str, Value, u16),
 
     /// Mem = [base + index * scale + disp]
     /// |  base  |  idx  |  scala  | disp  |
@@ -46,28 +47,14 @@ pub enum OperandKind {
 
 
 
-
 impl OperandKind {
-
-    /// Get the size of the operand
-    pub fn size(&self) -> usize {
-        match self {
-            OperandKind::Imm(val) => val.size(),
-            // Get Reg value's size
-            OperandKind::Reg(_, val) => val.size(),
-            OperandKind::Mem(_, _, scale, _) => scale.get_byte(0) as usize,
-            // Get Label ptr's size
-            OperandKind::Label(_, val) => val.size(),
-            OperandKind::Undef => 0,
-        }
-    }
 
     /// Get the kind of value
     pub fn kind(&self) -> &TypesKind{
         match self {
             OperandKind::Imm(val) => val.kind(),
             // Get Reg value's kind
-            OperandKind::Reg(_, val) => val.kind(),
+            OperandKind::Reg(_, val, _) => val.kind(),
             OperandKind::Mem(_, _, _, disp) => disp.kind(),
             // Get Label ptr's kind
             OperandKind::Label(_, val) => val.kind(),
@@ -80,7 +67,7 @@ impl OperandKind {
         match self {
             OperandKind::Imm(val) => val.hex(0, -1, false),
             // Get Reg value's hex
-            OperandKind::Reg(_, val) => val.hex(0, -1, false),
+            OperandKind::Reg(_, val, _) => val.hex(0, -1, false),
             OperandKind::Mem(_, _, _, _) => self.val().hex(0, -1, false),
             // Get Label ptr's hex
             OperandKind::Label(_, val) => val.hex(0, -1, false),
@@ -92,7 +79,7 @@ impl OperandKind {
     pub fn name(&self) -> &'static str {
         match self {
             OperandKind::Imm(_) => "<Imm>",
-            OperandKind::Reg(name, _) => name,
+            OperandKind::Reg(name, _, _) => name,
             OperandKind::Mem(_, _, _, _) => "<Mem>",
             OperandKind::Label(name, _) => name,
             OperandKind::Undef => "<Und>",
@@ -103,8 +90,32 @@ impl OperandKind {
     pub fn to_string(&self) -> String {
         match self {
             OperandKind::Imm(val) =>  format!("{}: {}", val.bin_scale(0, -1, true) , val.kind()),
-            OperandKind::Reg(name, val) => format!("{:>3}: {}", name, val.kind()),
-            OperandKind::Mem(base, idx, scale, disp) => format!("[{}+{}*{}+{}]: {}", base.name(), idx.name(), scale.get_byte(0), disp.hex(0, -1, true) , self.val().kind()),
+            OperandKind::Reg(name, val, _) => format!("{:>3}: {}", name, val.kind()),
+            OperandKind::Mem(base, idx, scale, disp) => {
+                let mut info = String::new();
+                let mut is_gen = false;
+                info.push('[');
+                if Instruction::reg_pool_is_in(&base.name()) {
+                    info.push_str(base.name());
+                    is_gen = true;
+                }
+                if Instruction::reg_pool_is_in(&idx.name()) {
+                    if is_gen { info.push('+'); }
+                    info.push_str(idx.name());
+                    is_gen = true;
+                    if scale.get_byte(0) != 1 {
+                        info.push('*');
+                        info.push_str(scale.get_byte(0).to_string().as_str());
+                    }
+                }
+                if disp.get_byte(0) != 0 {
+                    if is_gen { info.push('+'); }
+                    info.push_str(disp.hex(0, -1, false).as_str());
+                }
+                info.push(']');
+                info.push_str(format!(": {}", self.val().kind()).as_str());
+                info
+            },
             OperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
             OperandKind::Undef => "<Und>".to_string(),
         }
@@ -114,7 +125,7 @@ impl OperandKind {
     pub fn val(&self) -> Value {
         match self {
             OperandKind::Imm(val) => val.clone(),
-            OperandKind::Reg(_, val) => val.clone(),
+            OperandKind::Reg(_, val, _) => val.clone(),
             OperandKind::Mem(base, idx, scale, disp) => Value::tuple(vec![base.val().clone(), idx.val().clone(), scale.clone(), disp.clone()]),
             OperandKind::Label(_, val) => val.clone(),
             _ => Value::i32(0),
@@ -125,7 +136,7 @@ impl OperandKind {
     pub fn sym(&self) -> u16 {
         match self {
             OperandKind::Imm(_) => OPR_IMM,
-            OperandKind::Reg(_, _) => OPR_REG,
+            OperandKind::Reg(_, _, _) => OPR_REG,
             OperandKind::Mem(_, _, _, _) => OPR_MEM,
             OperandKind::Label(_, _) => OPR_LAB,
             _ => OPR_UND,
@@ -170,6 +181,16 @@ pub const OPR_REG: u16 = 0b0000_0010;
 pub const OPR_MEM: u16 = 0b0000_0100;
 pub const OPR_LAB: u16 = 0b0000_1000;
 
+/// reg offset 0-byte
+pub const REG_OFF0 : u16 = 0b0000_0000_0000;
+/// reg offset 1-byte
+pub const REG_OFF8 : u16 = 0b0001_0000_0000;
+pub const REG_OFF16: u16 = 0b0010_0000_0000;
+pub const REG_OFF24: u16 = 0b0011_0000_0000;
+pub const REG_OFF32: u16 = 0b0100_0000_0000;
+pub const REG_OFF40: u16 = 0b0101_0000_0000;
+pub const REG_OFF48: u16 = 0b0110_0000_0000;
+pub const REG_OFF56: u16 = 0b0111_0000_0000;
 
 impl fmt::Display for OperandKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -193,16 +214,21 @@ impl Operand {
     pub fn new(sym: u16) -> Self {
         match sym {
             OPR_IMM => Self::imm(Value::u32(0)),
-            OPR_REG => Self::reg("<Reg>", Value::i8(-1)),
-            OPR_MEM => Self::mem(Self::reg("<Reg>", Value::i8(-1)), Self::reg("<Reg>", Value::i8(-1)), Value::u32(0), Value::u32(0)),
+            OPR_REG => Self::reg_def(),
+            OPR_MEM => Self::mem(Self::reg_def(), Self::reg_def(), Value::u32(0), Value::u32(0)),
             OPR_LAB => Self::label("<Lab>", Value::u32(0)),
             _ => Operand::imm(Value::u32(0)),
         }
     }
 
     /// New Operand Reg
-    pub fn reg(name: &'static str, val: Value) -> Self {
-        Self(Rc::new(RefCell::new(OperandKind::Reg(name, val))))
+    pub fn reg(name: &'static str, val: Value, flag: u16) -> Self {
+        Self(Rc::new(RefCell::new(OperandKind::Reg(name, val, flag))))
+    }
+
+    /// New Reg Default: `"<Reg>", -1: i8`
+    pub fn reg_def() -> Self {
+        Self(Rc::new(RefCell::new(OperandKind::Reg("<Reg>", Value::i8(-1), BIT32 | LITTLE_ENDIAN))))
     }
 
     /// New Operand Imm
@@ -229,9 +255,9 @@ impl Operand {
     pub fn info(&self) -> String {
         match self.kind() {
             OperandKind::Imm(_) => self.to_string(),
-            OperandKind::Reg(_, _) => {
+            OperandKind::Reg(_, _, _) => {
                 let idx_str = self.val().bin_scale(0, -1, true);
-                format!("{:<9} ({})", self.to_string(), idx_str)
+                format!("{:<9} [{:<2}:{:>2}] ({})", self.to_string(), self.reg_scale() + self.reg_offset() * 8 - 1, self.reg_offset() * 8, idx_str)
             },
             OperandKind::Mem(_, _, _, _) => self.to_string(),
             OperandKind::Label(_, _) => self.to_string(),
@@ -272,8 +298,8 @@ impl Operand {
     pub fn set_reg(&mut self, val: Value) {
         let mut kind = self.kind(); // Create a mutable copy of the value
         match kind {
-            OperandKind::Reg(_, _) => kind = OperandKind::Reg(self.name(), val),
-            _ => kind = OperandKind::Reg("<Und>", val),
+            OperandKind::Reg(_, _, flag) => kind = OperandKind::Reg(self.name(), val, flag),
+            _ => kind = OperandKind::Reg("<Reg>", val, BIT32 | LITTLE_ENDIAN),
         }
         self.0.replace(kind);
     }
@@ -288,6 +314,94 @@ impl Operand {
         self.0.replace(kind);
     }
 
+    /// Set Mem value
+    pub fn set_mem(&mut self, base: Operand, idx: Operand, scale: Value, disp: Value) {
+        let mut kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            OperandKind::Mem(_, _, _, _) => kind = OperandKind::Mem(base, idx, scale, disp),
+            _ => kind = OperandKind::Mem(Self::reg_def(), Self::reg_def(), Value::u32(0), Value::u32(0)),
+        }
+        self.0.replace(kind);
+    }
+
+    /// Set Label value
+    pub fn set_label(&mut self, val: Value) {
+        let mut kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            OperandKind::Label(_, _) => kind = OperandKind::Label(self.name(), val),
+            _ => kind = OperandKind::Label("<Und>", val),
+        }
+        self.0.replace(kind);
+    }
+
+    /// Get Mem value
+    pub fn get_mem(&self) -> (usize, usize, u8, i32) {
+        let kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            OperandKind::Mem(base, idx, scale, disp) => {
+                (base.val().get_byte(0) as usize, 
+                idx.val().get_byte(0) as usize, 
+                scale.get_byte(0) as u8, 
+                disp.get_i32(0) as i32)
+            },
+            _ => {
+                log_warning!("Invalid Mem value: {}", self.to_string());
+                return (0, 0, 1, 0);
+            },
+        }
+    }
+
+    pub fn is_8bit(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => (flag & 0b0011) == BIT8,
+            _ => false,
+        }
+    }
+
+    pub fn is_16bit(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => (flag & 0b0011) == BIT16,
+            _ => false,
+        }
+    }
+
+    pub fn is_32bit(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => (flag & 0b0011) == BIT32,
+            _ => false,
+        }
+    }
+
+    pub fn is_64bit(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => (flag & 0b0011) == BIT64,
+            _ => false,
+        }
+    }
+
+    pub fn reg_offset(&self) -> usize {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                ((flag & 0x0f00) >> 8) as usize
+            }
+            _ => 0,
+        }
+    }
+
+    pub fn reg_scale(&self) -> usize {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                match flag & 0b0011 {
+                    BIT8 => 8,
+                    BIT16 => 16,
+                    BIT32 => 32,
+                    BIT64 => 64,
+                    _ => 0,
+                }
+            }
+            _ => 0,
+        }
+    }
 
     // ================== Operand.str ==================== //
 
@@ -343,6 +457,7 @@ impl Operand {
         let opr = opr.trim();
         // 0. if sym == OPR_UND, return
         if sym == OPR_UND {
+            log_warning!("Undefined operand: {}", opr);
             return Self(Rc::new(RefCell::new(OperandKind::Undef)));
         }
         // 1. Deal with reg
@@ -354,11 +469,12 @@ impl Operand {
             // 2.1 del `[` and `]`
             let opr = opr.trim_matches('[').trim_matches(']');
             // 2.2 iter and deal with char
-            let mut base = Self::reg("<Reg>", Value::i8(-1));
-            let mut idx = Self::reg("<Reg>", Value::i8(-1));
+            let mut base = Self::reg_def();
+            let mut idx = Self::reg_def();
             let mut scale = Value::u8(1);
             let mut disp = Value::i32(0);
             let mut info = String::new();
+            let mut has_scale = false;
             let mut deal_scale = false;
             let mut deal_idx = false;
             let mut deal_base = false;
@@ -398,6 +514,7 @@ impl Operand {
                             idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();
                             info.clear();
                             deal_idx = true;
+                            has_scale = true;
                         }
                     },
                     // digital and english letter
@@ -418,7 +535,7 @@ impl Operand {
                         info.clear();
                     }
                 } else {
-                    if deal_idx && !deal_scale {
+                    if deal_idx && !deal_scale && has_scale {
                         scale = Value::from_string(&info);
                         let val = scale.get_u8(0);
                         // check if scale is [1, 2, 4, 8]
@@ -446,6 +563,7 @@ impl Operand {
             return Operand::label(opr, Value::i32(0));
         }
         // 5. Deal with undef
+        log_warning!("Undefined operand: {}", opr);
         Operand::undef()
     }
 

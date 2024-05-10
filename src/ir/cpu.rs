@@ -148,7 +148,7 @@ impl CPUState {
         self.proc.borrow_mut().set_nreg(name, value);
     }
 
-    /// Get reg by name
+    /// Get reg val by name
     pub fn get_nreg(&self, name: &'static str) -> Value {
         self.proc.borrow().get_nreg(name)
     }

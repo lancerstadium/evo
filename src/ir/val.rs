@@ -73,7 +73,7 @@ impl Value {
         let r_scale = value.scale_sum();
         let arr_len = (l_scale + r_scale) / 8 + ((l_scale + r_scale) % 8 > 0) as usize;
         let sum_scale = l_scale + r_scale;
-        let is_bits = self.ty.kind().is_bit() && value.ty.kind().is_bit();
+        let is_bits = self.ty.kind().is_bit() || value.ty.kind().is_bit();
         let l_extra_bits = l_scale % 8;
         let l_arr_len = l_scale / 8 + (l_scale % 8 > 0) as usize;
         let mask = (1 << l_extra_bits) - 1;
@@ -161,6 +161,19 @@ impl Value {
     /// just change value vec and mutable
     pub fn set_val_mut(&mut self, value: Value) {
         self.val = value.val;
+    }
+
+    /// set scale
+    pub fn set_scale(&mut self, scale: usize) {
+        // copy old val: extend or cut
+        if scale > self.val.borrow().len() * 8 {
+            self.val.borrow_mut().extend_from_slice(&[0; 8]);
+        } else {
+            self.val.borrow_mut().truncate(scale / 8 + if scale % 8 > 0 { 1 } else { 0 });
+        }
+        // set new scale
+        self.set_kind(TypesKind::Array(Types::u8(), scale / 8 + if scale % 8 > 0 { 1 } else { 0 }));
+        assert!(self.scale_sum() == scale);
     }
 
     /// Set align mode: if set this use scale to search

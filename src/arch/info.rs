@@ -21,7 +21,7 @@ pub struct ArchMode {
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
     /// │ │ │ │ │ │ ├─┘
-    /// │ │ │ │ │ │ └──── (0-1) 00 is 16-bit, 01 is 32-bit, 10 is 64-bit, 11 is 128-bit
+    /// │ │ │ │ │ │ └──── (0-1) 00 is 8-bit, 01 is 16-bit, 10 is 32-bit, 11 is 64-bit
     /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
     /// │ │ │ │ └──────── <Reserved>
     /// │ │ │ └────────── <Reserved>
@@ -32,14 +32,14 @@ pub struct ArchMode {
     pub flag: u16,
 
 }
-/// Arch mode width 128
-pub const BIT128: u16 = 0b11;
 /// Arch mode width 64
-pub const BIT64: u16 = 0b10;
+pub const BIT64: u16 = 0b11;
 /// Arch mode width 32
-pub const BIT32: u16 = 0b01;
+pub const BIT32: u16 = 0b10;
 /// Arch mode width 16
-pub const BIT16: u16 = 0b00;
+pub const BIT16: u16 = 0b01;
+/// Arch mode width 8
+pub const BIT8:  u16 = 0b00;
 /// Arch mode endianness little
 pub const LITTLE_ENDIAN: u16 = 0b000;
 /// Arch mode endianness big
@@ -57,36 +57,31 @@ impl ArchMode {
 
     pub const fn width(&self) -> usize {
         match self.width_flag() {
-            0b00 => 16,
-            0b01 => 32,
-            0b10 => 64,
-            0b11 => 128,
+            0b00 => 8,
+            0b01 => 16,
+            0b10 => 32,
+            0b11 => 64,
             _ => unreachable!(),
         }
     }
 
+    pub const fn is_8bit(&self) -> bool {
+        (self.flag & 0b0011) == BIT8
+    }
     pub const fn is_16bit(&self) -> bool {
-        (self.flag & 0b0000_0011) == 0b00
+        (self.flag & 0b0011) == BIT16
     }
-
     pub const fn is_32bit(&self) -> bool {
-        (self.flag & 0b0000_0011) == 0b01
+        (self.flag & 0b0011) == BIT32
     }
-
     pub const fn is_64bit(&self) -> bool {
-        (self.flag & 0b0000_0011) == 0b10
+        (self.flag & 0b0011) == BIT64
     }
-
-    pub const fn is_128bit(&self) -> bool {
-        (self.flag & 0b0000_0011) == 0b11
-    }
-
     pub const fn is_little_endian(&self) -> bool {
-        (self.flag & 0b0000_0100) == 0
+        (self.flag & 0b0100) == LITTLE_ENDIAN
     }
-
     pub const fn is_big_endian(&self) -> bool {
-        (self.flag & 0b0000_0100) != 0
+        (self.flag & 0b0100) == BIG_ENDIAN
     }
 
     pub const fn endian_to_string(&self) -> &str {
@@ -99,10 +94,10 @@ impl ArchMode {
     /// width to string
     pub const fn width_to_string(&self) -> &str {
         match self.width_flag() {
-            0b00 => "16",
-            0b01 => "32",
-            0b10 => "64",
-            0b11 => "128",
+            0b00 => "8",
+            0b01 => "16",
+            0b10 => "32",
+            0b11 => "64",
             _ => "UNDEF",
         }
     }
@@ -111,11 +106,11 @@ impl ArchMode {
     pub fn width_from_string(s: &str) -> Self {
         let s = s.trim();
         match s {
-            "16" => ArchMode::new(0b00),
-            "32" => ArchMode::new(0b01),
-            "64" => ArchMode::new(0b10),
-            "128" => ArchMode::new(0b11),
-            _ => ArchMode::new(0b01),
+            "8" => ArchMode::new(0b00),
+            "16" => ArchMode::new(0b01),
+            "32" => ArchMode::new(0b10),
+            "64" => ArchMode::new(0b11),
+            _ => ArchMode::new(0b10),
         }
     }
 
@@ -331,9 +326,8 @@ mod arch_info_test {
     fn arch_kind() {
 
         let mode = ArchMode::new(0b010);
-        assert_eq!(mode.is_64bit(), true);
-        assert_eq!(mode.is_32bit(), false);
-        assert_eq!(mode.is_128bit(), false);
+        assert_eq!(mode.is_64bit(), false);
+        assert_eq!(mode.is_32bit(), true);
         assert_eq!(mode.is_little_endian(), true);
         assert_eq!(mode.is_big_endian(), false);
     }

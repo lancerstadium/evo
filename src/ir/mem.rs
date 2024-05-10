@@ -466,8 +466,18 @@ impl CPUThread {
         self.set_reg(index, value)
     }
 
+    /// get reg value scale offset by name
+    pub fn get_nreg_all(&self, name: &'static str) -> (Value, usize, usize) {
+        let index = Instruction::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let val = self.get_reg(index);
+        let scale = Instruction::reg_pool_nget(name).borrow().clone().reg_scale();
+        let offset = Instruction::reg_pool_nget(name).borrow().clone().reg_offset();
+        val.bound(offset, scale);
+        (val, offset, scale)
+    }
+
     /// get reg value by name
-    pub fn get_nreg(&self, name: &'static str) -> Value {
+    pub fn get_nreg(&self, name: &'static str) -> Value{
         let index = Instruction::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
         self.get_reg(index)
     }
@@ -504,7 +514,7 @@ impl CPUThread {
 
     /// Get pc: ABI pc
     pub fn get_pc(&self) -> Value {
-        self.get_nreg("pc")
+        self.get_nreg_all("pc").0
     }
 
     /// Set pc: ABI pc
@@ -837,6 +847,39 @@ impl CPUProcess {
         self.mem_segment.borrow().get(idx, scale * num)
     }
 
+    pub fn mem_opread(&self, addr_base: usize, addr_idx: usize, addr_scale: u8, addr_disp: i32, data_scale: usize) -> Value {
+        let is_64 = self.arch.mode.is_64bit();
+        let base_val;
+        let idx_val;
+        if is_64 {
+            base_val = self.get_reg(addr_base).get_i64(0);
+            idx_val = self.get_reg(addr_idx).get_i64(0);
+        } else {
+            base_val = self.get_reg(addr_base).get_i32(0) as i64;
+            idx_val = self.get_reg(addr_idx).get_i32(0) as i64;
+        }
+        let index = (base_val + idx_val * addr_scale as i64 + addr_disp as i64) as usize;
+        self.mem_segment.borrow().get(index, data_scale * 8)
+    }
+
+    pub fn mem_opwrite(&self, addr_base: usize, addr_idx: usize, addr_scale: u8, addr_disp: i32, data_scale: usize, value: Value) {
+        let is_64 = self.arch.mode.is_64bit();
+        let base_val;
+        let idx_val;
+        if is_64 {
+            base_val = self.get_reg(addr_base).get_i64(0);
+            idx_val = self.get_reg(addr_idx).get_i64(0);
+        } else {
+            base_val = self.get_reg(addr_base).get_i32(0) as i64;
+            idx_val = self.get_reg(addr_idx).get_i32(0) as i64;
+        }
+        let index = (base_val + idx_val * addr_scale as i64 + addr_disp as i64) as usize;
+        // get new value by scale
+        let mut new_value = value.clone();
+        new_value.set_scale(data_scale * 8);
+        self.mem_segment.borrow_mut().set(index, new_value);
+    }
+
     // ================= CPUProcess.thread ================ //
 
     /// Get threads
@@ -912,10 +955,16 @@ impl CPUProcess {
         self.cur_thread.borrow_mut().set_nreg(name, value)
     }
 
-    /// get reg value by name
+    /// get reg (val, offset, scale) by name
+    pub fn get_nreg_all(&self, name: &'static str) -> (Value, usize, usize) {
+        self.cur_thread.borrow().get_nreg_all(name)
+    }
+
+    /// get reg val by name
     pub fn get_nreg(&self, name: &'static str) -> Value {
         self.cur_thread.borrow().get_nreg(name)
     }
+
 
     /// get reg info
     pub fn reg_info(&self, start: usize, num: i32) -> String {
