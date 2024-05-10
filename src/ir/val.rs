@@ -31,7 +31,7 @@ pub struct Value {
     /// │ │ │ │ │ │ └──── is mutable
     /// │ │ │ │ │ └────── is pointer
     /// │ │ │ │ └──────── <reserved>
-    /// │ │ │ └────────── is align by u8
+    /// │ │ │ └────────── 0: is align by u8, 1: is strict align
     /// │ │ └──────────── <reserved>
     /// │ └────────────── <reserved>
     /// └──────────────── <reserved>
@@ -115,13 +115,27 @@ impl Value {
         self
     }
 
+    /// Divide Value -> Vec<Value> by scale
+    pub fn divide(&self) -> Vec<Value> {
+        let mut res = Vec::new();
+        let scale_vec = self.scale();
+        let mut scale_sum = 0;
+        let mut idx = 0;
+        for i in 0..scale_vec.len() {
+            res.push(self.get(idx, scale_vec[i]));
+            scale_sum += scale_vec[i];
+            idx += scale_sum / 8 + if scale_sum % 8 > 0 { 1 } else { 0 };
+        }
+        res
+    }
+
     /// Set Value use vec<8> by index
     pub fn set(&mut self, index: usize, value: Value) {
         self.bound(index, value.scale_sum());
         self.val.borrow_mut()[index..index + value.size()].copy_from_slice(&value.val.borrow());
     }
     
-    /// Get IRVale from vec<u8> by index and scale
+    /// Get IRValue from vec<u8> by index and scale
     pub fn get(&self, index: usize, scale: usize) -> Value {
         self.bound(index, scale);
         let offset = scale / 8;
@@ -150,12 +164,17 @@ impl Value {
     }
 
     /// Set align mode: if set this use scale to search
-    pub fn set_align(&mut self, is_align: bool) {
-        if is_align {
+    pub fn set_align(&mut self, is_strict_align: bool) {
+        if is_strict_align {
             self.flag |= 0x0010;
         } else {
             self.flag &= 0xffef;
         }
+    }
+
+    /// is strict align
+    pub fn is_strict_align(&self) -> bool {
+        (self.flag & 0x0010) != 0
     }
 
     // ==================== Value.ctl ==================== //

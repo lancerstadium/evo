@@ -218,7 +218,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 + imm ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -233,7 +232,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 ^ imm ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -360,7 +358,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 2. Get imm(i32)
             let imm = insn.imm_i() as i32;
             // 3. Read Mem: Byte
-            let val = proc0.read_mem((rs1 + imm) as usize, 1).get_byte(0);
+            let val = proc0.mem_read((rs1 + imm) as usize, 1).get_byte(0);
             // 4. Set rd(i32)
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
@@ -375,7 +373,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 2. Get imm(i32)
             let imm = insn.imm_i() as i32;
             // 3. Read Mem: Half
-            let val = proc0.read_mem((rs1 + imm) as usize, 1).get_half(0);
+            let val = proc0.mem_read((rs1 + imm) as usize, 1).get_half(0);
             // 4. Set rd(i32)
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
@@ -390,7 +388,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 2. Get imm(i32)
             let imm = insn.imm_i() as i32;
             // 3. Read Mem: Word
-            let val = proc0.read_mem((rs1 + imm) as usize, 1).get_word(0);
+            let val = proc0.mem_read((rs1 + imm) as usize, 1).get_word(0);
             // 4. Set rd(i32)
             proc0.set_reg(insn.rd() as usize, Value::i32(val as i32));
         }
@@ -405,7 +403,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 2. Get imm(i32)
             let imm = insn.imm_i() as i32;
             // 3. Read Mem: Byte
-            let val = proc0.read_mem((rs1 + imm) as usize, 1).get_byte(0);
+            let val = proc0.mem_read((rs1 + imm) as usize, 1).get_byte(0);
             // 4. Set rd(u32)
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
@@ -420,7 +418,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 2. Get imm(i32)
             let imm = insn.imm_i() as i32;
             // 3. Read Mem: Half
-            let val = proc0.read_mem((rs1 + imm) as usize, 1).get_half(0);
+            let val = proc0.mem_read((rs1 + imm) as usize, 1).get_half(0);
             // 4. Set rd(u32)
             proc0.set_reg(insn.rd() as usize, Value::u32(val as u32));
         }
@@ -452,7 +450,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("ebreak", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0001.... .000.... .1110111",
         |cpu, _| {
             // ======== ebreak ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // Debugger will do next part according to register `a7`(x17)
             proc0.set_status(CPUThreadStatus::Blocked);
@@ -471,7 +468,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 3. Get rs2(i32)
             let rs2 = proc0.get_reg(insn.rs2() as usize).get_byte(0) as i8;
             // 4. Write Mem: Byte
-            proc0.write_mem((rs1 + imm) as usize, Value::i8(rs2));
+            proc0.mem_write((rs1 + imm) as usize, Value::i8(rs2));
         }
     );
     itp.borrow_mut().def_insn("sh", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .001.... .0100011",
@@ -486,7 +483,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 3. Get rs2(i32)
             let rs2 = proc0.get_reg(insn.rs2() as usize).get_half(0) as i16;
             // 4. Write Mem: Half
-            proc0.write_mem((rs1 + imm) as usize, Value::i16(rs2));
+            proc0.mem_write((rs1 + imm) as usize, Value::i16(rs2));
         }
     );
     itp.borrow_mut().def_insn("sw", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
@@ -501,7 +498,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             // 3. Get rs2(i32)
             let rs2 = proc0.get_reg(insn.rs2() as usize).get_word(0) as i32;
             // 4. Write Mem: Word
-            proc0.write_mem((rs1 + imm) as usize, Value::i32(rs2));
+            proc0.mem_write((rs1 + imm) as usize, Value::i32(rs2));
         }
     );
     // Type: B
@@ -877,7 +874,7 @@ mod riscv_test {
         cpu.set_nreg("x1", Value::i32(3));
         cpu.set_nreg("x2", Value::i32(5));
         cpu.set_nreg("x3", Value::i32(-32));
-        cpu.write_mem(26, Value::i32(0x1ffff));
+        cpu.mem_write(26, Value::i32(0x1ffff));
         // println!("{}", CPUState::pool_info());
 
         // R-Type Insns Test
@@ -975,13 +972,13 @@ mod riscv_test {
 
         cpu.set_nreg("x0", Value::i32(56));
         cpu.execute(&insn22);
-        println!("{:<60} -> mem = {}", insn22.to_string(), cpu.read_mem(26, 1).bin(0, 1, false));
+        println!("{:<60} -> mem = {}", insn22.to_string(), cpu.mem_read(26, 1).bin(0, 1, false));
         cpu.set_nreg("x0", Value::i32(732));
         cpu.execute(&insn23);
-        println!("{:<60} -> mem = {}", insn23.to_string(), cpu.read_mem(26, 1).bin(0, 2, false));
+        println!("{:<60} -> mem = {}", insn23.to_string(), cpu.mem_read(26, 1).bin(0, 2, false));
         cpu.set_nreg("x0", Value::i32(-8739));
         cpu.execute(&insn24);
-        println!("{:<60} -> mem = {}", insn24.to_string(), cpu.read_mem(26, 1).bin(0, 4, false));
+        println!("{:<60} -> mem = {}", insn24.to_string(), cpu.mem_read(26, 1).bin(0, 4, false));
 
         cpu.execute(&insn25);
         println!("{:<60} -> pc = {}", insn25.to_string(), cpu.get_pc());

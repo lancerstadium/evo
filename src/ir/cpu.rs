@@ -164,13 +164,13 @@ impl CPUState {
     }
 
     /// Read Mem
-    pub fn read_mem(&self, index: usize, num: usize) -> Value {
-        self.proc.borrow().read_mem(index, num)
+    pub fn mem_read(&self, index: usize, num: usize) -> Value {
+        self.proc.borrow().mem_read(index, num)
     }
 
     /// Write Mem
-    pub fn write_mem(&self, index: usize, value: Value) {
-        self.proc.borrow_mut().write_mem(index, value);
+    pub fn mem_write(&self, index: usize, value: Value) {
+        self.proc.borrow_mut().mem_write(index, value);
     }
 
     /// Get status
@@ -303,8 +303,8 @@ mod cpu_test {
         println!("{}", cpu.proc.borrow().reg_info(0, 4));
         println!("{}", p0.get_reg(3));
 
-        p0.write_mem(13, Value::i32(-65535));
-        println!("{}", p0.read_mem(13, 2));
+        p0.mem_write(13, Value::i32(-65535));
+        println!("{}", p0.mem_read(13, 2));
     }
 
 }

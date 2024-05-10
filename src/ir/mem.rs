@@ -238,7 +238,7 @@ mod memtool_test {
     #[test]
     fn elf_test() {
         CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
-        let seg = MemoryTool::elf_load("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
+        let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
         // println!("val: {}", val.hex(0, -1, false));
@@ -803,7 +803,7 @@ impl CPUProcess {
     // ================= CPUProcess.mem =================== //
 
     /// Write mem value: by 32 or 64-bit / index
-    pub fn write_mem(&self, index: usize, value: Value) {
+    pub fn mem_write(&self, index: usize, value: Value) {
         let is_64 = self.arch.mode.is_64bit();
         let idx :usize;
         if is_64 {
@@ -815,7 +815,7 @@ impl CPUProcess {
     }
 
     /// Read mem value: by 32 or 64-bit / index (num=[1-16])
-    pub fn read_mem(&self, index: usize, num: usize) -> Value {
+    pub fn mem_read(&self, index: usize, num: usize) -> Value {
         let is_64 = self.arch.mode.is_64bit();
         let mut num = num;
         if num <= 0 {
