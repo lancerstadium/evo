@@ -6,7 +6,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::{log_warning, log_error};
+use crate::log_error;
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
 use crate::ir::val::Value;
@@ -67,10 +67,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("add" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .000.... .0110011", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -85,10 +82,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sub" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -103,10 +97,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("or"  , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .110.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 | rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -121,10 +112,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("xor" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -139,10 +127,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("and" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .111.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 & rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -157,10 +142,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sll" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .001.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 << rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -175,10 +157,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("srl" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -193,10 +172,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sra" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .101.... .0110011",
         |cpu, insn| {
             // ====== rd = rs1 >> rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -211,10 +187,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .010.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -229,10 +202,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .011.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -248,10 +218,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 + imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -266,10 +233,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 ^ imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -284,10 +248,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("ori" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .110.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 | imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -302,10 +263,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("andi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .111.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 & imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -320,10 +278,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("slli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .001.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 << imm[0:4] ======= //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -338,10 +293,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("srli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -356,10 +308,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("srai", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0100000. ........ .101.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 >> imm[0:4] ======= //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -374,10 +323,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("slti", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .010.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -392,10 +338,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sltiu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .011.... .0010011",
         |cpu, insn| {
             // ======== rd = rs1 < imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -410,10 +353,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lb", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -428,10 +368,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lh", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .001.... .0000011", 
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -446,10 +383,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lw", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .010.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -464,10 +398,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lbu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -482,10 +413,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lhu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .101.... .0000011",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -500,10 +428,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .1100111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = rs1 + imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -516,24 +441,18 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     itp.borrow_mut().def_insn("ecall", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0000.... .000.... .1110111",
-        |cpu, insn| {
+        |cpu, _| {
             // ======== ecall ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // System will do next part according to register `a7`(x17)
             proc0.set_status(CPUThreadStatus::Blocked);
         }
     );
     itp.borrow_mut().def_insn("ebreak", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0001.... .000.... .1110111",
-        |cpu, insn| {
+        |cpu, _| {
             // ======== ebreak ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // Debugger will do next part according to register `a7`(x17)
             proc0.set_status(CPUThreadStatus::Blocked);
@@ -543,10 +462,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sb", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .000.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -561,10 +477,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sh", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .001.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -579,10 +492,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sw", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -598,10 +508,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("beq", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .000.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 == rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -618,10 +525,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("bne", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .001.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 != rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -638,10 +542,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("blt", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .100.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -658,10 +559,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("bge", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .101.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -678,10 +576,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("bltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .110.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 < rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -698,10 +593,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("bgeu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .111.... .1100011",
         |cpu, insn| {
             // ======== if(rs1 >= rs2) pc += imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -719,10 +611,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "U", "0B........ ........ ........ .0110111",
         |cpu, insn| {
             // ======== rd = imm << 12 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get imm(i32)
             let imm = insn.imm_u() as i32;
@@ -733,10 +622,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("auipc", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "U", "0B........ ........ ........ .0010111",
         |cpu, insn| {
             // ======== rd = pc + imm << 12 ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get imm(i32)
             let imm = insn.imm_u() as i32;
@@ -748,10 +634,7 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "J", "0B........ ........ ........ .1101111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = pc + imm ======== //
-            if !insn.is_applied {
-                log_warning!("Insn not applied: {}", insn);
-                return;
-            }
+
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get imm(i32)
             let imm = insn.imm_j() as i32;

@@ -35,7 +35,7 @@ pub enum OperandKind {
 
     /// Mem = [base + index * scale + disp]
     /// |  base  |  idx  |  scala  | disp  |
-    Mem(Value, Value, Value, Value),
+    Mem(Operand, Operand, Value, Value),
 
     /// |  name*  |  addr  |
     Label(&'static str, Value),
@@ -55,7 +55,7 @@ impl OperandKind {
             OperandKind::Imm(val) => val.size(),
             // Get Reg value's size
             OperandKind::Reg(_, val) => val.size(),
-            OperandKind::Mem(val, _, _, _) => val.size(),
+            OperandKind::Mem(_, _, scale, _) => scale.get_byte(0) as usize,
             // Get Label ptr's size
             OperandKind::Label(_, val) => val.size(),
             OperandKind::Undef => 0,
@@ -68,7 +68,7 @@ impl OperandKind {
             OperandKind::Imm(val) => val.kind(),
             // Get Reg value's kind
             OperandKind::Reg(_, val) => val.kind(),
-            OperandKind::Mem(val, _, _, _) => val.kind(),
+            OperandKind::Mem(_, _, _, disp) => disp.kind(),
             // Get Label ptr's kind
             OperandKind::Label(_, val) => val.kind(),
             OperandKind::Undef => &TypesKind::I32,
@@ -104,7 +104,7 @@ impl OperandKind {
         match self {
             OperandKind::Imm(val) =>  format!("{}: {}", val.bin_scale(0, -1, true) , val.kind()),
             OperandKind::Reg(name, val) => format!("{:>3}: {}", name, val.kind()),
-            OperandKind::Mem(base, idx, scale, disp) => format!("[{} + {} * {} + {}]: {}", base.kind(), idx.kind(), scale.kind(), disp.kind() , self.val().kind()),
+            OperandKind::Mem(base, idx, scale, disp) => format!("[{}+{}*{}+{}]: {}", base.name(), idx.name(), scale.get_byte(0), disp.hex(0, -1, true) , self.val().kind()),
             OperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
             OperandKind::Undef => "<Und>".to_string(),
         }
@@ -115,7 +115,7 @@ impl OperandKind {
         match self {
             OperandKind::Imm(val) => val.clone(),
             OperandKind::Reg(_, val) => val.clone(),
-            OperandKind::Mem(base, idx, scale, disp) => Value::u32(base.get_u32(0) + idx.get_u32(0) * scale.get_u32(0) + disp.get_u32(0)),
+            OperandKind::Mem(base, idx, scale, disp) => Value::tuple(vec![base.val().clone(), idx.val().clone(), scale.clone(), disp.clone()]),
             OperandKind::Label(_, val) => val.clone(),
             _ => Value::i32(0),
         }
@@ -193,8 +193,8 @@ impl Operand {
     pub fn new(sym: u16) -> Self {
         match sym {
             OPR_IMM => Self::imm(Value::u32(0)),
-            OPR_REG => Self::reg("<Reg>", Value::u5(0)),
-            OPR_MEM => Self::mem(Value::u32(0), Value::u32(0), Value::u32(0), Value::u32(0)),
+            OPR_REG => Self::reg("<Reg>", Value::i8(-1)),
+            OPR_MEM => Self::mem(Self::reg("<Reg>", Value::i8(-1)), Self::reg("<Reg>", Value::i8(-1)), Value::u32(0), Value::u32(0)),
             OPR_LAB => Self::label("<Lab>", Value::u32(0)),
             _ => Operand::imm(Value::u32(0)),
         }
@@ -211,7 +211,7 @@ impl Operand {
     }
 
     /// New Operand Mem
-    pub fn mem(base: Value, idx: Value, scale: Value, disp: Value) -> Self {
+    pub fn mem(base: Operand, idx: Operand, scale: Value, disp: Value) -> Self {
         Self(Rc::new(RefCell::new(OperandKind::Mem(base, idx, scale, disp))))
     }
 
@@ -305,10 +305,12 @@ impl Operand {
     /// #### 1 Direct Address
     /// ```txt
     /// [<Imm>]
+    ///  disp
     /// ```
     /// #### 2 Indirect Address
     /// ```txt
     /// [<Reg>]
+    ///  base
     /// ```
     /// #### 3 Base + Disp Address
     /// ```txt
@@ -352,21 +354,29 @@ impl Operand {
             // 2.1 del `[` and `]`
             let opr = opr.trim_matches('[').trim_matches(']');
             // 2.2 iter and deal with char
-            let mut base = Value::i32(0);
-            let mut idx = Value::i32(0);
+            let mut base = Self::reg("<Reg>", Value::i8(-1));
+            let mut idx = Self::reg("<Reg>", Value::i8(-1));
             let mut scale = Value::u8(1);
             let mut disp = Value::i32(0);
             let mut info = String::new();
+            let mut deal_scale = false;
+            let mut deal_idx = false;
+            let mut deal_base = false;
             for c in opr.chars() {
                 match c {
                     ' ' => continue,
                     '+' => {
-                        // check info is in reg pool: True find base Value
+                        // check info is in reg pool: True find base/idx Value
                         if Instruction::reg_pool_is_in(&info) {
-                            let base_reg = Instruction::reg_pool_nget(&info).borrow_mut().clone();
-                            base = base_reg.val();
-                            // flush info
-                            info.clear();
+                            if !deal_base {
+                                base = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                                info.clear();
+                                deal_base = true;
+                            } else if !deal_idx {
+                                idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();    
+                                info.clear();
+                                deal_idx = true;
+                            }
                         } else {    // False find scale Value
                             scale = Value::from_string(&info);
                             let val = scale.get_u8(0);
@@ -379,14 +389,15 @@ impl Operand {
                             }
                             // flush info
                             info.clear();
+                            deal_scale = true;
                         }
                     },
                     '*' => {
                         // check info is in reg pool: True find idx Value
                         if Instruction::reg_pool_is_in(&info) {
-                            idx = Instruction::reg_pool_nget(&info).borrow_mut().clone().val();
-                            // flush info
+                            idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();
                             info.clear();
+                            deal_idx = true;
                         }
                     },
                     // digital and english letter
@@ -397,8 +408,32 @@ impl Operand {
                 }
             }
             if !info.is_empty() {
-                // check info is in reg pool: True find disp Value
-                disp = Value::from_string(&info);
+                // check info is in reg pool: True find base/idx Value
+                if Instruction::reg_pool_is_in(&info) {
+                    if !deal_base {
+                        base = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                        info.clear();
+                    }else {
+                        idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();    
+                        info.clear();
+                    }
+                } else {
+                    if deal_idx && !deal_scale {
+                        scale = Value::from_string(&info);
+                        let val = scale.get_u8(0);
+                        // check if scale is [1, 2, 4, 8]
+                        if val != 1 && scale.get_u8(0) != 2 && scale.get_u8(0) != 4 && scale.get_u8(0) != 8 {
+                            log_warning!("Scale: {} is not in [1, 2, 4, 8]", scale.get_u8(0));
+                            scale.set_u8(0, 1);
+                        } else {
+                            scale.set_u8(0, val);
+                        }
+                        info.clear();
+                    } else {
+                        disp = Value::from_string(&info);
+                        info.clear();
+                    }
+                }
             }
             return Operand::mem(base, idx, scale, disp);
         }

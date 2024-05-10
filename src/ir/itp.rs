@@ -78,6 +78,10 @@ impl Interpreter {
 
     /// Execute an instruction
     pub fn execute(&self, cpu: &CPUState, insn: &Instruction) {
+        if !insn.is_applied {
+            log_warning!("Interpreter: Insn not applied: {}", insn);
+            return;
+        }
         // 1. Get IRItp func
         let func = Self::func_pool_nget(self.arch, insn.name());
         // 2. Execute

@@ -176,8 +176,8 @@ mod x86_test {
         cpu.set_nreg("ebx", Value::i32(3));
         println!("{}", CPUState::pool_info());
 
-        let insn1 = Instruction::from_string("mov eax, ebx");
-        println!("{}  -> eax: {}", insn1, cpu.get_nreg("eax").get_i32(0));
+        let insn1 = Instruction::from_string("mov [eax], ebx");
+        println!("{}  -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
     }
 
 }
