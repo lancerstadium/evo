@@ -29,8 +29,9 @@ use crate::ir::val::Value;
 /// - Refence: RISC-V ISA Spec.
 /// - Fill bytes according following format:
 /// 
-/// ```txt
+/// ### Insn Format Constant Length
 /// 
+/// ```txt
 /// (32-bits):
 ///  ┌────────┬─────┬─────┬────┬──────┬────┬─────┬────────────────┐
 ///  │31    25│24 20│19 15│  12│11   7│6  0│ Typ │      Arch      │
@@ -49,20 +50,56 @@ use crate::ir::val::Value;
 ///  ├─┴──────────┴─┴──────────┴──────┴────┼─────┼────────────────┤
 ///  │   ?????                             │  ?  │ ?????          │
 ///  └─────────────────────────────────────┴─────┴────────────────┘
+/// ```
 /// 
+/// ### Insn Format Variable Length
+/// ```txt
 /// (Variable-length/Byte):
-///  ┌───────────┬───────────────────────────────────────────────┐
-///  │  Type: X  │                Arch: i386, x86_64             │
-///  ├───────────┼─────┬────────────────┬────────────┬─────┬─────┤
-///  │    REX    │ Opc │     ModR/M     │    SIB     │ Dis │ Imm │
-///  ├───────────┼─────┼────────────────┼────────────┼─────┼─────┤
-///  │    0,1    │ 1~3 │      0,1       │    0,1     │ 0,1 │ 0,1 │
-///  ├───────────┼─────┼────────────────┼────────────┤ 2,4 │ 2,4 │
-///  │ 0100 1101 │ ??? │   ?? ??? ???   │ ?? ??? ??? │     │ 8'  │
-///  │      ──── │     │   ── ─── ───   │ ── ─── ─── │     │     │
-///  │      WRXB │     │ mod rs/op rd/m │ ss idx bas │     │     │
-///  └───────────┴─────┴────────────────┴────────────┴─────┴─────┘
-/// 
+///  ┌───────────┬────────────────────────────────────────────────┐
+///  │  Type: X  │               Arch: i386, x86_64               │
+///  ├───────────┼──────┬─────┬──────────────┬────────────┬───┬───┤
+///  │    Rex    │ Pref │ Opc │    ModR/M    │    SIB     │ D │ I │
+///  ├───────────┼──────┼─────┼──────────────┼────────────┼───┼───┤
+///  │    0,1    │ 0,1  │ 1~3 │     0,1      │    0,1     │ 0 │ 0 │
+///  ├───────────┼──────┼─────┼──────────────┼────────────┤ 1 │ 1 │
+///  │ 0100 1101 │ insn │ ??? │  ?? ??? ???  │ ?? ??? ??? │ 2 │ 2 │
+///  │ ──── ──── │ addr │ ─── │  ── ─── ───  │ ── ─── ─── │ 4 │ 4 │
+///  │ patt WRXB │ .... │ po  │ mod r/op r/m │ ss idx bas │   │ 8'│
+///  └───────────┴──────┴─────┴──────────────┴────────────┴───┴───┘
+///  Opcode:
+///    0. po: 1~3 Byte of Opcode such as: ADD eax, i32 (po=0x05).
+///    1. trans2: 2 Byte po, if first Byte is 0x0f.
+///    2. trans3: 3 Byte po, if fisrt and second Bytes are 0x0f 38.
+///    3. field extention: po need to concat ModR/M.op(3-bits) field.
+///  Imm(I):
+///    0. imm: (0,1,2,4,8) Byte of Imm such as: ADD eax 0X4351FF23 (imm=0x23 ff 51 43).
+///  Hidden Reg:
+///    0. eax: when po=0x05, auto use eax as target reg. (Insn=0x05 23 ff 51 43)
+///  ModR/M:
+///    0~2. r/m - As Direct/Indirect reg operand(E).
+///    3~5. r/op - As Reg ref(G), or as 3-bit opcode extension.
+///    6~7. mod - 0b11: Reg-Direct Addressing mode(Reg), else Reg-Indirect Addressing mode(Mem).
+///    Such as: ADD ecx, esi (po=0x01), set ModR/M: 0b11 110(esi) 001(ecx)=0xf1.
+///    Get (Insn=0x01 f1)
+///  Prefix:
+///    - instruction prefix
+///    - address-size prefix
+///    - operand-size prefix: 0x66(32 -> 16)
+///    - segment override prefix
+///    Such as: MOV r/m32, r32 (po=0x89), set opr-prefix: 0x66
+///    Get MOV r/m16, r16 (Insn=0x66 89 ..)
+///  Rex:
+///    0. B - Extension of SIB.base field.
+///    1. X - Extension of SIB.idx field.
+///    2. R - Extension of ModR/M.reg field (Reg Num: 8 -> 16).
+///    3. W - 0: 64-bits operand, 1: default(32-bits) operand.
+///    5~8. 0100 - Fixed bit patten.
+///    Such as: ADD rcx, rsi (po=0x01, 64-bits), set Rex: 0b0100 1000=0x48.
+///    Get (Insn=0x48 01 f1)
+///    Such as: ADD rcx, r9(0b1001) (po=0x01, 64-bits), set Rex: 0b0100 1100=0x4c.
+///    Set ModR/M: 0b11 001 001=0xc9, Get (Insn=0x4c 01 c9)
+///  Disp(D):
+///    0. imm: (0,1,2,4) Byte of Imm as addr disp.
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
