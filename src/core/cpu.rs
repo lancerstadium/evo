@@ -14,11 +14,11 @@ use crate::arch::riscv::def::RISCV32_ARCH;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::arch::info::Arch;
-use crate::ir::val::Value;
-use crate::ir::insn::Instruction;
-use crate::ir::mem::CPUProcess;
-use crate::ir::itp::Interpreter;
-use crate::ir::mem::CPUThreadStatus;
+use crate::core::val::Value;
+use crate::core::insn::Instruction;
+use crate::core::mem::CPUProcess;
+use crate::core::itp::Interpreter;
+use crate::core::mem::CPUThreadStatus;
 
 
 // ============================================================================== //
@@ -204,7 +204,7 @@ impl Default for CPUState {
 mod cpu_test {
 
     use super::*;
-    use crate::ir::{mem::CPUThread, op::Operand};
+    use crate::core::{mem::CPUThread, op::Operand};
 
     #[test]
     fn insn_info() {

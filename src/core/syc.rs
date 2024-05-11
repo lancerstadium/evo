@@ -13,7 +13,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use libc::c_void;
 
-use crate::ir::cpu::CPUState;
+use crate::core::cpu::CPUState;
 
 // ============================================================================== //
 //                             syc::Syscaller

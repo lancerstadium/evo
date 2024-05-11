@@ -16,8 +16,8 @@ use crate::arch::evo::def::{EVO_ARCH, evo_itp_init};
 use crate::arch::info::Arch;
 use crate::arch::riscv::def::{riscv32_itp_init, RISCV32_ARCH};
 use crate::arch::x86::def::{x86_itp_init, X86_ARCH};
-use crate::ir::cpu::CPUState;
-use crate::ir::insn::Instruction;
+use crate::core::cpu::CPUState;
+use crate::core::insn::Instruction;
 
 
 

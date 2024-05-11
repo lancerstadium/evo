@@ -14,9 +14,9 @@ use std::cell::RefCell;
 use crate::arch::info::{BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::ir::val::Value;
-use crate::ir::ty::TypesKind;
-use crate::ir::insn::Instruction;
+use crate::core::val::Value;
+use crate::core::ty::TypesKind;
+use crate::core::insn::Instruction;
 
 
 

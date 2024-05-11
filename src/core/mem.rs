@@ -37,13 +37,13 @@ use colored::*;
 use crate::arch::evo::def::EVO_ARCH;
 use crate::arch::info::Arch;
 // use crate::util::log::Span;
-use crate::ir::val::Value;
+use crate::core::val::Value;
 // use crate::log_error;
-use crate::ir::insn::Instruction;
+use crate::core::insn::Instruction;
 use crate::log_error;
 use crate::log_warning;
 use crate::util::log::Span;
-use crate::ir::ty::Types;
+use crate::core::ty::Types;
 
 
 
@@ -231,7 +231,7 @@ impl MemoryTool {
 mod memtool_test {
 
     use crate::arch::riscv::def::RISCV32_ARCH;
-    use crate::ir::cpu::CPUState;
+    use crate::core::cpu::CPUState;
 
     use super::*;
 

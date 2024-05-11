@@ -9,11 +9,11 @@ use std::cell::RefCell;
 use crate::{log_warning, log_error};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
-use crate::ir::val::Value;
-use crate::ir::op::{OpcodeKind, Operand, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
-use crate::ir::insn::{Instruction, INSN_SIG, INSN_USD};
-use crate::ir::itp::Interpreter;
-use crate::ir::mem::CPUThreadStatus;
+use crate::core::val::Value;
+use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
+use crate::core::insn::{Instruction, INSN_SIG, INSN_USD};
+use crate::core::itp::Interpreter;
+use crate::core::mem::CPUThreadStatus;
 
 
 
@@ -107,7 +107,7 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&X86_ARCH);
 
-    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG], "X", "0b10001000", 
+    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG], "X", "0x88", 
         |cpu, insn| {
             
         }
@@ -166,7 +166,7 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
 mod x86_test {
 
     use super::*;
-    use crate::ir::cpu::CPUState;
+    use crate::core::cpu::CPUState;
 
 
     #[test]

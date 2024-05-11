@@ -7,7 +7,7 @@
 use std::{cell::RefCell, fmt::{Debug, Display}};
 
 
-use crate::{ir::ty::{Types, TypesKind}, log_warning};
+use crate::{core::ty::{Types, TypesKind}, log_warning};
 use crate::util::log::Span;
 use crate::{log_fatal, log_error};
 
@@ -54,8 +54,8 @@ impl Value {
         *self = value;
     }
 
-    /// Append Value Align by u8 version: you will reserve scale info
-    pub fn append(&mut self, value: Value) {
+    /// Append Value at tail Align by u8 version: you will reserve scale info
+    pub fn append(&mut self, value: Value) -> &mut Value {
         // 1. Change the Kind to tuple: (self, value)
         self.set_kind(TypesKind::Tuple(vec![self.ty.clone(), value.ty.clone()]));
         // 2. Extend the val vec
@@ -64,6 +64,15 @@ impl Value {
         assert_eq!(self.size(), self.val.borrow().len());
         // 4. set align mode
         self.set_align(true);
+        self
+    }
+
+    /// Insert Value at head Align by u8 version
+    pub fn insert(&mut self, value: Value) -> &mut Value{
+        let mut new_val = value;
+        new_val.append(self.clone());
+        *self = new_val;
+        self
     }
 
     /// Concat Value No Align: you will lost scale info

@@ -14,8 +14,8 @@ use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
 use crate::arch::x86::def::{x86_encode, X86_ARCH};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::ir::op::{Opcode, Operand, OPR_IMM};
-use crate::ir::val::Value;
+use crate::core::op::{Opcode, Operand, OPR_IMM};
+use crate::core::val::Value;
 
 
 // ============================================================================== //
@@ -55,17 +55,17 @@ use crate::ir::val::Value;
 /// ### Insn Format Variable Length
 /// ```txt
 /// (Variable-length/Byte):
-///  ┌───────────┬────────────────────────────────────────────────┐
-///  │  Type: X  │               Arch: i386, x86_64               │
-///  ├───────────┼──────┬─────┬──────────────┬────────────┬───┬───┤
-///  │    Rex    │ Pref │ Opc │    ModR/M    │    SIB     │ D │ I │
-///  ├───────────┼──────┼─────┼──────────────┼────────────┼───┼───┤
-///  │    0,1    │ 0,1  │ 1~3 │     0,1      │    0,1     │ 0 │ 0 │
-///  ├───────────┼──────┼─────┼──────────────┼────────────┤ 1 │ 1 │
-///  │ 0100 1101 │ insn │ ??? │  ?? ??? ???  │ ?? ??? ??? │ 2 │ 2 │
-///  │ ──── ──── │ addr │ ─── │  ── ─── ───  │ ── ─── ─── │ 4 │ 4 │
-///  │ patt WRXB │ .... │ po  │ mod r/op r/m │ ss idx bas │   │ 8'│
-///  └───────────┴──────┴─────┴──────────────┴────────────┴───┴───┘
+///  ┌──────────────────┬─────────────────────────────────────────┐
+///  │     Type: X      │          Arch: i386, x86_64             │
+///  ├──────┬───────────┼─────┬──────────────┬────────────┬───┬───┤
+///  │ Pref │    Rex    │ Opc │    ModR/M    │    SIB     │ D │ I │
+///  ├──────┼───────────┼─────┼──────────────┼────────────┼───┼───┤
+///  │ 0,1  │    0,1    │ 1~3 │     0,1      │    0,1     │ 0 │ 0 │
+///  ├──────┼───────────┼─────┼──────────────┼────────────┤ 1 │ 1 │
+///  │ insn │ 0100 1101 │ ??? │  ?? ??? ???  │ ?? ??? ??? │ 2 │ 2 │
+///  │ addr │ ──── ──── │ ─── │  ── ─── ───  │ ── ─── ─── │ 4 │ 4 │
+///  │ .... │ patt WRXB │ po  │ mod r/op r/m │ ss idx bas │   │ 8'│
+///  └──────┴───────────┴─────┴──────────────┴────────────┴───┴───┘
 ///  Opcode:
 ///    0. po: 1~3 Byte of Opcode such as: ADD eax, i32 (po=0x05).
 ///    1. trans2: 2 Byte po, if first Byte is 0x0f.
@@ -81,14 +81,14 @@ use crate::ir::val::Value;
 ///    6~7. mod - 0b11: Reg-Direct Addressing mode(Reg), else Reg-Indirect Addressing mode(Mem).
 ///    Such as: ADD ecx, esi (po=0x01), set ModR/M: 0b11 110(esi) 001(ecx)=0xf1.
 ///    Get (Insn=0x01 f1)
-///  Prefix:
+///  Prefix(Legacy):
 ///    - instruction prefix
 ///    - address-size prefix
 ///    - operand-size prefix: 0x66(32 -> 16)
 ///    - segment override prefix
 ///    Such as: MOV r/m32, r32 (po=0x89), set opr-prefix: 0x66
 ///    Get MOV r/m16, r16 (Insn=0x66 89 ..)
-///  Rex:
+///  Rex Prefix(x86_64):
 ///    0. B - Extension of SIB.base field.
 ///    1. X - Extension of SIB.idx field.
 ///    2. R - Extension of ModR/M.reg field (Reg Num: 8 -> 16).
@@ -672,10 +672,11 @@ impl fmt::Display for Instruction {
 /// BasicBlock
 pub struct BasicBlock {
     
+    pub flag: u16,
     pub src_insns: Vec<Instruction>,
     pub ir_insns: Vec<Instruction>,
     pub trg_insns: Vec<Instruction>,
-    pub liveness_regs: Vec<usize>,
+    pub liveness_regs: Vec<Operand>,
 
     /// If the block is lifted to EVO ir arch: src -> ir
     pub is_lifted: bool,
@@ -687,8 +688,9 @@ pub struct BasicBlock {
 impl BasicBlock {
 
 
-    pub fn init(src_insns: Vec<Instruction>) -> BasicBlock {
+    pub fn init(src_insns: Vec<Instruction>, flag: u16) -> BasicBlock {
         Self {
+            flag,
             src_insns,
             ir_insns: vec![],
             trg_insns: vec![],

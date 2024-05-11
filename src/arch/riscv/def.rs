@@ -9,11 +9,11 @@ use std::cell::RefCell;
 use crate::log_error;
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
-use crate::ir::val::Value;
-use crate::ir::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
-use crate::ir::insn::Instruction;
-use crate::ir::itp::Interpreter;
-use crate::ir::mem::CPUThreadStatus;
+use crate::core::val::Value;
+use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
+use crate::core::insn::Instruction;
+use crate::core::itp::Interpreter;
+use crate::core::mem::CPUThreadStatus;
 
 
 
@@ -865,7 +865,7 @@ pub fn riscv32_decode(value: Value) -> Instruction {
 mod riscv_test {
 
     use super::*;
-    use crate::ir::cpu::CPUState;
+    use crate::core::cpu::CPUState;
 
 
     #[test]
