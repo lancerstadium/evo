@@ -177,6 +177,8 @@ pub fn x86_decode(value: Value) -> Instruction {
     res.code = value;
     let mut opr = vec![];
     // match
+
+    
     // 3. encode
     res.encode(opr)
 }
@@ -194,7 +196,6 @@ mod x86_test {
         cpu.set_nreg("eax", Value::i32(12));
         cpu.set_nreg("ebx", Value::i32(3));
         cpu.mem_write(26, Value::i32(0x1ffff));
-        print!("eax: {}", cpu.get_nreg("eax"));
 
         let insn1 = Instruction::from_string("mov [eax + ecx * 4], ebx");
         println!("code: {}", insn1.code);

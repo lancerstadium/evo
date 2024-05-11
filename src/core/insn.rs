@@ -324,18 +324,22 @@ impl RegFile {
 ///  Hidden Reg:
 ///    0. eax: when po=0x05, auto use eax as target reg. (Insn=0x05 23 ff 51 43)
 ///  ModR/M:
-///    0~2. r/m - As Direct/Indirect reg operand(E).
+///    0~2. r/m - As Direct/Indirect operand(E): Reg/Mem.
 ///    3~5. r/op - As Reg ref(G), or as 3-bit opcode extension.
-///    6~7. mod - 0b11: Reg-Direct Addressing mode(Reg), else Reg-Indirect Addressing mode(Mem).
+///    6~7. mod - 0b00: [base], 0b01: [base + disp8], 0b10: [base + disp32], 0b11: Reg.
 ///    Such as: ADD ecx, esi (po=0x01), set ModR/M: 0b11 110(esi) 001(ecx)=0xf1.
 ///    Get (Insn=0x01 f1)
-///  Prefix(Legacy):
+///  Prefixs(Legacy):
 ///    - instruction prefix
 ///    - address-size prefix
 ///    - operand-size prefix: 0x66(32 -> 16)
 ///    - segment override prefix
 ///    Such as: MOV r/m32, r32 (po=0x89), set opr-prefix: 0x66
 ///    Get MOV r/m16, r16 (Insn=0x66 89 ..)
+///  SIB:
+///    0~2. base
+///    3~5. index
+///    6~7. scale - 0b00: [idx], 0b01: [idx*2], 0b10: [idx*4], 0b11: [idx*8].
 ///  Rex Prefix(x86_64):
 ///    0. B - Extension of SIB.base field.
 ///    1. X - Extension of SIB.idx field.
@@ -620,7 +624,7 @@ impl Instruction {
     /// Get Byte Code clone of Instruction
     pub fn code(&self) -> Value {
         if !self.is_applied {
-            log_error!("Code not applied: {} ", self.opc.name());
+            log_warning!("Code not applied: {} ", self.opc.name());
         }
         self.code.clone()
     }
