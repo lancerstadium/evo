@@ -16,7 +16,7 @@ use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::core::val::Value;
 use crate::core::ty::TypesKind;
-use crate::core::insn::Instruction;
+use crate::core::insn::RegFile;
 
 
 // ============================================================================== //
@@ -135,11 +135,11 @@ impl OperandKind {
                 let mut info = String::new();
                 let mut is_gen = false;
                 info.push('[');
-                if Instruction::reg_pool_is_in(&base.name()) {
+                if RegFile::reg_poolr_is_in_all(&base.name()) {
                     info.push_str(base.name());
                     is_gen = true;
                 }
-                if Instruction::reg_pool_is_in(&idx.name()) {
+                if RegFile::reg_poolr_is_in_all(&idx.name()) {
                     if is_gen { info.push('+'); }
                     info.push_str(idx.name());
                     is_gen = true;
@@ -484,8 +484,8 @@ impl Operand {
             return Self(Rc::new(RefCell::new(OperandKind::Undef)));
         }
         // 1. Deal with reg
-        if (sym & OPR_REG != 0) && Instruction::reg_pool_is_in(opr) {
-            return Instruction::reg_pool_nget(opr).borrow_mut().clone();
+        if (sym & OPR_REG != 0) && RegFile::reg_poolr_is_in_all(opr) {
+            return RegFile::reg_poolr_nget_all(opr).borrow_mut().clone();
         }
         // 2. Deal with mem: `[base + idx * scale + disp]`
         if (sym & OPR_MEM != 0) && opr.starts_with('[') && opr.ends_with(']') {
@@ -506,13 +506,13 @@ impl Operand {
                     ' ' => continue,
                     '+' => {
                         // check info is in reg pool: True find base/idx Value
-                        if Instruction::reg_pool_is_in(&info) {
+                        if RegFile::reg_poolr_is_in_all( &info) {
                             if !deal_base {
-                                base = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                                base = RegFile::reg_poolr_nget_all( &info).borrow_mut().clone();
                                 info.clear();
                                 deal_base = true;
                             } else if !deal_idx {
-                                idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();    
+                                idx = RegFile::reg_poolr_nget_all(&info).borrow_mut().clone();    
                                 info.clear();
                                 deal_idx = true;
                             }
@@ -533,8 +533,8 @@ impl Operand {
                     },
                     '*' => {
                         // check info is in reg pool: True find idx Value
-                        if Instruction::reg_pool_is_in(&info) {
-                            idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                        if RegFile::reg_poolr_is_in_all( &info) {
+                            idx = RegFile::reg_poolr_nget_all(&info).borrow_mut().clone();
                             info.clear();
                             deal_idx = true;
                             has_scale = true;
@@ -549,12 +549,12 @@ impl Operand {
             }
             if !info.is_empty() {
                 // check info is in reg pool: True find base/idx Value
-                if Instruction::reg_pool_is_in(&info) {
+                if RegFile::reg_poolr_is_in_all( &info) {
                     if !deal_base {
-                        base = Instruction::reg_pool_nget(&info).borrow_mut().clone();
+                        base = RegFile::reg_poolr_nget_all(&info).borrow_mut().clone();
                         info.clear();
                     }else {
-                        idx = Instruction::reg_pool_nget(&info).borrow_mut().clone();    
+                        idx = RegFile::reg_poolr_nget_all(&info).borrow_mut().clone();    
                         info.clear();
                     }
                 } else {

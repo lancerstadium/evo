@@ -6,12 +6,13 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+
 use crate::{log_warning, log_error};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
 use crate::core::val::Value;
 use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
-use crate::core::insn::{Instruction, INSN_SIG, INSN_USD};
+use crate::core::insn::{Instruction, RegFile, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
 
@@ -75,34 +76,35 @@ pub const X86_64_ARCH: Arch = Arch::new(ArchKind::X86, BIT64 | LITTLE_ENDIAN, 16
 
 /// Insn temp and Reg and Interpreter Pool Init
 pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
+
     // 1. Init regs pool
-    Instruction::reg("eax", Value::bit(3, 0), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("ecx", Value::bit(3, 1), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("edx", Value::bit(3, 2), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("ebx", Value::bit(3, 3), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("esp", Value::bit(3, 4), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("ebp", Value::bit(3, 5), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("esi", Value::bit(3, 6), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("edi", Value::bit(3, 7), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "eax", Value::bit(3, 0), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "ecx", Value::bit(3, 1), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "edx", Value::bit(3, 2), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "ebx", Value::bit(3, 3), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "esp", Value::bit(3, 4), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "ebp", Value::bit(3, 5), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "esi", Value::bit(3, 6), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "edi", Value::bit(3, 7), BIT32 | LITTLE_ENDIAN);
 
-    Instruction::reg("ax", Value::bit(3, 0), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("cx", Value::bit(3, 1), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("dx", Value::bit(3, 2), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("bx", Value::bit(3, 3), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("sp", Value::bit(3, 4), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("bp", Value::bit(3, 5), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("si", Value::bit(3, 6), BIT16 | LITTLE_ENDIAN);
-    Instruction::reg("di", Value::bit(3, 7), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "ax", Value::bit(3, 0), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "cx", Value::bit(3, 1), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "dx", Value::bit(3, 2), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "bx", Value::bit(3, 3), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "sp", Value::bit(3, 4), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "bp", Value::bit(3, 5), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "si", Value::bit(3, 6), BIT16 | LITTLE_ENDIAN);
+    RegFile::def(&X86_ARCH, "di", Value::bit(3, 7), BIT16 | LITTLE_ENDIAN);
 
-    Instruction::reg("ah", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("ch", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("dh", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("bh", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "ah", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "ch", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "dh", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "bh", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
 
-    Instruction::reg("al", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("cl", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("dl", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
-    Instruction::reg("bl", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "al", Value::bit(3, 0), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "cl", Value::bit(3, 1), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "dl", Value::bit(3, 2), BIT8 | LITTLE_ENDIAN | REG_OFF8);
+    RegFile::def(&X86_ARCH, "bl", Value::bit(3, 3), BIT8 | LITTLE_ENDIAN | REG_OFF8);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&X86_ARCH);
@@ -162,6 +164,23 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
 }
 
 
+/// decode from Value
+pub fn x86_decode(value: Value) -> Instruction {
+    let mut res = Instruction::undef();
+    // 1. check scale
+    if value.scale_sum() != 32 {
+        log_error!("Invalid insn scale: {}", value.scale_sum());
+        return res;
+    }
+    // 2. decode opc
+    res.set_arch(&X86_ARCH);
+    res.code = value;
+    let mut opr = vec![];
+    // match
+    // 3. encode
+    res.encode(opr)
+}
+
 #[cfg(test)]
 mod x86_test {
 
@@ -175,7 +194,6 @@ mod x86_test {
         cpu.set_nreg("eax", Value::i32(12));
         cpu.set_nreg("ebx", Value::i32(3));
         cpu.mem_write(26, Value::i32(0x1ffff));
-        println!("{}", CPUState::pool_info());
 
         let insn1 = Instruction::from_string("mov [ecx * 4], ebx");
         println!("code: {}", insn1.code);

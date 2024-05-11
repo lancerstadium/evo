@@ -11,7 +11,7 @@ use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::core::val::Value;
 use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
-use crate::core::insn::{Instruction, INSN_SIG, INSN_USD};
+use crate::core::insn::{Instruction, RegFile, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
 
@@ -34,38 +34,38 @@ pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, BIT64 | LITTLE_ENDIAN, 128);
 pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
     // 1. Init regs pool
-    Instruction::reg("t0", Value::bit(5, 0), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t1", Value::bit(5, 1), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t2", Value::bit(5, 2), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t3", Value::bit(5, 3), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t4", Value::bit(5, 4), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t5", Value::bit(5, 5), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t6", Value::bit(5, 6), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t7", Value::bit(5, 7), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t8", Value::bit(5, 8), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t9", Value::bit(5, 9), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t10", Value::bit(5, 10), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t11", Value::bit(5, 11), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t12", Value::bit(5, 12), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t13", Value::bit(5, 13), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t14", Value::bit(5, 14), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t15", Value::bit(5, 15), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t16", Value::bit(5, 16), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t17", Value::bit(5, 17), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t18", Value::bit(5, 18), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t19", Value::bit(5, 19), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t20", Value::bit(5, 20), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t21", Value::bit(5, 21), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t22", Value::bit(5, 22), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t23", Value::bit(5, 23), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t24", Value::bit(5, 24), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t25", Value::bit(5, 25), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t26", Value::bit(5, 26), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t27", Value::bit(5, 27), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t28", Value::bit(5, 28), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t29", Value::bit(5, 29), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t30", Value::bit(5, 30), BIT64 | LITTLE_ENDIAN);
-    Instruction::reg("t31", Value::bit(5, 31), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t0", Value::bit(5, 0), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t1", Value::bit(5, 1), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t2", Value::bit(5, 2), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t3", Value::bit(5, 3), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t4", Value::bit(5, 4), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t5", Value::bit(5, 5), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t6", Value::bit(5, 6), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t7", Value::bit(5, 7), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t8", Value::bit(5, 8), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t9", Value::bit(5, 9), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t10", Value::bit(5, 10), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t11", Value::bit(5, 11), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t12", Value::bit(5, 12), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t13", Value::bit(5, 13), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t14", Value::bit(5, 14), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t15", Value::bit(5, 15), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t16", Value::bit(5, 16), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t17", Value::bit(5, 17), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t18", Value::bit(5, 18), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t19", Value::bit(5, 19), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t20", Value::bit(5, 20), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t21", Value::bit(5, 21), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t22", Value::bit(5, 22), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t23", Value::bit(5, 23), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t24", Value::bit(5, 24), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t25", Value::bit(5, 25), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t26", Value::bit(5, 26), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t27", Value::bit(5, 27), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t28", Value::bit(5, 28), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t29", Value::bit(5, 29), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t30", Value::bit(5, 30), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t31", Value::bit(5, 31), BIT64 | LITTLE_ENDIAN);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&EVO_ARCH);
@@ -1546,11 +1546,11 @@ pub fn evo_decode(value: Value) -> Instruction {
         (0b0110011, f3, f7) => {
             // Get oprands
             // a. rd
-            opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rd() as usize).borrow().clone());
             // b. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rs1() as usize).borrow().clone());
             // c. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rs2() as usize).borrow().clone());
             // find insn
             match (f3, f7) {
                 (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
@@ -1572,9 +1572,9 @@ pub fn evo_decode(value: Value) -> Instruction {
         (0b0010011, f3, 0b0000000) => {
             // Get oprands
             // a. rd
-            opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rd() as usize).borrow().clone());
             // b. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
             // find insn
@@ -1592,9 +1592,9 @@ pub fn evo_decode(value: Value) -> Instruction {
         (0b0100011, f3, 0b0000000) => {
             // Get oprands
             // a. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
             // b. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs2() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
             // find insn
@@ -1609,9 +1609,9 @@ pub fn evo_decode(value: Value) -> Instruction {
         (0b1100011, f3, 0b0000000) => {
             // Get oprands
             // a. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
             // b. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs2() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
             // find insn
@@ -1646,9 +1646,9 @@ mod evo_test {
         cpu.set_nreg("t2", Value::i64(17));
         cpu.set_nreg("t3", Value::i64(65535));
         cpu.mem_write(26, Value::i32(0x1ffff));
-        // println!("{}", CPUState::pool_info());
+        println!("{}", cpu.pool_info());
 
-        // R-Type Insns Test
+        // R-Type Insns Test 
         let insn1  = Instruction::from_string("add_i32 t0, t1, t2");
         let insn2  = Instruction::from_string("add_i64 t0, t1, t2");
         let insn3  = Instruction::from_string("sub_i32 t0, t1, t2");

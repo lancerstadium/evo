@@ -7,11 +7,12 @@
 use std::fmt::{self};
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use crate::arch::evo::def::{evo_decode, evo_encode, EVO_ARCH};
 use crate::arch::info::Arch;
 use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
-use crate::arch::x86::def::{x86_encode, X86_ARCH};
+use crate::arch::x86::def::{x86_decode, x86_encode, X86_ARCH};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::core::op::{Opcode, Operand, OPR_IMM};
@@ -46,6 +47,224 @@ pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
 pub const INSN_SIG: u16 = 0b0000_0000_0000_0000;
 /// all unsigned operands
 pub const INSN_USD: u16 = 0b0001_0000_0000_0000;
+
+
+// ============================================================================== //
+//                                insn::RegFile
+// ============================================================================== //
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RegFile(Rc<RefCell<Vec<Rc<RefCell<Operand>>>>>);
+
+impl RegFile {
+
+
+    // Init Opcode POOL
+    thread_local! {
+        /// Register pool (Shared Global)
+        pub static REG_POOL : Rc<RefCell<HashMap<&'static Arch, RegFile>>> = Rc::new(RefCell::new(HashMap::new()));
+    }
+
+    pub fn new(arch: &'static Arch) -> RegFile {
+        // 1. check arch is in
+        if !Self::reg_pool_is_in(arch) {
+            Self::reg_pool_init(arch);
+        }
+        // 2. get reg
+        Self::reg_pool_get(arch)
+    }
+
+    /// Define Register Temp and add to pool
+    /// ### Register flag
+    /// ```txt
+    /// (0-7):
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
+    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
+    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
+    /// │ │ │ └────────── <Reserved>
+    /// │ │ └──────────── <Reserved>
+    /// │ └────────────── <Reserved>
+    /// └──────────────── <Reserved>
+    /// (8-15): offset
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ ├─┴─┴─┘   (8-11) 64-bit scales: 0,   8,   16,  24,  32,  40,  48,  54,  64,  72,  80,  88,  96, 104, 112
+    /// │ │ │ │ └──────── (8-11) offset symbol: 000, 001, 010, 011, 100, 101, 110, 111
+    /// │ │ │ └────────── <Reserved>
+    /// │ │ └──────────── <Reserved>
+    /// │ └────────────── <Reserved>
+    /// └──────────────── <Reserved>
+    /// ```
+    pub fn def(arch: &'static Arch, name: &'static str, val: Value, flag: u16) -> Rc<RefCell<Operand>> {
+        // 1. check arch is in
+        if !Self::reg_pool_is_in(arch) {
+            Self::reg_pool_init(arch);
+        }
+        // 2. set reg: if not in, push
+        let reg = Operand::reg(name, val, flag);
+        if !Self::reg_poolr_is_in(arch, name) {
+            Self::reg_poolr_push(arch, reg);
+        } else {
+            // else set
+            Self::reg_poolr_nset(arch, name, reg);
+        }
+        Self::reg_poolr_nget(arch, name)
+    }
+
+    pub fn num(&self) -> usize {
+        self.0.borrow().len()
+    }
+
+    pub fn idx(&self, name: &str) -> usize {
+        for i in 0..self.0.borrow().len() {
+            if self.0.borrow()[i].borrow().name() == name {
+                return i;
+            }
+        }
+        log_error!("RegFile no such reg: {}", name);
+        0
+    }
+
+    pub fn val(&self, name: &str) -> Value {
+        self.0.borrow()[self.idx(name)].borrow().val()
+    }
+
+    pub fn is_in(&self, name: &str) -> bool {
+        for i in 0..self.0.borrow().len() {
+            if self.0.borrow()[i].borrow().name() == name {
+                return true;
+            }
+        }
+        false
+    }
+    
+    pub fn get(&self, index: usize) -> Rc<RefCell<Operand>> {
+        if index >= self.0.borrow().len() {
+            log_error!("RegFile index out of range: {}", index);
+            return Rc::new(RefCell::new(Operand::reg_def()));
+        }
+        self.0.borrow()[index].clone()
+    }
+
+    pub fn nget(&self, name: &str) -> Rc<RefCell<Operand>> {
+        self.get(self.idx(name))
+    }
+
+    pub fn push(&self, reg: Operand) {
+        self.0.borrow_mut().push(Rc::new(RefCell::new(reg)));
+    }
+
+    pub fn set(&self, index: usize, reg: Operand) {
+        if index >= self.0.borrow().len() {
+            log_error!("RegFile index out of range: {}", index);
+            return;
+        }
+        self.0.borrow_mut()[index] = Rc::new(RefCell::new(reg));
+    }
+
+    pub fn nset(&self, name: &str, reg: Operand) {
+        self.set(self.idx(name), reg);
+    }
+
+    pub fn info(&self) -> String {
+        let mut info = String::new();
+        info.push_str(&format!("Regs(Nums={}):\n", self.0.borrow().len()));
+        for i in 0..self.0.borrow().len() {
+            info.push_str(&format!("- {}", &self.0.borrow()[i].borrow().info()));
+            info.push('\n');
+        }
+        info
+    }
+
+    pub fn clr(&self) {
+        self.0.borrow_mut().clear();
+    }
+
+
+    pub fn reg_pool_set(arch: &'static Arch, rfile: RegFile) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().insert(arch, rfile));
+    }
+
+    pub fn reg_pool_get(arch: &'static Arch) -> RegFile {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().clone())
+    }
+
+    pub fn reg_poolr_nget_all(name: &str) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().values().find(|rfile| rfile.is_in(name)).unwrap().nget(name))
+    }
+
+    pub fn reg_poolr_is_in_all(name: &str) -> bool {
+        // find reg in all arch
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().values().find(|rfile| rfile.is_in(name)).is_some())
+    }
+
+    pub fn reg_pool_del(arch: &'static Arch) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().remove(arch));
+    }
+
+    pub fn reg_pool_info(arch: &'static Arch) -> String {
+        Self::REG_POOL.with(|pool_map| {
+            let mut info = String::new();
+            info.push_str(&format!("Arch: {} ", arch));
+            info.push_str(&pool_map.borrow().get(arch).unwrap().info());
+            info
+        })
+    }
+
+    pub fn reg_pool_clr_all() {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().clear());
+    }
+
+    pub fn reg_pool_init(arch: &'static Arch) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().insert(arch, RegFile(Rc::new(RefCell::new(Vec::new())))));
+    }
+
+    pub fn reg_pool_is_in(arch: &'static Arch) -> bool {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).is_some())
+    }
+
+    pub fn reg_pool_clr(arch: &'static Arch) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().clr());
+    }
+
+    pub fn reg_pool_num(arch: &'static Arch) -> usize {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().num())
+    }
+
+    pub fn reg_poolr_is_in(arch: &'static Arch, name: &str) -> bool {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().is_in(name))
+    }
+
+    pub fn reg_poolr_get(arch: &'static Arch, index: usize) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().get(index))
+    }
+
+    pub fn reg_poolr_set(arch: &'static Arch, index: usize, value: Operand) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().set(index, value));
+    }
+
+    pub fn reg_poolr_idx(arch: &'static Arch, name: &str) -> usize {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().idx(name))
+    }
+
+    pub fn reg_poolr_nget(arch: &'static Arch, name: &str) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().nget(name))
+    }
+
+    pub fn reg_poolr_nset(arch: &'static Arch, name: &str, reg: Operand) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().nset(name, reg));
+    }
+
+    pub fn reg_poolr_push(arch: &'static Arch, reg: Operand) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().push(reg));
+    }
+
+
+}
+
+
 
 // ============================================================================== //
 //                                insn::Instruction
@@ -210,35 +429,6 @@ impl Instruction {
         Instruction::insn_pool_nget(name).borrow().clone()
     }
 
-    /// Define Register Temp and add to pool
-    /// ### Register flag
-    /// ```txt
-    /// (0-7):
-    /// 0 0 0 0 0 0 0 0
-    /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
-    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
-    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
-    /// │ │ │ └────────── <Reserved>
-    /// │ │ └──────────── <Reserved>
-    /// │ └────────────── <Reserved>
-    /// └──────────────── <Reserved>
-    /// (8-15): offset
-    /// 0 0 0 0 0 0 0 0
-    /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ ├─┴─┴─┘   (8-11) 64-bit scales: 0,   8,   16,  24,  32,  40,  48,  54,  64,  72,  80,  88,  96, 104, 112
-    /// │ │ │ │ └──────── (8-11) offset symbol: 000, 001, 010, 011, 100, 101, 110, 111
-    /// │ │ │ └────────── <Reserved>
-    /// │ │ └──────────── <Reserved>
-    /// │ └────────────── <Reserved>
-    /// └──────────────── <Reserved>
-    /// ```
-    pub fn reg(name: &'static str, val: Value, flag: u16) -> Operand {
-        let reg = Operand::reg(name, val, flag);
-        Self::reg_pool_push(reg.clone());
-        Self::reg_pool_nget(name).borrow().clone()
-    }
-
     /// Encode
     pub fn encode(&mut self, opr: Vec<Operand>) -> Instruction {
         if self.enc.is_some() {
@@ -277,7 +467,7 @@ impl Instruction {
     pub fn decode_pool_init(arch: &'static Arch) -> Option<fn(value: Value) -> Instruction> {
         match *arch {
             EVO_ARCH => Some(evo_decode),
-            X86_ARCH => None,
+            X86_ARCH => Some(x86_decode),
             RISCV32_ARCH => Some(riscv32_decode),
             _ => {
                 log_warning!("Decoder init fail, not support arch: {}", arch);
@@ -350,71 +540,71 @@ impl Instruction {
 
     // ================== Instruction.reg_pool ================== //
 
-    /// Pool set reg by index
-    pub fn reg_pool_set(idx: usize, reg: Operand) {
-        Self::REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
-    }
+    // /// Pool set reg by index
+    // pub fn reg_pool_set(idx: usize, reg: Operand) {
+    //     Self::REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
+    // }
 
-    /// Pool push reg
-    pub fn reg_pool_push(reg: Operand) {
-        Self::REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
-    }
+    // /// Pool push reg
+    // pub fn reg_pool_push(reg: Operand) {
+    //     Self::REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
+    // }
 
-    /// Pool get reg refenence by index
-    pub fn reg_pool_get(idx: usize) -> Rc<RefCell<Operand>> {
-        Self::REG_POOL.with(|pool| pool.borrow()[idx].clone())
-    }
+    // /// Pool get reg refenence by index
+    // pub fn reg_pool_get(idx: usize) -> Rc<RefCell<Operand>> {
+    //     Self::REG_POOL.with(|pool| pool.borrow()[idx].clone())
+    // }
 
-    /// Pool set reg `index` value by index
-    pub fn reg_pool_set_val(idx: usize, val: Value) { 
-        Self::REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
-    }
+    // /// Pool set reg `index` value by index
+    // pub fn reg_pool_set_val(idx: usize, val: Value) { 
+    //     Self::REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
+    // }
 
-    /// Pool get reg `index` value by index
-    pub fn reg_pool_get_val(idx: usize) -> Value {
-        Self::REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
-    }
+    // /// Pool get reg `index` value by index
+    // pub fn reg_pool_get_val(idx: usize) -> Value {
+    //     Self::REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
+    // }
 
-    /// Pool set reg by name
-    pub fn reg_pool_nset(name: &str , reg: Operand) {
-        Self::REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
-    }
+    // /// Pool set reg by name
+    // pub fn reg_pool_nset(name: &str , reg: Operand) {
+    //     Self::REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
+    // }
 
-    /// Pool get reg refenence by name
-    pub fn reg_pool_nget(name: &str) -> Rc<RefCell<Operand>> {
-        Self::REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
-    }
+    // /// Pool get reg refenence by name
+    // pub fn reg_pool_nget(name: &str) -> Rc<RefCell<Operand>> {
+    //     Self::REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
+    // }
 
-    /// Pool check reg is in
-    pub fn reg_pool_is_in(name: &str) -> bool {
-        Self::REG_POOL.with(|pool| pool.borrow().iter().any(|r| r.borrow().name() == name))
-    }
+    // /// Pool check reg is in
+    // pub fn reg_pool_is_in(name: &str) -> bool {
+    //     Self::REG_POOL.with(|pool| pool.borrow().iter().any(|r| r.borrow().name() == name))
+    // }
 
-    /// Pool get reg pool idx by name
-    pub fn reg_pool_idx(name: &str) -> usize {
-        Self::REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
-    }
+    // /// Pool get reg pool idx by name
+    // pub fn reg_pool_idx(name: &str) -> usize {
+    //     Self::REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
+    // }
 
-    /// Pool clear
-    pub fn reg_pool_clr() {
-        Self::REG_POOL.with(|pool| pool.borrow_mut().clear());
-    }
+    // /// Pool clear
+    // pub fn reg_pool_clr() {
+    //     Self::REG_POOL.with(|pool| pool.borrow_mut().clear());
+    // }
 
-    /// Pool size
-    pub fn reg_pool_size() -> usize {
-        Self::REG_POOL.with(|pool| pool.borrow().len())
-    }
+    // /// Pool size
+    // pub fn reg_pool_size() -> usize {
+    //     Self::REG_POOL.with(|pool| pool.borrow().len())
+    // }
 
-    /// Pool info
-    pub fn reg_pool_info() -> String {
-        let mut info = String::new();
-        info.push_str(&format!("Registers (Num = {}):\n", Self::reg_pool_size()));
-        for i in 0..Self::reg_pool_size() {
-            let reg = Self::reg_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {}\n", reg.info()));
-        }
-        info
-    }
+    // /// Pool info
+    // pub fn reg_pool_info() -> String {
+    //     let mut info = String::new();
+    //     info.push_str(&format!("Registers (Num = {}):\n", Self::reg_pool_size()));
+    //     for i in 0..Self::reg_pool_size() {
+    //         let reg = Self::reg_pool_get(i).borrow().clone();
+    //         info.push_str(&format!("- {}\n", reg.info()));
+    //     }
+    //     info
+    // }
 
 
     // ==================== Instruction.get ===================== //

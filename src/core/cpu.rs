@@ -20,6 +20,8 @@ use crate::core::mem::CPUProcess;
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
 
+use super::insn::RegFile;
+
 
 // ============================================================================== //
 //                              cpu::CPUState
@@ -98,28 +100,28 @@ impl CPUState {
     // =================== IRCtx.is ======================== //
 
     /// Check if `CPUState` is init
-    pub fn is_init() -> bool {
-        Instruction::reg_pool_size() != 0 && Instruction::insn_pool_size() != 0
+    pub fn is_init(&self) -> bool {
+        RegFile::reg_pool_num(self.ir_arch) != 0 && Instruction::insn_pool_size() != 0
     }
 
     /// Clear Temp Insn Pool
-    pub fn pool_clr() {
+    pub fn pool_clr(&self) {
         // 1. Check is init
-        if !Self::is_init() {
+        if !self.is_init() {
             log_warning!("CPUState not init");
             return
         }
 
-        Instruction::reg_pool_clr();
+        RegFile::reg_pool_clr(self.ir_arch);
         Instruction::insn_pool_clr();
         Interpreter::func_pool_clr();
     }
 
     /// Info of Pools
-    pub fn pool_info() -> String{
+    pub fn pool_info(&self) -> String{
         let str = format!(
             "{}\n{}\n{}",
-            Instruction::reg_pool_info(),
+            RegFile::reg_pool_info(self.ir_arch),
             Instruction::insn_pool_info(),
             Interpreter::func_pool_info()
         );
@@ -216,17 +218,17 @@ mod cpu_test {
 
         let insn2 = Instruction::apply(
             "sub", vec![
-                Instruction::reg_pool_nget("x31").borrow().clone(), 
-                Instruction::reg_pool_nget("x0").borrow().clone(), 
-                Instruction::reg_pool_nget("x8").borrow().clone()
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(), 
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x0").borrow().clone(), 
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x8").borrow().clone()
             ]
         );
         println!("{}", insn2.bin(0, -1, true));
         let insn3 = Instruction::apply(
             "srl", vec![
-                Instruction::reg_pool_nget("x31").borrow().clone(), 
-                Instruction::reg_pool_nget("x30").borrow().clone(), 
-                Instruction::reg_pool_nget("x7").borrow().clone()
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(), 
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x30").borrow().clone(), 
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x7").borrow().clone()
             ]
         );
         println!("{}", insn3.bin(0, -1, true));
@@ -234,8 +236,8 @@ mod cpu_test {
 
         let insn4 = Instruction::apply(
             "addi", vec![
-                Instruction::reg_pool_nget("x31").borrow().clone(),
-                Instruction::reg_pool_nget("x30").borrow().clone(),
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(),
+                RegFile::reg_poolr_nget(&RISCV32_ARCH, "x30").borrow().clone(),
                 Operand::imm(Value::u12(2457)),
             ]
         );
@@ -291,7 +293,7 @@ mod cpu_test {
         let cpu = CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
 
         // Check pool info
-        println!("{}", CPUState::pool_info());
+        println!("{}", cpu.pool_info());
 
         let p0 = cpu.proc.borrow().clone();
         // Check process info

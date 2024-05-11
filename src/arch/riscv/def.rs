@@ -11,7 +11,7 @@ use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
 use crate::core::val::Value;
 use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
-use crate::core::insn::Instruction;
+use crate::core::insn::{Instruction, RegFile};
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
 
@@ -26,39 +26,39 @@ pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN,
 pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
     // 2. Init regs pool
-    Instruction::reg("x0", Value::bit(5, 0), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x1", Value::bit(5, 1), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x2", Value::bit(5, 2), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x3", Value::bit(5, 3), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x4", Value::bit(5, 4), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x5", Value::bit(5, 5), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x6", Value::bit(5, 6), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x7", Value::bit(5, 7), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x8", Value::bit(5, 8), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x9", Value::bit(5, 9), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x10", Value::bit(5, 10), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x11", Value::bit(5, 11), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x12", Value::bit(5, 12), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x13", Value::bit(5, 13), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x14", Value::bit(5, 14), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x15", Value::bit(5, 15), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x16", Value::bit(5, 16), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x17", Value::bit(5, 17), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x18", Value::bit(5, 18), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x19", Value::bit(5, 19), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x20", Value::bit(5, 20), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x21", Value::bit(5, 21), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x22", Value::bit(5, 22), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x23", Value::bit(5, 23), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x24", Value::bit(5, 24), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x25", Value::bit(5, 25), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x26", Value::bit(5, 26), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x27", Value::bit(5, 27), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x28", Value::bit(5, 28), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x29", Value::bit(5, 29), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x30", Value::bit(5, 30), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("x31", Value::bit(5, 31), BIT32 | LITTLE_ENDIAN);
-    Instruction::reg("pc" , Value::bit(5, 32), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x0", Value::bit(5, 0), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x1", Value::bit(5, 1), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x2", Value::bit(5, 2), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x3", Value::bit(5, 3), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x4", Value::bit(5, 4), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x5", Value::bit(5, 5), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x6", Value::bit(5, 6), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x7", Value::bit(5, 7), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x8", Value::bit(5, 8), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x9", Value::bit(5, 9), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x10", Value::bit(5, 10), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x11", Value::bit(5, 11), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x12", Value::bit(5, 12), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x13", Value::bit(5, 13), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x14", Value::bit(5, 14), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x15", Value::bit(5, 15), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x16", Value::bit(5, 16), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x17", Value::bit(5, 17), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x18", Value::bit(5, 18), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x19", Value::bit(5, 19), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x20", Value::bit(5, 20), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x21", Value::bit(5, 21), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x22", Value::bit(5, 22), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x23", Value::bit(5, 23), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x24", Value::bit(5, 24), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x25", Value::bit(5, 25), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x26", Value::bit(5, 26), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x27", Value::bit(5, 27), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x28", Value::bit(5, 28), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x29", Value::bit(5, 29), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x30", Value::bit(5, 30), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "x31", Value::bit(5, 31), BIT32 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV32_ARCH, "pc" , Value::bit(5, 32), BIT32 | LITTLE_ENDIAN);
 
     // 3. Init insns & insns interpreter
     let itp = Interpreter::def(&RISCV32_ARCH);
@@ -775,11 +775,11 @@ pub fn riscv32_decode(value: Value) -> Instruction {
         (0b0110011, f3, f7) => {
             // Get oprands
             // a. rd
-            opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
             // b. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs1() as usize).borrow().clone());
             // c. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs2() as usize).borrow().clone());
             // find insn
             match (f3, f7) {
                 (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
@@ -801,9 +801,9 @@ pub fn riscv32_decode(value: Value) -> Instruction {
         (0b0010011, f3, 0b0000000) => {
             // Get oprands
             // a. rd
-            opr.push(Instruction::reg_pool_get(res.rd() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
             // b. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs1() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
             // find insn
@@ -821,9 +821,9 @@ pub fn riscv32_decode(value: Value) -> Instruction {
         (0b0100011, f3, 0b0000000) => {
             // Get oprands
             // a. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs1() as usize).borrow().clone());
             // b. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs2() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
             // find insn
@@ -838,9 +838,9 @@ pub fn riscv32_decode(value: Value) -> Instruction {
         (0b1100011, f3, 0b0000000) => {
             // Get oprands
             // a. rs1
-            opr.push(Instruction::reg_pool_get(res.rs1() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs1() as usize).borrow().clone());
             // b. rs2
-            opr.push(Instruction::reg_pool_get(res.rs2() as usize).borrow().clone());
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs2() as usize).borrow().clone());
             // c. imm
             opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
             // find insn
@@ -875,7 +875,7 @@ mod riscv_test {
         cpu.set_nreg("x2", Value::i32(5));
         cpu.set_nreg("x3", Value::i32(-32));
         cpu.mem_write(26, Value::i32(0x1ffff));
-        // println!("{}", CPUState::pool_info());
+        println!("{}", cpu.pool_info());
 
         // R-Type Insns Test
         let insn1 = Instruction::from_string("add x0, x1, x2");

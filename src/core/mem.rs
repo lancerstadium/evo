@@ -39,11 +39,12 @@ use crate::arch::info::Arch;
 // use crate::util::log::Span;
 use crate::core::val::Value;
 // use crate::log_error;
-use crate::core::insn::Instruction;
 use crate::log_error;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::core::ty::Types;
+
+use super::insn::RegFile;
 
 
 
@@ -232,7 +233,7 @@ mod memtool_test {
 
     use crate::arch::riscv::def::RISCV32_ARCH;
     use crate::core::cpu::CPUState;
-
+    use crate::core::insn::Instruction;
     use super::*;
 
     #[test]
@@ -437,7 +438,7 @@ impl CPUThread {
                 info.push_str(&format!("├─────┼─────┼──────┼───────────┼─────────┤\n"));
                 info.push_str(&format!("│ {:^3} │ {:^3} │ {:>3}  │ {:^9} │ {:^16} │\n", 
                     thread.id, thread.proc_id, 
-                    thread.ir_reg_num(), stk_fmt, 
+                    thread.reg_num(), stk_fmt, 
                     thread.status.to_string()
                 ));
             }
@@ -462,23 +463,23 @@ impl CPUThread {
 
     /// set reg value by name
     pub fn set_nreg(&self, name: &'static str, value: Value) {
-        let index = Instruction::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let index = RegFile::reg_poolr_nget(self.arch, name).borrow().clone().val().get_byte(0) as usize;
         self.set_reg(index, value)
     }
 
     /// get reg value scale offset by name
     pub fn get_nreg_all(&self, name: &'static str) -> (Value, usize, usize) {
-        let index = Instruction::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let index = RegFile::reg_poolr_nget(self.arch, name).borrow().clone().val().get_byte(0) as usize;
         let val = self.get_reg(index);
-        let scale = Instruction::reg_pool_nget(name).borrow().clone().reg_scale();
-        let offset = Instruction::reg_pool_nget(name).borrow().clone().reg_offset();
+        let scale = RegFile::reg_poolr_nget(self.arch, name).borrow().clone().reg_scale();
+        let offset = RegFile::reg_poolr_nget(self.arch, name).borrow().clone().reg_offset();
         val.bound(offset, scale);
         (val, offset, scale)
     }
 
     /// get reg value by name
     pub fn get_nreg(&self, name: &'static str) -> Value{
-        let index = Instruction::reg_pool_nget(name).borrow().clone().val().get_byte(0) as usize;
+        let index = RegFile::reg_poolr_nget(self.arch, name).borrow().clone().val().get_byte(0) as usize;
         self.get_reg(index)
     }
 
@@ -494,21 +495,21 @@ impl CPUThread {
     /// get reg info
     pub fn reg_info(&self, start: usize, num: i32) -> String {
         let mut info = String::new();
-        info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, Instruction::reg_pool_size()));
+        info.push_str(&format!("Registers in thread {} (Num = {}):\n", self.id, self.reg_num()));
         let ss = start;
         let mut ee = start + num as usize;
-        if num < 0 || ee > Instruction::reg_pool_size() {
-            ee = Instruction::reg_pool_size();
+        if num < 0 || ee > self.reg_num() {
+            ee = self.reg_num();
         }
         for i in ss..ee {
-            let reg = Instruction::reg_pool_get(i).borrow().clone();
+            let reg = RegFile::reg_poolr_get(self.arch, i).borrow().clone();
             info.push_str(&format!("- {} -> {}\n", reg.info(), self.registers[i].borrow().clone().bin(0, -1, true)));
         }
         info
     }
 
     /// get reg num
-    pub fn ir_reg_num(&self) -> usize {
+    pub fn reg_num(&self) -> usize {
         self.registers.len()
     }
 
@@ -791,7 +792,7 @@ impl CPUProcess {
             self.name, self.code_segment.borrow().len(), 
             self.mem_segment.borrow().scale_sum() / 8, self.mem_size,
             self.threads_id.borrow().clone(), 
-            self.cur_thread.borrow().id, self.cur_thread.borrow().ir_reg_num(), 
+            self.cur_thread.borrow().id, self.cur_thread.borrow().reg_num(), 
             self.cur_thread.borrow().stack_scale(), self.stack_size));
         info
     }
@@ -972,8 +973,8 @@ impl CPUProcess {
     }
 
     /// get reg num
-    pub fn ir_reg_num(&self) -> usize {
-        self.cur_thread.borrow().ir_reg_num()
+    pub fn reg_num(&self) -> usize {
+        self.cur_thread.borrow().reg_num()
     }
 
     /// Set reg pc
