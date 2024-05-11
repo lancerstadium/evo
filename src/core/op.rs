@@ -129,7 +129,7 @@ impl OperandKind {
     /// Get String of the operand like: `val : kind`
     pub fn to_string(&self) -> String {
         match self {
-            OperandKind::Imm(val) =>  format!("{}: {}", val.bin_scale(0, -1, true) , val.kind()),
+            OperandKind::Imm(val) =>  format!("{}: {}", val.hex(0, -1, false) , val.kind()),
             OperandKind::Reg(name, val, _) => format!("{:>3}: {}", name, val.kind()),
             OperandKind::Mem(base, idx, scale, disp) => {
                 let mut info = String::new();
@@ -578,7 +578,7 @@ impl Operand {
             return Operand::mem(base, idx, scale, disp);
         }
         // 3. Deal with imm: if all is digital and english letter
-        if (sym & OPR_IMM != 0) && opr.chars().all(|c| c.is_ascii_digit() || c.is_ascii_alphabetic()) {
+        if sym & OPR_IMM != 0 {
             return Operand::imm(Value::from_string(opr));
         }
         // 4. Deal with label

@@ -239,7 +239,7 @@ mod memtool_test {
     #[test]
     fn elf_test() {
         CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
-        let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello.elf").unwrap();
+        let seg = MemoryTool::elf_load("/home/lancer/item/evo-rs/test/hello.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
         // println!("val: {}", val.hex(0, -1, false));

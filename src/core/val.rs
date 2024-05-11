@@ -124,6 +124,15 @@ impl Value {
         self
     }
 
+    /// Resize Value to scale (if scale > self.scale_sum: extend with 0)
+    pub fn resize(&mut self, scale: usize) -> &mut Value {
+        self.val.borrow_mut().resize(scale / 8 + (scale % 8 > 0) as usize, 0);
+        // set kind
+        self.set_kind(TypesKind::Array(Types::u8(), scale / 8 + (scale % 8 > 0) as usize));
+        assert_eq!(self.scale_sum(), scale);
+        self
+    }
+
     /// Divide Value -> Vec<Value> by scale
     pub fn divide(&self) -> Vec<Value> {
         let mut res = Vec::new();

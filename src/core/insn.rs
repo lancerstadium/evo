@@ -302,7 +302,7 @@ impl RegFile {
 /// 
 /// ### Insn Format Variable Length
 /// ```txt
-/// (Variable-length/Byte):
+/// (Variable-length/Byte): MAX 15 Bytes.
 ///  ┌──────────────────┬─────────────────────────────────────────┐
 ///  │     Type: X      │          Arch: i386, x86_64             │
 ///  ├──────┬───────────┼─────┬──────────────┬────────────┬───┬───┤
@@ -314,6 +314,9 @@ impl RegFile {
 ///  │ addr │ ──── ──── │ ─── │  ── ─── ───  │ ── ─── ─── │ 4 │ 4 │
 ///  │ .... │ patt WRXB │ po  │ mod r/op r/m │ ss idx bas │   │ 8'│
 ///  └──────┴───────────┴─────┴──────────────┴────────────┴───┴───┘
+///  Default Env:        64bit    32bit   16bit
+///    - address-size:    64       32      16
+///    - operand-size:    32       32      16
 ///  Opcode:
 ///    0. po: 1~3 Byte of Opcode such as: ADD eax, i32 (po=0x05).
 ///    1. trans2: 2 Byte po, if first Byte is 0x0f.
@@ -331,9 +334,11 @@ impl RegFile {
 ///    Get (Insn=0x01 f1)
 ///  Prefixs(Legacy):
 ///    - instruction prefix
-///    - address-size prefix
-///    - operand-size prefix: 0x66(32 -> 16)
-///    - segment override prefix
+///    - address-size override prefix: 0x67(Default: 32 -> 16)
+///    - operand-size override prefix: 0x66(Default: 32 -> 16)
+///    - segment override prefix: 0x2e(CS) 0x3e(DS) 0x26(ES) 0x36(SS) 0x64(FS) 0x65(GS)
+///    - repne/repnz prefix: 0xf2 0xf3
+///    - lock prefix: 0xf0
 ///    Such as: MOV r/m32, r32 (po=0x89), set opr-prefix: 0x66
 ///    Get MOV r/m16, r16 (Insn=0x66 89 ..)
 ///  SIB:
@@ -796,8 +801,8 @@ impl Instruction {
         let mut opr_vec = Vec::new();
         for i in 0..opr_sym.len() {
             let mut r = Operand::from_string(opr_sym[i], opr[i].trim());
-            if opr_sym[i] == OPR_IMM {
-                r = Operand::imm(Value::u32(r.val().get_word(0)));
+            if opr_sym[i] & OPR_IMM == OPR_IMM {
+                r = Operand::imm(r.val().resize(32).clone());
             }
             opr_vec.push(r);
         }
