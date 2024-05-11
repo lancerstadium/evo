@@ -19,6 +19,35 @@ use crate::core::val::Value;
 
 
 // ============================================================================== //
+//                                 Const
+// ============================================================================== //
+
+/// no condition
+pub const COND_NO: u16 = 0b0000_0000;
+/// x == y
+pub const COND_EQ: u16 = 0b0010_0000;
+/// x != y
+pub const COND_NE: u16 = 0b0011_0000;
+/// x < y
+pub const COND_LT: u16 = 0b0100_0000;
+/// x >= y
+pub const COND_GE: u16 = 0b0101_0000;
+/// x <= y
+pub const COND_LE: u16 = 0b0110_0000;
+/// x > y
+pub const COND_GT: u16 = 0b0111_0000;
+/// is branch insn
+pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
+/// is jump insn
+pub const INSN_JP: u16 = 0b0000_0010_0000_0000;
+/// is exit insn
+pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
+/// have signed operands
+pub const INSN_SIG: u16 = 0b0000_0000_0000_0000;
+/// all unsigned operands
+pub const INSN_USD: u16 = 0b0001_0000_0000_0000;
+
+// ============================================================================== //
 //                                insn::Instruction
 // ============================================================================== //
 
@@ -108,10 +137,9 @@ pub struct Instruction {
     /// (0-7):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ │ ├─┘
-    /// │ │ │ │ │ │ └──── (0-1) 00 is 8-bit, 01 is 16-bit, 10 is 32-bit, 11 is 64-bit
-    /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │ └──────── (3) 0: have signed operands, 1: all unsigned operands
+    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
+    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
+    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
     /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: <Reserved>
     /// │ │ │ │         │ (4-7) 0010: COND_EQ, 0011: COND_NE
     /// ├─┴─┴─┘         │ (4-7) 0100: COND_LT, 0101: COND_GE
@@ -123,7 +151,7 @@ pub struct Instruction {
     /// │ │ │ │ │ │ └──── (9) 0: is not jump, 1: is jump
     /// │ │ │ │ │ └────── (10) 0: is not exit, 1: is exit
     /// │ │ │ │ └──────── <Reserved>
-    /// │ │ │ └────────── <Reserved>
+    /// │ │ │ └────────── (12) 0: have signed operands, 1: all unsigned operands
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>
     /// └──────────────── <Reserved>
@@ -132,37 +160,12 @@ pub struct Instruction {
     pub opc : Opcode,
     pub opr : Vec<Operand>,
     pub opb : &'static str,
-    pub byt : Value,
+    pub code : Value,
     pub arch : &'static Arch,
     pub is_applied : bool,
     /// encode func
     pub enc : Option<fn(&mut Instruction, Vec<Operand>) -> Instruction>,
 }
-/// have signed operands
-pub const INSN_SIG: u16 = 0b0000;
-/// all unsigned operands
-pub const INSN_USD: u16 = 0b1000;
-/// no condition
-pub const COND_NO: u16 = 0b0000_0000;
-/// x == y
-pub const COND_EQ: u16 = 0b0010_0000;
-/// x != y
-pub const COND_NE: u16 = 0b0011_0000;
-/// x < y
-pub const COND_LT: u16 = 0b0100_0000;
-/// x >= y
-pub const COND_GE: u16 = 0b0101_0000;
-/// x <= y
-pub const COND_LE: u16 = 0b0110_0000;
-/// x > y
-pub const COND_GT: u16 = 0b0111_0000;
-/// is branch insn
-pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
-/// is jump insn
-pub const INSN_JP: u16 = 0b0000_0010_0000_0000;
-/// is exit insn
-pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
-
 
 impl Instruction {
 
@@ -181,7 +184,7 @@ impl Instruction {
             opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
-            byt: Value::u32(0),
+            code: Value::u32(0),
             arch: &EVO_ARCH,
             is_applied: false,
             enc: None,
@@ -196,7 +199,7 @@ impl Instruction {
             opc: opc.clone(),
             opr: Vec::new(),
             opb,
-            byt: Value::from_string(opb),
+            code: Value::from_string(opb),
             arch,
             is_applied: false,
             enc: Self::encode_pool_init(arch)
@@ -213,10 +216,9 @@ impl Instruction {
     /// (0-7):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ │ ├─┘
-    /// │ │ │ │ │ │ └──── (0-1) 00 is 8-bit, 01 is 16-bit, 10 is 32-bit, 11 is 64-bit
-    /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
+    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
+    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
     /// │ │ │ └────────── <Reserved>
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>
@@ -224,7 +226,7 @@ impl Instruction {
     /// (8-15): offset
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ ├─┴─┴─┘   (8-11) 64-bit scales: 0,   8,   16,  24,  32,  40,  48,  54
+    /// │ │ │ │ ├─┴─┴─┘   (8-11) 64-bit scales: 0,   8,   16,  24,  32,  40,  48,  54,  64,  72,  80,  88,  96, 104, 112
     /// │ │ │ │ └──────── (8-11) offset symbol: 000, 001, 010, 011, 100, 101, 110, 111
     /// │ │ │ └────────── <Reserved>
     /// │ │ └──────────── <Reserved>
@@ -235,12 +237,6 @@ impl Instruction {
         let reg = Operand::reg(name, val, flag);
         Self::reg_pool_push(reg.clone());
         Self::reg_pool_nget(name).borrow().clone()
-    }
-
-    /// flush arch
-    pub fn flush_arch(&mut self, arch: &'static Arch) {
-        self.arch = arch;
-        self.enc = Self::encode_pool_init(arch);
     }
 
     /// Encode
@@ -421,12 +417,11 @@ impl Instruction {
     }
 
 
-
     // ==================== Instruction.get ===================== //
     
     /// Get byte size of Instruction
     pub fn size(&self) -> usize {
-        self.byt.size()
+        self.code.size()
     }
 
     /// Name of Instruction
@@ -441,7 +436,7 @@ impl Instruction {
 
     /// Show binary byte string of Instruction
     pub fn bin(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
-        self.byt.bin(index, byte_num, big_endian)
+        self.code.bin(index, byte_num, big_endian)
     }
 
     /// Show type of Instruction
@@ -455,24 +450,32 @@ impl Instruction {
     }
 
     /// Get binary define str of insn
-    pub fn opbit(&self) -> &'static str {
+    pub fn opdef(&self) -> &'static str {
         self.opb
     }
-    
-    /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
-    pub fn to_string(&self) -> String {
-        let mut info = String::new();
-        info.push_str(&format!("{:<10} ", self.opc.name()));
-        for i in 0..self.opr.len() {
-            let r = self.opr[i].clone();
-            info.push_str(&format!("{}", r.to_string()));
-            // if iter not last push `,`
-            if i < self.opr.len() - 1 {
-                info.push_str(&format!(", "));
-            }
-        }
-        info
+
+
+    // ==================== Instruction.set ===================== //
+
+
+    /// flush insn arch
+    pub fn set_arch(&mut self, arch: &'static Arch) {
+        self.arch = arch;
+        self.enc = Self::encode_pool_init(arch);
     }
+
+    // ==================== Instruction.flag ==================== //
+
+    /// is jump instruction
+    pub fn is_jump(&self) -> bool {
+        (self.flag & INSN_JP) == INSN_JP
+    }
+
+    /// is branch instruction
+    pub fn is_branch(&self) -> bool {
+        (self.flag & INSN_BR) == INSN_BR
+    }
+    
 
     // ==================== Instruction.sym ===================== //
 
@@ -488,93 +491,107 @@ impl Instruction {
 
 
     // ==================== Instruction.code ==================== //
-
-    /// Get Byte Code of Instruction
+    
+    /// Get Byte Code clone of Instruction
     pub fn code(&self) -> Value {
         if !self.is_applied {
             log_error!("Code not applied: {} ", self.opc.name());
         }
-        self.byt.clone()
+        self.code.clone()
     }
 
+    /// Tail add code
+    pub fn code_append(&mut self, code: Value) {
+        self.code.append(code);
+    }
+
+    /// Head add code
+    pub fn code_insert(&mut self, code: Value) {
+        self.code.insert(code);
+    }
+
+    // ========================================================== //
+    //                         riscv32
+    // ========================================================== //
+
     pub fn funct7(&self) -> u8 {
-        self.byt.get_ubyte(0, 25, 7)
+        self.code.get_ubyte(0, 25, 7)
     }
 
     pub fn funct3(&self) -> u8 {
-        self.byt.get_ubyte(0, 12, 3)
+        self.code.get_ubyte(0, 12, 3)
     }
 
     pub fn opcode(&self) -> u8 {
-        self.byt.get_ubyte(0, 0, 6)
+        self.code.get_ubyte(0, 0, 6)
     }
 
     pub fn rs1(&self) -> u8 {
-        self.byt.get_ubyte(0, 15, 5)
+        self.code.get_ubyte(0, 15, 5)
     }
 
     pub fn rs2(&self) -> u8 {
-        self.byt.get_ubyte(0, 20, 5)
+        self.code.get_ubyte(0, 20, 5)
     }
 
     pub fn rd(&self) -> u8 {
-        self.byt.get_ubyte(0, 7, 5)
+        self.code.get_ubyte(0, 7, 5)
     }
 
     pub fn imm_i(&self) -> u16 {
-        self.byt.get_uhalf(0, 20, 12)
+        self.code.get_uhalf(0, 20, 12)
     }
 
     pub fn imm_s(&self) -> u16 {
-        let imm0 = self.byt.get_ubyte(0, 7, 5);
-        let imm1 = self.byt.get_ubyte(0, 25, 7);
+        let imm0 = self.code.get_ubyte(0, 7, 5);
+        let imm1 = self.code.get_ubyte(0, 25, 7);
         let res = (imm0 as u16) | ((imm1 as u16) << 5);
         res
     }
 
     pub fn imm_b(&self) -> u16 {
-        let imm0 = self.byt.get_ubyte(0, 8, 4);
-        let imm1 = self.byt.get_ubyte(0, 25, 6);
-        let imm2 = self.byt.get_ubyte(0, 7, 1);
-        let imm3 = self.byt.get_ubyte(0, 31, 1);
+        let imm0 = self.code.get_ubyte(0, 8, 4);
+        let imm1 = self.code.get_ubyte(0, 25, 6);
+        let imm2 = self.code.get_ubyte(0, 7, 1);
+        let imm3 = self.code.get_ubyte(0, 31, 1);
         let res = (imm0 as u16) | ((imm1 as u16) << 4) | ((imm2 as u16) << 11) | ((imm3 as u16) << 12);
         res
     }
 
     pub fn imm_u(&self) -> u32 {
-        self.byt.get_uword(0, 12, 20)
+        self.code.get_uword(0, 12, 20)
     }
 
     pub fn imm_j(&self) -> u32 {
-        let imm0 = self.byt.get_uhalf(0, 21, 10);
-        let imm1 = self.byt.get_ubyte(0, 20, 1);
-        let imm2 = self.byt.get_ubyte(0, 12, 8);
-        let imm3 = self.byt.get_ubyte(0, 31, 1);
+        let imm0 = self.code.get_uhalf(0, 21, 10);
+        let imm1 = self.code.get_ubyte(0, 20, 1);
+        let imm2 = self.code.get_ubyte(0, 12, 8);
+        let imm3 = self.code.get_ubyte(0, 31, 1);
         let res = (imm0 as u32) | ((imm1 as u32) << 11) | ((imm2 as u32) << 19) | ((imm3 as u32) << 20);
         res
     }
 
     pub fn set_rs1(&mut self, rs1: u8) {
-        self.byt.set_ubyte(0, 15, 5, rs1);
+        self.code.set_ubyte(0, 15, 5, rs1);
     }
 
     pub fn set_rs2(&mut self, rs2: u8) {
-        self.byt.set_ubyte(0, 20, 5, rs2);
+        self.code.set_ubyte(0, 20, 5, rs2);
     }
 
     pub fn set_rd(&mut self, rd: u8) {
-        self.byt.set_ubyte(0, 7, 5, rd);
+        self.code.set_ubyte(0, 7, 5, rd);
     }
 
     pub fn set_imm_i(&mut self, imm: u16) {
-        self.byt.set_uhalf(0, 20, 12, imm);
+        self.code.set_uhalf(0, 20, 12, imm);
     }
 
     pub fn set_imm_s(&mut self, imm: u16) {
         let imm0 = (imm & 0x1f) as u8;
         let imm1 = (imm >> 5) as u8;
-        self.byt.set_ubyte(0, 7, 5, imm0);
-        self.byt.set_ubyte(0, 25, 7, imm1);
+        self.code.set_ubyte(0, 7, 5, imm0);
+        self.code.set_ubyte(0, 25, 7, imm1);
     }
 
     pub fn set_imm_b(&mut self, imm: u16) {
@@ -582,14 +599,14 @@ impl Instruction {
         let imm1 = ((imm >> 5) & 0x3f) as u8;
         let imm2 = ((imm >> 11) & 0x1) as u8;
         let imm3 = ((imm >> 12) & 0x1) as u8;
-        self.byt.set_ubyte(0, 8, 4, imm0);
-        self.byt.set_ubyte(0, 25, 6, imm1);
-        self.byt.set_ubyte(0, 7, 1, imm2);
-        self.byt.set_ubyte(0, 31, 1, imm3);
+        self.code.set_ubyte(0, 8, 4, imm0);
+        self.code.set_ubyte(0, 25, 6, imm1);
+        self.code.set_ubyte(0, 7, 1, imm2);
+        self.code.set_ubyte(0, 31, 1, imm3);
     }
 
     pub fn set_imm_u(&mut self, imm: u32) {
-        self.byt.set_uword(0, 12, 20, imm);
+        self.code.set_uword(0, 12, 20, imm);
     }
 
     pub fn set_imm_j(&mut self, imm: u32) {
@@ -597,28 +614,35 @@ impl Instruction {
         let imm1 = ((imm >> 11) & 0x1) as u8;
         let imm2 = ((imm >> 19) & 0xff) as u8;
         let imm3 = ((imm >> 20) & 0x1) as u8;
-        self.byt.set_uhalf(0, 21, 10, imm0);
-        self.byt.set_ubyte(0, 20, 1, imm1);
-        self.byt.set_ubyte(0, 12, 8, imm2);
-        self.byt.set_ubyte(0, 31, 1, imm3);
+        self.code.set_uhalf(0, 21, 10, imm0);
+        self.code.set_ubyte(0, 20, 1, imm1);
+        self.code.set_ubyte(0, 12, 8, imm2);
+        self.code.set_ubyte(0, 31, 1, imm3);
     }
 
-    /// is jump instruction
-    pub fn is_jump(&self) -> bool {
-        match self.name() {
-            "jal" | "jalr" => true,
-            _ => false
+
+    // ========================================================== //
+    //                         x86
+    // ========================================================== //
+
+
+
+    // ==================== Instruction.str ===================== //
+
+    /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
+    pub fn to_string(&self) -> String {
+        let mut info = String::new();
+        info.push_str(&format!("{:<10} ", self.opc.name()));
+        for i in 0..self.opr.len() {
+            let r = self.opr[i].clone();
+            info.push_str(&format!("{}", r.to_string()));
+            // if iter not last push `,`
+            if i < self.opr.len() - 1 {
+                info.push_str(&format!(", "));
+            }
         }
+        info
     }
-
-    /// is branch instruction
-    pub fn is_branch(&self) -> bool {
-        match self.name() {
-            "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" => true,
-            _ => false
-        }
-    }
-
 
     /// From string to Instruction
     pub fn from_string(str: &'static str) -> Instruction {

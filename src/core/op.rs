@@ -19,8 +19,48 @@ use crate::core::ty::TypesKind;
 use crate::core::insn::Instruction;
 
 
+// ============================================================================== //
+//                                  Const
+// ============================================================================== //
 
+pub const OPR_UND: u16 = 0b0000_0000;
+pub const OPR_IMM: u16 = 0b0000_0001;
+pub const OPR_REG: u16 = 0b0000_0010;
+pub const OPR_MEM: u16 = 0b0000_0100;
+pub const OPR_LAB: u16 = 0b0000_1000;
 
+/// reg offset 0-byte
+pub const REG_OFF0 : u16 = 0b0000_0000_0000;
+/// reg offset 1-byte
+pub const REG_OFF8 : u16 = 0b0001_0000_0000;
+/// reg offset 2-byte
+pub const REG_OFF16: u16 = 0b0010_0000_0000;
+/// reg offset 3-byte
+pub const REG_OFF24: u16 = 0b0011_0000_0000;
+/// reg offset 4-byte
+pub const REG_OFF32: u16 = 0b0100_0000_0000;
+/// reg offset 5-byte
+pub const REG_OFF40: u16 = 0b0101_0000_0000;
+/// reg offset 6-byte
+pub const REG_OFF48: u16 = 0b0110_0000_0000;
+/// reg offset 7-byte
+pub const REG_OFF56: u16 = 0b0111_0000_0000;
+/// reg offset 8-byte
+pub const REG_OFF64: u16 = 0b1000_0000_0000;
+/// reg offset 9-byte
+pub const REG_OFF72: u16 = 0b1001_0000_0000;
+/// reg offset 10-byte
+pub const REG_OFF80: u16 = 0b1010_0000_0000;
+/// reg offset 11-byte
+pub const REG_OFF88: u16 = 0b1011_0000_0000;
+/// reg offset 12-byte
+pub const REG_OFF96: u16 = 0b1100_0000_0000;
+/// reg offset 13-byte
+pub const REG_OFF104: u16 = 0b1101_0000_0000;
+/// reg offset 14-byte
+pub const REG_OFF112: u16 = 0b1110_0000_0000;
+/// reg offset 15-byte
+pub const REG_OFF120: u16 = 0b1111_0000_0000;
 
 // ============================================================================== //
 //                              op::OperandKind
@@ -174,23 +214,6 @@ impl OperandKind {
 
 
 }
-
-pub const OPR_UND: u16 = 0b0000_0000;
-pub const OPR_IMM: u16 = 0b0000_0001;
-pub const OPR_REG: u16 = 0b0000_0010;
-pub const OPR_MEM: u16 = 0b0000_0100;
-pub const OPR_LAB: u16 = 0b0000_1000;
-
-/// reg offset 0-byte
-pub const REG_OFF0 : u16 = 0b0000_0000_0000;
-/// reg offset 1-byte
-pub const REG_OFF8 : u16 = 0b0001_0000_0000;
-pub const REG_OFF16: u16 = 0b0010_0000_0000;
-pub const REG_OFF24: u16 = 0b0011_0000_0000;
-pub const REG_OFF32: u16 = 0b0100_0000_0000;
-pub const REG_OFF40: u16 = 0b0101_0000_0000;
-pub const REG_OFF48: u16 = 0b0110_0000_0000;
-pub const REG_OFF56: u16 = 0b0111_0000_0000;
 
 impl fmt::Display for OperandKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

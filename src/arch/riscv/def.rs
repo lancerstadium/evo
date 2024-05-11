@@ -6,7 +6,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::log_error;
+use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
 use crate::core::val::Value;
@@ -741,8 +741,8 @@ pub fn riscv32_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction 
                 opr.push(Operand::imm(Value::bit(20, imm as i128)));
             },
             _ => {
-                // Do nothing
-            },
+                log_warning!("Not support opcode type {} in arch {}", insn.opc.kind(), RISCV32_ARCH);
+            }
         }
         // refresh status
         let mut res = insn.clone();
@@ -767,8 +767,8 @@ pub fn riscv32_decode(value: Value) -> Instruction {
         return res;
     }
     // 2. decode opc
-    res.flush_arch(&RISCV32_ARCH);
-    res.byt = value;
+    res.set_arch(&RISCV32_ARCH);
+    res.code = value;
     let mut opr = vec![];
     match (res.opcode(), res.funct3(), res.funct7()) {
         // 2.1 R-Type

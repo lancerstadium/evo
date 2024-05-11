@@ -145,7 +145,7 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                 // opr.push(Operand::imm(Value::bit(12, imm as i128)));
             },
             _ => {
-                // Do nothing
+                log_warning!("Not support opcode type {} in arch {}", insn.opc.kind(), X86_ARCH);
             },
         }
         // refresh status
@@ -178,6 +178,7 @@ mod x86_test {
         println!("{}", CPUState::pool_info());
 
         let insn1 = Instruction::from_string("mov [ecx * 4], ebx");
+        println!("code: {}", insn1.code);
         println!("{}  -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
     }
 

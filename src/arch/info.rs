@@ -20,10 +20,9 @@ pub struct ArchMode {
     /// (0-7):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ │ ├─┘
-    /// │ │ │ │ │ │ └──── (0-1) 00 is 8-bit, 01 is 16-bit, 10 is 32-bit, 11 is 64-bit
-    /// │ │ │ │ │ └────── (2) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
+    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
+    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
     /// │ │ │ └────────── <Reserved>
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>
@@ -32,14 +31,26 @@ pub struct ArchMode {
     pub flag: u16,
 
 }
-/// Arch mode width 64
-pub const BIT64: u16 = 0b11;
-/// Arch mode width 32
-pub const BIT32: u16 = 0b10;
-/// Arch mode width 16
-pub const BIT16: u16 = 0b01;
+
+
+
 /// Arch mode width 8
-pub const BIT8:  u16 = 0b00;
+pub const BIT8:  u16 = 0b000;
+/// Arch mode width 16
+pub const BIT16: u16 = 0b001;
+/// Arch mode width 32
+pub const BIT32: u16 = 0b010;
+/// Arch mode width 64
+pub const BIT64: u16 = 0b011;
+/// Arch mode width 80
+pub const BIT80: u16 = 0b100;
+/// Arch mode width 96
+pub const BIT96: u16 = 0b101;
+/// Arch mode width 128
+pub const BIT128: u16 = 0b110;
+/// Arch mode width 256
+pub const BIT256: u16 = 0b111;
+
 /// Arch mode endianness little
 pub const LITTLE_ENDIAN: u16 = 0b000;
 /// Arch mode endianness big
@@ -66,22 +77,22 @@ impl ArchMode {
     }
 
     pub const fn is_8bit(&self) -> bool {
-        (self.flag & 0b0011) == BIT8
+        (self.flag & 0b0111) == BIT8
     }
     pub const fn is_16bit(&self) -> bool {
-        (self.flag & 0b0011) == BIT16
+        (self.flag & 0b0111) == BIT16
     }
     pub const fn is_32bit(&self) -> bool {
-        (self.flag & 0b0011) == BIT32
+        (self.flag & 0b0111) == BIT32
     }
     pub const fn is_64bit(&self) -> bool {
         (self.flag & 0b0011) == BIT64
     }
     pub const fn is_little_endian(&self) -> bool {
-        (self.flag & 0b0100) == LITTLE_ENDIAN
+        (self.flag & 0b1000) == LITTLE_ENDIAN
     }
     pub const fn is_big_endian(&self) -> bool {
-        (self.flag & 0b0100) == BIG_ENDIAN
+        (self.flag & 0b1000) == BIG_ENDIAN
     }
 
     pub const fn endian_to_string(&self) -> &str {
