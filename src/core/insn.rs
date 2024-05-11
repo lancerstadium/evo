@@ -403,7 +403,7 @@ impl Instruction {
             opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
-            code: Value::u32(0),
+            code: Value::bit(0, 0),
             arch: &EVO_ARCH,
             is_applied: false,
             enc: None,
@@ -538,75 +538,6 @@ impl Instruction {
         Self::INSN_POOL.with(|pool| pool.borrow().len())
     }
 
-    // ================== Instruction.reg_pool ================== //
-
-    // /// Pool set reg by index
-    // pub fn reg_pool_set(idx: usize, reg: Operand) {
-    //     Self::REG_POOL.with(|pool| pool.borrow_mut()[idx] = Rc::new(RefCell::new(reg)));
-    // }
-
-    // /// Pool push reg
-    // pub fn reg_pool_push(reg: Operand) {
-    //     Self::REG_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(reg))));
-    // }
-
-    // /// Pool get reg refenence by index
-    // pub fn reg_pool_get(idx: usize) -> Rc<RefCell<Operand>> {
-    //     Self::REG_POOL.with(|pool| pool.borrow()[idx].clone())
-    // }
-
-    // /// Pool set reg `index` value by index
-    // pub fn reg_pool_set_val(idx: usize, val: Value) { 
-    //     Self::REG_POOL.with(|pool| pool.borrow_mut()[idx].borrow_mut().set_reg(val));
-    // }
-
-    // /// Pool get reg `index` value by index
-    // pub fn reg_pool_get_val(idx: usize) -> Value {
-    //     Self::REG_POOL.with(|pool| pool.borrow()[idx].borrow().val())
-    // }
-
-    // /// Pool set reg by name
-    // pub fn reg_pool_nset(name: &str , reg: Operand) {
-    //     Self::REG_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(reg));
-    // }
-
-    // /// Pool get reg refenence by name
-    // pub fn reg_pool_nget(name: &str) -> Rc<RefCell<Operand>> {
-    //     Self::REG_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
-    // }
-
-    // /// Pool check reg is in
-    // pub fn reg_pool_is_in(name: &str) -> bool {
-    //     Self::REG_POOL.with(|pool| pool.borrow().iter().any(|r| r.borrow().name() == name))
-    // }
-
-    // /// Pool get reg pool idx by name
-    // pub fn reg_pool_idx(name: &str) -> usize {
-    //     Self::REG_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
-    // }
-
-    // /// Pool clear
-    // pub fn reg_pool_clr() {
-    //     Self::REG_POOL.with(|pool| pool.borrow_mut().clear());
-    // }
-
-    // /// Pool size
-    // pub fn reg_pool_size() -> usize {
-    //     Self::REG_POOL.with(|pool| pool.borrow().len())
-    // }
-
-    // /// Pool info
-    // pub fn reg_pool_info() -> String {
-    //     let mut info = String::new();
-    //     info.push_str(&format!("Registers (Num = {}):\n", Self::reg_pool_size()));
-    //     for i in 0..Self::reg_pool_size() {
-    //         let reg = Self::reg_pool_get(i).borrow().clone();
-    //         info.push_str(&format!("- {}\n", reg.info()));
-    //     }
-    //     info
-    // }
-
-
     // ==================== Instruction.get ===================== //
     
     /// Get byte size of Instruction
@@ -627,6 +558,10 @@ impl Instruction {
     /// Show binary byte string of Instruction
     pub fn bin(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
         self.code.bin(index, byte_num, big_endian)
+    }
+
+    pub fn hex(&self, index: usize, byte_num: i32, big_endian: bool) -> String {
+        self.code.hex(index, byte_num, big_endian)
     }
 
     /// Show type of Instruction

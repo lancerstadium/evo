@@ -52,9 +52,9 @@ pub const BIT128: u16 = 0b110;
 pub const BIT256: u16 = 0b111;
 
 /// Arch mode endianness little
-pub const LITTLE_ENDIAN: u16 = 0b000;
+pub const LITTLE_ENDIAN: u16 = 0b0000;
 /// Arch mode endianness big
-pub const BIG_ENDIAN: u16 = 0b100;
+pub const BIG_ENDIAN: u16 = 0b1000;
 
 impl ArchMode {
     
