@@ -401,6 +401,21 @@ impl Value {
         u32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
     }
 
+    /// Get value by dword: no bound
+    pub fn get_dword(&self, index: usize) -> u64 {
+        let buffer = self.val.borrow();
+        if buffer.len() < index + 8 {
+            log_warning!("Dword index out of bounds: {}", index);
+            // get val clone , resize and fill 0
+            let mut val = self.val.borrow().clone();
+            val.resize(index + 8, 0);
+            return u64::from_le_bytes([val[index], val[index + 1], val[index + 2], val[index + 3],
+                val[index + 4], val[index + 5], val[index + 6], val[index + 7]]);
+        }
+        u64::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3],
+            buffer[index + 4], buffer[index + 5], buffer[index + 6], buffer[index + 7]])
+    }
+
     /// Get value by ubyte
     pub fn get_ubyte(&self, index: usize, offset: usize, scale: usize) -> u8 {
         let offset_bytes = offset / 8;

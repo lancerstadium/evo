@@ -25,6 +25,8 @@ use crate::core::val::Value;
 
 /// no condition
 pub const COND_NO: u16 = 0b0000_0000;
+/// always condition
+pub const COND_AL: u16 = 0b0001_0000;
 /// x == y
 pub const COND_EQ: u16 = 0b0010_0000;
 /// x != y
@@ -43,9 +45,9 @@ pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
 pub const INSN_JP: u16 = 0b0000_0010_0000_0000;
 /// is exit insn
 pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
-/// have signed operands
+/// res is signed operands
 pub const INSN_SIG: u16 = 0b0000_0000_0000_0000;
-/// all unsigned operands
+/// res is unsigned operands
 pub const INSN_USD: u16 = 0b0001_0000_0000_0000;
 
 
@@ -278,9 +280,9 @@ impl RegFile {
 /// - Fill bytes according following format:
 /// 
 /// ### Insn Format Constant Length
-/// 
+/// - riscv format:
 /// ```txt
-/// (32-bits):
+/// (32-bits):  <-- Big Endian View.
 ///  ┌────────┬─────┬─────┬────┬──────┬────┬─────┬────────────────┐
 ///  │31    25│24 20│19 15│  12│11   7│6  0│ Typ │      Arch      │
 ///  ├────────┼─────┼─────┼────┼──────┼────┼─────┼────────────────┤
@@ -301,8 +303,40 @@ impl RegFile {
 /// ```
 /// 
 /// ### Insn Format Variable Length
+/// - evo format:  --> Little Endian View.
+///  ┌────────────────┬───────────────────────────────────────────┐
+///  │    Type: E     │             Arch: EVO                     │
+///  ├────────────────┼────────────────────────┬──────────────────┤
+///  │   Op & flag    │           A            │        B         │
+///  ├───┬────────────┼────────────────────────┼──────────────────┤
+///  │ 1 │     1      │          ???           │       ???        │
+///  ├───┼────────────┼────────────────────────┼──────────────────┤
+///  │ f │ 000 000 00 │ 000.x: off(0)          │ 000.x: off(0)    │
+///  │   │ ─── ─── ── │ 001.x: reg(1)          │ 001.z: imm(4/8)  │
+///  │   │ AAA BBB sb │ 010.x: reg(1,1)        │ 010.0: imm(4,4)  │
+///  │   │            │ 011.x: reg(1,1,1)      │ 010.1: imm(8,8)  │
+///  │   │            │ 100.0: reg(1,1),imm(4) │ 011.z: imm(1/2)  │
+///  │   │            │ 100.1: reg(1,1),imm(8) │ 100.z: imm(2/4)  │
+///  │   │            │ 101.0: reg(1),imm(4)   │ 101.z: mem(reg)  │
+///  │   │            │ 101.1: reg(1),imm(8)   │ 110.z: mem()     │
+///  │   │            │ 110.0: reg(1),imm(4,4) │ 111.z: mem()     │
+///  │   │            │ 110.1: reg(1),imm(8,8) │
+///  │   │            │ 111.0: imm(4)          │
+///  │   │            │ 111.1: imm(8)          │ 111.x: ext(1)
+///  └───┴────────────┴────────────────────────┴──────────────────┘
+/// 
+///  flag:
+///    0. bits mode: 0: 32-bits, 1: 64-bits
+///    1. sign mode: 0: signed,  1: unsigned
+/// 
+///  ┌────────────────┬───────────────────────────────────────────┐
+///  │    ext flag    │              ext field                    │
+///  ├────────────────┼───────────────────────────────────────────┤
+///  │       1        │                                           │
+/// 
+/// - x86 format:
 /// ```txt
-/// (Variable-length/Byte): MAX 15 Bytes.
+/// (Variable-length/Byte): MAX 15 Bytes. --> Little Endian View.
 ///  ┌──────────────────┬─────────────────────────────────────────┐
 ///  │     Type: X      │          Arch: i386, x86_64             │
 ///  ├──────┬───────────┼─────┬──────────────┬────────────┬───┬───┤
@@ -368,7 +402,7 @@ pub struct Instruction {
     /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
     /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
     /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: <Reserved>
+    /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: COND_AL
     /// │ │ │ │         │ (4-7) 0010: COND_EQ, 0011: COND_NE
     /// ├─┴─┴─┘         │ (4-7) 0100: COND_LT, 0101: COND_GE
     /// └───────────────┴ (4-7) 0110: COND_LE, 0111: COND_GT
