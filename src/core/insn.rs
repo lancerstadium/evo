@@ -15,7 +15,7 @@ use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
 use crate::arch::x86::def::{x86_decode, x86_encode, X86_ARCH};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::core::op::{Opcode, Operand, OPR_IMM};
+use crate::core::op::{Opcode, Operand};
 use crate::core::val::Value;
 
 
@@ -800,10 +800,10 @@ impl Instruction {
         let opr_sym = res.borrow().syms();
         let mut opr_vec = Vec::new();
         for i in 0..opr_sym.len() {
-            let mut r = Operand::from_string(opr_sym[i], opr[i].trim());
-            if opr_sym[i] & OPR_IMM == OPR_IMM {
-                r = Operand::imm(r.val().resize(32).clone());
-            }
+            let r = Operand::from_string(opr_sym[i], opr[i].trim());
+            // if opr_sym[i] & OPR_IMM == OPR_IMM {
+            //     r = Operand::imm(r.val().resize(32).clone());
+            // }
             opr_vec.push(r);
         }
         // 5. Encode Instruction

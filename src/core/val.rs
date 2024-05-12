@@ -362,32 +362,41 @@ impl Value {
 
     // ==================== Value.get ==================== //
 
-    /// Get value by byte: no bound
+    /// Get value by byte: no bound fill 0
     pub fn get_byte(&self, index: usize) -> u8 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 1 {
-            log_error!("Index out of bounds: {}", index);
-            return 0;
+            log_warning!("Byte index out of bounds: {}", index);
+            // get val clone , resize and fill 0
+            let mut val = self.val.borrow().clone();
+            val.resize(index + 1, 0);
+            return val[index];
         }
         buffer[index]
     }
 
-    /// Get value by half: bound
+    /// Get value by half: no bound
     pub fn get_half(&self, index: usize) -> u16 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 2 {
-            log_error!("Index out of bounds: {}", index);
-            return 0;
+            log_warning!("Half index out of bounds: {}", index);
+            // get val clone , resize and fill 0
+            let mut val = self.val.borrow().clone();
+            val.resize(index + 2, 0);
+            return u16::from_le_bytes([val[index], val[index + 1]]);
         }
         u16::from_le_bytes([buffer[index], buffer[index + 1]])
     }
 
-    /// Get value by word: bound
+    /// Get value by word: no bound
     pub fn get_word(&self, index: usize) -> u32 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 4 {
-            log_error!("Index out of bounds: {}", index);
-            return 0;
+            log_warning!("Word index out of bounds: {}", index);
+            // get val clone , resize and fill 0
+            let mut val = self.val.borrow().clone();
+            val.resize(index + 4, 0);
+            return u32::from_le_bytes([val[index], val[index + 1], val[index + 2], val[index + 3]]);
         }
         u32::from_le_bytes([buffer[index], buffer[index + 1], buffer[index + 2], buffer[index + 3]])
     }

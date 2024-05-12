@@ -890,7 +890,7 @@ mod riscv_test {
         let insn10 = Instruction::from_string("slt x0, x1, x2");
 
         // I-Type Insns Test
-        let insn11 = Instruction::from_string("addi x0, x1, 2457");
+        let insn11 = Instruction::from_string("addi x0, x1, 0xff 0f");
         let insn12 = Instruction::from_string("andi x0, x1, 2457");
         let insn13 = Instruction::from_string("ori x0, x1, 2457");
         let insn14 = Instruction::from_string("xori x0, x1, 2457");
