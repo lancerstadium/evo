@@ -303,26 +303,31 @@ impl RegFile {
 /// ```
 /// 
 /// ### Insn Format Variable Length
-/// - evo format:  --> Little Endian View.
+/// - evo format:
+/// ```txt
+///  Max reg nums: 2^8 = 256
+///  Max general opcode nums: 2^8 = 256 (Without bits/sign mode)
+///  Max extend opcode nums: 2^8 * 2^8 = 65536 (With bits/sign mode)
+///  --> Little Endian View.
 ///  ┌────────────────┬───────────────────────────────────────────┐
 ///  │    Type: E     │             Arch: EVO                     │
 ///  ├────────────────┼────────────────────────┬──────────────────┤
-///  │   Op & flag    │           A            │        B         │
+///  │   Op & flag    │        A field         │     B field      │
 ///  ├───┬────────────┼────────────────────────┼──────────────────┤
 ///  │ 1 │     1      │          ???           │       ???        │
 ///  ├───┼────────────┼────────────────────────┼──────────────────┤
-///  │ f │ 000 000 00 │ 000.x: off(0)          │ 000.x: off(0)    │
-///  │   │ ─── ─── ── │ 001.x: reg(1)          │ 001.z: imm(4/8)  │
-///  │   │ AAA BBB sb │ 010.x: reg(1,1)        │ 010.0: imm(4,4)  │
-///  │   │            │ 011.x: reg(1,1,1)      │ 010.1: imm(8,8)  │
-///  │   │            │ 100.0: reg(1,1),imm(4) │ 011.z: imm(1/2)  │
-///  │   │            │ 100.1: reg(1,1),imm(8) │ 100.z: imm(2/4)  │
-///  │   │            │ 101.0: reg(1),imm(4)   │ 101.z: mem(reg)  │
-///  │   │            │ 101.1: reg(1),imm(8)   │ 110.z: mem()     │
-///  │   │            │ 110.0: reg(1),imm(4,4) │ 111.z: mem()     │
-///  │   │            │ 110.1: reg(1),imm(8,8) │
-///  │   │            │ 111.0: imm(4)          │
-///  │   │            │ 111.1: imm(8)          │ 111.x: ext(1)
+///  │ o │ 000 000 00 │ 000.x: off(0)          │ 000.x: off(0)    │
+///  │ p │ ─── ─── ── │ 001.x: reg(1)          │ 001.0: imm(4)    │
+///  │ c │ BBB AAA sb │ 010.x: reg(1,1)        │ 001.1: imm(8)    │
+///  │ o │          ^ │ 011.x: reg(1,1,1)      │ 010.0: imm(4,4)  │
+///  │ d │            │ 100.0: reg(1,1),imm(4) │ 010.1: imm(8,8)  │
+///  │ e │            │ 100.1: reg(1,1),imm(8) │ 011.x: reg(1)    │
+///  │   │            │ 101.0: reg(1),imm(4)   │ 100.0: mem(7)    │
+///  │   │            │ 101.1: reg(1),imm(8)   │ 100.1: mem(11)   │
+///  │   │            │ 110.0: reg(1),imm(4,4) │ 101.x: Opc(1)    │
+///  │   │            │ 110.1: reg(1),imm(8,8) │ 110.x: ExtC      │
+///  │   │            │ 111.0: imm(4)          │ 111.x: off(0)ExtV│
+///  │   │            │ 111.1: imm(8)          │                  │
 ///  └───┴────────────┴────────────────────────┴──────────────────┘
 /// 
 ///  flag:
@@ -330,11 +335,45 @@ impl RegFile {
 ///    1. sign mode: 0: signed,  1: unsigned
 /// 
 ///  ┌────────────────┬───────────────────────────────────────────┐
-///  │    ext flag    │              ext field                    │
+///  │   ExtC flag    │               ExtC Field                  │
 ///  ├────────────────┼───────────────────────────────────────────┤
-///  │       1        │                                           │
+///  │       1        │                  ???                      │
+///  ├────────────────┼───────────────────────────────────────────┤
+///  │  000 000 00    │   000.x: wb(110->000) off(0)              │
+///  │  ─── ─── ──    │   001.0: imm(4), 001.1: imm(8)            │
+///  │  CCC BBB MM    │   010.0: imm(4,4), 010.1: imm(8,8)        │
+///  │                │   ... (Same as B field)                   │
+///  │                │   110.x: ExtC                             │
+///  │                │   111.x: wb(110->111) off(0)ExtV          │
+///  └────────────────┴───────────────────────────────────────────┘
 /// 
-/// - x86 format:
+///  Extension Constant:
+///    -> find in second Byte 0b110 ahead.
+///    -> Read 1 more Byte and check BBB for length of forward B field.
+///    -> MM: Mem accessing enhance mode, 00: 8-byte, 01: 16-byte, 10: 32-byte, 11: 64-byte.
+/// 
+///  ┌────────────────┬───────────────────────────────────────────┐
+///  │   ExtV flag    │               ExtV Field                  │
+///  ├────────────────┼───────────────────────────────────────────┤
+///  │       1        │                   ???                     │
+///  ├────────────────┼───────────────────────────────────────────┤
+///  │   000  00000   │   000.x: wb(110->000) off(0)              │
+///  │   ───  ─────   │   001.x: vec                              │
+///  │   VVV  index   │   010.x: vec,vec                          │
+///  │                │   ... (User define Operand Pattern)       │
+///  │        00002   │   110.x: ExtC                             │
+///  │   (ExtV Vec)   │   111.x: rb(110->111) off(0)ExtV          │
+///  └────────────────┴───────────────────────────────────────────┘
+/// 
+///  Extension Variable:
+///    -> find in second Byte 0b111 ahead.
+///    -> Read 1 more Byte and check ExtV table index.
+///    -> According to index deal with operands.
+/// 
+/// 
+/// ```
+/// 
+/// - i386/x86_64 format:
 /// ```txt
 /// (Variable-length/Byte): MAX 15 Bytes. --> Little Endian View.
 ///  ┌──────────────────┬─────────────────────────────────────────┐
@@ -379,7 +418,7 @@ impl RegFile {
 ///    0~2. base
 ///    3~5. index
 ///    6~7. scale - 0b00: [idx], 0b01: [idx*2], 0b10: [idx*4], 0b11: [idx*8].
-///  Rex Prefix(x86_64):
+///  Rex Prefix(Only x86_64):
 ///    0. B - Extension of SIB.base field.
 ///    1. X - Extension of SIB.idx field.
 ///    2. R - Extension of ModR/M.reg field (Reg Num: 8 -> 16).
