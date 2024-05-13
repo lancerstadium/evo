@@ -26,7 +26,7 @@ use crate::core::val::Value;
 /// no condition
 pub const COND_NO: u16 = 0b0000_0000;
 /// always condition
-pub const COND_AL: u16 = 0b0001_0000;
+pub const COND_ALL: u16 = 0b0001_0000;
 /// x == y
 pub const COND_EQ: u16 = 0b0010_0000;
 /// x != y
@@ -39,6 +39,14 @@ pub const COND_GE: u16 = 0b0101_0000;
 pub const COND_LE: u16 = 0b0110_0000;
 /// x > y
 pub const COND_GT: u16 = 0b0111_0000;
+/// x < y unsigned
+pub const COND_LTU: u16 = 0b1000_0000;
+/// x >= y unsigned
+pub const COND_GEU: u16 = 0b1001_0000;
+/// x <= y unsigned
+pub const COND_LEU: u16 = 0b1010_0000;
+/// x > y unsigned
+pub const COND_GTU: u16 = 0b1011_0000;
 /// is branch insn
 pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
 /// is jump insn
@@ -307,49 +315,64 @@ impl RegFile {
 /// ```txt
 ///  Max reg nums: 2^8 = 256
 ///  Max general opcode nums: 2^8 = 256 (Without bits/sign mode)
-///  Max extend opcode nums: 2^8 * 2^8 = 65536 (With bits/sign mode)
+///  Max extend 1 opcode nums: 2^8 * 2^8 = 65536 (Without bits/sign mode)
 ///  --> Little Endian View.
 ///  ┌────────────────┬───────────────────────────────────────────┐
 ///  │    Type: E     │             Arch: EVO                     │
 ///  ├────────────────┼────────────────────────┬──────────────────┤
-///  │   Op & flag    │        A field         │     B field      │
-///  ├───┬────────────┼────────────────────────┼──────────────────┤
-///  │ 1 │     1      │          ???           │       ???        │
-///  ├───┼────────────┼────────────────────────┼──────────────────┤
-///  │ o │ 000 000 00 │ 000.x: off(0)          │ 000.x: off(0)    │
-///  │ p │ ─── ─── ── │ 001.x: reg(1)          │ 001.0: imm(4)    │
-///  │ c │ BBB AAA sb │ 010.x: reg(1,1)        │ 001.1: imm(8)    │
-///  │ o │          ^ │ 011.x: reg(1,1,1)      │ 010.0: imm(4,4)  │
-///  │ d │            │ 100.0: reg(1,1),imm(4) │ 010.1: imm(8,8)  │
-///  │ e │            │ 100.1: reg(1,1),imm(8) │ 011.x: reg(1)    │
-///  │   │            │ 101.0: reg(1),imm(4)   │ 100.0: mem(7)    │
-///  │   │            │ 101.1: reg(1),imm(8)   │ 100.1: mem(11)   │
-///  │   │            │ 110.0: reg(1),imm(4,4) │ 101.x: Opc(1)    │
-///  │   │            │ 110.1: reg(1),imm(8,8) │ 110.x: ExtC      │
-///  │   │            │ 111.0: imm(4)          │ 111.x: off(0)ExtV│
-///  │   │            │ 111.1: imm(8)          │                  │
-///  └───┴────────────┴────────────────────────┴──────────────────┘
+///  │   flag & Op    │        A field         │     B field      │
+///  ├────────────┬───┼────────────────────────┼──────────────────┤
+///  │     1      │ 1 │          ???           │       ???        │
+///  ├────────────┼───┼────────────────────────┼──────────────────┤
+///  │ 000 000 00 │ o │ 000.x: off(0)          │ 000.x: off(0)    │
+///  │ ─── ─── ── │ p │ 001.x: reg(1)          │ 001.0: imm(4)    │
+///  │ BBB AAA sb │ c │ 010.x: reg(1,1)        │ 001.1: imm(8)    │
+///  │         ^^ │ o │ 011.x: reg(1,1,1)      │ 010.0: imm(4,4)  │
+///  │       flag │ d │ 100.0: reg(1,1),imm(4) │ 010.1: imm(8,8)  │
+///  │            │ e │ 100.1: reg(1,1),imm(8) │ 011.0: imm(4,4,4)│
+///  │            │   │ 101.0: reg(1),imm(4)   │ 011.1: imm(8,8,8)│
+///  │            │   │ 101.1: reg(1),imm(8)   │ 100.0: mem(7)    │
+///  │            │   │ 110.0: reg(1),imm(4,4) │ 100.1: mem(11)   │
+///  │            │   │ 110.1: reg(1),imm(8,8) │ 101.0: mem(7,7)  │
+///  │            │   │ 111.x: opcode(1)       │ 101.1: mem(11,11)│
+///  │            │   │                        │ 110.x: off(0)ExtC│
+///  │            │   │                        │ 111.x: off(0)ExtV│
+///  └────────────┴───┴────────────────────────┴──────────────────┘
 /// 
 ///  flag:
 ///    0. bits mode: 0: 32-bits, 1: 64-bits
 ///    1. sign mode: 0: signed,  1: unsigned
+///    You can see such as: (`_i32`, `_u32`, `_i64`, `_u64`) in insn name.
 /// 
-///  ┌────────────────┬───────────────────────────────────────────┐
-///  │   ExtC flag    │               ExtC Field                  │
-///  ├────────────────┼───────────────────────────────────────────┤
-///  │       1        │                  ???                      │
-///  ├────────────────┼───────────────────────────────────────────┤
-///  │  000 000 00    │   000.x: wb(110->000) off(0)              │
-///  │  ─── ─── ──    │   001.0: imm(4), 001.1: imm(8)            │
-///  │  CCC BBB MM    │   010.0: imm(4,4), 010.1: imm(8,8)        │
-///  │                │   ... (Same as B field)                   │
-///  │                │   110.x: ExtC                             │
-///  │                │   111.x: wb(110->111) off(0)ExtV          │
-///  └────────────────┴───────────────────────────────────────────┘
+///  decode:
+///    -> check opcode: if AAA is 111, append two bytes else append one byte
+///    -> check flag: get A/B field length and parse as operands
+///    -> if BBB/VVV is 110/111: read one more byte and check ExtC/ExtV flag, 
+///         extend length and repeat (if AAA is 111, append to opcode)
+///    -> if BBB/VVV is not 110/111, read end
+///    -> match opcode and operands
+///    
 /// 
-///  Extension Constant:
-///    -> find in second Byte 0b110 ahead.
-///    -> Read 1 more Byte and check BBB for length of forward B field.
+///  encode:
+///    -> you should encode opcode and all flags.
+///    -> then you can fill the operands to blank bytes.
+/// 
+///  ┌────────────────┬───────────┬──────────────────────────────────┐
+///  │   ExtC flag    │  A field  │             B field              │
+///  ├────────────────┼───────────┼──────────────────────────────────┤
+///  │       1        │    ???    │               ???                │
+///  ├────────────────┼───────────┼──────────────────────────────────┤
+///  │  000 000 00    │    ...    │ 000.x: (110->000) off(0)         │
+///  │  ─── ─── ──    │   Same    │ 001.z: imm(4)   / imm(8)         │
+///  │  BBB AAA MM    │    as     │ 010.z: imm(4,4) / imm(8,8)       │
+///  │                │  A field  │ ... (Same as B field)            │
+///  │                │           │ 110.x: (110->110) off(0)ExtC     │
+///  │                │           │ 111.x: (110->111) off(0)ExtV     │
+///  └────────────────┴───────────┴──────────────────────────────────┘
+/// 
+///  Extension Constant(Same as A&B field):
+///    -> find in first Byte 0b110 in forward flag.
+///    -> Read 1 more Byte and check flag for length of fields.
 ///    -> MM: Mem accessing enhance mode, 00: 8-byte, 01: 16-byte, 10: 32-byte, 11: 64-byte.
 /// 
 ///  ┌────────────────┬───────────────────────────────────────────┐
@@ -357,16 +380,16 @@ impl RegFile {
 ///  ├────────────────┼───────────────────────────────────────────┤
 ///  │       1        │                   ???                     │
 ///  ├────────────────┼───────────────────────────────────────────┤
-///  │   000  00000   │   000.x: wb(110->000) off(0)              │
-///  │   ───  ─────   │   001.x: vec                              │
-///  │   VVV  index   │   010.x: vec,vec                          │
+///  │   000  00000   │   000.x: (111->000) off(0)                │
+///  │   ───  ─────   │   001.x: vec,len                          │
+///  │   VVV  index   │   010.x: vec,vec,len                      │
 ///  │                │   ... (User define Operand Pattern)       │
-///  │        00002   │   110.x: ExtC                             │
-///  │   (ExtV Vec)   │   111.x: rb(110->111) off(0)ExtV          │
+///  │        00002   │   110.x: (111->110) off(0)ExtC            │
+///  │  (ExtV `VEC`)  │   111.x: (111->111) off(0)ExtV            │
 ///  └────────────────┴───────────────────────────────────────────┘
 /// 
-///  Extension Variable:
-///    -> find in second Byte 0b111 ahead.
+///  Extension Variable(User define field):
+///    -> find in first Byte 0b111 in forward flag.
 ///    -> Read 1 more Byte and check ExtV table index.
 ///    -> According to index deal with operands.
 /// 
@@ -441,10 +464,10 @@ pub struct Instruction {
     /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
     /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
     /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
-    /// │ │ │ │         ┌ (4-7) 0000: COND_NO, 0001: COND_AL
-    /// │ │ │ │         │ (4-7) 0010: COND_EQ, 0011: COND_NE
-    /// ├─┴─┴─┘         │ (4-7) 0100: COND_LT, 0101: COND_GE
-    /// └───────────────┴ (4-7) 0110: COND_LE, 0111: COND_GT
+    /// │ │ │ │         ┌ (4-7) 0000: COND_NO , 0001: COND_ALL, 0010: COND_EQ , 0011: COND_NE
+    /// │ │ │ │         │ (4-7) 0100: COND_LT , 0101: COND_GE , 0110: COND_LE , 0111: COND_GT
+    /// ├─┴─┴─┘         │ (4-7) 1000: COND_LTU, 1001: COND_GEU, 1010: COND_LEU, 1011: COND_GTU
+    /// └───────────────┴ (4-7) 
     /// (8-15):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
