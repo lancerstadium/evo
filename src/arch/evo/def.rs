@@ -1638,11 +1638,11 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
         res.is_applied = true;
         return res;
     }
-    let opr = opr;
+    let mut new_opr = opr.clone();
     // Check syms
     if insn.check_syms(opr.clone()) {
         // match opcode type kind and fill bytes by opreands
-        let mut code:Vec<u8> = vec![];
+        let mut code: Vec<u8> = vec![];
         match insn.opc.kind() {
             OpcodeKind::E(_, _) => {
                 // 1. deal with opcode
@@ -1705,6 +1705,7 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
                             let imm1 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_IMM], true)  => {
@@ -1714,6 +1715,7 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
                             let imm1 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], false) => {
@@ -1723,8 +1725,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
                             let imm1 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                             let imm2 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u32(imm2.val().get_word(0)));
                             code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], true)  => {
@@ -1734,8 +1738,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
                             let imm1 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                             let imm2 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u64(imm2.val().get_dword(0)));
                             code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
                         },
                         // Match Most Format in A & B field
@@ -1744,6 +1750,7 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg1 = &opr[0];
                             code.push(reg1.val().get_byte(0));
                             let imm1 = &opr[1];
+                            new_opr[1] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_IMM], true)  => {
@@ -1751,6 +1758,7 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg1 = &opr[0];
                             code.push(reg1.val().get_byte(0));
                             let imm1 = &opr[1];
+                            new_opr[1] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_IMM, OPR_IMM], false) => {
@@ -1758,8 +1766,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg1 = &opr[0];
                             code.push(reg1.val().get_byte(0));
                             let imm1 = &opr[1];
+                            new_opr[1] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                             let imm2 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u32(imm2.val().get_word(0)));
                             code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_IMM, OPR_IMM], true)  => {
@@ -1767,8 +1777,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             let reg1 = &opr[0];
                             code.push(reg1.val().get_byte(0));
                             let imm1 = &opr[1];
+                            new_opr[1] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                             let imm2 = &opr[2];
+                            new_opr[2] = Operand::imm(Value::u64(imm2.val().get_dword(0)));
                             code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM], false) => {
@@ -1777,9 +1789,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM], true)  => {
@@ -1788,9 +1801,10 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], false) => {
@@ -1799,11 +1813,13 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                             let imm2 = &opr[4];
+                            new_opr[4] = Operand::imm(Value::u32(imm2.val().get_word(0)));
                             code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], true)  => {
@@ -1812,11 +1828,13 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                             let imm2 = &opr[4];
+                            new_opr[4] = Operand::imm(Value::u64(imm2.val().get_dword(0)));
                             code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], false) => {
@@ -1825,13 +1843,16 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                             let imm2 = &opr[4];
+                            new_opr[4] = Operand::imm(Value::u32(imm2.val().get_word(0)));
                             code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
                             let imm3 = &opr[5];
+                            new_opr[5] = Operand::imm(Value::u32(imm3.val().get_word(0)));
                             code.extend_from_slice(&imm3.val().get_word(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], true)  => {
@@ -1840,13 +1861,16 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
                             let imm1 = &opr[3];
+                            new_opr[3] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                             let imm2 = &opr[4];
+                            new_opr[4] = Operand::imm(Value::u64(imm2.val().get_dword(0)));
                             code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
                             let imm3 = &opr[5];
+                            new_opr[5] = Operand::imm(Value::u64(imm3.val().get_dword(0)));
                             code.extend_from_slice(&imm3.val().get_dword(0).to_le_bytes());
                         },
                         // Extend field
@@ -1857,15 +1881,16 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
-                            let reg4 = &opr[2];
+                            let reg4 = &opr[3];
                             code.push(reg4.val().get_byte(0));
                             // ExtC
                             code.push(0b001_001_00);
-                            let reg5 = &opr[3];
+                            let reg5 = &opr[4];
                             code.push(reg5.val().get_byte(0));
-                            let imm1 = &opr[4];
+                            let imm1 = &opr[5];
+                            new_opr[4] = Operand::imm(Value::u32(imm1.val().get_word(0)));
                             code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
                         }
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], true)  => {
@@ -1875,15 +1900,16 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
-                            let reg4 = &opr[2];
+                            let reg4 = &opr[3];
                             code.push(reg4.val().get_byte(0));
                             // ExtC
                             code.push(0b001_001_00);
-                            let reg5 = &opr[3];
+                            let reg5 = &opr[4];
                             code.push(reg5.val().get_byte(0));
-                            let imm1 = &opr[4];
+                            let imm1 = &opr[5];
+                            new_opr[4] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
                             code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
                         },
                         ([OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], _) => {
@@ -1893,15 +1919,15 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(reg1.val().get_byte(0));
                             let reg2 = &opr[1];
                             code.push(reg2.val().get_byte(0));
-                            let reg3 = &opr[1];
+                            let reg3 = &opr[2];
                             code.push(reg3.val().get_byte(0));
-                            let reg4 = &opr[2];
+                            let reg4 = &opr[3];
                             code.push(reg4.val().get_byte(0));
                             // ExtC
                             code.push(0b000_010_00);
-                            let reg5 = &opr[3];
+                            let reg5 = &opr[4];
                             code.push(reg5.val().get_byte(0));
-                            let reg6 = &opr[4];
+                            let reg6 = &opr[5];
                             code.push(reg6.val().get_byte(0));
                         },
                         _ => {
@@ -1919,7 +1945,7 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
         }
         // refresh status
         let mut res = insn.clone();
-        res.opr = opr;
+        res.opr = new_opr;
         res.code = Value::array_u8(RefCell::new(code));
         res.is_applied = true;
         res
@@ -2321,9 +2347,9 @@ mod evo_test {
         println!("{}", cpu.pool_info());
 
         // R-Type Insns Test 
-        let insn1  = Instruction::from_string("add_i32 t0, t1, t2");
-        let insn2  = Instruction::from_string("add_i64 t0, t1, t2");
-        let insn3  = Instruction::from_string("sub_i32 t0, t1, t2");
+        let insn1  = Instruction::from_string("add_i32 t0, t1, 21");
+        let insn2  = Instruction::from_string("add_i64 t0, t2, 65535");
+        let insn3  = Instruction::from_string("sub_i32 t0, t1, -4321");
         let insn4  = Instruction::from_string("sub_i64 t0, t1, t2");
         let insn5  = Instruction::from_string("neg_i32 t0, t1");
         let insn6  = Instruction::from_string("neg_i64 t0, t1");
@@ -2418,170 +2444,170 @@ mod evo_test {
 
 
         cpu.execute(&insn1);
-        println!("{:<60} -> t0 = {}", insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn2);
-        println!("{:<60} -> t0 = {}", insn2.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn2.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn3);
-        println!("{:<60} -> t0 = {}", insn3.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn3.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn4);
-        println!("{:<60} -> t0 = {}", insn4.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn4.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn5);
-        println!("{:<60} -> t0 = {}", insn5.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn5.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn6);
-        println!("{:<60} -> t0 = {}", insn6.to_string(), cpu.get_nreg("t0").get_i64(0));
+        println!("{:<70} -> t0 = {}", insn6.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn7);
-        // println!("{:<60} -> t0 = {}", insn7.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn7.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn8);
-        // println!("{:<60} -> t0 = {}", insn8.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn8.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn9);
-        // println!("{:<60} -> t0 = {}", insn9.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn9.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn10);
-        // println!("{:<60} -> t0 = {}", insn10.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn10.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn11);
-        // println!("{:<60} -> t0 = {}", insn11.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn11.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn12);
-        // println!("{:<60} -> t0 = {}", insn12.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn12.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn13);
-        // println!("{:<60} -> t0 = {}", insn13.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn13.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn14);
-        // println!("{:<60} -> t0 = {}", insn14.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn14.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn15);
-        // println!("{:<60} -> t0 = {}", insn15.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn15.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn16);
 
-        // println!("{:<60} -> t0 = {}", insn16.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn16.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn17);
-        // println!("{:<60} -> t0 = {}", insn17.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn17.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn18);
-        // println!("{:<60} -> t0 = {}", insn18.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn18.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn19);
-        // println!("{:<60} -> t0 = {}", insn19.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn19.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn20);
-        // println!("{:<60} -> t0 = {}", insn20.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn20.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn21);
-        // println!("{:<60} -> t0 = {}", insn21.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn21.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn22);
-        // println!("{:<60} -> t0 = {}", insn22.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn22.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn23);
-        // println!("{:<60} -> t0 = {}", insn23.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn23.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn24);
-        // println!("{:<60} -> t0 = {}", insn24.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn24.to_string(), cpu.get_nreg("t0").get_i64(0));
 
         // cpu.execute(&insn25);
-        // println!("{:<60} -> t0 = {}", insn25.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn25.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn26);
-        // println!("{:<60} -> t0 = {}", insn26.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn26.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn27);
-        // println!("{:<60} -> t0 = {}", insn27.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn27.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn28);
-        // println!("{:<60} -> t0 = {}", insn28.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn28.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn29);
-        // println!("{:<60} -> t0 = {}", insn29.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn29.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn30);
-        // println!("{:<60} -> t0 = {}", insn30.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn30.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn31);
-        // println!("{:<60} -> t0 = {}", insn31.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn31.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn32);
-        // println!("{:<60} -> t0 = {}", insn32.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn32.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn33);
-        // println!("{:<60} -> t0 = {}", insn33.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn33.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn34);
-        // println!("{:<60} -> t0 = {}", insn34.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn34.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn35);
-        // println!("{:<60} -> t0 = {}", insn35.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn35.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn36);
-        // println!("{:<60} -> t0 = {}", insn36.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn36.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn37);
-        // println!("{:<60} -> t0 = {}", insn37.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn37.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn38);
-        // println!("{:<60} -> t0 = {}", insn38.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn38.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn39);
-        // println!("{:<60} -> t0 = {}", insn39.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn39.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn40);
-        // println!("{:<60} -> t0 = {}", insn40.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn40.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn41);
-        // println!("{:<60} -> t0 = {}", insn41.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn41.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn42);
-        // println!("{:<60} -> t0 = {}", insn42.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn42.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn43);
-        // println!("{:<60} -> t0 = {}", insn43.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn43.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn44);
-        // println!("{:<60} -> t0 = {}", insn44.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn44.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn45);
-        // println!("{:<60} -> t0 = {}", insn45.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn45.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn46);
-        // println!("{:<60} -> t0 = {}", insn46.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn46.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn47);
-        // println!("{:<60} -> t0 = {}", insn47.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn47.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn48);
-        // println!("{:<60} -> t0 = {}", insn48.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn48.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn49);
-        // println!("{:<60} -> t0 = {}", insn49.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn49.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn50);
-        // println!("{:<60} -> t0 = {}", insn50.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn50.to_string(), cpu.get_nreg("t0").get_i64(0));
 
         // cpu.execute(&insn51);
-        // println!("{:<60} -> t0 = {}", insn51.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn51.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn52);
-        // println!("{:<60} -> t0 = {}", insn52.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn52.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn53);
-        // println!("{:<60} -> t0 = {}", insn53.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn53.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn54);
-        // println!("{:<60} -> t0 = {}", insn54.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn54.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn55);
-        // println!("{:<60} -> t0 = {}", insn55.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn55.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn56);
-        // println!("{:<60} -> t0 = {}", insn56.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn56.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn57);
-        // println!("{:<60} -> t0 = {}", insn57.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn57.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn58);
-        // println!("{:<60} -> t0 = {}", insn58.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn58.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn59);
-        // println!("{:<60} -> t0 = {}", insn59.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn59.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn60);
-        // println!("{:<60} -> t0 = {}", insn60.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn60.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn61);
-        // println!("{:<60} -> t0 = {}", insn61.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn61.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn62);
-        // println!("{:<60} -> t0 = {}", insn62.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn62.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn63);
-        // println!("{:<60} -> t0 = {}", insn63.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn63.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn64);
-        // println!("{:<60} -> t0 = {}", insn64.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn64.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn65);
-        // println!("{:<60} -> t0 = {}", insn65.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn65.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn66);
-        // println!("{:<60} -> t0 = {}", insn66.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn66.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn67);
-        // println!("{:<60} -> t0 = {}", insn67.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn67.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn68);
-        // println!("{:<60} -> t0 = {}", insn68.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = {}", insn68.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn69);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn69.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn69.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn70);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn70.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn70.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn71);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn71.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn71.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn72);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn72.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn72.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn73);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn73.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn73.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn74);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn74.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn74.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn75);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn75.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn75.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn76);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn76.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn76.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn77);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn77.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn77.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn78);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn78.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn78.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn79);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn79.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn79.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn80);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn80.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn80.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn81);
-        // println!("{:<60} -> t0 = 0x{:02x}", insn81.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // println!("{:<70} -> t0 = 0x{:02x}", insn81.to_string(), cpu.get_nreg("t0").get_i64(0));
 
     }
 }
