@@ -200,7 +200,7 @@ mod x86_test {
         cpu.set_nreg("ebx", Value::i32(3));
         cpu.mem_write(26, Value::i32(0x1ffff));
 
-        let insn1 = Instruction::from_string("mov [eax + ecx * 4 + 0Xe3 32 41 22], 0X12 34");
+        let insn1 = Instruction::from_string("mov [eax + ecx * 4 + 0xe3 32 41 22], 0X12 34");
         println!("code: {}", insn1.code);
         println!("{}  -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
     }

@@ -10,7 +10,7 @@ use crate::{log_error, log_info, log_warning};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::core::val::Value;
-use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
+use crate::core::op::{OpcodeKind, Operand, OperandKind, OPR_IMM, OPR_LAB, OPR_REG};
 use crate::core::insn::{Instruction, RegFile, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
@@ -34,126 +34,188 @@ pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, BIT64 | LITTLE_ENDIAN, 258);
 pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
     // 1. Init regs pool
-    RegFile::def(&EVO_ARCH, "t0", Value::bit(5, 0), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t1", Value::bit(5, 1), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t2", Value::bit(5, 2), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t3", Value::bit(5, 3), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t4", Value::bit(5, 4), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t5", Value::bit(5, 5), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t6", Value::bit(5, 6), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t7", Value::bit(5, 7), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t8", Value::bit(5, 8), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t9", Value::bit(5, 9), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t10", Value::bit(5, 10), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t11", Value::bit(5, 11), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t12", Value::bit(5, 12), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t13", Value::bit(5, 13), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t14", Value::bit(5, 14), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t15", Value::bit(5, 15), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t16", Value::bit(5, 16), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t17", Value::bit(5, 17), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t18", Value::bit(5, 18), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t19", Value::bit(5, 19), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t20", Value::bit(5, 20), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t21", Value::bit(5, 21), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t22", Value::bit(5, 22), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t23", Value::bit(5, 23), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t24", Value::bit(5, 24), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t25", Value::bit(5, 25), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t26", Value::bit(5, 26), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t27", Value::bit(5, 27), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t28", Value::bit(5, 28), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t29", Value::bit(5, 29), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t30", Value::bit(5, 30), BIT64 | LITTLE_ENDIAN);
-    RegFile::def(&EVO_ARCH, "t31", Value::bit(5, 31), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t0", Value::bit(8, 0), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t1", Value::bit(8, 1), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t2", Value::bit(8, 2), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t3", Value::bit(8, 3), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t4", Value::bit(8, 4), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t5", Value::bit(8, 5), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t6", Value::bit(8, 6), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t7", Value::bit(8, 7), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t8", Value::bit(8, 8), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t9", Value::bit(8, 9), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t10", Value::bit(8, 10), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t11", Value::bit(8, 11), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t12", Value::bit(8, 12), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t13", Value::bit(8, 13), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t14", Value::bit(8, 14), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t15", Value::bit(8, 15), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t16", Value::bit(8, 16), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t17", Value::bit(8, 17), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t18", Value::bit(8, 18), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t19", Value::bit(8, 19), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t20", Value::bit(8, 20), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t21", Value::bit(8, 21), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t22", Value::bit(8, 22), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t23", Value::bit(8, 23), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t24", Value::bit(8, 24), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t25", Value::bit(8, 25), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t26", Value::bit(8, 26), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t27", Value::bit(8, 27), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t28", Value::bit(8, 28), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t29", Value::bit(8, 29), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t30", Value::bit(8, 30), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&EVO_ARCH, "t31", Value::bit(8, 31), BIT64 | LITTLE_ENDIAN);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&EVO_ARCH);
-    // EVO Instruction Format:                                                                                                32|31  25|24 20|19 15|  |11  7|6    0|
-    // Type: R                                                                                      [rd, rs1, rs2]              |  f7  | rs2 | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("add_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .000.... .0110011", 
+
+    // ============================================================================== //
+    //                              Arithmetic Instructions
+    // ============================================================================== //
+
+    itp.borrow_mut().def_insn("add_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x01", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i32(0)
+            } else {
+                0
+            };
             // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i32(0)
+            } else {
+                0
+            };
             // 3. Add rs1 and rs2
             let res = rs1.wrapping_add(rs2);
             // 4. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("add_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .000.... .0110011", 
+    itp.borrow_mut().def_insn("add_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x01", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i64)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i64(0);
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i64(0)
+            } else {
+                0
+            };
             // 2. Get rs2(i64)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i64(0);
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i64(0)
+            } else {
+                0
+            };
             // 3. Add rs1 and rs2
             let res = rs1.wrapping_add(rs2);
             // 4. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("sub_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("sub_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x02", 
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i32(0)
+            } else {
+                0
+            };
             // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i32(0)
+            } else {
+                0
+            };
             // 3. Sub rs1 and rs2
             let res = rs1.wrapping_sub(rs2);
             // 4. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("sub_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("sub_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x02", 
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i64)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i64(0);
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i64(0)
+            } else {
+                0
+            };
             // 2. Get rs2(i64)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i64(0);
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i64(0)
+            } else {
+                0
+            };
             // 3. Sub rs1 and rs2
             let res = rs1.wrapping_sub(rs2);
             // 4. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("neg_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("neg_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x03", 
         |cpu, insn| {
             // ======== rd = -rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i32(0)
+            } else {
+                0
+            };
             // 2. Neg rs1
             let res = rs1.wrapping_neg();
             // 3. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("neg_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("neg_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x03", 
         |cpu, insn| {
             // ======== rd = -rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i64)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i64(0);
+            // 1. Get rs1(i64)
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i64(0)
+            } else {
+                0
+            };
             // 2. Neg rs1
             let res = rs1.wrapping_neg();
             // 3. Set rd(i64)
-            proc0.set_reg(insn.rd() as usize, Value::i64(res));
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("mul_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("mul_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x04", 
         |cpu, insn| {
             // ======== rd = rs1 * rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -167,7 +229,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("mul_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("mul_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x04", 
         |cpu, insn| {
             // ======== rd = rs1 * rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -181,7 +243,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("div_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("div_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x05", 
         |cpu, insn| {
             // ======== rd = rs1 / rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -195,7 +257,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("div_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("div_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x05", 
         |cpu, insn| {
             // ======== rd = rs1 / rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -209,7 +271,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("div_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("div_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x05", 
         |cpu, insn| {
             // ======== rd = rs1 / rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -223,7 +285,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("div_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("div_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x05", 
         |cpu, insn| {
             // ======== rd = rs1 / rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -237,7 +299,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("rem_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("rem_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x06", 
         |cpu, insn| {
             // ======== rd = rs1 % rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -251,7 +313,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("rem_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("rem_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x06", 
         |cpu, insn| {
             // ======== rd = rs1 % rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -265,7 +327,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("rem_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("rem_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x06", 
         |cpu, insn| {
             // ======== rd = rs1 % rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -279,7 +341,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("rem_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
+    itp.borrow_mut().def_insn("rem_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x06", 
         |cpu, insn| {
             // ======== rd = rs1 % rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -293,7 +355,12 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("and_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .111.... .0110011",
+
+    // ============================================================================== //
+    //                              Bitwise Instructions
+    // ============================================================================== //
+
+    itp.borrow_mut().def_insn("and_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x07", 
         |cpu, insn| {
             // ======== rd = rs1 & rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -307,7 +374,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("and_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .111.... .0110011",
+    itp.borrow_mut().def_insn("and_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x07", 
         |cpu, insn| {
             // ======== rd = rs1 & rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -321,7 +388,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("or_i32"  , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .110.... .0110011",
+    itp.borrow_mut().def_insn("or_i32"  , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x08", 
         |cpu, insn| {
             // ======== rd = rs1 | rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -335,7 +402,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("or_i64"  , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .110.... .0110011",
+    itp.borrow_mut().def_insn("or_i64"  , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x08", 
         |cpu, insn| {
             // ======== rd = rs1 | rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -349,7 +416,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("xor_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("xor_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x09", 
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -363,7 +430,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("xor_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("xor_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x09", 
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -377,7 +444,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("not_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("not_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x0a", 
         |cpu, insn| {
             // ======== rd = ~rs1 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -389,7 +456,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("not_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("not_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x0a", 
         |cpu, insn| {
             // ======== rd = ~rs1 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -401,7 +468,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("andc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("andc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0b", 
         |cpu, insn| {
             // ======== rd = rs1 & ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -415,7 +482,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("andc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("andc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0b", 
         |cpu, insn| {
             // ======== rd = rs1 & ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -429,7 +496,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("eqv_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("eqv_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0c", 
         |cpu, insn| {
             // ======== rd = rs1 ^ ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -443,7 +510,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("eqv_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("eqv_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0c", 
         |cpu, insn| {
             // ======== rd = rs1 & ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -457,7 +524,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("nand_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("nand_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0d", 
         |cpu, insn| {
             // ======== rd = ~(rs1 & rs2) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -471,7 +538,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("nand_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("nand_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0d", 
         |cpu, insn| {
             // ======== rd = ~(rs1 & rs2) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -485,7 +552,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("nor_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("nor_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0e", 
         |cpu, insn| {
             // ======== rd = ~(rs1 | rs2) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -499,7 +566,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("nor_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("nor_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0e", 
         |cpu, insn| {
             // ======== rd = ~(rs1 | rs2) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -513,7 +580,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("orc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("orc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0f", 
         |cpu, insn| {
             // ======== rd = rs1 | ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -527,7 +594,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("orc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("orc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x0f", 
         |cpu, insn| {
             // ======== rd = rs1 | ~rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -541,7 +608,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("clz_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("clz_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x10", 
         |cpu, insn| {
             // ======== rd = rs1 ? clz(rs1) : rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -555,7 +622,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("clz_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("clz_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x10", 
         |cpu, insn| {
             // ======== rd = rs1 ? clz(rs1) : rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -569,7 +636,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("ctz_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("ctz_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x11", 
         |cpu, insn| {
             // ======== rd = rs1 ? ctz(rs1) : rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -583,7 +650,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("ctz_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("ctz_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x11", 
         |cpu, insn| {
             // ======== rd = rs1 ? ctz(rs1) : rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -597,7 +664,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("shl_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("shl_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x12", 
         |cpu, insn| {
             // ======== rd = rs1 << rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -613,7 +680,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("shl_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("shl_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x12", 
         |cpu, insn| {
             // ======== rd = rs1 << rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -629,7 +696,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("shr_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("shr_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x13", 
         |cpu, insn| {
             // ======== rd = rs1(u32) >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -645,7 +712,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("shr_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("shr_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x13", 
         |cpu, insn| {
             // ======== rd = rs1(u64) >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -661,7 +728,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("sar_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("sar_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x14", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -677,7 +744,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("sar_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("sar_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x14", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -693,7 +760,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("rol_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("rol_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x15", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -709,7 +776,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("rol_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("rol_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG,vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x15", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -725,7 +792,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("ror_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("ror_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x16", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -741,7 +808,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("ror_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("ror_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x16", 
         |cpu, insn| {
             // ======== rd = rs1 >> rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -757,7 +824,12 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("mov_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+
+    // ============================================================================== //
+    //                           Typetransfer Instructions
+    // ============================================================================== //
+
+    itp.borrow_mut().def_insn("mov_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x17", 
         |cpu, insn| {
             // ======== rd = rs1 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -769,7 +841,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("mov_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("mov_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x17", 
         |cpu, insn| {
             // ======== rd = rs1 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -781,7 +853,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("extb_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extb_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x18",
         |cpu, insn| {
             // ======== rd = rs1(i8 -> i32) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -793,7 +865,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("extb_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extb_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x18",
         |cpu, insn| {
             // ======== rd = rs1(i8 -> i64) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -805,7 +877,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("extb_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extb_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x18",
         |cpu, insn| {
             // ======== rd = rs1(u8 -> u32) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -817,7 +889,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("extb_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extb_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x18",
         |cpu, insn| {
             // ======== rd = rs1(u8 -> u64) ======== //
 
@@ -830,7 +902,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("exth_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("exth_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x19",
         |cpu, insn| {
             // ======== rd = rs1(i16 -> i32) ======== //
 
@@ -843,7 +915,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("exth_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("exth_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x19",
         |cpu, insn| {
             // ======== rd = rs1(i16 -> i64) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -855,7 +927,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("exth_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("exth_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x19",
         |cpu, insn| {
             // ======== rd = rs1(u16 -> u32) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -867,7 +939,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("exth_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("exth_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x19",
         |cpu, insn| {
             // ======== rd = rs1(u16 -> u64) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -879,7 +951,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("extw_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extw_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1a",
         |cpu, insn| {
             // ======== rd = rs1(i32 -> i32) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -891,7 +963,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res as i64));
         }
     );
-    itp.borrow_mut().def_insn("extw_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extw_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1a",
         |cpu, insn| {
             // ======== rd = rs1(i32 -> i64) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -903,7 +975,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::i64(res));
         }
     );
-    itp.borrow_mut().def_insn("extw_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extw_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1a",
         |cpu, insn| {
             // ======== rd = rs1(u32 -> u32) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -915,7 +987,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("extw_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("extw_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1a",
         |cpu, insn| {
             // ======== rd = rs1(u32 -> u64) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -927,32 +999,32 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("etr_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x1b",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr_i32 rd, rs1, pos, len");
         }
     );
-    itp.borrow_mut().def_insn("etr_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x1b",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr_i64 rd, rs1, pos, len");
         }
     );
-    itp.borrow_mut().def_insn("etr_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x1b",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr_u32 rd, rs1, pos, len");
         }
     );
-    itp.borrow_mut().def_insn("etr_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x1b",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr_u64 rd, rs1, pos, len");
         }
     );
 
-    itp.borrow_mut().def_insn("etrl_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etrl_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1c",
         |cpu, insn| {
             // ======== rd = rs1(i32 -> low half) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -964,19 +1036,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, rd);
         }
     );
-    itp.borrow_mut().def_insn("etrh_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
-        |cpu, insn| {
-            // ======== rd = rs1(i32 -> high half) ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1 high 16-bit word
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u16(1);
-            // 2. Set rd(i64[15:0])
-            let mut rd = proc0.get_reg(insn.rd() as usize);
-            rd.set_uhalf(0, 0, 16, rs1);
-            proc0.set_reg(insn.rd() as usize, rd);
-        }
-    );
-    itp.borrow_mut().def_insn("etrl_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etrl_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1c",
         |cpu, insn| {
             // ======== rd = rs1(i64 -> low word) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -988,7 +1048,19 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, rd);
         }
     );
-    itp.borrow_mut().def_insn("etrh_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etrh_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1d",
+        |cpu, insn| {
+            // ======== rd = rs1(i32 -> high half) ======== //
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1 high 16-bit word
+            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u16(1);
+            // 2. Set rd(i64[15:0])
+            let mut rd = proc0.get_reg(insn.rd() as usize);
+            rd.set_uhalf(0, 0, 16, rs1);
+            proc0.set_reg(insn.rd() as usize, rd);
+        }
+    );
+    itp.borrow_mut().def_insn("etrh_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1d",
         |cpu, insn| {
             // ======== rd = rs1(i64 -> high word) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1000,7 +1072,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, rd);
         }
     );
-    itp.borrow_mut().def_insn("truc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("truc_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1e",
         |cpu, insn| {
             // ======== rd = rs1(i32 -> low half + fill 0) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1010,7 +1082,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(rs1 as u64));
         }
     );
-    itp.borrow_mut().def_insn("truc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("truc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1e",
         |cpu, insn| {
             // ======== rd = rs1(i64 -> low word + fill 0) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1020,7 +1092,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(rs1 as u64));
         }
     );
-    itp.borrow_mut().def_insn("conc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("conc_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x1f",
         |cpu, insn| {
             // ======== rd = (rs2 << 32) | rs1 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1034,7 +1106,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("conn_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("conn_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x20",
         |cpu, insn| {
             // ======== rd = rs1(low word) | rs2(high word) ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1048,7 +1120,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("swph_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("swph_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "E", "0x21",
         |cpu, insn| {
             // ======== rd = rs1.byte.reverse ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1060,7 +1132,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("swph_i64" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("swph_i64" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "E", "0x21",
         |cpu, insn| {
             // ======== rd = rs1.byte.reverse ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1072,7 +1144,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("swpw_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("swpw_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "E", "0x22",
         |cpu, insn| {
             // ======== rd = rs1.byte.reverse ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1084,7 +1156,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("swpw_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("swpw_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "E", "0x22",
         |cpu, insn| {
             // ======== rd = rs1.byte.reverse ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1096,7 +1168,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res as u64));
         }
     );
-    itp.borrow_mut().def_insn("swpd_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("swpd_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "E", "0x23",
         |cpu, insn| {
             // ======== rd = rs1.byte.reverse ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1108,19 +1180,25 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(res));
         }
     );
-    itp.borrow_mut().def_insn("depo_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("depo_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x24",
         |cpu, insn| {
             // ======== rd, rs1, rs2, ofs, len ======== //
             log_info!("TODO: depo_i32 rd, rs1, rs2, ofs, len");
         }
     );
-    itp.borrow_mut().def_insn("depo_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("depo_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], "E", "0x24",
         |cpu, insn| {
             // ======== rd, rs1, rs2, ofs, len ======== //
             log_info!("TODO: depo_i64 rd, rs1, rs2, ofs, len");
         }
     );
-    itp.borrow_mut().def_insn("ldb_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+
+
+    // ============================================================================== //
+    //                             MemIO Instructions
+    // ============================================================================== //
+
+    itp.borrow_mut().def_insn("ldb_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x25",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1134,7 +1212,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldb_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldb_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x25",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1148,7 +1226,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldb_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldb_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x25",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1162,7 +1240,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldb_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldb_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x25",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1176,7 +1254,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val));
         }
     );
-    itp.borrow_mut().def_insn("ldh_i32", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldh_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x26",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1190,7 +1268,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldh_i64", BIT64 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldh_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x26",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1204,7 +1282,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldh_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldh_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x26",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1218,7 +1296,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldh_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldh_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x26",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1232,7 +1310,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val));
         }
     );
-    itp.borrow_mut().def_insn("ldw_i32", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldw_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x27",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1246,7 +1324,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldw_i64", BIT64 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldw_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x27",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1260,7 +1338,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldw_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldw_u32", BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x27",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1274,7 +1352,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldw_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldw_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x27",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1288,7 +1366,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val));
         }
     );
-    itp.borrow_mut().def_insn("ldd_i64", BIT64 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldd_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x28",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1302,7 +1380,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.rd() as usize, Value::u64(val as u64));
         }
     );
-    itp.borrow_mut().def_insn("ldd_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0000011",
+    itp.borrow_mut().def_insn("ldd_u64", BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x28",
         |cpu, insn| {
             // ======== rd = [rs1 + imm] ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1317,7 +1395,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
     // Type:S 
-    itp.borrow_mut().def_insn("stb_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .000.... .0100011",
+    itp.borrow_mut().def_insn("stb_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x29",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1331,7 +1409,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i8(rs2));
         }
     );
-    itp.borrow_mut().def_insn("stb_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .000.... .0100011",
+    itp.borrow_mut().def_insn("stb_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x29",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1345,7 +1423,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i8(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sth_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .001.... .0100011",
+    itp.borrow_mut().def_insn("sth_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x2a",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1359,7 +1437,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i16(rs2));
         }
     );
-    itp.borrow_mut().def_insn("sth_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .001.... .0100011",
+    itp.borrow_mut().def_insn("sth_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x2a",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1373,7 +1451,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i16(rs2));
         }
     );
-    itp.borrow_mut().def_insn("stw_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
+    itp.borrow_mut().def_insn("stw_i32", BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x2b",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1387,7 +1465,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i32(rs2));
         }
     );
-    itp.borrow_mut().def_insn("stw_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
+    itp.borrow_mut().def_insn("stw_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x2b",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1401,7 +1479,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.mem_write((rs1 + imm) as usize, Value::i32(rs2));
         }
     );
-    itp.borrow_mut().def_insn("std_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "S", "0B........ ........ .010.... .0100011",
+    itp.borrow_mut().def_insn("std_i64", BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_IMM], "E", "0x2c",
         |cpu, insn| {
             // ======== [rs1 + imm] = rs2 ======== //
             let proc0 = cpu.proc.borrow().clone();
@@ -1416,433 +1494,131 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
 
-    itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .010.... .0110011",
-        |cpu, insn| {
-            // ======== rd = rs1 < rs2 ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
-            // 3. Slt rs1 and rs2
-            let res = if rs1 < rs2 { 1 } else { 0 };
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("sltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .011.... .0110011",
-        |cpu, insn| {
-            // ======== rd = rs1 < rs2 ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get rs2(u32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_u32(0);
-            // 3. Sltu rs1 and rs2
-            let res = if rs1 < rs2 { 1 } else { 0 };
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    // Type: I                                [rd, rs1, imm]                 |    imm     | rs1 |f3|  rd |  op  |
-    itp.borrow_mut().def_insn("addi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 + imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. Add rs1 and imm
-            let res = rs1 + imm;
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("xori", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .100.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 ^ imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. Xor rs1 and imm
-            let res = rs1 ^ imm;
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("ori" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .110.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 | imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. Or rs1 and imm
-            let res = rs1 | imm;
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("andi", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .111.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 & imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. And rs1 and imm
-            let res = rs1 & imm;
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("slli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .001.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 << imm[0:4] ======= //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get imm[0:4](u32)
-            let imm = (insn.imm_i() & 0x1F) as u32;
-            // 3. Sll rs1 and imm
-            let res = rs1 << imm;
-            // 4. Set rd(u32)
-            proc0.set_reg(insn.rd() as usize, Value::u32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("srli", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0000000. ........ .101.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 >> imm[0:4] ======= //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get imm[0:4](u32)
-            let imm = (insn.imm_i() & 0x1F) as u32;
-            // 3. Sll rs1 and imm
-            let res = rs1 >> imm;
-            // 4. Set rd(u32)
-            proc0.set_reg(insn.rd() as usize, Value::u32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("srai", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B0100000. ........ .101.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 >> imm[0:4] ======= //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get imm[0:4](u32)
-            let imm = (insn.imm_i() & 0x1F) as u32;
-            // 3. Sll rs1 and imm
-            let res = rs1 >> imm;
-            // 4. Set rd(u32)
-            proc0.set_reg(insn.rd() as usize, Value::u32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("slti", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .010.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 < imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. Slt rs1 and imm
-            let res = if rs1 < imm { 1 } else { 0 };
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
-    itp.borrow_mut().def_insn("sltiu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .011.... .0010011",
-        |cpu, insn| {
-            // ======== rd = rs1 < imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get imm(u32)
-            let imm = insn.imm_i() as u32;
-            // 3. Slt rs1 and imm
-            let res = if rs1 < imm { 1 } else { 0 };
-            // 4. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(res));
-        }
-    );
+    // ============================================================================== //
+    //                         Register Merge Instructions
+    // ============================================================================== //
 
-    itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .1100111",
-        |cpu, insn| {
-            // ======== rd = pc + 4; pc = rs1 + imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get imm(i32)
-            let imm = insn.imm_i() as i32;
-            // 3. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(proc0.get_pc().get_i32(0) + 4));
-            // 4. Set pc(i32)
-            proc0.set_pc(Value::i32(rs1 + imm));
-        }
-    );
-    itp.borrow_mut().def_insn("ecall", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0000.... .000.... .1110111",
-        |cpu, _| {
-            // ======== ecall ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // System will do next part according to register `a7`(t17)
-            proc0.set_status(CPUThreadStatus::Blocked);
-        }
-    );
-    itp.borrow_mut().def_insn("ebreak", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0001.... .000.... .1110111",
-        |cpu, _| {
-            // ======== ebreak ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // Debugger will do next part according to register `a7`(t17)
-            proc0.set_status(CPUThreadStatus::Blocked);
-        }
-    );
-
-    // Type: B
-    itp.borrow_mut().def_insn("beq", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .000.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 == rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 == rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    itp.borrow_mut().def_insn("bne", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .001.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 != rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 != rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    itp.borrow_mut().def_insn("blt", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .100.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 < rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 < rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    itp.borrow_mut().def_insn("bge", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .101.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 >= rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
-            // 2. Get rs2(i32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_i32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 >= rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    itp.borrow_mut().def_insn("bltu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .110.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 < rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get rs2(u32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_u32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 < rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    itp.borrow_mut().def_insn("bgeu", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "B", "0B........ ........ .111.... .1100011",
-        |cpu, insn| {
-            // ======== if(rs1 >= rs2) pc += imm ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
-            // 2. Get rs2(u32)
-            let rs2 = proc0.get_reg(insn.rs2() as usize).get_u32(0);
-            // 3. Get imm(i32)
-            let imm = insn.imm_b() as i32;
-            // 4. Set PC
-            if rs1 >= rs2 {
-                proc0.set_pc(Value::i32(proc0.get_pc().get_i32(0) + imm));
-            }
-        }
-    );
-    // Type: U
-    itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0110111",
-        |cpu, insn| {
-            // ======== rd = imm << 12 ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get imm(i32)
-            let imm = insn.imm_u() as i32;
-            // 2. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(imm << 12));
-        }
-    );
-    itp.borrow_mut().def_insn("auipc", BIT32 | LITTLE_ENDIAN, vec![1, 0], "U", "0B........ ........ ........ .0010111",
-        |cpu, insn| {
-            // ======== rd = pc + imm << 12 ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get imm(i32)
-            let imm = insn.imm_u() as i32;
-            // 2. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(proc0.get_pc().get_i32(0) + imm << 12));
-        }
-    );
-    // Type: J
-    itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![1, 0], "J", "0B........ ........ ........ .1101111",
-        |cpu, insn| {
-            // ======== rd = pc + 4; pc = pc + imm ======== //
-
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get imm(i32)
-            let imm = insn.imm_j() as i32;
-            // 2. Get pc(i32)
-            let pc = proc0.get_pc().get_i32(0);
-            // 3. Set rd(i32)
-            proc0.set_reg(insn.rd() as usize, Value::i32(pc + 4));
-            // 4. Set PC
-            proc0.set_pc(Value::i32(pc + imm));
-        }
-    );
-    
-    itp.borrow_mut().def_insn("add2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("add2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x81",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] + [rs2_high: rs2_low] ======== //
             log_info!("TODO: add2_i32 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("add2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("add2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x81",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] + [rs2_high: rs2_low] ======== //
             log_info!("TODO: add2_i64 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("sub2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("sub2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x82",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] - [rs2_high: rs2_low] ======== //
             log_info!("TODO: sub2_i32 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("sub2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("sub2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x82",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] - [rs2_high: rs2_low] ======== //
             log_info!("TODO: sub2_i64 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("mul2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("mul2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x83",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] * [rs2_high: rs2_low] ======== //
             log_info!("TODO: mul2_i32 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("mul2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("mul2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x83",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] * [rs2_high: rs2_low] ======== //
             log_info!("TODO: mul2_i64 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("mul2_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("mul2_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x83",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] * [rs2_high: rs2_low] ======== //
             log_info!("TODO: mul2_i32 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-    itp.borrow_mut().def_insn("mul2_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("mul2_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x83",
         |cpu, insn| {
             // ======== [rd_high: rd_low] = [rs1_high: rs1_low] * [rs2_high: rs2_low] ======== //
             log_info!("TODO: mul2_i64 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
 
-    itp.borrow_mut().def_insn("etr2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0x84",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr2_i32 rd, rs1, rs2, pos");
         }
     );
-    itp.borrow_mut().def_insn("etr2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("etr2_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0x84",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr2_i64 rd, rs1, rs2, pos");
         }
     );
 
-    itp.borrow_mut().def_insn("call" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    // ============================================================================== //
+    //                               Control Instructions
+    // ============================================================================== //
+
+    itp.borrow_mut().def_insn("call" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG | OPR_IMM], "E", "0xe1",
         |cpu, insn| {
             // ======== call ======== //
             log_info!("TODO: call ptr");
         }
     );
-    itp.borrow_mut().def_insn("label" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("label" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe2",
         |cpu, insn| {
             // ======== new label ======== //
             log_info!("TODO: label $label");
         }
     );
-    itp.borrow_mut().def_insn("unlabel" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("unlabel" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe3",
         |cpu, insn| {
             // ======== unlabel ======== //
             log_info!("TODO: unlabel $label");
         }
     );
-    itp.borrow_mut().def_insn("cond" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("cond" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe4",
         |cpu, insn| {
             // ======== rd = (rs1 cc rs2) ======== //
             log_info!("TODO: cond rd, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("condval" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("cond2" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe5",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            log_info!("TODO: cond2 rd, rs1_low, rs1_high, rs2_low, rs2_high, cc");
+        }
+    );
+    itp.borrow_mut().def_insn("condval" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], "E", "0xe6",
         |cpu, insn| {
             // ======== rd = (rs1 cc rs2 ? v1 : v2) ======== //
             log_info!("TODO: condval rd, rs1, rs2, cc, v1, v2");
         }
     );
-    itp.borrow_mut().def_insn("jump" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("jump" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe7",
         |cpu, insn| {
             // ======== jump ======== //
             log_info!("TODO: jump $label");
         }
     );
-    itp.borrow_mut().def_insn("branch" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("brcond" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
         |cpu, insn| {
-            // ======== branch ======== //
-            log_info!("TODO: branch $label, rs1, rs2, cc");
+            // ======== brcond ======== //
+            log_info!("TODO: brcond $label, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("exit_tb" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
+    itp.borrow_mut().def_insn("brcond2" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
+        |cpu, insn| {
+            // ======== brcond ======== //
+            log_info!("TODO: brcond2 $label, rs1_low, rs1_high, rs2_low, rs2_high, cc");
+        }
+    );
+    itp.borrow_mut().def_insn("exit_tb" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG], "E", "0xea",
         |cpu, insn| {
             // ======== exit tb and return 0 to rd ======== //
             log_info!("TODO: exit_tb rd");
@@ -1854,104 +1630,297 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     Some(itp)
 }
 
-/// encode
+
+
 pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
     if opr.len() == 0 {
         let mut res = insn.clone();
         res.is_applied = true;
         return res;
     }
-    let mut opr = opr;
+    let opr = opr;
     // Check syms
     if insn.check_syms(opr.clone()) {
         // match opcode type kind and fill bytes by opreands
+        let mut code:Vec<u8> = vec![];
         match insn.opc.kind() {
-            OpcodeKind::R(_, _) => {
-                if opr.len() >= 3 {
-                    // rs2: u5 -> 20->24
-                    let rs2 = opr[2].val().get_byte(0);
-                    insn.set_rs2(rs2);
+            OpcodeKind::E(_, _) => {
+                // 1. deal with opcode
+                let opcode = insn.code.get_bin(0);
+                let flag_sb: u8 = match (insn.is_unsigned(), insn.is_64bit()) {
+                    (false, false) => 0b00,
+                    (false, true) => 0b01,
+                    (true, false) => 0b10,
+                    (true, true) => 0b11,
+                };
+                if opcode.len() == 0 {
+                    // 1.1 No opcode
+                    log_error!("Encode opcode failed: {} , void opcode", insn.opc.name());
+                } else if opcode.len() == 1 {
+                    // 1.2 Single byte opcode
+                    code = vec![flag_sb, opcode[0]];
+                    let syms = opr.iter().map(|x| x.sym()).collect::<Vec<_>>();
+                    match (syms.as_slice(), insn.is_64bit()) {
+                        // Match Most Format in A field
+                        ([], _) => {
+                            code[0] = 0b000_000_00 | flag_sb;
+                        },
+                        ([OPR_REG], _) => {
+                            code[0] = 0b000_001_00 | flag_sb;
+                            // Get reg idx from opr
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                        },
+                        ([OPR_REG, OPR_REG], _) => {
+                            code[0] = 0b000_010_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG], _) => {
+                            code[0] = 0b000_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[2];
+                            code.push(reg3.val().get_byte(0));
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_REG], _) => {
+                            code[0] = 0b000_100_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[2];
+                            code.push(reg3.val().get_byte(0));
+                            let reg4 = &opr[3];
+                            code.push(reg4.val().get_byte(0));
+                        },
+                        ([OPR_REG, OPR_REG, OPR_IMM], false) => {
+                            code[0] = 0b000_101_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let imm1 = &opr[2];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_IMM], true)  => {
+                            code[0] = 0b000_101_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let imm1 = &opr[2];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], false) => {
+                            code[0] = 0b000_110_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let imm1 = &opr[2];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                            let imm2 = &opr[3];
+                            code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], true)  => {
+                            code[0] = 0b000_110_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let imm1 = &opr[2];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                            let imm2 = &opr[3];
+                            code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
+                        },
+                        // Match Most Format in A & B field
+                        ([OPR_REG, OPR_IMM], false) => {
+                            code[0] = 0b001_001_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let imm1 = &opr[1];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_IMM], true)  => {
+                            code[0] = 0b001_001_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let imm1 = &opr[1];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_IMM, OPR_IMM], false) => {
+                            code[0] = 0b010_001_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let imm1 = &opr[1];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                            let imm2 = &opr[2];
+                            code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_IMM, OPR_IMM], true)  => {
+                            code[0] = 0b010_001_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let imm1 = &opr[1];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                            let imm2 = &opr[2];
+                            code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM], false) => {
+                            code[0] = 0b001_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM], true)  => {
+                            code[0] = 0b001_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], false) => {
+                            code[0] = 0b001_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                            let imm2 = &opr[4];
+                            code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM], true)  => {
+                            code[0] = 0b001_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                            let imm2 = &opr[4];
+                            code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], false) => {
+                            code[0] = 0b011_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                            let imm2 = &opr[4];
+                            code.extend_from_slice(&imm2.val().get_word(0).to_le_bytes());
+                            let imm3 = &opr[5];
+                            code.extend_from_slice(&imm3.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], true)  => {
+                            code[0] = 0b011_011_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let imm1 = &opr[3];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                            let imm2 = &opr[4];
+                            code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
+                            let imm3 = &opr[5];
+                            code.extend_from_slice(&imm3.val().get_dword(0).to_le_bytes());
+                        },
+                        // Extend field
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], false) => {
+                            // A & B field
+                            code[0] = 0b110_100_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let reg4 = &opr[2];
+                            code.push(reg4.val().get_byte(0));
+                            // ExtC
+                            code.push(0b001_001_00);
+                            let reg5 = &opr[3];
+                            code.push(reg5.val().get_byte(0));
+                            let imm1 = &opr[4];
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                        }
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], true)  => {
+                            // A & B field
+                            code[0] = 0b110_100_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let reg4 = &opr[2];
+                            code.push(reg4.val().get_byte(0));
+                            // ExtC
+                            code.push(0b001_001_00);
+                            let reg5 = &opr[3];
+                            code.push(reg5.val().get_byte(0));
+                            let imm1 = &opr[4];
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                        },
+                        ([OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], _) => {
+                            // A & B field
+                            code[0] = 0b110_100_00 | flag_sb;
+                            let reg1 = &opr[0];
+                            code.push(reg1.val().get_byte(0));
+                            let reg2 = &opr[1];
+                            code.push(reg2.val().get_byte(0));
+                            let reg3 = &opr[1];
+                            code.push(reg3.val().get_byte(0));
+                            let reg4 = &opr[2];
+                            code.push(reg4.val().get_byte(0));
+                            // ExtC
+                            code.push(0b000_010_00);
+                            let reg5 = &opr[3];
+                            code.push(reg5.val().get_byte(0));
+                            let reg6 = &opr[4];
+                            code.push(reg6.val().get_byte(0));
+                        },
+                        _ => {
+                            log_error!("Encode operands not implemented: {} {}", insn.opc.name(), syms.iter().map(|x| OperandKind::sym_str(*x)).collect::<Vec<_>>().join(", "));
+                        }
+                    };
+                } else if opcode.len() == 2 {
+                    // 1.3 Double byte opcode
+                    code = vec![flag_sb | 0b000_111_00, opcode[0], opcode[1]];
                 }
-                if opr.len() >= 2 {
-                    // rs1: u5 -> 15->19
-                    let rs1 = opr[1].val().get_byte(0);
-                    insn.set_rs1(rs1);
-                }
-                // rd: u5 -> 7->11
-                let rd = opr[0].val().get_byte(0);
-                insn.set_rd(rd);
-            },
-            OpcodeKind::I(_, _) => {
-                // rd: u5 -> 7->11
-                let rd = opr[0].val().get_byte(0);
-                insn.set_rd(rd);
-                // rs1: u5 -> 15->19
-                let rs1 = opr[1].val().get_byte(0);
-                insn.set_rs1(rs1);
-                // imm: u12 -> 20->32
-                let imm = opr[2].val().get_half(0);
-                insn.set_imm_i(imm);
-                // refresh imm
-                opr.pop();
-                opr.push(Operand::imm(Value::bit(12, imm as i128)));
-            },
-            OpcodeKind::S(_, _) => {
-                // rs2: u5 -> 20->24
-                let rs2 = opr[0].val().get_byte(0);
-                insn.set_rs2(rs2);
-                // rs1: u5 -> 15->19
-                let rs1 = opr[1].val().get_byte(0);
-                insn.set_rs1(rs1);
-                // imm: S
-                let imm = opr[2].val().get_half(0);
-                insn.set_imm_s(imm);
-                // refresh imm
-                opr.pop();
-                opr.push(Operand::imm(Value::bit(12, imm as i128)));
-            },
-            OpcodeKind::B(_, _) => {
-                // rs2: u5 -> 20->24
-                let rs2 = opr[0].val().get_byte(0);
-                insn.set_rs2(rs2);
-                // rs1: u5 -> 15->19
-                let rs1 = opr[1].val().get_byte(0);
-                insn.set_rs1(rs1);
-                // imm: B
-                let imm = opr[2].val().get_half(0);
-                insn.set_imm_b(imm);
-                // refresh imm
-                opr.pop();
-                opr.push(Operand::imm(Value::bit(12, imm as i128)));
-            },
-            OpcodeKind::U(_, _) => {
-                // rd: u5 -> 7->11
-                let rd = opr[0].val().get_byte(0);
-                insn.set_rd(rd);
-                // imm: U
-                let imm = opr[1].val().get_word(0);
-                insn.set_imm_u(imm);
-                // refresh imm
-                opr.pop();
-                opr.push(Operand::imm(Value::bit(12, imm as i128)));
-            },
-            OpcodeKind::J(_, _) => {
-                // rd: u5 -> 7->11
-                let rd = opr[0].val().get_byte(0);
-                insn.set_rd(rd);
-                // imm: J
-                let imm = opr[1].val().get_word(0);
-                insn.set_imm_j(imm);
-                // refresh imm
-                opr.pop();
-                opr.push(Operand::imm(Value::bit(20, imm as i128)));
             },
             _ => {
                 log_warning!("Not support opcode type {} in arch {}", insn.opc.kind(), EVO_ARCH);
-            },
+            }
         }
         // refresh status
         let mut res = insn.clone();
         res.opr = opr;
+        res.code = Value::array_u8(RefCell::new(code));
         res.is_applied = true;
         res
     } else {
@@ -1967,99 +1936,366 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
 pub fn evo_decode(value: Value) -> Instruction {
     let mut res = Instruction::undef();
     // 1. check scale
-    if value.scale_sum() != 32 {
-        log_error!("Invalid insn scale: {}", value.scale_sum());
+    if value.size() < 2 {
+        log_error!("Decode fail: invalid insn scale {}", value.scale_sum());
         return res;
     }
-    // 2. decode opc
+    // 2. get flag & opc
     res.set_arch(&EVO_ARCH);
     res.code = value;
+    let flag_prefix = res.code.get_byte(0);
+    let is_unsigned = (flag_prefix & 0b000_000_10) == 0b000_000_10;
+    let is_64bit = (flag_prefix & 0b000_000_01) == 0b000_000_01;
+    let flag_a = (flag_prefix & 0b000_111_00) >> 2;
+    let flag_b = (flag_prefix & 0b111_000_00) >> 5;
     let mut opr = vec![];
-    match (res.opcode(), res.funct3(), res.funct7()) {
-        // 2.1 R-Type
-        (0b0110011, f3, f7) => {
-            // Get oprands
-            // a. rd
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rd() as usize).borrow().clone());
-            // b. rs1
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rs1() as usize).borrow().clone());
-            // c. rs2
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.rs2() as usize).borrow().clone());
-            // find insn
-            match (f3, f7) {
-                (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
-                (0b000, 0b0100000) => res = Instruction::insn_pool_nget("sub").borrow().clone(),
-                (0b100, 0b0000000) => res = Instruction::insn_pool_nget("xor").borrow().clone(),
-                (0b110, 0b0000000) => res = Instruction::insn_pool_nget("or").borrow().clone(),
-                (0b111, 0b0000000) => res = Instruction::insn_pool_nget("and").borrow().clone(),
-                (0b001, 0b0000000) => res = Instruction::insn_pool_nget("sll").borrow().clone(),
-                (0b101, 0b0000000) => res = Instruction::insn_pool_nget("srl").borrow().clone(),
-                (0b101, 0b0100000) => res = Instruction::insn_pool_nget("sra").borrow().clone(),
-                (0b010, 0b0000000) => res = Instruction::insn_pool_nget("slt").borrow().clone(),
-                (0b011, 0b0000000) => res = Instruction::insn_pool_nget("sltu").borrow().clone(),
-                _ => {
+    let opcode;
+    let mut cur_idx:usize = 0;
 
-                }
-            }
-        },
-        // 2.2 I-Type
-        (0b0010011, f3, 0b0000000) => {
-            // Get oprands
-            // a. rd
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rd() as usize).borrow().clone());
-            // b. rs1
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
-            // c. imm
-            opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
-            // find insn
-            match f3 {
-                0b000 => res = Instruction::insn_pool_nget("addi").borrow().clone(),
-                0b010 => res = Instruction::insn_pool_nget("slti").borrow().clone(),
-                0b011 => res = Instruction::insn_pool_nget("sltiu").borrow().clone(),
-                0b100 => res = Instruction::insn_pool_nget("xori").borrow().clone(),
-                0b110 => res = Instruction::insn_pool_nget("ori").borrow().clone(),
-                0b111 => res = Instruction::insn_pool_nget("andi").borrow().clone(),
-                _ => {}
-            }
-        },
-        // 2.3 S-Type
-        (0b0100011, f3, 0b0000000) => {
-            // Get oprands
-            // a. rs1
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
-            // b. rs2
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs2() as usize).borrow().clone());
-            // c. imm
-            opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
-            // find insn
-            match f3 {
-                0b000 => res = Instruction::insn_pool_nget("sb").borrow().clone(),
-                0b001 => res = Instruction::insn_pool_nget("sh").borrow().clone(),
-                0b010 => res = Instruction::insn_pool_nget("sw").borrow().clone(),
-                _ => {}
-            }
-        },
-        // 2.4 B-Type
-        (0b1100011, f3, 0b0000000) => {
-            // Get oprands
-            // a. rs1
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs1() as usize).borrow().clone());
-            // b. rs2
-            opr.push(RegFile::reg_poolr_get(&EVO_ARCH,res.rs2() as usize).borrow().clone());
-            // c. imm
-            opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
-            // find insn
-            match f3 {
-                0b000 => res = Instruction::insn_pool_nget("beq").borrow().clone(),
-                0b001 => res = Instruction::insn_pool_nget("bne").borrow().clone(),
-                _ => {}
-            }
-        }
-        _ => {
+    if flag_a == 0b111 {
+        // 2 opcodes
+        opcode = vec![res.code.get_byte(1), res.code.get_byte(2)];
+        cur_idx = 3;
+    } else {
+        // 1 opcodes
+        opcode = vec![res.code.get_byte(1)];
+        cur_idx = 2;
+    }
 
-        }
+    // 3. match opcode
+    if opcode.len() == 1 {
+        match (opcode[0], is_unsigned, is_64bit) {
+            (0x01, false, false) => res = Instruction::insn_pool_nget("add_i32").borrow().clone(),
+            (0x01, false, true) => res = Instruction::insn_pool_nget("add_i64").borrow().clone(),
+            (0x02, false, false) => res = Instruction::insn_pool_nget("sub_i32").borrow().clone(),
+            (0x02, false, true) => res = Instruction::insn_pool_nget("sub_i64").borrow().clone(),
+            (0x03, false, false) => res = Instruction::insn_pool_nget("neg_i32").borrow().clone(),
+            (0x03, false, true) => res = Instruction::insn_pool_nget("neg_i64").borrow().clone(),
+            (0x04, false, false) => res = Instruction::insn_pool_nget("mul_i32").borrow().clone(),
+            (0x04, false, true) => res = Instruction::insn_pool_nget("mul_i64").borrow().clone(),
+            (0x05, false, false) => res = Instruction::insn_pool_nget("div_i32").borrow().clone(),  
+            (0x05, false, true) => res = Instruction::insn_pool_nget("div_i64").borrow().clone(),
+            (0x05, true , false) => res = Instruction::insn_pool_nget("div_u32").borrow().clone(),
+            (0x05, true , true) => res = Instruction::insn_pool_nget("div_u64").borrow().clone(),
+            (0x06, false, false) => res = Instruction::insn_pool_nget("rem_i32").borrow().clone(),
+            (0x06, false, true) => res = Instruction::insn_pool_nget("rem_i64").borrow().clone(),
+            (0x06, true , false) => res = Instruction::insn_pool_nget("rem_u32").borrow().clone(),
+            (0x06, true , true) => res = Instruction::insn_pool_nget("rem_u64").borrow().clone(),
+
+            (0x07, false, false) => res = Instruction::insn_pool_nget("and_i32").borrow().clone(),
+            (0x07, false, true) => res = Instruction::insn_pool_nget("and_i64").borrow().clone(),
+            (0x08, false, false) => res = Instruction::insn_pool_nget("or_i32").borrow().clone(),
+            (0x08, false, true) => res = Instruction::insn_pool_nget("or_i64").borrow().clone(),
+            (0x09, false, false) => res = Instruction::insn_pool_nget("xor_i32").borrow().clone(),
+            (0x09, false, true) => res = Instruction::insn_pool_nget("xor_i64").borrow().clone(),
+            (0x0a, false, false) => res = Instruction::insn_pool_nget("not_i32").borrow().clone(),
+            (0x0a, false, true) => res = Instruction::insn_pool_nget("not_i64").borrow().clone(),
+            (0x0b, false, false) => res = Instruction::insn_pool_nget("andc_i32").borrow().clone(),
+            (0x0b, false, true) => res = Instruction::insn_pool_nget("andc_i64").borrow().clone(),
+            (0x0c, false, false) => res = Instruction::insn_pool_nget("eqv_i32").borrow().clone(),
+            (0x0c, false, true) => res = Instruction::insn_pool_nget("eqv_i64").borrow().clone(),
+            (0x0d, false, false) => res = Instruction::insn_pool_nget("nand_i32").borrow().clone(),
+            (0x0d, false, true) => res = Instruction::insn_pool_nget("nand_i64").borrow().clone(),
+            (0x0e, false, false) => res = Instruction::insn_pool_nget("nor_i32").borrow().clone(),
+            (0x0e, false, true) => res = Instruction::insn_pool_nget("nor_i64").borrow().clone(),
+            (0x0f, false, false) => res = Instruction::insn_pool_nget("orc_i32").borrow().clone(),
+            (0x0f, false, true) => res = Instruction::insn_pool_nget("orc_i64").borrow().clone(),
+
+            (0x10, false, false) => res = Instruction::insn_pool_nget("clz_i32").borrow().clone(),
+            (0x10, false, true) => res = Instruction::insn_pool_nget("clz_i64").borrow().clone(),
+            (0x11, false, false) => res = Instruction::insn_pool_nget("ctz_i32").borrow().clone(),
+            (0x11, false, true) => res = Instruction::insn_pool_nget("ctz_i64").borrow().clone(),
+            (0x12, false, false) => res = Instruction::insn_pool_nget("shl_i32").borrow().clone(),
+            (0x12, false, true) => res = Instruction::insn_pool_nget("shl_i64").borrow().clone(),
+            (0x13, false, false) => res = Instruction::insn_pool_nget("shr_i32").borrow().clone(),
+            (0x13, false, true) => res = Instruction::insn_pool_nget("shr_i64").borrow().clone(),
+            (0x14, false, false) => res = Instruction::insn_pool_nget("sar_i32").borrow().clone(),
+            (0x14, false, true) => res = Instruction::insn_pool_nget("sar_i64").borrow().clone(),
+            (0x15, false, false) => res = Instruction::insn_pool_nget("rol_i32").borrow().clone(),
+            (0x15, false, true) => res = Instruction::insn_pool_nget("rol_i64").borrow().clone(),
+            (0x16, false, false) => res = Instruction::insn_pool_nget("ror_i32").borrow().clone(),
+            (0x16, false, true) => res = Instruction::insn_pool_nget("ror_i64").borrow().clone(),
+
+            (0x17, false, false) => res = Instruction::insn_pool_nget("mov_i32").borrow().clone(),
+            (0x17, false, true) => res = Instruction::insn_pool_nget("mov_i64").borrow().clone(),
+            (0x18, false, false) => res = Instruction::insn_pool_nget("extb_i32").borrow().clone(),
+            (0x18, false, true) => res = Instruction::insn_pool_nget("extb_i64").borrow().clone(),
+            (0x18, true, false) => res = Instruction::insn_pool_nget("extb_u32").borrow().clone(),
+            (0x18, true, true) => res = Instruction::insn_pool_nget("extb_u64").borrow().clone(),
+            (0x19, false, false) => res = Instruction::insn_pool_nget("exth_i32").borrow().clone(),
+            (0x19, false, true) => res = Instruction::insn_pool_nget("exth_i64").borrow().clone(),
+            (0x19, true, false) => res = Instruction::insn_pool_nget("exth_u32").borrow().clone(),
+            (0x19, true, true) => res = Instruction::insn_pool_nget("exth_u64").borrow().clone(),
+            (0x1a, false, false) => res = Instruction::insn_pool_nget("extw_i32").borrow().clone(),
+            (0x1a, false, true) => res = Instruction::insn_pool_nget("extw_i64").borrow().clone(),
+            (0x1a, true, false) => res = Instruction::insn_pool_nget("extw_u32").borrow().clone(),
+            (0x1a, true, true) => res = Instruction::insn_pool_nget("extw_u64").borrow().clone(),
+
+            (0x1b, false, false) => res = Instruction::insn_pool_nget("etr_i32").borrow().clone(),
+            (0x1b, false, true) => res = Instruction::insn_pool_nget("etr_i64").borrow().clone(),
+            (0x1b, true, false) => res = Instruction::insn_pool_nget("etr_u32").borrow().clone(),
+            (0x1b, true, true) => res = Instruction::insn_pool_nget("etr_u64").borrow().clone(),
+            (0x1c, false, false) => res = Instruction::insn_pool_nget("extl_i32").borrow().clone(),
+            (0x1c, false, true) => res = Instruction::insn_pool_nget("extl_i64").borrow().clone(),
+            (0x1d, false, false) => res = Instruction::insn_pool_nget("exth_i32").borrow().clone(),
+            (0x1d, false, true) => res = Instruction::insn_pool_nget("exth_i64").borrow().clone(),
+
+            (0x1e, false, false) => res = Instruction::insn_pool_nget("truc_i32").borrow().clone(),
+            (0x1e, false, true) => res = Instruction::insn_pool_nget("truc_i64").borrow().clone(),
+            (0x1f, false, true) => res = Instruction::insn_pool_nget("conc_i64").borrow().clone(),
+            (0x20, false, true) => res = Instruction::insn_pool_nget("conn_i64").borrow().clone(),
+            (0x21, false, false) => res = Instruction::insn_pool_nget("swph_i32").borrow().clone(),
+            (0x21, false, true) => res = Instruction::insn_pool_nget("swph_i64").borrow().clone(),
+            (0x22, false, false) => res = Instruction::insn_pool_nget("swpw_i32").borrow().clone(),
+            (0x22, false, true) => res = Instruction::insn_pool_nget("swpw_i64").borrow().clone(),
+            (0x23, false, true) => res = Instruction::insn_pool_nget("swpd_i64").borrow().clone(),
+            (0x24, false, false) => res = Instruction::insn_pool_nget("depo_i32").borrow().clone(),
+            (0x24, false, true) => res = Instruction::insn_pool_nget("depo_i64").borrow().clone(),
+
+            _ => {
+                log_error!("Decode opcode fail: 0x{:x}", opcode[0]);
+            }
+        };
+
+        // 4. deal with operands
+        let field_b = match(flag_a, is_64bit) {
+            (0b000, _) => cur_idx,
+            (0b001, _) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                cur_idx
+            },
+            (0b010, _) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                cur_idx
+            },
+            (0b011, _) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                cur_idx
+            },
+            (0b100, _) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                cur_idx
+            },
+            (0b101, false) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                cur_idx
+            },
+            (0b101, true) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                cur_idx
+            },
+            (0b110, false) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                cur_idx
+            },
+            (0b110, true) => {
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
+                cur_idx += 1;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                cur_idx
+            },
+            _ => {
+                log_error!("Decode operand fail: 0x{:x}", res.code.get_byte(cur_idx));
+                cur_idx
+            }
+        };
+
+        let field_all = match(flag_b, is_64bit) {
+            (0b000, _) => cur_idx,
+            (0b001, false) => {
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                cur_idx
+            },
+            (0b001, true) => {
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                cur_idx
+            },
+            (0b010, false) => {
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                cur_idx
+            },
+            (0b010, true) => {
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                cur_idx
+            },
+            (0b011, false) => {
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
+                cur_idx += 4;
+                cur_idx
+            },
+            (0b011, true) => {
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                opr.push(Operand::imm(Value::i64(res.code.get_dword(cur_idx) as i64)));
+                cur_idx += 8;
+                cur_idx
+            },
+            (0b100, false) => {
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_word(cur_idx) as i32;
+                cur_idx += 4;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale), 
+                    Value::i32(disp))
+                );
+                cur_idx
+            },
+            (0b100, true) => {
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_dword(cur_idx) as i64;
+                cur_idx += 8;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale),
+                    Value::i64(disp))
+                );
+                cur_idx
+            },
+            (0b101, false) => {
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_word(cur_idx) as i32;
+                cur_idx += 4;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale), 
+                    Value::i32(disp))
+                );
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_word(cur_idx) as i32;
+                cur_idx += 4;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale), 
+                    Value::i32(disp))
+                );
+                cur_idx
+            },
+            (0b101, true) => {
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_dword(cur_idx) as i64;
+                cur_idx += 8;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale),
+                    Value::i64(disp))
+                );
+                let base = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let idx = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let scale = res.code.get_byte(cur_idx);
+                cur_idx += 1;
+                let disp = res.code.get_dword(cur_idx) as i64;
+                cur_idx += 8;
+                opr.push(Operand::mem(
+                    RegFile::reg_poolr_get(&EVO_ARCH, base as usize).borrow().clone(), 
+                    RegFile::reg_poolr_get(&EVO_ARCH, idx as usize).borrow().clone(),
+                    Value::u8(scale),
+                    Value::i64(disp))
+                );
+                cur_idx
+            },
+            (0b110, false) => {
+                cur_idx
+            },
+            (0b110, true) => {
+                cur_idx
+            },
+            _ => {
+                log_error!("Decode operand fail: 0x{:x}", res.code.get_byte(cur_idx));
+                cur_idx
+            }
+        };
+
+    } else if opcode.len() == 2 {
 
     }
+    
+
+    // }
     // 3. encode
     res.encode(opr)
 }
@@ -2091,87 +2327,94 @@ mod evo_test {
         let insn4  = Instruction::from_string("sub_i64 t0, t1, t2");
         let insn5  = Instruction::from_string("neg_i32 t0, t1");
         let insn6  = Instruction::from_string("neg_i64 t0, t1");
-        let insn7  = Instruction::from_string("mul_i32 t0, t1, t2");
-        let insn8  = Instruction::from_string("mul_i64 t0, t1, t2");
-        let insn9  = Instruction::from_string("div_i32 t0, t1, t2");
-        let insn10 = Instruction::from_string("div_i64 t0, t1, t2");
-        let insn11 = Instruction::from_string("div_u32 t0, t1, t2");
-        let insn12 = Instruction::from_string("div_u64 t0, t1, t2");
-        let insn13 = Instruction::from_string("rem_i32 t0, t1, t2");
-        let insn14 = Instruction::from_string("rem_i64 t0, t1, t2");
-        let insn15 = Instruction::from_string("rem_u32 t0, t1, t2");
-        let insn16 = Instruction::from_string("rem_u64 t0, t1, t2");
 
-        let insn17 = Instruction::from_string("and_i32 t0, t1, t2");
-        let insn18 = Instruction::from_string("and_i64 t0, t1, t2");
-        let insn19 = Instruction::from_string("or_i32 t0, t1, t2");
-        let insn20 = Instruction::from_string("or_i64 t0, t1, t2");
-        let insn21 = Instruction::from_string("xor_i32 t0, t1, t2");
-        let insn22 = Instruction::from_string("xor_i64 t0, t1, t2");
-        let insn23 = Instruction::from_string("not_i32 t0, t1");
-        let insn24 = Instruction::from_string("not_i64 t0, t1");
-        let insn25 = Instruction::from_string("andc_i32 t0, t1, t2");
-        let insn26 = Instruction::from_string("andc_i64 t0, t1, t2");
-        let insn27 = Instruction::from_string("eqv_i32 t0, t1, t2");
-        let insn28 = Instruction::from_string("eqv_i64 t0, t1, t2");
-        let insn29 = Instruction::from_string("nand_i32 t0, t1, t2");
-        let insn30 = Instruction::from_string("nand_i64 t0, t1, t2");
-        let insn31 = Instruction::from_string("nor_i32 t0, t1, t2");
-        let insn32 = Instruction::from_string("nor_i64 t0, t1, t2");
-        let insn33 = Instruction::from_string("orc_i32 t0, t1, t2");
-        let insn34 = Instruction::from_string("orc_i64 t0, t1, t2");
+        println!("{}", insn1.code.hex(0, -1, false));
+        println!("{}", insn2.code.hex(0, -1, false));
+        println!("{}", insn3.code.hex(0, -1, false));
+        println!("{}", insn4.code.hex(0, -1, false));
+        println!("{}", insn5.code.hex(0, -1, false));
+        println!("{}", insn6.code.hex(0, -1, false));
+        // let insn7  = Instruction::from_string("mul_i32 t0, t1, t2");
+        // let insn8  = Instruction::from_string("mul_i64 t0, t1, t2");
+        // let insn9  = Instruction::from_string("div_i32 t0, t1, t2");
+        // let insn10 = Instruction::from_string("div_i64 t0, t1, t2");
+        // let insn11 = Instruction::from_string("div_u32 t0, t1, t2");
+        // let insn12 = Instruction::from_string("div_u64 t0, t1, t2");
+        // let insn13 = Instruction::from_string("rem_i32 t0, t1, t2");
+        // let insn14 = Instruction::from_string("rem_i64 t0, t1, t2");
+        // let insn15 = Instruction::from_string("rem_u32 t0, t1, t2");
+        // let insn16 = Instruction::from_string("rem_u64 t0, t1, t2");
 
-        let insn35 = Instruction::from_string("clz_i32 t0, t1, t2");
-        let insn36 = Instruction::from_string("clz_i64 t0, t1, t2");
-        let insn37 = Instruction::from_string("ctz_i32 t0, t1, t2");
-        let insn38 = Instruction::from_string("ctz_i64 t0, t1, t2");
-        let insn39 = Instruction::from_string("shl_i32 t0, t1, t2");
-        let insn40 = Instruction::from_string("shl_i64 t0, t1, t2");
-        let insn41 = Instruction::from_string("shr_i32 t0, t1, t2");
-        let insn42 = Instruction::from_string("shr_i64 t0, t1, t2");
-        let insn43 = Instruction::from_string("sar_i32 t0, t1, t2");
-        let insn44 = Instruction::from_string("sar_i64 t0, t1, t2");
-        let insn45 = Instruction::from_string("rol_i32 t0, t1, t2");
-        let insn46 = Instruction::from_string("rol_i64 t0, t1, t2");
-        let insn47 = Instruction::from_string("ror_i32 t0, t1, t2");
-        let insn48 = Instruction::from_string("ror_i64 t0, t1, t2");
-        let insn49 = Instruction::from_string("mov_i32 t0, t1");
-        let insn50 = Instruction::from_string("mov_i64 t0, t1");
+        // let insn17 = Instruction::from_string("and_i32 t0, t1, t2");
+        // let insn18 = Instruction::from_string("and_i64 t0, t1, t2");
+        // let insn19 = Instruction::from_string("or_i32 t0, t1, t2");
+        // let insn20 = Instruction::from_string("or_i64 t0, t1, t2");
+        // let insn21 = Instruction::from_string("xor_i32 t0, t1, t2");
+        // let insn22 = Instruction::from_string("xor_i64 t0, t1, t2");
+        // let insn23 = Instruction::from_string("not_i32 t0, t1");
+        // let insn24 = Instruction::from_string("not_i64 t0, t1");
+        // let insn25 = Instruction::from_string("andc_i32 t0, t1, t2");
+        // let insn26 = Instruction::from_string("andc_i64 t0, t1, t2");
+        // let insn27 = Instruction::from_string("eqv_i32 t0, t1, t2");
+        // let insn28 = Instruction::from_string("eqv_i64 t0, t1, t2");
+        // let insn29 = Instruction::from_string("nand_i32 t0, t1, t2");
+        // let insn30 = Instruction::from_string("nand_i64 t0, t1, t2");
+        // let insn31 = Instruction::from_string("nor_i32 t0, t1, t2");
+        // let insn32 = Instruction::from_string("nor_i64 t0, t1, t2");
+        // let insn33 = Instruction::from_string("orc_i32 t0, t1, t2");
+        // let insn34 = Instruction::from_string("orc_i64 t0, t1, t2");
 
-        let insn51 = Instruction::from_string("extb_i32 t0, t3");
-        let insn52 = Instruction::from_string("extb_i64 t0, t3");
-        let insn53 = Instruction::from_string("extb_u32 t0, t3");
-        let insn54 = Instruction::from_string("extb_u64 t0, t3");
-        let insn55 = Instruction::from_string("exth_i32 t0, t3");
-        let insn56 = Instruction::from_string("exth_i64 t0, t3");
-        let insn57 = Instruction::from_string("exth_u32 t0, t3");
-        let insn58 = Instruction::from_string("exth_u64 t0, t3");
-        let insn59 = Instruction::from_string("extw_i32 t0, t3");
-        let insn60 = Instruction::from_string("extw_i64 t0, t3");
-        let insn61 = Instruction::from_string("extw_u32 t0, t3");
-        let insn62 = Instruction::from_string("extw_u64 t0, t3");
+        // let insn35 = Instruction::from_string("clz_i32 t0, t1, t2");
+        // let insn36 = Instruction::from_string("clz_i64 t0, t1, t2");
+        // let insn37 = Instruction::from_string("ctz_i32 t0, t1, t2");
+        // let insn38 = Instruction::from_string("ctz_i64 t0, t1, t2");
+        // let insn39 = Instruction::from_string("shl_i32 t0, t1, t2");
+        // let insn40 = Instruction::from_string("shl_i64 t0, t1, t2");
+        // let insn41 = Instruction::from_string("shr_i32 t0, t1, t2");
+        // let insn42 = Instruction::from_string("shr_i64 t0, t1, t2");
+        // let insn43 = Instruction::from_string("sar_i32 t0, t1, t2");
+        // let insn44 = Instruction::from_string("sar_i64 t0, t1, t2");
+        // let insn45 = Instruction::from_string("rol_i32 t0, t1, t2");
+        // let insn46 = Instruction::from_string("rol_i64 t0, t1, t2");
+        // let insn47 = Instruction::from_string("ror_i32 t0, t1, t2");
+        // let insn48 = Instruction::from_string("ror_i64 t0, t1, t2");
+
+        // let insn49 = Instruction::from_string("mov_i32 t0, t1");
+        // let insn50 = Instruction::from_string("mov_i64 t0, t1");
+        // let insn51 = Instruction::from_string("extb_i32 t0, t3");
+        // let insn52 = Instruction::from_string("extb_i64 t0, t3");
+        // let insn53 = Instruction::from_string("extb_u32 t0, t3");
+        // let insn54 = Instruction::from_string("extb_u64 t0, t3");
+        // let insn55 = Instruction::from_string("exth_i32 t0, t3");
+        // let insn56 = Instruction::from_string("exth_i64 t0, t3");
+        // let insn57 = Instruction::from_string("exth_u32 t0, t3");
+        // let insn58 = Instruction::from_string("exth_u64 t0, t3");
+        // let insn59 = Instruction::from_string("extw_i32 t0, t3");
+        // let insn60 = Instruction::from_string("extw_i64 t0, t3");
+        // let insn61 = Instruction::from_string("extw_u32 t0, t3");
+        // let insn62 = Instruction::from_string("extw_u64 t0, t3");
 
 
-        let insn63 = Instruction::from_string("etr_i32 t0, t4");
-        let insn64 = Instruction::from_string("etr_i64 t0, t4");
-        let insn65 = Instruction::from_string("etr_u32 t0, t4");
-        let insn66 = Instruction::from_string("etr_u64 t0, t4");
-        let insn67 = Instruction::from_string("etrh_i32 t0, t4");
-        let insn68 = Instruction::from_string("etrl_i32 t0, t4");
-        let insn69 = Instruction::from_string("etrh_i64 t0, t4");
-        let insn70 = Instruction::from_string("etrl_i64 t0, t4");
+        // let insn63 = Instruction::from_string("etr_i32 t0, t4");
+        // let insn64 = Instruction::from_string("etr_i64 t0, t4");
+        // let insn65 = Instruction::from_string("etr_u32 t0, t4");
+        // let insn66 = Instruction::from_string("etr_u64 t0, t4");
+        // let insn67 = Instruction::from_string("etrh_i32 t0, t4");
+        // let insn68 = Instruction::from_string("etrl_i32 t0, t4");
+        // let insn69 = Instruction::from_string("etrh_i64 t0, t4");
+        // let insn70 = Instruction::from_string("etrl_i64 t0, t4");
 
-        let insn71 = Instruction::from_string("truc_i32 t0, t4");
-        let insn72 = Instruction::from_string("truc_i64 t0, t4");
-        let insn73 = Instruction::from_string("conc_i64 t0, t4, t1");
-        let insn74 = Instruction::from_string("conn_i64 t0, t4, t1");
-        let insn75 = Instruction::from_string("swph_i32 t0, t4");
-        let insn76 = Instruction::from_string("swph_i64 t0, t4");
-        let insn77 = Instruction::from_string("swpw_i32 t0, t4");
-        let insn78 = Instruction::from_string("swpw_i64 t0, t4");
-        let insn79 = Instruction::from_string("swpd_i64 t0, t4");
-        let insn80 = Instruction::from_string("depo_i32 t0, t4");
-        let insn81 = Instruction::from_string("depo_i64 t0, t4");
+        // let insn71 = Instruction::from_string("truc_i32 t0, t4");
+        // let insn72 = Instruction::from_string("truc_i64 t0, t4");
+        // let insn73 = Instruction::from_string("conc_i64 t0, t4, t1");
+        // let insn74 = Instruction::from_string("conn_i64 t0, t4, t1");
+        // let insn75 = Instruction::from_string("swph_i32 t0, t4");
+        // let insn76 = Instruction::from_string("swph_i64 t0, t4");
+        // let insn77 = Instruction::from_string("swpw_i32 t0, t4");
+        // let insn78 = Instruction::from_string("swpw_i64 t0, t4");
+        // let insn79 = Instruction::from_string("swpd_i64 t0, t4");
+        // let insn80 = Instruction::from_string("depo_i32 t0, t4");
+        // let insn81 = Instruction::from_string("depo_i64 t0, t4");
 
 
         cpu.execute(&insn1);
@@ -2186,183 +2429,159 @@ mod evo_test {
         println!("{:<60} -> t0 = {}", insn5.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn6);
         println!("{:<60} -> t0 = {}", insn6.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn7);
-        println!("{:<60} -> t0 = {}", insn7.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn8);
-        println!("{:<60} -> t0 = {}", insn8.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn9);
-        println!("{:<60} -> t0 = {}", insn9.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn10);
-        println!("{:<60} -> t0 = {}", insn10.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn11);
-        println!("{:<60} -> t0 = {}", insn11.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn12);
-        println!("{:<60} -> t0 = {}", insn12.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn13);
-        println!("{:<60} -> t0 = {}", insn13.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn14);
-        println!("{:<60} -> t0 = {}", insn14.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn15);
-        println!("{:<60} -> t0 = {}", insn15.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn16);
+        // cpu.execute(&insn7);
+        // println!("{:<60} -> t0 = {}", insn7.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn8);
+        // println!("{:<60} -> t0 = {}", insn8.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn9);
+        // println!("{:<60} -> t0 = {}", insn9.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn10);
+        // println!("{:<60} -> t0 = {}", insn10.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn11);
+        // println!("{:<60} -> t0 = {}", insn11.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn12);
+        // println!("{:<60} -> t0 = {}", insn12.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn13);
+        // println!("{:<60} -> t0 = {}", insn13.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn14);
+        // println!("{:<60} -> t0 = {}", insn14.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn15);
+        // println!("{:<60} -> t0 = {}", insn15.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn16);
 
-        println!("{:<60} -> t0 = {}", insn16.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn17);
-        println!("{:<60} -> t0 = {}", insn17.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn18);
-        println!("{:<60} -> t0 = {}", insn18.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn19);
-        println!("{:<60} -> t0 = {}", insn19.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn20);
-        println!("{:<60} -> t0 = {}", insn20.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn21);
-        println!("{:<60} -> t0 = {}", insn21.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn22);
-        println!("{:<60} -> t0 = {}", insn22.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn23);
-        println!("{:<60} -> t0 = {}", insn23.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn24);
-        println!("{:<60} -> t0 = {}", insn24.to_string(), cpu.get_nreg("t0").get_i64(0));
-
-        cpu.execute(&insn25);
-        println!("{:<60} -> t0 = {}", insn25.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn26);
-        println!("{:<60} -> t0 = {}", insn26.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn27);
-        println!("{:<60} -> t0 = {}", insn27.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn28);
-        println!("{:<60} -> t0 = {}", insn28.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn29);
-        println!("{:<60} -> t0 = {}", insn29.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn30);
-        println!("{:<60} -> t0 = {}", insn30.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn31);
-        println!("{:<60} -> t0 = {}", insn31.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn32);
-        println!("{:<60} -> t0 = {}", insn32.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn33);
-        println!("{:<60} -> t0 = {}", insn33.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn34);
-        println!("{:<60} -> t0 = {}", insn34.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn35);
-        println!("{:<60} -> t0 = {}", insn35.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn36);
-        println!("{:<60} -> t0 = {}", insn36.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn37);
-        println!("{:<60} -> t0 = {}", insn37.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn38);
-        println!("{:<60} -> t0 = {}", insn38.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn39);
-        println!("{:<60} -> t0 = {}", insn39.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn40);
-        println!("{:<60} -> t0 = {}", insn40.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn41);
-        println!("{:<60} -> t0 = {}", insn41.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn42);
-        println!("{:<60} -> t0 = {}", insn42.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn43);
-        println!("{:<60} -> t0 = {}", insn43.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn44);
-        println!("{:<60} -> t0 = {}", insn44.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn45);
-        println!("{:<60} -> t0 = {}", insn45.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn46);
-        println!("{:<60} -> t0 = {}", insn46.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn47);
-        println!("{:<60} -> t0 = {}", insn47.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn48);
-        println!("{:<60} -> t0 = {}", insn48.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn49);
-        println!("{:<60} -> t0 = {}", insn49.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn50);
-        println!("{:<60} -> t0 = {}", insn50.to_string(), cpu.get_nreg("t0").get_i64(0));
-
-        cpu.execute(&insn51);
-        println!("{:<60} -> t0 = {}", insn51.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn52);
-        println!("{:<60} -> t0 = {}", insn52.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn53);
-        println!("{:<60} -> t0 = {}", insn53.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn54);
-        println!("{:<60} -> t0 = {}", insn54.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn55);
-        println!("{:<60} -> t0 = {}", insn55.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn56);
-        println!("{:<60} -> t0 = {}", insn56.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn57);
-        println!("{:<60} -> t0 = {}", insn57.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn58);
-        println!("{:<60} -> t0 = {}", insn58.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn59);
-        println!("{:<60} -> t0 = {}", insn59.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn60);
-        println!("{:<60} -> t0 = {}", insn60.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn61);
-        println!("{:<60} -> t0 = {}", insn61.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn62);
-        println!("{:<60} -> t0 = {}", insn62.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn63);
-        println!("{:<60} -> t0 = {}", insn63.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn64);
-        println!("{:<60} -> t0 = {}", insn64.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn65);
-        println!("{:<60} -> t0 = {}", insn65.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn66);
-        println!("{:<60} -> t0 = {}", insn66.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn67);
-        println!("{:<60} -> t0 = {}", insn67.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn68);
-        println!("{:<60} -> t0 = {}", insn68.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn69);
-        println!("{:<60} -> t0 = 0x{:02x}", insn69.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn70);
-        println!("{:<60} -> t0 = 0x{:02x}", insn70.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn71);
-        println!("{:<60} -> t0 = 0x{:02x}", insn71.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn72);
-        println!("{:<60} -> t0 = 0x{:02x}", insn72.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn73);
-        println!("{:<60} -> t0 = 0x{:02x}", insn73.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn74);
-        println!("{:<60} -> t0 = 0x{:02x}", insn74.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn75);
-        println!("{:<60} -> t0 = 0x{:02x}", insn75.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn76);
-        println!("{:<60} -> t0 = 0x{:02x}", insn76.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn77);
-        println!("{:<60} -> t0 = 0x{:02x}", insn77.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn78);
-        println!("{:<60} -> t0 = 0x{:02x}", insn78.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn79);
-        println!("{:<60} -> t0 = 0x{:02x}", insn79.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn80);
-        println!("{:<60} -> t0 = 0x{:02x}", insn80.to_string(), cpu.get_nreg("t0").get_i64(0));
-        cpu.execute(&insn81);
-        println!("{:<60} -> t0 = 0x{:02x}", insn81.to_string(), cpu.get_nreg("t0").get_i64(0));
-
-        // cpu.set_nreg("t0", Value::i32(56));
+        // println!("{:<60} -> t0 = {}", insn16.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn17);
+        // println!("{:<60} -> t0 = {}", insn17.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn18);
+        // println!("{:<60} -> t0 = {}", insn18.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn19);
+        // println!("{:<60} -> t0 = {}", insn19.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn20);
+        // println!("{:<60} -> t0 = {}", insn20.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn21);
+        // println!("{:<60} -> t0 = {}", insn21.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn22);
-        // println!("{:<60} -> mem = {}", insn22.to_string(), cpu.mem_read(26, 1).bin(0, 1, false));
-        // cpu.set_nreg("t0", Value::i32(732));
+        // println!("{:<60} -> t0 = {}", insn22.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn23);
-        // println!("{:<60} -> mem = {}", insn23.to_string(), cpu.mem_read(26, 1).bin(0, 2, false));
-        // cpu.set_nreg("t0", Value::i32(-8739));
+        // println!("{:<60} -> t0 = {}", insn23.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn24);
-        // println!("{:<60} -> mem = {}", insn24.to_string(), cpu.mem_read(26, 1).bin(0, 4, false));
+        // println!("{:<60} -> t0 = {}", insn24.to_string(), cpu.get_nreg("t0").get_i64(0));
 
+        // cpu.execute(&insn25);
+        // println!("{:<60} -> t0 = {}", insn25.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn26);
+        // println!("{:<60} -> t0 = {}", insn26.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn27);
+        // println!("{:<60} -> t0 = {}", insn27.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn28);
+        // println!("{:<60} -> t0 = {}", insn28.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn29);
+        // println!("{:<60} -> t0 = {}", insn29.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn30);
+        // println!("{:<60} -> t0 = {}", insn30.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn31);
-        // println!("{:<60} -> pc = {}, t0 = {}", insn31.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+        // println!("{:<60} -> t0 = {}", insn31.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn32);
-        // println!("{:<60} -> pc = {}, t0 = {}", insn32.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
-
+        // println!("{:<60} -> t0 = {}", insn32.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn33);
-        // println!("{:<60} -> pc = {}, t0 = {}", insn33.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
+        // println!("{:<60} -> t0 = {}", insn33.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn34);
-        // println!("{:<60} -> pc = {}, t0 = {}", insn34.to_string(), cpu.get_pc(), cpu.get_nreg("t0").get_i32(0));
-
+        // println!("{:<60} -> t0 = {}", insn34.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn35);
-        // println!("{:<60} -> status = {}", insn35.to_string(), cpu.status());
+        // println!("{:<60} -> t0 = {}", insn35.to_string(), cpu.get_nreg("t0").get_i64(0));
         // cpu.execute(&insn36);
-        // println!("{:<60} -> status = {}", insn36.to_string(), cpu.status());
+        // println!("{:<60} -> t0 = {}", insn36.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn37);
+        // println!("{:<60} -> t0 = {}", insn37.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn38);
+        // println!("{:<60} -> t0 = {}", insn38.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn39);
+        // println!("{:<60} -> t0 = {}", insn39.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn40);
+        // println!("{:<60} -> t0 = {}", insn40.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn41);
+        // println!("{:<60} -> t0 = {}", insn41.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn42);
+        // println!("{:<60} -> t0 = {}", insn42.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn43);
+        // println!("{:<60} -> t0 = {}", insn43.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn44);
+        // println!("{:<60} -> t0 = {}", insn44.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn45);
+        // println!("{:<60} -> t0 = {}", insn45.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn46);
+        // println!("{:<60} -> t0 = {}", insn46.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn47);
+        // println!("{:<60} -> t0 = {}", insn47.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn48);
+        // println!("{:<60} -> t0 = {}", insn48.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn49);
+        // println!("{:<60} -> t0 = {}", insn49.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn50);
+        // println!("{:<60} -> t0 = {}", insn50.to_string(), cpu.get_nreg("t0").get_i64(0));
+
+        // cpu.execute(&insn51);
+        // println!("{:<60} -> t0 = {}", insn51.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn52);
+        // println!("{:<60} -> t0 = {}", insn52.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn53);
+        // println!("{:<60} -> t0 = {}", insn53.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn54);
+        // println!("{:<60} -> t0 = {}", insn54.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn55);
+        // println!("{:<60} -> t0 = {}", insn55.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn56);
+        // println!("{:<60} -> t0 = {}", insn56.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn57);
+        // println!("{:<60} -> t0 = {}", insn57.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn58);
+        // println!("{:<60} -> t0 = {}", insn58.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn59);
+        // println!("{:<60} -> t0 = {}", insn59.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn60);
+        // println!("{:<60} -> t0 = {}", insn60.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn61);
+        // println!("{:<60} -> t0 = {}", insn61.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn62);
+        // println!("{:<60} -> t0 = {}", insn62.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn63);
+        // println!("{:<60} -> t0 = {}", insn63.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn64);
+        // println!("{:<60} -> t0 = {}", insn64.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn65);
+        // println!("{:<60} -> t0 = {}", insn65.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn66);
+        // println!("{:<60} -> t0 = {}", insn66.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn67);
+        // println!("{:<60} -> t0 = {}", insn67.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn68);
+        // println!("{:<60} -> t0 = {}", insn68.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn69);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn69.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn70);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn70.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn71);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn71.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn72);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn72.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn73);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn73.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn74);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn74.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn75);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn75.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn76);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn76.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn77);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn77.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn78);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn78.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn79);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn79.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn80);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn80.to_string(), cpu.get_nreg("t0").get_i64(0));
+        // cpu.execute(&insn81);
+        // println!("{:<60} -> t0 = 0x{:02x}", insn81.to_string(), cpu.get_nreg("t0").get_i64(0));
+
     }
 }

@@ -624,6 +624,9 @@ pub enum OpcodeKind {
     /// X-Type Opcode
     X(&'static str, Vec<u16>),
 
+    /// E-Type Opcode
+    E(&'static str, Vec<u16>),
+
     /// Undef-Type Opcode
     Undef(&'static str, Vec<u16>),
 }
@@ -641,6 +644,7 @@ impl OpcodeKind {
             OpcodeKind::U(name, _) => name,
             OpcodeKind::J(name, _) => name,
             OpcodeKind::X(name, _) => name,
+            OpcodeKind::E(name, _) => name,
             OpcodeKind::Undef(name, _) => name,
         }
     }
@@ -655,6 +659,7 @@ impl OpcodeKind {
             OpcodeKind::U(_, _) => "U",
             OpcodeKind::J(_, _) => "J",
             OpcodeKind::X(_, _) => "X",
+            OpcodeKind::E(_, _) => "E",
             OpcodeKind::Undef(_, _) => "Undef",
         }
     }
@@ -669,6 +674,7 @@ impl OpcodeKind {
             OpcodeKind::U(_, syms) => syms.clone(),
             OpcodeKind::J(_, syms) => syms.clone(),
             OpcodeKind::X(_, syms) => syms.clone(),
+            OpcodeKind::E(_, syms) => syms.clone(),
             OpcodeKind::Undef(_, syms) => syms.clone(),
         }
     }
@@ -696,6 +702,9 @@ impl OpcodeKind {
             },
             OpcodeKind::X(_, _) => {
                 *self = OpcodeKind::X(self.name(), syms);
+            },
+            OpcodeKind::E(_, _) => {
+                *self = OpcodeKind::E(self.name(), syms);
             }
             OpcodeKind::Undef(_, _) => {
                 *self = OpcodeKind::J(self.name(), syms);
@@ -712,7 +721,8 @@ impl OpcodeKind {
             OpcodeKind::B(_, _) |
             OpcodeKind::U(_, _) |
             OpcodeKind::J(_, _) |
-            OpcodeKind::X(_, _) => {
+            OpcodeKind::X(_, _) |
+            OpcodeKind::E(_, _) => {
                 // Get every sym and check
                 let mut is_same = true;
                 assert!(syms.len() == self.syms().len());
@@ -739,7 +749,8 @@ impl OpcodeKind {
             OpcodeKind::B(name, syms) |
             OpcodeKind::U(name, syms) |
             OpcodeKind::J(name, syms) |
-            OpcodeKind::X(name, syms) => {
+            OpcodeKind::X(name, syms) |
+            OpcodeKind::E(name, syms) => {
                 // Get syms and to string
                 let sym_str = syms.iter().map(|x| OperandKind::sym_str(x.clone())).collect::<Vec<_>>().join(", ");
                 format!("{:<10} {}", name, sym_str)
@@ -781,6 +792,7 @@ impl Opcode {
             "U" => Opcode(RefCell::new(OpcodeKind::U(name, syms))),
             "J" => Opcode(RefCell::new(OpcodeKind::J(name, syms))),
             "X" => Opcode(RefCell::new(OpcodeKind::X(name, syms))),
+            "E" => Opcode(RefCell::new(OpcodeKind::E(name, syms))),
             "Undef" => Opcode(RefCell::new(OpcodeKind::Undef(name, syms))),
             _ => {
                 log_error!("Unknown type: {}", ty);

@@ -366,7 +366,7 @@ impl Value {
     pub fn get_byte(&self, index: usize) -> u8 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 1 {
-            log_warning!("Byte index out of bounds: {}", index);
+            // log_warning!("Byte index out of bounds: {}", index);
             // get val clone , resize and fill 0
             let mut val = self.val.borrow().clone();
             val.resize(index + 1, 0);
@@ -379,7 +379,7 @@ impl Value {
     pub fn get_half(&self, index: usize) -> u16 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 2 {
-            log_warning!("Half index out of bounds: {}", index);
+            // log_warning!("Half index out of bounds: {}", index);
             // get val clone , resize and fill 0
             let mut val = self.val.borrow().clone();
             val.resize(index + 2, 0);
@@ -392,7 +392,7 @@ impl Value {
     pub fn get_word(&self, index: usize) -> u32 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 4 {
-            log_warning!("Word index out of bounds: {}", index);
+            // log_warning!("Word index out of bounds: {}", index);
             // get val clone , resize and fill 0
             let mut val = self.val.borrow().clone();
             val.resize(index + 4, 0);
@@ -405,7 +405,7 @@ impl Value {
     pub fn get_dword(&self, index: usize) -> u64 {
         let buffer = self.val.borrow();
         if buffer.len() < index + 8 {
-            log_warning!("Dword index out of bounds: {}", index);
+            // log_warning!("Dword index out of bounds: {}", index);
             // get val clone , resize and fill 0
             let mut val = self.val.borrow().clone();
             val.resize(index + 8, 0);

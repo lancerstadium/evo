@@ -10,7 +10,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::arch::evo::def::{evo_decode, evo_encode, EVO_ARCH};
-use crate::arch::info::Arch;
+use crate::arch::info::{Arch, BIT32, BIT64};
 use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
 use crate::arch::x86::def::{x86_decode, x86_encode, X86_ARCH};
 use crate::{log_error, log_warning};
@@ -328,13 +328,13 @@ impl RegFile {
 ///  │ ─── ─── ── │ p │ 001.x: reg(1)          │ 001.0: imm(4)    │
 ///  │ BBB AAA sb │ c │ 010.x: reg(1,1)        │ 001.1: imm(8)    │
 ///  │         ^^ │ o │ 011.x: reg(1,1,1)      │ 010.0: imm(4,4)  │
-///  │       flag │ d │ 100.0: reg(1,1),imm(4) │ 010.1: imm(8,8)  │
-///  │            │ e │ 100.1: reg(1,1),imm(8) │ 011.0: imm(4,4,4)│
-///  │            │   │ 101.0: reg(1),imm(4)   │ 011.1: imm(8,8,8)│
-///  │            │   │ 101.1: reg(1),imm(8)   │ 100.0: mem(7)    │
-///  │            │   │ 110.0: reg(1),imm(4,4) │ 100.1: mem(11)   │
-///  │            │   │ 110.1: reg(1),imm(8,8) │ 101.0: mem(7,7)  │
-///  │            │   │ 111.x: opcode(1)       │ 101.1: mem(11,11)│
+///  │       flag │ d │ 100.x: reg(1,1,1,1)    │ 010.1: imm(8,8)  │
+///  │            │ e │ 101.0: reg(1,1)imm(4)  │ 011.0: imm(4,4,4)│
+///  │            │   │ 101.1: reg(1,1)imm(8)  │ 011.1: imm(8,8,8)│
+///  │            │   │ 110.0: reg(1,1)imm(4,4)│ 100.0: mem(7)    │
+///  │            │   │ 110.1: reg(1,1)imm(8,8)│ 100.1: mem(11)   │
+///  │            │   │ 111.x: opcode(1)       │ 101.0: mem(7,7)  │
+///  │            │   │                        │ 101.1: mem(11,11)│
 ///  │            │   │                        │ 110.x: off(0)ExtC│
 ///  │            │   │                        │ 111.x: off(0)ExtV│
 ///  └────────────┴───┴────────────────────────┴──────────────────┘
@@ -581,6 +581,44 @@ impl Instruction {
         }
     }
 
+    pub fn bits_mode(&self) -> usize {
+        match self.flag & 0b0111 {
+            0b000 => 8,
+            0b001 => 16,
+            0b010 => 32,
+            0b011 => 64,
+            0b100 => 80,
+            0b101 => 96,
+            0b110 => 128,
+            0b111 => 256,
+            _ => 32
+        }
+    }
+
+    pub fn sign_mode(&self) -> usize {
+        match self.flag & 0b0001_0000_0000_0000 {
+            INSN_SIG => 0,
+            INSN_USD => 1,
+            _ => 0
+        }
+    }
+
+    pub fn is_32bit(&self) -> bool {
+        (self.flag & 0b0111) == BIT32
+    }
+
+    pub fn is_64bit(&self) -> bool {
+        (self.flag & 0b0111) == BIT64
+    }
+
+    pub fn is_signed(&self) -> bool {
+        (self.flag & 0b0001_0000_0000_0000) == INSN_SIG
+    }
+
+    pub fn is_unsigned(&self) -> bool {
+        (self.flag & 0b0001_0000_0000_0000) == INSN_USD
+    }
+
     // ================= Instruction.insn_pool ================== //
 
     /// delete Insn from pool
@@ -633,7 +671,7 @@ impl Instruction {
         
         for i in 0..Self::insn_pool_size() {
             let insn = Self::insn_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {:<40}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
+            info.push_str(&format!("- {:<52}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
         }
         info
     }
@@ -897,9 +935,6 @@ impl Instruction {
         let mut opr_vec = Vec::new();
         for i in 0..opr_sym.len() {
             let r = Operand::from_string(opr_sym[i], opr[i].trim());
-            // if opr_sym[i] & OPR_IMM == OPR_IMM {
-            //     r = Operand::imm(r.val().resize(32).clone());
-            // }
             opr_vec.push(r);
         }
         // 5. Encode Instruction
