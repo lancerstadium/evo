@@ -934,7 +934,12 @@ impl Instruction {
         let opr_sym = res.borrow().syms();
         let mut opr_vec = Vec::new();
         for i in 0..opr_sym.len() {
-            let r = Operand::from_string(opr_sym[i], opr[i].trim());
+            let r;
+            if i < opr.len() {
+                r = Operand::from_string(opr_sym[i], opr[i].trim());
+            } else {
+                r = Operand::undef();
+            }
             opr_vec.push(r);
         }
         // 5. Encode Instruction
