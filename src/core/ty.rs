@@ -67,6 +67,7 @@ pub enum TypesKind {
     // Struct type
     Struct(Vec<Types>),
 
+    None
 }
 
 /// Get string for `TypesKind`.
@@ -76,6 +77,7 @@ impl TypesKind {
     pub fn to_string(&self) -> String {
         match self {
             TypesKind::Void => "void".to_string(),
+            TypesKind::None => "none".to_string(),
             TypesKind::Bit(n) => format!("b'{}", n),
             TypesKind::I8 => "i8".to_string(),
             TypesKind::I16 => "i16".to_string(),
@@ -123,7 +125,7 @@ impl TypesKind {
             TypesKind::Array(ty, len) => format!("[{}; {}]", ty.to_string(), len),
             TypesKind::Tuple(tys) => format!("({})", tys.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
             TypesKind::Ptr(ty) => format!("*{}", ty.to_string()),
-            TypesKind::Func(args, ret) => format!("({}) -> {}", args.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", "), ret.to_string()),
+            TypesKind::Func(args, ret) => format!("fn ({}) -> {}", args.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", "), ret.to_string()),
             TypesKind::Struct(fields) => format!("struct {{{}}}", fields.iter().map(|ty| ty.to_string()).collect::<Vec<String>>().join(", ")),
         }
     }
@@ -159,12 +161,19 @@ impl TypesKind {
             let tys = parts.map(|ty| Types::from_string(ty.trim())).collect();
             return TypesKind::Tuple(tys);
         }
-        // Function: (ty1, ty2, ...) -> ty
-        if s.starts_with("(") {
-            let s = &s[1..];
-            let mut parts = s.split(") ->");
-            let args = parts.next().unwrap().split(',').map(|ty| Types::from_string(ty.trim())).collect();
-            let ret = Types::from_string(parts.next().unwrap().trim());
+        // Function: fn (ty1, ty2, ...) -> ty
+        if s.starts_with("fn (") {
+            let s = &s[4..];
+            let parts = s.split(") ->").map(|ty| ty.trim()).collect::<Vec<&str>>();
+            let args;
+            let ret;
+            if parts.len() < 2 {
+                args = Vec::new();
+                ret = Types::from_string(parts[0].trim());
+            } else {
+                args = parts[0].split(',').map(|ty| Types::from_string(ty.trim())).collect();
+                ret = Types::from_string(parts[1].trim());
+            }
             return TypesKind::Func(args, ret);
         }
         // Struct: struct {ty1, ty2, ...}
@@ -176,6 +185,7 @@ impl TypesKind {
         }
         match s {
             "void" => TypesKind::Void,
+            "none" => TypesKind::None,
             "i8" => TypesKind::I8,
             "i16" => TypesKind::I16,
             "i32" => TypesKind::I32,
@@ -307,6 +317,11 @@ impl Types {
     /// Returns an `void` type.
     pub fn void() -> Types {
         Types::get(TypesKind::Void)
+    }
+
+    /// Returns an `none` type.
+    pub fn none() -> Types {
+        Types::get(TypesKind::None)
     }
 
     /// Returns an `bit` type: scale is the width of bit.
@@ -564,6 +579,7 @@ impl Types {
     pub fn size(&self) -> usize {
         match self.kind() {
             TypesKind::Void => 0,
+            TypesKind::None => 0,
             TypesKind::Bit(n) => n / 8 + (n % 8 != 0) as usize,
             TypesKind::I8 => 1,
             TypesKind::I16 => 2,
@@ -618,6 +634,7 @@ impl Types {
     pub fn scale(&self) -> Vec<usize> {
         match self.kind() {
             TypesKind::Void => vec![0],
+            TypesKind::None => vec![0],
             TypesKind::Bit(n) => vec![*n],
             TypesKind::U1 => vec![1],
             TypesKind::U2 => vec![2],
@@ -664,7 +681,7 @@ impl Types {
     /// Return types vec of current type
     pub fn types(&self) -> Vec<Types> {
         match self.kind() {
-            TypesKind::Void | TypesKind::Bit(_) | TypesKind::U1 | TypesKind::U2 | TypesKind::U3 | TypesKind::U4 | TypesKind::U5 | TypesKind::U6 | TypesKind::U7
+            TypesKind::Void | TypesKind::None | TypesKind::Bit(_) | TypesKind::U1 | TypesKind::U2 | TypesKind::U3 | TypesKind::U4 | TypesKind::U5 | TypesKind::U6 | TypesKind::U7
                 | TypesKind::U9 | TypesKind::U10 | TypesKind::U11 | TypesKind::U12 | TypesKind::U13 | TypesKind::U14 | TypesKind::U15
                 | TypesKind::U17 | TypesKind::U18 | TypesKind::U19 | TypesKind::U20 | TypesKind::U21 | TypesKind::U22 | TypesKind::U23
                 | TypesKind::U24 | TypesKind::U25 | TypesKind::U26 | TypesKind::U27 | TypesKind::U28 | TypesKind::U29 | TypesKind::U30
@@ -778,7 +795,7 @@ mod ty_test {
         assert_eq!(Types::from_string("*i32"), Types::ptr(Types::i32()));
 
         assert_eq!(Types::from_string("(i32, f64)"), Types::tuple(vec![Types::i32(), Types::f64()]));
-        assert_eq!(Types::from_string("(i32, f64) -> f64"), Types::func(vec![Types::i32(), Types::f64()], Types::f64()));
+        assert_eq!(Types::from_string("fn (i32, f64) -> f64"), Types::func(vec![Types::i32(), Types::f64()], Types::f64()));
         assert_eq!(Types::from_string("struct {i32, f64}"), Types::stc(vec![Types::i32(), Types::f64()]));
     }
 
@@ -803,7 +820,7 @@ mod ty_test {
         assert_eq!(format!("{}", Types::array(Types::i32(), 10)), "[i32; 10]");
         assert_eq!(format!("{}", Types::array(Types::array(Types::i32(), 10), 3)), "[[i32; 10]; 3]");
         assert_eq!(format!("{}", Types::ptr(Types::ptr(Types::f64()))), "**f64");
-        assert_eq!(format!("{}", Types::func(vec![Types::i32(), Types::f64()], Types::f64())), "(i32, f64) -> f64");
+        assert_eq!(format!("{}", Types::func(vec![Types::i32(), Types::f64()], Types::f64())), "fn (i32, f64) -> f64");
         assert_eq!(format!("{}", Types::tuple(vec![Types::i32(), Types::f64()])), "(i32, f64)");
         assert_eq!(format!("{}", Types::stc(vec![Types::i32(), Types::f64()])), "struct {i32, f64}");
     }

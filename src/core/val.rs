@@ -21,6 +21,7 @@ use crate::{log_fatal, log_error};
 /// - Support 8-bit, 16-bit, 32-bit, 64-bit and float, double
 #[derive(Debug, Clone, PartialEq)]
 pub struct Value {
+    pub name: Option<String>,
     pub ty: Types,
     pub val: RefCell<Vec<u8>>,
     /// ### Value flag:
@@ -46,7 +47,321 @@ impl Value {
         let size = ty.size();
         let buffer = vec![0; size];
         let val = RefCell::new(buffer);
-        Value { ty, val, flag:0 }
+        Value { name: None, ty, val, flag:0 }
+    }
+
+    /// Fill value by types, val_str and create a new Value
+    pub fn fill_string(val_str: &str, ty: Option<Types>) -> Value {
+        // check type
+        let ty = if ty.is_none() { Types::none() } else { ty.unwrap() };
+        // match types and parse val_str
+        let val_str = val_str.trim();
+        match ty.kind() {
+            TypesKind::None => {
+                if Value::is_i32(val_str) {
+                    Value::fill_string(val_str, Some(Types::i32()))
+                } else if Value::is_i64(val_str) {
+                    Value::fill_string(val_str, Some(Types::i64()))
+                } else if Value::is_f32(val_str) {
+                    Value::fill_string(val_str, Some(Types::f32()))
+                } else if Value::is_f64(val_str) {
+                    Value::fill_string(val_str, Some(Types::f64()))
+                } else if Value::is_array(val_str) {
+                    // Deal with value string: `[1, 2, 3]`
+                    let val_str = val_str[1..val_str.len() - 1].to_string();
+                    let val_str = val_str.trim();
+                    let val_str = val_str.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+                    let value = val_str.iter().map(|v| Value::fill_string(v, Some(ty.clone()))).collect::<Vec<Value>>();
+                    // check value elem size
+                    if value.iter().any(|v| v.ty.size() != ty.size()) {
+                        log_warning!("Value elem size not match: {}", val_str.iter().map(|v| v.as_str()).collect::<Vec<&str>>().join(", "));
+                        Value::tuple(value)
+                    } else {
+                        Value::array(value)
+                    }
+                } else if Value::is_tuple(val_str) {
+                    // Deal with value string: `(1, 2, 3)`
+                    let val_str = val_str[1..val_str.len() - 1].to_string();
+                    let val_str = val_str.trim();
+                    let val_str = val_str.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+                    let value: Vec<Value> = val_str.iter().map(|v| Value::fill_string(v, Some(ty.clone()))).collect::<Vec<Value>>();
+                    Value::tuple(value)
+                } else if Value::is_str(val_str) {
+                    // Deal with value string: `"hello"`
+                    // Delete `"`, `"` and delete `\n` `\r` `\t` on the side
+                    let val_str = val_str[1..val_str.len() - 1].trim();
+                    Value::str(val_str)
+                } else if Value::is_bin(val_str) {
+                    Value::bits(val_str)
+                } else if Value::is_hex(val_str) {
+                    Value::hexs(val_str)
+                } else if Value::is_ptr(val_str){
+                    // Deal with value string: `&1243`
+                    let val_str = &val_str[1..val_str.len()];
+                    Value::ptr(Value::fill_string(val_str, Some(ty.clone())))
+                } else {
+                    log_error!("Invalid value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::Void => {
+                Value::new(ty)
+            },
+            TypesKind::I8 => {
+                if Value::is_i8(val_str) {
+                    Value::i8(val_str.parse::<i8>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::i8(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid i8 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::I16 => {
+                if Value::is_i16(val_str) {
+                    Value::i16(val_str.parse::<i16>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::i16(0);
+                    val.set_name(val_str.to_string());
+                    val
+                }  else {
+                    log_error!("Invalid i16 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::I32 => {
+                if Value::is_i32(val_str) {
+                    Value::i32(val_str.parse::<i32>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::i32(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid i32 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::I64 => {
+                if Value::is_i64(val_str) {
+                    Value::i64(val_str.parse::<i64>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::i64(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid i64 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::I128 => {
+                if Value::is_i128(val_str) {
+                    Value::i128(val_str.parse::<i128>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::i128(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid i128 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::U8 => {
+                if Value::is_u8(val_str) {
+                    Value::u8(val_str.parse::<u8>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::u8(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid u8 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::U16 => {
+                if Value::is_u16(val_str) {
+                    Value::u16(val_str.parse::<u16>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::u16(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid u16 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::U32 => {
+                if Value::is_u32(val_str) {
+                    Value::u32(val_str.parse::<u32>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::u32(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid u32 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::U64 => {
+                if Value::is_u64(val_str) {
+                    Value::u64(val_str.parse::<u64>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::u64(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid u64 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::U128 => {
+                if Value::is_u128(val_str) {
+                    Value::u128(val_str.parse::<u128>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::u128(0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid u128 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::F32 => {
+                if Value::is_f32(val_str) {
+                    Value::f32(val_str.parse::<f32>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::f32(0.0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid f32 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::F64 => {
+                if Value::is_f64(val_str) {
+                    Value::f64(val_str.parse::<f64>().unwrap())
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::f64(0.0);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid f64 value: {}", val_str);
+                    Value::new(ty)
+                }
+            },
+            TypesKind::Bit(width) => {
+                if Value::is_bin(val_str) {
+                    Value::bits(val_str)
+                } else if Value::is_hex(val_str) {
+                    Value::hexs(val_str)
+                } else if Value::is_i32(val_str) {
+                    let mut val = Value::i32(val_str.parse::<i32>().unwrap());
+                    val.resize(*width);
+                    val
+                } else if Value::is_i64(val_str) {
+                    let mut val = Value::i64(val_str.parse::<i64>().unwrap());
+                    val.resize(*width);
+                    val
+                } else if Value::is_ident(val_str) {
+                    let val = Value::bit(*width, 0);
+                    val
+                } else {
+                    log_error!("Invalid bit value: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            },
+            TypesKind::Array(ty, len) => {
+                if Value::is_array(val_str) {
+                    // Deal with value string: `[1, 2, 3]`
+                    let val_str = val_str[1..val_str.len() - 1].to_string();
+                    let val_str = val_str.trim();
+                    let val_str = val_str.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+                    let mut value = val_str.iter().map(|v| Value::fill_string(v, Some(ty.clone()))).collect::<Vec<Value>>();
+                    // fill len with value 0
+                    if value.len() < *len {
+                        for _ in value.len()..*len {
+                            value.push(Value::new(ty.clone()));
+                        }
+                    }
+                    Value::array(value)
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::array(vec![Value::new(ty.clone()); *len]);
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid array value: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            },
+            TypesKind::Tuple(tys) => {
+                if Value::is_tuple(val_str) {
+                    // Deal with value string: `(1, 2, 3)`
+                    let val_str = val_str[1..val_str.len() - 1].to_string();
+                    let val_str = val_str.trim();
+                    let val_str = val_str.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+                    let mut value: Vec<Value> = Vec::new();
+                    for (i, ty) in tys.iter().enumerate() {
+                        // every element match type
+                        let value_elem = Value::fill_string(val_str[i].as_str(), Some(ty.clone()));
+                        value.push(value_elem);
+                    }
+                    Value::tuple(value)
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::tuple(tys.iter().map(|ty| Value::new(ty.clone())).collect::<Vec<Value>>());
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid tuple value: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            },
+            TypesKind::Func(tys, rty) => {
+                if Value::is_ptr(val_str) {
+                    // Deal with value string: `&1243`
+                    Value::fill_string(val_str, Some(Types::ptr(Types::func(tys.clone(), rty.clone()))))
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::new(Types::ptr(Types::func(tys.clone(), rty.clone())));
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid func name: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            },
+            TypesKind::Struct(tys) => {
+                if Value::is_ptr(val_str) {
+                    // Deal with value string: `&1243`
+                    Value::fill_string(val_str, Some(Types::ptr(Types::stc(tys.clone()))))
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::new(Types::ptr(Types::stc(tys.clone())));
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid struct name: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            },
+            TypesKind::Ptr(ty) => {
+                if Value::is_ptr(val_str) {
+                    // Deal with value string: `&1243`
+                    let val_str = &val_str[1..val_str.len()];
+                    Value::ptr(Value::fill_string(val_str, Some(ty.clone())))
+                } else if Value::is_ident(val_str) {
+                    let mut val = Value::new(Types::ptr(ty.clone()));
+                    val.set_name(val_str.to_string());
+                    val
+                } else {
+                    log_error!("Invalid ptr value: {}", val_str);
+                    Value::new(ty.clone())
+                }
+            }
+            _ => {
+                log_error!("Invalid value: {}", val_str);
+                Value::new(ty)
+            }
+        }
     }
 
     /// change new Value to Self
@@ -170,6 +485,26 @@ impl Value {
         res
     }
 
+    /// check name
+    pub fn has_name(&self) -> bool {
+        self.name.is_some()
+    }
+
+    /// set name
+    pub fn set_name(&mut self, name: String) {
+        self.name = Some(name);
+    }
+
+    /// get name
+    pub fn name(&self) -> String {
+        if self.name.is_some() {
+            self.name.as_ref().unwrap().clone()
+        } else {
+            log_warning!("Value has no name");
+            String::new()
+        }
+    }
+
     /// just change value vec, must size equal
     pub fn set_val(&mut self, value: Value) {
         assert_eq!(value.size(), self.size());
@@ -206,6 +541,14 @@ impl Value {
     /// is strict align
     pub fn is_strict_align(&self) -> bool {
         (self.flag & 0x0010) != 0
+    }
+
+    pub fn is_type_ptr(&self) -> bool {
+        if let TypesKind::Ptr(_) = self.kind() {
+            true
+        } else {
+            false
+        }
     }
 
     // ==================== Value.ctl ==================== //
@@ -1488,7 +1831,7 @@ impl Value {
         }
     }
 
-    /// Set value by pointer/struct/tuple
+    /// Set pointer value by u32/u64
     pub fn set_ptr(&mut self, value: Value) {
         self.set_kind(TypesKind::Ptr(value.ty.clone()));
         let size = self.size();
@@ -1546,6 +1889,11 @@ impl Value {
         str.parse::<u64>().is_ok()
     }
 
+    /// Check str if the value is u128 number
+    pub fn is_u128(str : &str) -> bool {
+        str.parse::<u128>().is_ok()
+    }
+
     /// Check str if the value is i8 number
     pub fn is_i8(str : &str) -> bool {
         str.parse::<i8>().is_ok()
@@ -1564,6 +1912,11 @@ impl Value {
     /// Check str if the value is i64 number
     pub fn is_i64(str : &str) -> bool {
         str.parse::<i64>().is_ok()
+    }
+
+    /// Check str if the value is i128 number
+    pub fn is_i128(str : &str) -> bool {
+        str.parse::<i128>().is_ok()
     }
 
     /// Check str if the value is float number
@@ -1594,21 +1947,22 @@ impl Value {
         str.starts_with('(') && str.ends_with(')') && str.contains(',')
     }
 
-    /// Check str if the value is pointer: tuple / struct / function
+    /// Check str if the value is ident
+    pub fn is_ident(str : &str) -> bool {
+        // digit or letter or `_`
+        str.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+    }
+
+    /// Check str if the value is pointer: &basictype / struct / function
     pub fn is_ptr(str : &str) -> bool {
-        Self::is_struct(str) || Self::is_func(str)
-    }
-
-    /// Check str if the value is function
-    pub fn is_func(str : &str) -> bool {
-        // begin with `(` and has `) ->`
-        str.starts_with('(') && str.contains(") ->")
-    }
-
-    /// Check str if the value is struct
-    pub fn is_struct(str : &str) -> bool {
-        // begin with `struct {` and end with `}` and has `,`
-        str.starts_with("struct {") && str.ends_with('}') && str.contains(',')
+        let mut is_p: bool = false;
+        if str.starts_with("&") {
+            let str = &str[1..];
+            is_p = Self::is_u8(str) || Self::is_u16(str) || Self::is_u32(str) || Self::is_u64(str) || Self::is_u128(str)
+                || Self::is_i8(str) || Self::is_i16(str) || Self::is_i32(str) || Self::is_i64(str) || Self::is_i128(str)
+                || Self::is_f32(str) || Self::is_f64(str) || Self::is_array(str) || Self::is_str(str) || Self::is_tuple(str);
+        }
+        is_p
     }
 
     /// Check str if the value is hex
@@ -1954,6 +2308,13 @@ impl Value {
         val
     }
 
+    /// Get value from u128
+    pub fn u128(value: u128) -> Value {
+        let mut val = Value::new(Types::u128());
+        val.set_u128(0, value);
+        val
+    }
+
     /// Get value from i8
     pub fn i8(value: i8) -> Value {
         let mut val = Value::new(Types::i8());
@@ -2048,46 +2409,62 @@ impl Value {
     }
 
     /// Get value from string
-    pub fn from_string(value: &str) -> Value {
-        let value = value.trim();
-        if Value::is_i32(value) { // parse as i32
-            return Value::i32(value.parse::<i32>().unwrap());
-        } else if Value::is_i64(value) { // parse as i64
-            return Value::i64(value.parse::<i64>().unwrap());
-        } else if Value::is_f32(value) { // parse as f32
-            return Value::f32(value.parse::<f32>().unwrap());
-        } else if Value::is_f64(value) { // parse as f64
-            return Value::f64(value.parse::<f64>().unwrap());
-        } else if Value::is_array(value) { // parse as array
-            // Deal with value string: `[1, 2, 3]`
-            let value = value[1..value.len() - 1].to_string();
-            let value = value.trim();
-            let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
-            let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
-            return Value::array(value);
-        } else if Value::is_tuple(value) { // parse as tuple
-            // Deal with value string: `(1, 2.7, 3)`
-            let value = value[1..value.len() - 1].to_string();
-            let value = value.trim();
-            let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
-            let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
-            return Value::tuple(value);
-        } else if Value::is_str(value) { // parse as string
-            // Deal with value string: `"hello"`
-            // Delete `"`, `"` and delete `\n` `\r` `\t` on the side
-            let value = value[1..value.len() - 1].to_string();
-            let value = value.trim();
-            return Value::str(&value);
-        } else if Value::is_hex(value) { // parse as hex
-            return Value::hexs(value);
-        } else if Value::is_bin(value) { // parse as bin
-            return Value::bits(value);
-        } else if Value::is_hex(value) { // parse as hex
-            return Value::hexs(value);
+    pub fn from_string(val_str: &str) -> Value {
+        let mut val_str = val_str.trim();
+        // 1. Deal with `value: types`, check type behind `:`
+        // if exist type, get kind of type
+        let res: Value;
+        let ty = if val_str.contains(":") {
+            let parts = val_str.splitn(2, ":").collect::<Vec<&str>>();
+            val_str = parts[0].trim();
+            let ty_str = parts[1].trim();
+            let ty = Types::from_string(ty_str);
+            Some(ty)
         } else {
-            log_warning!("Can't parse {} as Value", value);
-            Value::i32(0)
-        }
+            None
+        };
+
+        res = Value::fill_string(val_str, ty);
+        res
+
+        // if Value::is_i32(value) { // parse as i32
+        //     return Value::i32(value.parse::<i32>().unwrap());
+        // } else if Value::is_i64(value) { // parse as i64
+        //     return Value::i64(value.parse::<i64>().unwrap());
+        // } else if Value::is_f32(value) { // parse as f32
+        //     return Value::f32(value.parse::<f32>().unwrap());
+        // } else if Value::is_f64(value) { // parse as f64
+        //     return Value::f64(value.parse::<f64>().unwrap());
+        // } else if Value::is_array(value) { // parse as array
+        //     // Deal with value string: `[1, 2, 3]`
+        //     let value = value[1..value.len() - 1].to_string();
+        //     let value = value.trim();
+        //     let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+        //     let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
+        //     return Value::array(value);
+        // } else if Value::is_tuple(value) { // parse as tuple
+        //     // Deal with value string: `(1, 2.7, 3)`
+        //     let value = value[1..value.len() - 1].to_string();
+        //     let value = value.trim();
+        //     let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
+        //     let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
+        //     return Value::tuple(value);
+        // } else if Value::is_str(value) { // parse as string
+        //     // Deal with value string: `"hello"`
+        //     // Delete `"`, `"` and delete `\n` `\r` `\t` on the side
+        //     let value = value[1..value.len() - 1].to_string();
+        //     let value = value.trim();
+        //     return Value::str(&value);
+        // } else if Value::is_hex(value) { // parse as hex
+        //     return Value::hexs(value);
+        // } else if Value::is_bin(value) { // parse as bin
+        //     return Value::bits(value);
+        // } else if Value::is_hex(value) { // parse as hex
+        //     return Value::hexs(value);
+        // } else {
+        //     log_warning!("Can't parse {} as Value", value);
+        //     Value::i32(0)
+        // }
     }
 
 }
@@ -2096,6 +2473,7 @@ impl Default for Value {
     /// Default value type is i32
     fn default() -> Self {
         Self {
+            name: None,
             ty: Types::void(),
             val: RefCell::new(Vec::new()),
             flag: 0
@@ -2212,6 +2590,12 @@ mod val_test {
         assert_eq!(val.kind().to_string(), "(u32, u64)");
         assert_eq!(val.size(), 12);
 
+    }
+
+    #[test]
+    fn val_name() {
+        let val = Value::from_string("dsds: *(i32, i64)");
+        println!("{} {} ptr: {}, size: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size());
     }
 
     #[test]

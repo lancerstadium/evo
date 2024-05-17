@@ -933,11 +933,11 @@ impl Instruction {
             return res;
         }
         // Deal with `//` comment in str behind like: `[opc] [opr], ... // comment`
-        if str.contains("//") {
-            let mut part = str.splitn(2, ' ');
-            str = part.next().unwrap();
-            let comment = part.next().unwrap();
-        }
+        // if str.contains("//") {
+        //     let mut part = str.splitn(2, ' ');
+        //     str = part.next().unwrap().trim();
+        //     let comment = part.next().unwrap().trim();
+        // }
 
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
