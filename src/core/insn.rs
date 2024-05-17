@@ -454,7 +454,7 @@ impl RegFile {
 ///  Disp(D):
 ///    0. imm: (0,1,2,4) Byte of Imm as addr disp.
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
     /// ### Instruction flag
     /// ```txt
@@ -481,6 +481,8 @@ pub struct Instruction {
     /// └──────────────── <Reserved>
     /// ```
     pub flag: u16,
+    pub pc: Option<Value>,
+    pub label: Option<&'static str>,
     pub opc : Opcode,
     pub opr : Vec<Operand>,
     pub opb : &'static str,
@@ -505,6 +507,8 @@ impl Instruction {
     pub fn undef() -> Instruction {
         Instruction {
             flag: 0,
+            pc: None,
+            label: None,
             opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
             opb: "",
@@ -520,6 +524,8 @@ impl Instruction {
         let opc = Opcode::new(name, syms, ty);
         let insn = Instruction {
             flag: flag,
+            pc: None,
+            label: None,
             opc: opc.clone(),
             opr: Vec::new(),
             opb,
@@ -900,6 +906,9 @@ impl Instruction {
     /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
     pub fn to_string(&self) -> String {
         let mut info = String::new();
+        info.push_str(&format!("{:<10} ", 
+            if self.label.is_some() { self.label.as_ref().unwrap() } else { "" }
+        ));
         info.push_str(&format!("{:<10} ", self.opc.name()));
         for i in 0..self.opr.len() {
             let r = self.opr[i].clone();
@@ -915,7 +924,7 @@ impl Instruction {
     /// From string to Instruction
     pub fn from_string(str: &'static str) -> Instruction {
         // 1. Deal with string
-        let str = str.trim();
+        let mut str = str.trim();
         // Check if the string has space
         if !str.contains(' ') {
             let name = str;
@@ -923,6 +932,13 @@ impl Instruction {
             res = res.encode(vec![]);
             return res;
         }
+        // Deal with `//` comment in str behind like: `[opc] [opr], ... // comment`
+        if str.contains("//") {
+            let mut part = str.splitn(2, ' ');
+            str = part.next().unwrap();
+            let comment = part.next().unwrap();
+        }
+
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
         // 3. Find Insn from pool
@@ -958,40 +974,3 @@ impl fmt::Display for Instruction {
 
 
 
-// ============================================================================== //
-//                                insn::BasicBlock
-// ============================================================================== //
-
-
-/// BasicBlock
-pub struct BasicBlock {
-    
-    pub flag: u16,
-    pub src_insns: Vec<Instruction>,
-    pub ir_insns: Vec<Instruction>,
-    pub trg_insns: Vec<Instruction>,
-    pub liveness_regs: Vec<Operand>,
-
-    /// If the block is lifted to EVO ir arch: src -> ir
-    pub is_lifted: bool,
-    /// If the block is lowered to target arch: ir -> trg
-    pub is_lowered: bool,
-}
-
-
-impl BasicBlock {
-
-
-    pub fn init(src_insns: Vec<Instruction>, flag: u16) -> BasicBlock {
-        Self {
-            flag,
-            src_insns,
-            ir_insns: vec![],
-            trg_insns: vec![],
-            liveness_regs: vec![],
-            is_lifted: false,
-            is_lowered: false
-        }
-    }
-
-}

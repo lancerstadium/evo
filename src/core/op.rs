@@ -16,7 +16,7 @@ use crate::{log_error, log_warning};
 use crate::util::log::Span;
 use crate::core::val::Value;
 use crate::core::ty::TypesKind;
-use crate::core::insn::RegFile;
+use crate::core::insn::{RegFile, Instruction};
 
 
 // ============================================================================== //
@@ -61,6 +61,19 @@ pub const REG_OFF104: u16 = 0b1101_0000_0000;
 pub const REG_OFF112: u16 = 0b1110_0000_0000;
 /// reg offset 15-byte
 pub const REG_OFF120: u16 = 0b1111_0000_0000;
+/// global reg: free
+pub const REG_GLOB: u16 = 0b0000_0000;
+/// global reg: bundled
+pub const REG_BUND: u16 = 0b0001_0000;
+/// local reg: Basic Block scope
+pub const REG_TEMP: u16 = 0b0010_0000;
+/// local reg: Translate Block scope
+pub const REG_LOCA: u16 = 0b0011_0000;
+
+pub const REG_VAL_INV: u16 = 0b0000_0000_0000_0000;
+pub const REG_VAL_MEM: u16 = 0b0001_0000_0000_0000;
+pub const REG_VAL_IMM: u16 = 0b0010_0000_0000_0000;
+
 
 // ============================================================================== //
 //                              op::OperandKind
@@ -78,8 +91,8 @@ pub enum OperandKind {
     /// |  base  |  idx  |  scala  | disp  |
     Mem(Operand, Operand, Value, Value),
 
-    /// |  name*  |  addr  |
-    Label(&'static str, Value),
+    /// |  name*  |  insn  |
+    Label(&'static str, Rc<RefCell<Instruction>>),
 
     /// Undefined
     Undef,
@@ -97,7 +110,13 @@ impl OperandKind {
             OperandKind::Reg(_, val, _) => val.kind(),
             OperandKind::Mem(_, _, _, disp) => disp.kind(),
             // Get Label ptr's kind
-            OperandKind::Label(_, val) => val.kind(),
+            OperandKind::Label(_, insn) => {
+                if insn.borrow().is_32bit() {
+                    &TypesKind::I32
+                } else {
+                    &TypesKind::I64
+                }
+            },
             OperandKind::Undef => &TypesKind::I32,
         }
     }
@@ -110,7 +129,7 @@ impl OperandKind {
             OperandKind::Reg(_, val, _) => val.hex(0, -1, false),
             OperandKind::Mem(_, _, _, _) => self.val().hex(0, -1, false),
             // Get Label ptr's hex
-            OperandKind::Label(_, val) => val.hex(0, -1, false),
+            OperandKind::Label(_, insn) => insn.borrow().pc.as_ref().unwrap().hex(0, -1, false),
             OperandKind::Undef => "0".to_string(),
         }
     }
@@ -156,7 +175,7 @@ impl OperandKind {
                 info.push_str(format!(": {}", self.val().kind()).as_str());
                 info
             },
-            OperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
+            OperandKind::Label(name, insn) => format!("{}: {}", name, insn.borrow().pc.as_ref().unwrap().hex(0, -1, false)),
             OperandKind::Undef => "<Und>".to_string(),
         }
     }
@@ -167,7 +186,7 @@ impl OperandKind {
             OperandKind::Imm(val) => val.clone(),
             OperandKind::Reg(_, val, _) => val.clone(),
             OperandKind::Mem(base, idx, scale, disp) => Value::tuple(vec![base.val().clone(), idx.val().clone(), scale.clone(), disp.clone()]),
-            OperandKind::Label(_, val) => val.clone(),
+            OperandKind::Label(_, insn) => insn.borrow().pc.as_ref().unwrap().clone(),
             _ => Value::i32(0),
         }
     }
@@ -239,7 +258,7 @@ impl Operand {
             OPR_IMM => Self::imm(Value::u32(0)),
             OPR_REG => Self::reg_def(),
             OPR_MEM => Self::mem(Self::reg_def(), Self::reg_def(), Value::u32(0), Value::u32(0)),
-            OPR_LAB => Self::label("<Lab>", Value::u32(0)),
+            OPR_LAB => Self::lab_def(),
             _ => Operand::imm(Value::u32(0)),
         }
     }
@@ -254,6 +273,11 @@ impl Operand {
         Self(Rc::new(RefCell::new(OperandKind::Reg("<Reg>", Value::i8(-1), BIT32 | LITTLE_ENDIAN))))
     }
 
+    /// New Label Default: "<Lab>"
+    pub fn lab_def() -> Self {
+        Self(Rc::new(RefCell::new(OperandKind::Label("<Lab>", Rc::new(RefCell::new(Instruction::undef()))))))
+    }
+
     /// New Operand Imm
     pub fn imm(val: Value) -> Self {
         Self(Rc::new(RefCell::new(OperandKind::Imm(val))))
@@ -265,8 +289,8 @@ impl Operand {
     }
 
     /// New Operand Label
-    pub fn label(name: &'static str, val: Value) -> Self {
-        Self(Rc::new(RefCell::new(OperandKind::Label(name, val))))
+    pub fn label(name: &'static str, insn: Rc<RefCell<Instruction>>) -> Self {
+        Self(Rc::new(RefCell::new(OperandKind::Label(name, insn))))
     }
 
     /// New Operand Undef
@@ -348,11 +372,11 @@ impl Operand {
     }
 
     /// Set Label value
-    pub fn set_label(&mut self, val: Value) {
+    pub fn set_label(&mut self, insn: Rc<RefCell<Instruction>>) {
         let mut kind = self.kind(); // Create a mutable copy of the value
         match kind {
-            OperandKind::Label(_, _) => kind = OperandKind::Label(self.name(), val),
-            _ => kind = OperandKind::Label("<Und>", val),
+            OperandKind::Label(_, _) => kind = OperandKind::Label(self.name(), insn),
+            _ => kind = OperandKind::Label("<Lab>", insn),
         }
         self.0.replace(kind);
     }
@@ -583,7 +607,7 @@ impl Operand {
         }
         // 4. Deal with label
         if (sym & OPR_LAB != 0) && opr.chars().all(|c| c.is_ascii_digit() || c.is_ascii_alphabetic()) {
-            return Operand::label(opr, Value::i32(0));
+            return Operand::label(opr, Rc::new(RefCell::new(Instruction::undef())));
         }
         // 5. Deal with undef
         log_warning!("Undefined operand: {}", opr);
@@ -777,7 +801,7 @@ impl fmt::Display for OpcodeKind {
 
 
 /// `Opcode`: IR opcodes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct Opcode(RefCell<OpcodeKind>);
 
 impl Opcode {
