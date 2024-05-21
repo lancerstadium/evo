@@ -54,7 +54,7 @@ mod blk_test {
     use super::*;
 
     #[test]
-    fn init() {
+    fn blk_init() {
         
     }
 }

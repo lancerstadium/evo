@@ -3398,7 +3398,7 @@ mod evo_test {
         println!("{}", cpu.pool_info());
 
         // R-Type Insns Test 
-        let insn1  = Instruction::from_string("add_i32 t0, t1, t1");
+        let mut insn1  = Instruction::from_string("add_i32 t0, t1, t1");
         let insn2  = Instruction::from_string("add_i64 t0, t2, 65535");
         let insn3  = Instruction::from_string("sub_i32 t0, 4322, -4321");
         let insn4  = Instruction::from_string("sub_i64 t0, t1, t2");
@@ -3486,7 +3486,7 @@ mod evo_test {
         let insn80 = Instruction::from_string("depo_i32 t0, t4");
         let insn81 = Instruction::from_string("depo_i64 t0, t4");
 
-
+        insn1.set_label("sieve: ");
         cpu.execute(&insn1);
         println!("{:<60} {:<70} -> t0 = {}", insn1.code.hex(0, -1, false), insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn2);

@@ -738,6 +738,11 @@ impl Instruction {
         self.enc = Self::encode_pool_init(arch);
     }
 
+    /// set label
+    pub fn set_label(&mut self, label: &'static str) {
+        self.label = Some(label);
+    }
+
     // ==================== Instruction.flag ==================== //
 
     /// is jump instruction
@@ -924,7 +929,7 @@ impl Instruction {
     /// From string to Instruction
     pub fn from_string(str: &'static str) -> Instruction {
         // 1. Deal with string
-        let mut str = str.trim();
+        let str = str.trim();
         // Check if the string has space
         if !str.contains(' ') {
             let name = str;

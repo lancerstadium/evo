@@ -4,7 +4,7 @@
 // ============================================================================== //
 
 
-use std::{cell::RefCell, fmt::{Debug, Display}};
+use std::{cell::RefCell, fmt::{Debug, Display}, rc::Rc};
 
 
 use crate::{core::ty::{Types, TypesKind}, log_warning};
@@ -24,6 +24,7 @@ pub struct Value {
     pub name: Option<String>,
     pub ty: Types,
     pub val: RefCell<Vec<u8>>,
+    pub ref_val: Option<Rc<RefCell<Value>>>,
     /// ### Value flag:
     /// ```txt
     /// 0 0 0 0 0 0 0 0
@@ -47,7 +48,7 @@ impl Value {
         let size = ty.size();
         let buffer = vec![0; size];
         let val = RefCell::new(buffer);
-        Value { name: None, ty, val, flag:0 }
+        Value { name: None, ty, val, ref_val: None, flag:0 }
     }
 
     /// Fill value by types, val_str and create a new Value
@@ -95,10 +96,12 @@ impl Value {
                     Value::bits(val_str)
                 } else if Value::is_hex(val_str) {
                     Value::hexs(val_str)
-                } else if Value::is_ptr(val_str){
-                    // Deal with value string: `&1243`
-                    let val_str = &val_str[1..val_str.len()];
-                    Value::ptr(Value::fill_string(val_str, Some(ty.clone())))
+                } else if Value::is_ptr(val_str) {
+                    Value::ptr(Some(Value::fill_string(val_str, Some(ty.clone()))), None)
+                } else if Value::is_ptr_ref(val_str){
+                    // del `&`
+                    let val_str = val_str[1..val_str.len()].trim();
+                    Value::ptr(None, Some(Value::fill_string(val_str, Some(ty.clone()))))
                 } else {
                     log_error!("Invalid value: {}", val_str);
                     Value::new(ty)
@@ -332,7 +335,6 @@ impl Value {
             },
             TypesKind::Struct(tys) => {
                 if Value::is_ptr(val_str) {
-                    // Deal with value string: `&1243`
                     Value::fill_string(val_str, Some(Types::ptr(Types::stc(tys.clone()))))
                 } else if Value::is_ident(val_str) {
                     let mut val = Value::new(Types::ptr(Types::stc(tys.clone())));
@@ -345,9 +347,11 @@ impl Value {
             },
             TypesKind::Ptr(ty) => {
                 if Value::is_ptr(val_str) {
-                    // Deal with value string: `&1243`
-                    let val_str = &val_str[1..val_str.len()];
-                    Value::ptr(Value::fill_string(val_str, Some(ty.clone())))
+                    Value::ptr(Some(Value::fill_string(val_str, None)), Some(Value::new(ty.clone())))
+                } else if Value::is_ptr_ref(val_str) {
+                    // del `&`
+                    let val_str = val_str[1..val_str.len()].trim();
+                    Value::ptr(None, Some(Value::fill_string(val_str, Some(ty.clone()))))
                 } else if Value::is_ident(val_str) {
                     let mut val = Value::new(Types::ptr(ty.clone()));
                     val.set_name(val_str.to_string());
@@ -368,6 +372,17 @@ impl Value {
     pub fn change(&mut self, value: Value) {
         *self = value;
     }
+
+    /// get ptr ref val
+    pub fn get_ptr_ref(&self) -> Value {
+        if !self.is_type_ptr() || self.ref_val.is_none() {
+            log_warning!("Value has no ref");
+            Value::new(Types::none())
+        } else {
+            self.ref_val.as_ref().unwrap().borrow().clone()
+        }
+    }
+
 
     /// Append Value at tail Align by u8 version: you will reserve scale info
     pub fn append(&mut self, value: Value) -> &mut Value {
@@ -501,7 +516,7 @@ impl Value {
             self.name.as_ref().unwrap().clone()
         } else {
             log_warning!("Value has no name");
-            String::new()
+            "(none)".to_string()
         }
     }
 
@@ -1831,15 +1846,19 @@ impl Value {
         }
     }
 
-    /// Set pointer value by u32/u64
+    /// Set pointer value
     pub fn set_ptr(&mut self, value: Value) {
-        self.set_kind(TypesKind::Ptr(value.ty.clone()));
+        // cover val vec
+        let mut value = value;
         let size = self.size();
-        assert_eq!(value.size(), size);
-        let mut buffer = self.val.borrow_mut();
-        for i in 0..size {
-            buffer[i] = value.val.borrow()[i];
-        }
+        self.set(0, value.resize(size * 8).clone());
+        assert_eq!(self.size(), size);
+    }
+
+    /// Set pointer reference value
+    pub fn set_ptr_ref(&mut self, value: Value) {
+        self.set_kind(TypesKind::Ptr(value.ty.clone()));
+        self.ref_val = Some(Rc::new(RefCell::new(value)));
     }
 
     /// Set value by char(4-bits)
@@ -1949,20 +1968,28 @@ impl Value {
 
     /// Check str if the value is ident
     pub fn is_ident(str : &str) -> bool {
-        // digit or letter or `_`
-        str.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        // digit or letter or `_`: can't start with digit
+        str.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') && !str.starts_with(|c: char| c.is_ascii_digit())
     }
 
     /// Check str if the value is pointer: &basictype / struct / function
     pub fn is_ptr(str : &str) -> bool {
-        let mut is_p: bool = false;
+        Self::is_u8(str) || Self::is_u16(str) || Self::is_u32(str) || Self::is_u64(str) || Self::is_u128(str)
+        || Self::is_i8(str) || Self::is_i16(str) || Self::is_i32(str) || Self::is_i64(str) || Self::is_i128(str)
+        || Self::is_hex(str) || Self::is_bin(str) || Self::is_array(str) || Self::is_str(str)
+    }
+
+    pub fn is_ptr_ref(str : &str) -> bool {
+        let mut str = str.trim();
+        let mut is_ref = false;
         if str.starts_with("&") {
-            let str = &str[1..];
-            is_p = Self::is_u8(str) || Self::is_u16(str) || Self::is_u32(str) || Self::is_u64(str) || Self::is_u128(str)
-                || Self::is_i8(str) || Self::is_i16(str) || Self::is_i32(str) || Self::is_i64(str) || Self::is_i128(str)
-                || Self::is_f32(str) || Self::is_f64(str) || Self::is_array(str) || Self::is_str(str) || Self::is_tuple(str);
+            str = str[1..].trim();
+            is_ref = Self::is_u8(str) || Self::is_u16(str) || Self::is_u32(str) || Self::is_u64(str) || Self::is_u128(str)
+            || Self::is_i8(str) || Self::is_i16(str) || Self::is_i32(str) || Self::is_i64(str) || Self::is_i128(str)
+            || Self::is_f32(str) || Self::is_f64(str) || Self::is_hex(str) || Self::is_bin(str) || Self::is_array(str) 
+            || Self::is_str(str) || Self::is_tuple(str) || Self::is_ptr_ref(str);
         }
-        is_p
+        is_ref
     }
 
     /// Check str if the value is hex
@@ -2395,9 +2422,14 @@ impl Value {
     }
 
     /// Get value from pointer
-    pub fn ptr(value: Value) -> Value {
-        let mut val = Value::new(Types::ptr(value.ty.clone()));
-        val.set_ptr(value);
+    pub fn ptr(ptr_val: Option<Value>, ref_val: Option<Value>) -> Value {
+        let mut val= Value::new(Types::ptr(Types::void()));
+        if ptr_val.is_some() {
+            val.set_ptr(ptr_val.unwrap());
+        }
+        if ref_val.is_some() {
+            val.set_ptr_ref(ref_val.unwrap());
+        }
         val
     }
 
@@ -2426,45 +2458,6 @@ impl Value {
 
         res = Value::fill_string(val_str, ty);
         res
-
-        // if Value::is_i32(value) { // parse as i32
-        //     return Value::i32(value.parse::<i32>().unwrap());
-        // } else if Value::is_i64(value) { // parse as i64
-        //     return Value::i64(value.parse::<i64>().unwrap());
-        // } else if Value::is_f32(value) { // parse as f32
-        //     return Value::f32(value.parse::<f32>().unwrap());
-        // } else if Value::is_f64(value) { // parse as f64
-        //     return Value::f64(value.parse::<f64>().unwrap());
-        // } else if Value::is_array(value) { // parse as array
-        //     // Deal with value string: `[1, 2, 3]`
-        //     let value = value[1..value.len() - 1].to_string();
-        //     let value = value.trim();
-        //     let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
-        //     let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
-        //     return Value::array(value);
-        // } else if Value::is_tuple(value) { // parse as tuple
-        //     // Deal with value string: `(1, 2.7, 3)`
-        //     let value = value[1..value.len() - 1].to_string();
-        //     let value = value.trim();
-        //     let value = value.split(',').map(|v| v.trim().to_string()).collect::<Vec<String>>();
-        //     let value = value.iter().map(|v| Value::from_string(v)).collect::<Vec<Value>>();
-        //     return Value::tuple(value);
-        // } else if Value::is_str(value) { // parse as string
-        //     // Deal with value string: `"hello"`
-        //     // Delete `"`, `"` and delete `\n` `\r` `\t` on the side
-        //     let value = value[1..value.len() - 1].to_string();
-        //     let value = value.trim();
-        //     return Value::str(&value);
-        // } else if Value::is_hex(value) { // parse as hex
-        //     return Value::hexs(value);
-        // } else if Value::is_bin(value) { // parse as bin
-        //     return Value::bits(value);
-        // } else if Value::is_hex(value) { // parse as hex
-        //     return Value::hexs(value);
-        // } else {
-        //     log_warning!("Can't parse {} as Value", value);
-        //     Value::i32(0)
-        // }
     }
 
 }
@@ -2476,6 +2469,7 @@ impl Default for Value {
             name: None,
             ty: Types::void(),
             val: RefCell::new(Vec::new()),
+            ref_val: None,
             flag: 0
         }
     }
@@ -2594,8 +2588,10 @@ mod val_test {
 
     #[test]
     fn val_name() {
-        let val = Value::from_string("dsds: *(i32, i64)");
-        println!("{} {} ptr: {}, size: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size());
+        let val = Value::from_string("(53, 31) : (i32, i64)");
+        println!("{} : {}, ptr: {}, size: {}, val: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size(), val.get_i32(0));
+        let val = Value::from_string("&&(12, 32) : **(i32, i32)");
+        println!("{} : {}, ptr: {}, size: {}, val: {}, ref_val: {}, ref_ref_val: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size(), val.get_u32(0), val.get_ptr_ref(), val.get_ptr_ref().get_ptr_ref());
     }
 
     #[test]
