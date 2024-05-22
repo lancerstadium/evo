@@ -66,7 +66,7 @@ impl CPUState {
         let cpu = Self {
             src_arch,
             ir_arch,
-            proc: CPUProcess::init(src_arch, base_addr, mem_size, stack_size),
+            proc: CPUProcess::init(ir_arch, base_addr, mem_size, stack_size),
             itp: Interpreter::itp_pool_init(ir_arch),
         };
         cpu

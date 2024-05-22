@@ -9,3 +9,4 @@ pub mod mem;
 pub mod syc;
 pub mod cpu;
 pub mod itp;
+pub mod trs;

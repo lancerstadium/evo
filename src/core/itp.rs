@@ -25,7 +25,7 @@ use crate::core::insn::Instruction;
 //                               itp::Interpreter
 // ============================================================================== //
 
-/// IR Interpreter
+/// Arch Interpreter
 #[derive(Clone, PartialEq)]
 pub struct Interpreter {
     /// arch
@@ -82,7 +82,7 @@ impl Interpreter {
             log_warning!("Interpreter: Insn not applied: {}", insn);
             return;
         }
-        // 1. Get IRItp func
+        // 1. Get interpreter func
         let func = Self::func_pool_nget(self.arch, insn.name());
         // 2. Execute
         func(cpu, insn);

@@ -2590,7 +2590,7 @@ mod val_test {
     fn val_name() {
         let val = Value::from_string("(53, 31) : (i32, i64)");
         println!("{} : {}, ptr: {}, size: {}, val: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size(), val.get_i32(0));
-        let val = Value::from_string("&&(12, 32) : **(i32, i32)");
+        let val = Value::from_string("&0x2e 35 : **(i32, i32)");
         println!("{} : {}, ptr: {}, size: {}, val: {}, ref_val: {}, ref_ref_val: {}", val.name(), val.ty.kind(), val.is_type_ptr(), val.size(), val.get_u32(0), val.get_ptr_ref(), val.get_ptr_ref().get_ptr_ref());
     }
 

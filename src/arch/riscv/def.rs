@@ -18,14 +18,18 @@ use crate::core::mem::CPUThreadStatus;
 
 
 
-pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 33);
 
+// ============================================================================== //
+//                                 RISCV-32
+// ============================================================================== //
+
+pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 33);
 
 
 /// Insn temp and Reg and Interpreter Pool Init
 pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
 
-    // 2. Init regs pool
+    // 1. Init regs pool
     RegFile::def(&RISCV32_ARCH, "x0", Value::bit(5, 0), BIT32 | LITTLE_ENDIAN);
     RegFile::def(&RISCV32_ARCH, "x1", Value::bit(5, 1), BIT32 | LITTLE_ENDIAN);
     RegFile::def(&RISCV32_ARCH, "x2", Value::bit(5, 2), BIT32 | LITTLE_ENDIAN);
@@ -60,14 +64,13 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     RegFile::def(&RISCV32_ARCH, "x31", Value::bit(5, 31), BIT32 | LITTLE_ENDIAN);
     RegFile::def(&RISCV32_ARCH, "pc" , Value::bit(5, 32), BIT32 | LITTLE_ENDIAN);
 
-    // 3. Init insns & insns interpreter
+    // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&RISCV32_ARCH);
     // RISCV Instruction Format:                                           32|31  25|24 20|19 15|  |11  7|6    0|
     // Type: R                                [rd, rs1, rs2]                 |  f7  | rs2 | rs1 |f3|  rd |  op  |
     itp.borrow_mut().def_insn("add" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .000.... .0110011", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -82,7 +85,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("sub" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0100000. ........ .000.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 - rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);

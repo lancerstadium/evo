@@ -743,6 +743,11 @@ impl Instruction {
         self.label = Some(label);
     }
 
+    /// delete label
+    pub fn del_label(&mut self) {
+        self.label = None;
+    }
+
     // ==================== Instruction.flag ==================== //
 
     /// is jump instruction

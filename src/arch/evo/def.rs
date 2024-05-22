@@ -3654,39 +3654,6 @@ mod evo_test {
         println!("{:<60} {:<70} -> t0 = {}", insn81.code.hex(0, -1, false), insn81.to_string(), cpu.get_nreg("t0").hex(0, -1, false));
 
 
-        
-
-
-        
-
-
-
-
-        // println!("{:<70} -> t0 = 0x{:02x}", insn69.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn70);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn70.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn71);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn71.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn72);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn72.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn73);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn73.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn74);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn74.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn75);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn75.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn76);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn76.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn77);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn77.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn78);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn78.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn79);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn79.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn80);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn80.to_string(), cpu.get_nreg("t0").get_i64(0));
-        // cpu.execute(&insn81);
-        // println!("{:<70} -> t0 = 0x{:02x}", insn81.to_string(), cpu.get_nreg("t0").get_i64(0));
 
     }
 }
