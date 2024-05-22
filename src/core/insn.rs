@@ -73,6 +73,8 @@ impl RegFile {
     thread_local! {
         /// Register pool (Shared Global)
         pub static REG_POOL : Rc<RefCell<HashMap<&'static Arch, RegFile>>> = Rc::new(RefCell::new(HashMap::new()));
+        /// Register Map (Shared Global)
+        pub static REG_MAP_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static Arch, usize), Rc<RefCell<Operand>>>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     pub fn new(arch: &'static Arch) -> RegFile {
@@ -93,8 +95,8 @@ impl RegFile {
     /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
     /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
     /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
-    /// │ │ │ └────────── <Reserved>
-    /// │ │ └──────────── <Reserved>
+    /// │ │ ├─┘
+    /// │ │ └──────────── Register Type: 00 Global, 01 Bundled, 10 Temp, 11 Local
     /// │ └────────────── <Reserved>
     /// └──────────────── <Reserved>
     /// (8-15): offset
@@ -157,6 +159,18 @@ impl RegFile {
         }
         self.0.borrow()[index].clone()
     }
+
+    /// Get first global reg in RegFile
+    pub fn get_global(&self) -> (usize, Rc<RefCell<Operand>>) {
+        for i in 0..self.0.borrow().len() {
+            if self.0.borrow()[i].borrow().is_reg_global() {
+                return (i, self.0.borrow()[i].clone());
+            }
+        }
+        log_error!("RegFile no global reg!");
+        (0, Rc::new(RefCell::new(Operand::reg_def())))
+    }
+
 
     pub fn nget(&self, name: &str) -> Rc<RefCell<Operand>> {
         self.get(self.idx(name))
@@ -251,6 +265,13 @@ impl RegFile {
         Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().get(index))
     }
 
+    pub fn reg_poolr_get_global(arch: &'static Arch) -> (usize, Rc<RefCell<Operand>>) {
+        // find reg in arch when get a global reg exit
+        Self::REG_POOL.with(|pool_map| 
+            pool_map.borrow().get(arch).unwrap().get_global()
+        )
+    }
+
     pub fn reg_poolr_set(arch: &'static Arch, index: usize, value: Operand) {
         Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().set(index, value));
     }
@@ -270,6 +291,110 @@ impl RegFile {
     pub fn reg_poolr_push(arch: &'static Arch, reg: Operand) {
         Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().push(reg));
     }
+
+
+    /// Map reg from src_arch to trg_arch
+    pub fn reg_map_pool_set(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize, trg_idx: usize) {
+        Self::REG_MAP_POOL.with(|pool_map| {
+            let src_reg = Self::reg_poolr_get(src_arch, src_idx);
+            let trg_reg = Self::reg_poolr_get(trg_arch, trg_idx);
+            src_reg.borrow_mut().set_reg_bund();
+            trg_reg.borrow_mut().set_reg_bund();
+            pool_map.borrow_mut().insert((src_arch, trg_arch, src_idx), trg_reg.clone());
+        });
+    }
+
+    pub fn reg_map_pool_get(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize) -> Rc<RefCell<Operand>> {
+        Self::REG_MAP_POOL.with(|pool_map| pool_map.borrow().get(&(src_arch, trg_arch, src_idx)).unwrap().clone())
+    }
+
+    pub fn reg_map_pool_info(src_arch: &'static Arch, trg_arch: &'static Arch) -> String {
+        Self::REG_MAP_POOL.with(|pool_map| {
+            let mut info = String::new();
+            info.push_str(&format!("Reg Map(Nums={}): {} -> {} \n", Self::reg_map_pool_num(src_arch, trg_arch), src_arch, trg_arch));
+            // sreg -> treg
+            for (k, v) in pool_map.borrow().iter() {
+                if k.0 == src_arch && k.1 == trg_arch {
+                    info.push_str(&format!("{} -> {} \n", Self::reg_poolr_get(k.0, k.2).borrow().clone(), v.borrow().clone()));
+                }
+            }
+            info
+        })
+    }
+
+    pub fn reg_map_pool_nset(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
+        let src_idx =  Self::reg_poolr_nget(src_arch, src_name).borrow().clone().val().get_byte(0) as usize;
+        let trg_idx =  Self::reg_poolr_nget(trg_arch, trg_name).borrow().clone().val().get_byte(0) as usize;
+        Self::reg_map_pool_set(src_arch, trg_arch, src_idx, trg_idx);
+    }
+
+    pub fn reg_map_pool_nget(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) -> Rc<RefCell<Operand>> {
+        let src_idx =  Self::reg_poolr_nget(src_arch, src_name).borrow().clone().val().get_byte(0) as usize;
+        Self::reg_map_pool_get(src_arch, trg_arch, src_idx)
+    }
+
+    pub fn reg_map_pool_is_in(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize) -> bool {
+        Self::REG_MAP_POOL.with(|pool_map| pool_map.borrow().contains_key(&(src_arch, trg_arch, src_idx)))
+    }
+
+    /// Map reg from src_arch to trg_arch
+    pub fn reg_map_pool_num(src_arch: &'static Arch, trg_arch: &'static Arch) -> usize {
+        Self::REG_MAP_POOL.with(|pool_map| 
+            // if key is src_arch and trg_arch, add 1
+            pool_map.borrow().keys().filter(|k| k.0 == src_arch && k.1 == trg_arch).count()
+        )
+    }
+
+    pub fn reg_map_pool_del(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize) {
+        Self::REG_MAP_POOL.with(|pool_map| {
+            let src_reg = Self::reg_poolr_get(src_arch, src_idx);
+            let trg_reg = Self::reg_poolr_get(trg_arch, src_idx);
+            src_reg.borrow_mut().set_reg_global();
+            trg_reg.borrow_mut().set_reg_global();
+            pool_map.borrow_mut().remove(&(src_arch, trg_arch, src_idx))
+        });
+    }
+
+    pub fn reg_map_pool_ndel(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
+        let src_idx =  Self::reg_poolr_nget(src_arch, src_name).borrow().clone().val().get_byte(0) as usize;
+        Self::reg_map_pool_del(src_arch, trg_arch, src_idx);
+    }
+
+    pub fn reg_map_pool_clr(src_arch: &'static Arch, trg_arch: &'static Arch) {
+        Self::REG_MAP_POOL.with(|pool_map| 
+            // if key is src_arch and trg_arch, remove
+            pool_map.borrow_mut().keys().filter(|k| k.0 == src_arch && k.1 == trg_arch).for_each(|k| {
+                pool_map.borrow_mut().remove(k);
+            })
+        );
+    }
+
+    pub fn reg_map_pool_clr_all() {
+        Self::REG_MAP_POOL.with(|pool_map| pool_map.borrow_mut().clear());
+    }
+
+
+    pub fn reg_bundle(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
+        Self::reg_map_pool_nset(src_arch, trg_arch, src_name, trg_name);
+    }
+
+    pub fn reg_release(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
+        Self::reg_map_pool_ndel(src_arch, trg_arch, src_name);
+    }
+
+    pub fn reg_alloc(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize) -> Rc<RefCell<Operand>> {
+        let src_reg = RegFile::reg_poolr_get(src_arch, src_idx);
+        if src_reg.borrow().is_reg_bund() {
+            RegFile::reg_map_pool_get(src_arch, trg_arch, src_idx)
+        } else {
+            // find global reg
+            let (trg_idx, trg_reg) = RegFile::reg_poolr_get_global(trg_arch);
+            // bundle reg
+            RegFile::reg_map_pool_set(src_arch, trg_arch, src_idx, trg_idx);
+            trg_reg
+        }
+    }
+
 
 
 }

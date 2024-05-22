@@ -17,6 +17,9 @@ use crate::util::log::Span;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
 
+use super::insn::RegFile;
+use super::op::Operand;
+
 
 // ============================================================================== //
 //                                trs::Translator

@@ -61,7 +61,7 @@ pub const REG_OFF104: u16 = 0b1101_0000_0000;
 pub const REG_OFF112: u16 = 0b1110_0000_0000;
 /// reg offset 15-byte
 pub const REG_OFF120: u16 = 0b1111_0000_0000;
-/// global reg: free
+/// global reg: need to be bundled
 pub const REG_GLOB: u16 = 0b0000_0000;
 /// global reg: bundled
 pub const REG_BUND: u16 = 0b0001_0000;
@@ -447,6 +447,43 @@ impl Operand {
                 }
             }
             _ => 0,
+        }
+    }
+
+
+    pub fn set_reg_bund(&self) {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_BUND));
+            }
+            _ => {},
+        }
+    }
+
+    pub fn is_reg_bund(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                (flag & 0b0011_0000) == REG_BUND
+            },
+            _ => false,
+        }
+    }
+
+    pub fn set_reg_global(&self) {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_GLOB));
+            }
+            _ => {},
+        }
+    }
+
+    pub fn is_reg_global(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                (flag & 0b0011_0000) == REG_GLOB
+            },
+            _ => false,
         }
     }
 

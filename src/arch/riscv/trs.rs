@@ -26,17 +26,36 @@ use super::def::RISCV32_ARCH;
 // ============================================================================== //
 
 pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator>>> {
+
     match *trg_arch {
         EVO_ARCH => {
+            // bundle regs
+            RegFile::reg_bundle(&RISCV32_ARCH, &EVO_ARCH, "x1", "t0");
+            RegFile::reg_release(&RISCV32_ARCH, &EVO_ARCH, "x1");
+            RegFile::reg_bundle(&RISCV32_ARCH, &EVO_ARCH, "x2", "t9");
             let trs = Translator::def(&RISCV32_ARCH, &EVO_ARCH);
+            // define func
             trs.borrow_mut().def_func("add", 
                 // ======== add rd, rs1, rs2 -> add_i32 rd, rs1, rs2 ======== //
                 |insn| {
                     let mut trg_insns = Vec::new();
                     let insn1 = Instruction::insn_pool_nget("add_i32").borrow().clone().encode(vec![
-                        RegFile::reg_poolr_get(&EVO_ARCH, insn.rd() as usize).borrow().clone(),
-                        RegFile::reg_poolr_get(&EVO_ARCH, insn.rs1() as usize).borrow().clone(),
-                        RegFile::reg_poolr_get(&EVO_ARCH, insn.rs2() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rd() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs1() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs2() as usize).borrow().clone(),
+                    ]);
+                    trg_insns.push(insn1);
+                    trg_insns
+                }
+            );
+            trs.borrow_mut().def_func("sub", 
+                // ======== add rd, rs1, rs2 -> add_i32 rd, rs1, rs2 ======== //
+                |insn| {
+                    let mut trg_insns = Vec::new();
+                    let insn1 = Instruction::insn_pool_nget("sub_i32").borrow().clone().encode(vec![
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rd() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs1() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs2() as usize).borrow().clone(),
                     ]);
                     trg_insns.push(insn1);
                     trg_insns
@@ -71,6 +90,10 @@ mod riscv_test {
         let src_insn1 = Instruction::from_string("add x0, x1, x2");
         let trg_insn1 = trs.borrow().translate(&src_insn1);
         println!("- src: \n{}\n- trg: \n{}", src_insn1, trg_insn1.iter().map(|i| i.to_string()).collect::<Vec<String>>().join("\n"));
+
+        let src_insn2 = Instruction::from_string("sub x0, x1, x2");
+        let trg_insn2 = trs.borrow().translate(&src_insn2);
+        println!("- src: \n{}\n- trg: \n{}", src_insn2, trg_insn2.iter().map(|i| i.to_string()).collect::<Vec<String>>().join("\n"));
     }
 
 
