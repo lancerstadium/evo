@@ -45,10 +45,23 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
                 }
             );
             trs.borrow_mut().def_func("sub", 
-                // ======== add rd, rs1, rs2 -> add_i32 rd, rs1, rs2 ======== //
+                // ======== sub rd, rs1, rs2 -> sub_i32 rd, rs1, rs2 ======== //
                 |insn| {
                     let mut trg_insns = Vec::new();
                     let insn1 = Instruction::insn_pool_nget("sub_i32").borrow().clone().encode(vec![
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rd() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs1() as usize).borrow().clone(),
+                        RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs2() as usize).borrow().clone(),
+                    ]);
+                    trg_insns.push(insn1);
+                    trg_insns
+                }
+            );
+            trs.borrow_mut().def_func("or", 
+                // ======== or rd, rs1, rs2 -> or_i32 rd, rs1, rs2 ======== //
+                |insn| {
+                    let mut trg_insns = Vec::new();
+                    let insn1 = Instruction::insn_pool_nget("or_i32").borrow().clone().encode(vec![
                         RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rd() as usize).borrow().clone(),
                         RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs1() as usize).borrow().clone(),
                         RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.rs2() as usize).borrow().clone(),

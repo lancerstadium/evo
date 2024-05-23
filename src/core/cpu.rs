@@ -63,6 +63,7 @@ impl CPUState {
         let base_addr = base_addr.unwrap_or(Self::DEFAULT_BASE_ADDR);
         let mem_size = mem_size.unwrap_or(Self::DEFAULT_MEM_SIZE);
         let stack_size = stack_size.unwrap_or(Self::DEFAULT_STACK_SIZE);
+        Interpreter::itp_pool_init(src_arch);
         let cpu = Self {
             src_arch,
             ir_arch,

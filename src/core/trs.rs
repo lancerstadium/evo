@@ -17,8 +17,6 @@ use crate::util::log::Span;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
 
-use super::insn::RegFile;
-use super::op::Operand;
 
 
 // ============================================================================== //
@@ -57,7 +55,12 @@ impl Translator {
 
     /// Translate insn
     pub fn translate(&self, insn: &Instruction) -> Vec<Instruction> {
-        Self::func_pool_nget(self.src_arch, self.trg_arch, insn.name())(insn)
+        let mut trg_insns = Self::func_pool_nget(self.src_arch, self.trg_arch, insn.name())(insn);
+        if trg_insns.len() > 0 {
+            // set label
+            trg_insns[0].set_label(insn.label.clone());
+        }
+        trg_insns
     }
 
     // =================== Trans.pool ====================== //

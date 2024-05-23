@@ -348,7 +348,7 @@ impl RegFile {
     pub fn reg_map_pool_del(src_arch: &'static Arch, trg_arch: &'static Arch, src_idx: usize) {
         Self::REG_MAP_POOL.with(|pool_map| {
             let src_reg = Self::reg_poolr_get(src_arch, src_idx);
-            let trg_reg = Self::reg_poolr_get(trg_arch, src_idx);
+            let trg_reg = Self::reg_map_pool_get(src_arch, trg_arch, src_idx);
             src_reg.borrow_mut().set_reg_global();
             trg_reg.borrow_mut().set_reg_global();
             pool_map.borrow_mut().remove(&(src_arch, trg_arch, src_idx))
@@ -607,7 +607,7 @@ pub struct Instruction {
     /// ```
     pub flag: u16,
     pub pc: Option<Value>,
-    pub label: Option<&'static str>,
+    pub label: Option<String>,
     pub opc : Opcode,
     pub opr : Vec<Operand>,
     pub opb : &'static str,
@@ -864,13 +864,8 @@ impl Instruction {
     }
 
     /// set label
-    pub fn set_label(&mut self, label: &'static str) {
-        self.label = Some(label);
-    }
-
-    /// delete label
-    pub fn del_label(&mut self) {
-        self.label = None;
+    pub fn set_label(&mut self, label: Option<String>) {
+        self.label = label;
     }
 
     // ==================== Instruction.flag ==================== //
@@ -1041,9 +1036,12 @@ impl Instruction {
     /// To string: `[opc] [opr1] : [sym1], [opr2] : [sym2], ...`
     pub fn to_string(&self) -> String {
         let mut info = String::new();
-        info.push_str(&format!("{:<10} ", 
-            if self.label.is_some() { self.label.as_ref().unwrap() } else { "" }
-        ));
+        if self.label.is_some() {
+            info.push_str(&format!("{:<8}: ", self.label.as_ref().unwrap()));
+        } else {
+            info.push_str(&format!("{:<9} ", ""));
+        }
+
         info.push_str(&format!("{:<10} ", self.opc.name()));
         for i in 0..self.opr.len() {
             let r = self.opr[i].clone();
@@ -1059,20 +1057,27 @@ impl Instruction {
     /// From string to Instruction
     pub fn from_string(str: &'static str) -> Instruction {
         // 1. Deal with string
-        let str = str.trim();
+        let mut str = str.trim();
+        let mut label = None;
+        // Deal with `label: [insn]`: if contains `:` and before `:` is identifier
+        if str.contains(':') {
+            let mut part = str.splitn(2, ':');
+            let label_str = part.next().unwrap().trim();
+            let insn = part.next().unwrap().trim();
+            if Value::is_ident(label_str) {
+                str = insn;
+                label = Some(label_str.to_string());
+            }
+        }
+
         // Check if the string has space
         if !str.contains(' ') {
             let name = str;
             let mut res = Instruction::insn_pool_nget(name).borrow().clone();
             res = res.encode(vec![]);
+            res.set_label(label);
             return res;
         }
-        // Deal with `//` comment in str behind like: `[opc] [opr], ... // comment`
-        // if str.contains("//") {
-        //     let mut part = str.splitn(2, ' ');
-        //     str = part.next().unwrap().trim();
-        //     let comment = part.next().unwrap().trim();
-        // }
 
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
@@ -1094,7 +1099,8 @@ impl Instruction {
             opr_vec.push(r);
         }
         // 5. Encode Instruction
-        let res = res.borrow_mut().encode(opr_vec);
+        let mut res = res.borrow_mut().encode(opr_vec);
+        res.set_label(label);
         res
     }
 }

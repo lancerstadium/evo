@@ -3027,7 +3027,7 @@ pub fn evo_decode(value: Value) -> Instruction {
     let flag_b = (flag_prefix & 0b111_000_00) >> 5;
     let mut opr = vec![];
     let opcode;
-    let mut cur_idx:usize = 0;
+    let mut cur_idx: usize;
 
     if flag_a == 0b111 {
         // 2 opcodes
@@ -3135,7 +3135,7 @@ pub fn evo_decode(value: Value) -> Instruction {
         };
 
         // 4. deal with operands
-        let field_b = match(flag_a, is_64bit) {
+        match(flag_a, is_64bit) {
             (0b000, _) => cur_idx,
             (0b001, _) => {
                 opr.push(RegFile::reg_poolr_get(&EVO_ARCH, res.code.get_byte(cur_idx) as usize).borrow().clone());
@@ -3215,7 +3215,7 @@ pub fn evo_decode(value: Value) -> Instruction {
             }
         };
 
-        let field_all = match(flag_b, is_64bit) {
+        match(flag_b, is_64bit) {
             (0b000, _) => cur_idx,
             (0b001, false) => {
                 opr.push(Operand::imm(Value::i32(res.code.get_word(cur_idx) as i32)));
@@ -3486,7 +3486,7 @@ mod evo_test {
         let insn80 = Instruction::from_string("depo_i32 t0, t4");
         let insn81 = Instruction::from_string("depo_i64 t0, t4");
 
-        insn1.set_label("sieve: ");
+        insn1.set_label(Some("sieve: ".to_string()));
         cpu.execute(&insn1);
         println!("{:<60} {:<70} -> t0 = {}", insn1.code.hex(0, -1, false), insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn2);

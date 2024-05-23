@@ -9,6 +9,8 @@ use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
 use crate::core::trs::Translator;
 
+use super::val::Value;
+
 
 
 // ============================================================================== //
@@ -21,6 +23,8 @@ use crate::core::trs::Translator;
 pub struct BasicBlock {
     
     pub flag: u16,
+    pub pc: Option<Value>,
+    pub label: Option<String>,
     pub src_insns: Vec<Instruction>,
     pub src_arch: &'static Arch,
     
@@ -34,11 +38,13 @@ pub struct BasicBlock {
 impl BasicBlock {
 
 
-    pub fn init(src_insns: Vec<Instruction>, trg_arch: Option<&'static Arch>, flag: u16) -> BasicBlock {
+    pub fn new(src_insns: Vec<Instruction>, trg_arch: Option<&'static Arch>, flag: u16) -> BasicBlock {
         let src_arch = src_insns[0].arch;
         if trg_arch.is_none() {
             Self {
                 flag,
+                pc: None,
+                label: None,
                 src_insns,
                 trg_insns: None,
                 src_arch,
@@ -49,6 +55,8 @@ impl BasicBlock {
         } else {
             Self {
                 flag,
+                pc: None,
+                label: None,
                 src_insns,
                 trg_insns: None,
                 src_arch,
@@ -57,6 +65,10 @@ impl BasicBlock {
                 trs: Translator::trs_pool_init(src_arch, trg_arch.unwrap())
             }
         }
+    }
+
+    pub fn set_label(&mut self, label: String) {
+        self.label = Some(label);
     }
 
     pub fn is_translated(&self) -> bool {
@@ -76,6 +88,11 @@ impl BasicBlock {
             }
             self.trs_insn_idxs = Some(trs_insn_idxs);
             self.trg_insns = Some(trg_insns);
+            // set label: src_insns[0].label
+            if self.src_insns.len() > 0 && self.trg_insns.as_ref().unwrap().len() > 0 {
+                self.label = self.src_insns[0].label.clone();
+                self.pc = self.trg_insns.as_ref().unwrap()[0].pc.clone();
+            }
         }
     }
 
@@ -132,13 +149,11 @@ mod blk_test {
         Interpreter::itp_pool_init(&RISCV32_ARCH);
         Interpreter::itp_pool_init(&EVO_ARCH);
 
-        // println!("{}", RegFile::reg_pool_info(&EVO_ARCH));
-
-        let src_insn1 = Instruction::from_string("add x0, x1, x2");
+        let src_insn1 = Instruction::from_string("nihao: add x0, x1, x2");
         let src_insn2 = Instruction::from_string("sub x0, x1, x2");
 
         let src_insns = vec![src_insn1, src_insn2];
-        let mut bb = BasicBlock::init(src_insns, Some(&EVO_ARCH), 0);
+        let mut bb = BasicBlock::new(src_insns, Some(&EVO_ARCH), 0);
         println!("{}", RegFile::reg_pool_info(&EVO_ARCH));
         bb.translate();
         println!("{}", bb.translate_info(-1));
