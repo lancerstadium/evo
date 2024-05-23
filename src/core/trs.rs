@@ -27,7 +27,7 @@ use super::op::Operand;
 
 
 /// Arch Interpreter
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Translator {
     /// src arch
     pub src_arch: &'static Arch,

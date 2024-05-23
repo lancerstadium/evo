@@ -6,18 +6,14 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::vec;
 
-use crate::arch::evo::def::EVO_ARCH;
-use crate::{log_error, log_warning};
-use crate::util::log::Span;
-use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
-use crate::core::val::Value;
-use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
-use crate::core::insn::{Instruction, RegFile};
-use crate::core::itp::Interpreter;
-use crate::core::mem::CPUThreadStatus;
-use crate::core::trs::Translator;
 
-use super::def::RISCV32_ARCH;
+use crate::log_error;
+use crate::util::log::Span;
+use crate::arch::info::Arch;
+use crate::core::insn::{Instruction, RegFile};
+use crate::core::trs::Translator;
+use crate::arch::riscv::def::RISCV32_ARCH;
+use crate::arch::evo::def::EVO_ARCH;
 
 
 
@@ -76,15 +72,13 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
 mod riscv_test {
 
     use super::*;
-    use crate::core::cpu::CPUState;
-
+    use crate::core::itp::Interpreter;
 
     #[test]
     fn rv32_trs() {
         Interpreter::itp_pool_init(&RISCV32_ARCH);
         Interpreter::itp_pool_init(&EVO_ARCH);
-        let trs = Translator::def(&RISCV32_ARCH, &EVO_ARCH);
-        Translator::trs_pool_init(&RISCV32_ARCH, &EVO_ARCH);
+        let trs = Translator::trs_pool_init(&RISCV32_ARCH, &EVO_ARCH).unwrap();
         println!("{}", Translator::func_pool_info());
 
         let src_insn1 = Instruction::from_string("add x0, x1, x2");

@@ -304,7 +304,7 @@ impl Operand {
             OperandKind::Imm(_) => self.to_string(),
             OperandKind::Reg(_, _, _) => {
                 let idx_str = self.val().bin_scale(0, -1, true);
-                format!("{:<9} [{:<2}:{:>2}] ({})", self.to_string(), self.reg_scale() + self.reg_offset() * 8 - 1, self.reg_offset() * 8, idx_str)
+                format!("{:<9} [{:<2}:{:>2}]   {} ({})", self.to_string(), self.reg_scale() + self.reg_offset() * 8 - 1, self.reg_offset() * 8, self.reg_status(), idx_str)
             },
             OperandKind::Mem(_, _, _, _) => self.to_string(),
             OperandKind::Label(_, _) => self.to_string(),
@@ -475,6 +475,21 @@ impl Operand {
                 self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_GLOB));
             }
             _ => {},
+        }
+    }
+
+    pub fn reg_status(&self) -> String {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                match flag & 0b0011_0000 {
+                    REG_GLOB => "G",
+                    REG_BUND => "B",
+                    REG_TEMP => "T",
+                    REG_LOCA => "L",
+                    _ => "",
+                }.to_string()
+            }
+            _ => "".to_string(),
         }
     }
 
