@@ -213,12 +213,12 @@ mod cpu_test {
     fn insn_info() {
         CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
 
-        let insn1 = Instruction::insn_pool_nget("sub").borrow().clone();
+        let insn1 = Instruction::insn_pool_nget(&RISCV32_ARCH,"sub").borrow().clone();
         println!("{}", insn1.info());
         println!("{}", insn1.bin(0, -1, true));
 
         let insn2 = Instruction::apply(
-            "sub", vec![
+                &RISCV32_ARCH, "sub", vec![
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(), 
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x0").borrow().clone(), 
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x8").borrow().clone()
@@ -226,7 +226,7 @@ mod cpu_test {
         );
         println!("{}", insn2.bin(0, -1, true));
         let insn3 = Instruction::apply(
-            "srl", vec![
+                &RISCV32_ARCH, "srl", vec![
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(), 
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x30").borrow().clone(), 
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x7").borrow().clone()
@@ -236,7 +236,7 @@ mod cpu_test {
         println!("{}", insn3);
 
         let insn4 = Instruction::apply(
-            "addi", vec![
+                &RISCV32_ARCH, "addi", vec![
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x31").borrow().clone(),
                 RegFile::reg_poolr_nget(&RISCV32_ARCH, "x30").borrow().clone(),
                 Operand::imm(Value::u12(2457)),

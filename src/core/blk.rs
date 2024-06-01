@@ -8,8 +8,8 @@ use std::cell::RefCell;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
 use crate::core::trs::Translator;
-
-use super::val::Value;
+use crate::core::cpu::CPUState;
+use crate::core::val::Value;
 
 
 
@@ -75,13 +75,13 @@ impl BasicBlock {
         self.trg_insns.is_some()
     }
 
-    pub fn translate(&mut self) {
+    pub fn translate(&mut self, cpu: &CPUState) {
         if self.trs.is_some() {
             let mut trg_insns = Vec::new();
             let mut trs_insn_idxs = Vec::new();
             let mut sum_insn_idx = 0;
             for src_insn in &self.src_insns {
-                let mut trg_tmp_insns = self.trs.as_ref().unwrap().borrow_mut().translate(src_insn);
+                let mut trg_tmp_insns = self.trs.as_ref().unwrap().borrow_mut().translate(cpu, src_insn);
                 trs_insn_idxs.push(sum_insn_idx);
                 sum_insn_idx += trg_tmp_insns.len();
                 trg_insns.append(&mut trg_tmp_insns);
@@ -140,22 +140,20 @@ mod blk_test {
 
     use super::*;
     use crate::core::insn::RegFile;
-    use crate::core::itp::Interpreter;
     use crate::arch::riscv::def::RISCV32_ARCH;
     use crate::arch::evo::def::EVO_ARCH;
 
     #[test]
     fn blk_init() {
-        Interpreter::itp_pool_init(&RISCV32_ARCH);
-        Interpreter::itp_pool_init(&EVO_ARCH);
+        let mut cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
 
-        let src_insn1 = Instruction::from_string("nihao: add x0, x1, x2");
-        let src_insn2 = Instruction::from_string("sub x0, x1, x2");
+        let src_insn1 = Instruction::from_string(&RISCV32_ARCH, "nihao: add x0, x1, x2");
+        let src_insn2 = Instruction::from_string(&RISCV32_ARCH, "sub x0, x1, x2");
 
         let src_insns = vec![src_insn1, src_insn2];
         let mut bb = BasicBlock::new(src_insns, Some(&EVO_ARCH), 0);
         println!("{}", RegFile::reg_pool_info(&EVO_ARCH));
-        bb.translate();
+        bb.translate(&cpu);
         println!("{}", bb.translate_info(-1));
     }
 }

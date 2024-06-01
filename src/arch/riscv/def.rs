@@ -784,16 +784,16 @@ pub fn riscv32_decode(value: Value) -> Instruction {
             opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs2() as usize).borrow().clone());
             // find insn
             match (f3, f7) {
-                (0b000, 0b0000000) => res = Instruction::insn_pool_nget("add").borrow().clone(),
-                (0b000, 0b0100000) => res = Instruction::insn_pool_nget("sub").borrow().clone(),
-                (0b100, 0b0000000) => res = Instruction::insn_pool_nget("xor").borrow().clone(),
-                (0b110, 0b0000000) => res = Instruction::insn_pool_nget("or").borrow().clone(),
-                (0b111, 0b0000000) => res = Instruction::insn_pool_nget("and").borrow().clone(),
-                (0b001, 0b0000000) => res = Instruction::insn_pool_nget("sll").borrow().clone(),
-                (0b101, 0b0000000) => res = Instruction::insn_pool_nget("srl").borrow().clone(),
-                (0b101, 0b0100000) => res = Instruction::insn_pool_nget("sra").borrow().clone(),
-                (0b010, 0b0000000) => res = Instruction::insn_pool_nget("slt").borrow().clone(),
-                (0b011, 0b0000000) => res = Instruction::insn_pool_nget("sltu").borrow().clone(),
+                (0b000, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "add").borrow().clone(),
+                (0b000, 0b0100000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sub").borrow().clone(),
+                (0b100, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "xor").borrow().clone(),
+                (0b110, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "or").borrow().clone(),
+                (0b111, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "and").borrow().clone(),
+                (0b001, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sll").borrow().clone(),
+                (0b101, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "srl").borrow().clone(),
+                (0b101, 0b0100000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sra").borrow().clone(),
+                (0b010, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "slt").borrow().clone(),
+                (0b011, 0b0000000) => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sltu").borrow().clone(),
                 _ => {
 
                 }
@@ -810,12 +810,12 @@ pub fn riscv32_decode(value: Value) -> Instruction {
             opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
             // find insn
             match f3 {
-                0b000 => res = Instruction::insn_pool_nget("addi").borrow().clone(),
-                0b010 => res = Instruction::insn_pool_nget("slti").borrow().clone(),
-                0b011 => res = Instruction::insn_pool_nget("sltiu").borrow().clone(),
-                0b100 => res = Instruction::insn_pool_nget("xori").borrow().clone(),
-                0b110 => res = Instruction::insn_pool_nget("ori").borrow().clone(),
-                0b111 => res = Instruction::insn_pool_nget("andi").borrow().clone(),
+                0b000 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "addi").borrow().clone(),
+                0b010 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "slti").borrow().clone(),
+                0b011 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sltiu").borrow().clone(),
+                0b100 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "xori").borrow().clone(),
+                0b110 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "ori").borrow().clone(),
+                0b111 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "andi").borrow().clone(),
                 _ => {}
             }
         },
@@ -830,9 +830,9 @@ pub fn riscv32_decode(value: Value) -> Instruction {
             opr.push(Operand::imm(Value::bit(12, res.imm_s() as i128)));
             // find insn
             match f3 {
-                0b000 => res = Instruction::insn_pool_nget("sb").borrow().clone(),
-                0b001 => res = Instruction::insn_pool_nget("sh").borrow().clone(),
-                0b010 => res = Instruction::insn_pool_nget("sw").borrow().clone(),
+                0b000 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sb").borrow().clone(),
+                0b001 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sh").borrow().clone(),
+                0b010 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "sw").borrow().clone(),
                 _ => {}
             }
         },
@@ -847,8 +847,8 @@ pub fn riscv32_decode(value: Value) -> Instruction {
             opr.push(Operand::imm(Value::bit(12, res.imm_b() as i128)));
             // find insn
             match f3 {
-                0b000 => res = Instruction::insn_pool_nget("beq").borrow().clone(),
-                0b001 => res = Instruction::insn_pool_nget("bne").borrow().clone(),
+                0b000 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "beq").borrow().clone(),
+                0b001 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "bne").borrow().clone(),
                 _ => {}
             }
         }
@@ -880,52 +880,52 @@ mod riscv_test {
         println!("{}", cpu.pool_info());
 
         // R-Type Insns Test
-        let insn1 = Instruction::from_string("add x0, x1, x2");
-        let insn2 = Instruction::from_string("sub x0, x1, x2");
-        let insn3 = Instruction::from_string("or x0, x1, x2");
-        let insn4 = Instruction::from_string("xor x0, x1, x2");
-        let insn5 = Instruction::from_string("and x0, x1, x2");
-        let insn6 = Instruction::from_string("sltu x0, x1, x2");
-        let insn7 = Instruction::from_string("srl x0, x1, x3");
-        let insn8 = Instruction::from_string("sra x0, x1, x3");
-        let insn9 = Instruction::from_string("sll x0, x1, x3");
-        let insn10 = Instruction::from_string("slt x0, x1, x2");
+        let insn1 = Instruction::from_string(&RISCV32_ARCH, "add x0, x1, x2");
+        let insn2 = Instruction::from_string(&RISCV32_ARCH, "sub x0, x1, x2");
+        let insn3 = Instruction::from_string(&RISCV32_ARCH, "or x0, x1, x2");
+        let insn4 = Instruction::from_string(&RISCV32_ARCH, "xor x0, x1, x2");
+        let insn5 = Instruction::from_string(&RISCV32_ARCH, "and x0, x1, x2");
+        let insn6 = Instruction::from_string(&RISCV32_ARCH, "sltu x0, x1, x2");
+        let insn7 = Instruction::from_string(&RISCV32_ARCH, "srl x0, x1, x3");
+        let insn8 = Instruction::from_string(&RISCV32_ARCH, "sra x0, x1, x3");
+        let insn9 = Instruction::from_string(&RISCV32_ARCH, "sll x0, x1, x3");
+        let insn10 = Instruction::from_string(&RISCV32_ARCH, "slt x0, x1, x2");
 
         // I-Type Insns Test
-        let insn11 = Instruction::from_string("addi x0, x1, 0xff 0f");
-        let insn12 = Instruction::from_string("andi x0, x1, 2457");
-        let insn13 = Instruction::from_string("ori x0, x1, 2457");
-        let insn14 = Instruction::from_string("xori x0, x1, 2457");
-        let insn15 = Instruction::from_string("slti x0, x1, 2");
-        let insn16 = Instruction::from_string("sltiu x0, x1, 2");
+        let insn11 = Instruction::from_string(&RISCV32_ARCH, "addi x0, x1, 0xff 0f");
+        let insn12 = Instruction::from_string(&RISCV32_ARCH, "andi x0, x1, 2457");
+        let insn13 = Instruction::from_string(&RISCV32_ARCH, "ori x0, x1, 2457");
+        let insn14 = Instruction::from_string(&RISCV32_ARCH, "xori x0, x1, 2457");
+        let insn15 = Instruction::from_string(&RISCV32_ARCH, "slti x0, x1, 2");
+        let insn16 = Instruction::from_string(&RISCV32_ARCH, "sltiu x0, x1, 2");
 
-        let insn17 = Instruction::from_string("lb x0, x1, 23");
-        let insn18 = Instruction::from_string("lh x0, x1, 23");
-        let insn19 = Instruction::from_string("lw x0, x1, 23");
-        let insn20 = Instruction::from_string("lbu x0, x1, 23");
-        let insn21 = Instruction::from_string("lhu x0, x1, 23");
+        let insn17 = Instruction::from_string(&RISCV32_ARCH, "lb x0, x1, 23");
+        let insn18 = Instruction::from_string(&RISCV32_ARCH, "lh x0, x1, 23");
+        let insn19 = Instruction::from_string(&RISCV32_ARCH, "lw x0, x1, 23");
+        let insn20 = Instruction::from_string(&RISCV32_ARCH, "lbu x0, x1, 23");
+        let insn21 = Instruction::from_string(&RISCV32_ARCH, "lhu x0, x1, 23");
 
-        let insn22 = Instruction::from_string("sb x0, x1, 23");
-        let insn23 = Instruction::from_string("sh x0, x1, 23");
-        let insn24 = Instruction::from_string("sw x0, x1, 23");
+        let insn22 = Instruction::from_string(&RISCV32_ARCH, "sb x0, x1, 23");
+        let insn23 = Instruction::from_string(&RISCV32_ARCH, "sh x0, x1, 23");
+        let insn24 = Instruction::from_string(&RISCV32_ARCH, "sw x0, x1, 23");
         
-        let insn34 = Instruction::from_string("jalr x0, x1, 23");
-        let insn35 = Instruction::from_string("ecall");
-        let insn36 = Instruction::from_string("ebreak");
+        let insn34 = Instruction::from_string(&RISCV32_ARCH, "jalr x0, x1, 23");
+        let insn35 = Instruction::from_string(&RISCV32_ARCH, "ecall");
+        let insn36 = Instruction::from_string(&RISCV32_ARCH, "ebreak");
 
         // B-Type Insns Test
-        let insn25 = Instruction::from_string("beq x0, x1, 23");
-        let insn26 = Instruction::from_string("bne x0, x1, 23");
-        let insn27 = Instruction::from_string("blt x0, x1, 23");
-        let insn28 = Instruction::from_string("bge x0, x1, 23");
-        let insn29 = Instruction::from_string("bltu x0, x1, 23");
-        let insn30 = Instruction::from_string("bgeu x0, x1, 23");
+        let insn25 = Instruction::from_string(&RISCV32_ARCH, "beq x0, x1, 23");
+        let insn26 = Instruction::from_string(&RISCV32_ARCH, "bne x0, x1, 23");
+        let insn27 = Instruction::from_string(&RISCV32_ARCH, "blt x0, x1, 23");
+        let insn28 = Instruction::from_string(&RISCV32_ARCH, "bge x0, x1, 23");
+        let insn29 = Instruction::from_string(&RISCV32_ARCH, "bltu x0, x1, 23");
+        let insn30 = Instruction::from_string(&RISCV32_ARCH, "bgeu x0, x1, 23");
 
         // U-Type Insns Test
-        let insn31 = Instruction::from_string("lui x0, 255");
-        let insn32 = Instruction::from_string("auipc x0, 255");
+        let insn31 = Instruction::from_string(&RISCV32_ARCH, "lui x0, 255");
+        let insn32 = Instruction::from_string(&RISCV32_ARCH, "auipc x0, 255");
         // J-Type Insns Test
-        let insn33 = Instruction::from_string("jal x0, 23");
+        let insn33 = Instruction::from_string(&RISCV32_ARCH, "jal x0, 23");
 
         cpu.execute(&insn1);
         println!("{:<60} -> x0 = {}", insn1.to_string(), cpu.get_nreg("x0").get_i32(0));

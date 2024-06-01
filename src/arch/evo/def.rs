@@ -3042,92 +3042,92 @@ pub fn evo_decode(value: Value) -> Instruction {
     // 3. match opcode
     if opcode.len() == 1 {
         match (opcode[0], is_unsigned, is_64bit) {
-            (0x01, false, false) => res = Instruction::insn_pool_nget("add_i32").borrow().clone(),
-            (0x01, false, true) => res = Instruction::insn_pool_nget("add_i64").borrow().clone(),
-            (0x02, false, false) => res = Instruction::insn_pool_nget("sub_i32").borrow().clone(),
-            (0x02, false, true) => res = Instruction::insn_pool_nget("sub_i64").borrow().clone(),
-            (0x03, false, false) => res = Instruction::insn_pool_nget("neg_i32").borrow().clone(),
-            (0x03, false, true) => res = Instruction::insn_pool_nget("neg_i64").borrow().clone(),
-            (0x04, false, false) => res = Instruction::insn_pool_nget("mul_i32").borrow().clone(),
-            (0x04, false, true) => res = Instruction::insn_pool_nget("mul_i64").borrow().clone(),
-            (0x05, false, false) => res = Instruction::insn_pool_nget("div_i32").borrow().clone(),  
-            (0x05, false, true) => res = Instruction::insn_pool_nget("div_i64").borrow().clone(),
-            (0x05, true , false) => res = Instruction::insn_pool_nget("div_u32").borrow().clone(),
-            (0x05, true , true) => res = Instruction::insn_pool_nget("div_u64").borrow().clone(),
-            (0x06, false, false) => res = Instruction::insn_pool_nget("rem_i32").borrow().clone(),
-            (0x06, false, true) => res = Instruction::insn_pool_nget("rem_i64").borrow().clone(),
-            (0x06, true , false) => res = Instruction::insn_pool_nget("rem_u32").borrow().clone(),
-            (0x06, true , true) => res = Instruction::insn_pool_nget("rem_u64").borrow().clone(),
+            (0x01, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "add_i32").borrow().clone(),
+            (0x01, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "add_i64").borrow().clone(),
+            (0x02, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "sub_i32").borrow().clone(),
+            (0x02, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "sub_i64").borrow().clone(),
+            (0x03, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "neg_i32").borrow().clone(),
+            (0x03, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "neg_i64").borrow().clone(),
+            (0x04, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "mul_i32").borrow().clone(),
+            (0x04, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "mul_i64").borrow().clone(),
+            (0x05, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "div_i32").borrow().clone(),  
+            (0x05, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "div_i64").borrow().clone(),
+            (0x05, true , false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "div_u32").borrow().clone(),
+            (0x05, true , true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "div_u64").borrow().clone(),
+            (0x06, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rem_i32").borrow().clone(),
+            (0x06, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rem_i64").borrow().clone(),
+            (0x06, true , false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rem_u32").borrow().clone(),
+            (0x06, true , true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rem_u64").borrow().clone(),
 
-            (0x07, false, false) => res = Instruction::insn_pool_nget("and_i32").borrow().clone(),
-            (0x07, false, true) => res = Instruction::insn_pool_nget("and_i64").borrow().clone(),
-            (0x08, false, false) => res = Instruction::insn_pool_nget("or_i32").borrow().clone(),
-            (0x08, false, true) => res = Instruction::insn_pool_nget("or_i64").borrow().clone(),
-            (0x09, false, false) => res = Instruction::insn_pool_nget("xor_i32").borrow().clone(),
-            (0x09, false, true) => res = Instruction::insn_pool_nget("xor_i64").borrow().clone(),
-            (0x0a, false, false) => res = Instruction::insn_pool_nget("not_i32").borrow().clone(),
-            (0x0a, false, true) => res = Instruction::insn_pool_nget("not_i64").borrow().clone(),
-            (0x0b, false, false) => res = Instruction::insn_pool_nget("andc_i32").borrow().clone(),
-            (0x0b, false, true) => res = Instruction::insn_pool_nget("andc_i64").borrow().clone(),
-            (0x0c, false, false) => res = Instruction::insn_pool_nget("eqv_i32").borrow().clone(),
-            (0x0c, false, true) => res = Instruction::insn_pool_nget("eqv_i64").borrow().clone(),
-            (0x0d, false, false) => res = Instruction::insn_pool_nget("nand_i32").borrow().clone(),
-            (0x0d, false, true) => res = Instruction::insn_pool_nget("nand_i64").borrow().clone(),
-            (0x0e, false, false) => res = Instruction::insn_pool_nget("nor_i32").borrow().clone(),
-            (0x0e, false, true) => res = Instruction::insn_pool_nget("nor_i64").borrow().clone(),
-            (0x0f, false, false) => res = Instruction::insn_pool_nget("orc_i32").borrow().clone(),
-            (0x0f, false, true) => res = Instruction::insn_pool_nget("orc_i64").borrow().clone(),
+            (0x07, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "and_i32").borrow().clone(),
+            (0x07, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "and_i64").borrow().clone(),
+            (0x08, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "or_i32").borrow().clone(),
+            (0x08, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "or_i64").borrow().clone(),
+            (0x09, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "xor_i32").borrow().clone(),
+            (0x09, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "xor_i64").borrow().clone(),
+            (0x0a, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "not_i32").borrow().clone(),
+            (0x0a, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "not_i64").borrow().clone(),
+            (0x0b, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "andc_i32").borrow().clone(),
+            (0x0b, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "andc_i64").borrow().clone(),
+            (0x0c, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "eqv_i32").borrow().clone(),
+            (0x0c, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "eqv_i64").borrow().clone(),
+            (0x0d, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "nand_i32").borrow().clone(),
+            (0x0d, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "nand_i64").borrow().clone(),
+            (0x0e, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "nor_i32").borrow().clone(),
+            (0x0e, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "nor_i64").borrow().clone(),
+            (0x0f, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "orc_i32").borrow().clone(),
+            (0x0f, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "orc_i64").borrow().clone(),
 
-            (0x10, false, false) => res = Instruction::insn_pool_nget("clz_i32").borrow().clone(),
-            (0x10, false, true) => res = Instruction::insn_pool_nget("clz_i64").borrow().clone(),
-            (0x11, false, false) => res = Instruction::insn_pool_nget("ctz_i32").borrow().clone(),
-            (0x11, false, true) => res = Instruction::insn_pool_nget("ctz_i64").borrow().clone(),
-            (0x12, false, false) => res = Instruction::insn_pool_nget("shl_i32").borrow().clone(),
-            (0x12, false, true) => res = Instruction::insn_pool_nget("shl_i64").borrow().clone(),
-            (0x13, false, false) => res = Instruction::insn_pool_nget("shr_i32").borrow().clone(),
-            (0x13, false, true) => res = Instruction::insn_pool_nget("shr_i64").borrow().clone(),
-            (0x14, false, false) => res = Instruction::insn_pool_nget("sar_i32").borrow().clone(),
-            (0x14, false, true) => res = Instruction::insn_pool_nget("sar_i64").borrow().clone(),
-            (0x15, false, false) => res = Instruction::insn_pool_nget("rol_i32").borrow().clone(),
-            (0x15, false, true) => res = Instruction::insn_pool_nget("rol_i64").borrow().clone(),
-            (0x16, false, false) => res = Instruction::insn_pool_nget("ror_i32").borrow().clone(),
-            (0x16, false, true) => res = Instruction::insn_pool_nget("ror_i64").borrow().clone(),
+            (0x10, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "clz_i32").borrow().clone(),
+            (0x10, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "clz_i64").borrow().clone(),
+            (0x11, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "ctz_i32").borrow().clone(),
+            (0x11, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "ctz_i64").borrow().clone(),
+            (0x12, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "shl_i32").borrow().clone(),
+            (0x12, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "shl_i64").borrow().clone(),
+            (0x13, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "shr_i32").borrow().clone(),
+            (0x13, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "shr_i64").borrow().clone(),
+            (0x14, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "sar_i32").borrow().clone(),
+            (0x14, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "sar_i64").borrow().clone(),
+            (0x15, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rol_i32").borrow().clone(),
+            (0x15, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "rol_i64").borrow().clone(),
+            (0x16, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "ror_i32").borrow().clone(),
+            (0x16, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "ror_i64").borrow().clone(),
 
-            (0x17, false, false) => res = Instruction::insn_pool_nget("mov_i32").borrow().clone(),
-            (0x17, false, true) => res = Instruction::insn_pool_nget("mov_i64").borrow().clone(),
-            (0x18, false, false) => res = Instruction::insn_pool_nget("extb_i32").borrow().clone(),
-            (0x18, false, true) => res = Instruction::insn_pool_nget("extb_i64").borrow().clone(),
-            (0x18, true, false) => res = Instruction::insn_pool_nget("extb_u32").borrow().clone(),
-            (0x18, true, true) => res = Instruction::insn_pool_nget("extb_u64").borrow().clone(),
-            (0x19, false, false) => res = Instruction::insn_pool_nget("exth_i32").borrow().clone(),
-            (0x19, false, true) => res = Instruction::insn_pool_nget("exth_i64").borrow().clone(),
-            (0x19, true, false) => res = Instruction::insn_pool_nget("exth_u32").borrow().clone(),
-            (0x19, true, true) => res = Instruction::insn_pool_nget("exth_u64").borrow().clone(),
-            (0x1a, false, false) => res = Instruction::insn_pool_nget("extw_i32").borrow().clone(),
-            (0x1a, false, true) => res = Instruction::insn_pool_nget("extw_i64").borrow().clone(),
-            (0x1a, true, false) => res = Instruction::insn_pool_nget("extw_u32").borrow().clone(),
-            (0x1a, true, true) => res = Instruction::insn_pool_nget("extw_u64").borrow().clone(),
+            (0x17, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "mov_i32").borrow().clone(),
+            (0x17, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "mov_i64").borrow().clone(),
+            (0x18, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extb_i32").borrow().clone(),
+            (0x18, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extb_i64").borrow().clone(),
+            (0x18, true, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extb_u32").borrow().clone(),
+            (0x18, true, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extb_u64").borrow().clone(),
+            (0x19, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_i32").borrow().clone(),
+            (0x19, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_i64").borrow().clone(),
+            (0x19, true, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_u32").borrow().clone(),
+            (0x19, true, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_u64").borrow().clone(),
+            (0x1a, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extw_i32").borrow().clone(),
+            (0x1a, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extw_i64").borrow().clone(),
+            (0x1a, true, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extw_u32").borrow().clone(),
+            (0x1a, true, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extw_u64").borrow().clone(),
 
-            (0x1b, false, false) => res = Instruction::insn_pool_nget("etr_i32").borrow().clone(),
-            (0x1b, false, true) => res = Instruction::insn_pool_nget("etr_i64").borrow().clone(),
-            (0x1b, true, false) => res = Instruction::insn_pool_nget("etr_u32").borrow().clone(),
-            (0x1b, true, true) => res = Instruction::insn_pool_nget("etr_u64").borrow().clone(),
-            (0x1c, false, false) => res = Instruction::insn_pool_nget("extl_i32").borrow().clone(),
-            (0x1c, false, true) => res = Instruction::insn_pool_nget("extl_i64").borrow().clone(),
-            (0x1d, false, false) => res = Instruction::insn_pool_nget("exth_i32").borrow().clone(),
-            (0x1d, false, true) => res = Instruction::insn_pool_nget("exth_i64").borrow().clone(),
+            (0x1b, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "etr_i32").borrow().clone(),
+            (0x1b, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "etr_i64").borrow().clone(),
+            (0x1b, true, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "etr_u32").borrow().clone(),
+            (0x1b, true, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "etr_u64").borrow().clone(),
+            (0x1c, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extl_i32").borrow().clone(),
+            (0x1c, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "extl_i64").borrow().clone(),
+            (0x1d, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_i32").borrow().clone(),
+            (0x1d, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "exth_i64").borrow().clone(),
 
-            (0x1e, false, false) => res = Instruction::insn_pool_nget("truc_i32").borrow().clone(),
-            (0x1e, false, true) => res = Instruction::insn_pool_nget("truc_i64").borrow().clone(),
-            (0x1f, false, true) => res = Instruction::insn_pool_nget("conc_i64").borrow().clone(),
-            (0x20, false, true) => res = Instruction::insn_pool_nget("conn_i64").borrow().clone(),
-            (0x21, false, false) => res = Instruction::insn_pool_nget("swph_i32").borrow().clone(),
-            (0x21, false, true) => res = Instruction::insn_pool_nget("swph_i64").borrow().clone(),
-            (0x22, false, false) => res = Instruction::insn_pool_nget("swpw_i32").borrow().clone(),
-            (0x22, false, true) => res = Instruction::insn_pool_nget("swpw_i64").borrow().clone(),
-            (0x23, false, true) => res = Instruction::insn_pool_nget("swpd_i64").borrow().clone(),
-            (0x24, false, false) => res = Instruction::insn_pool_nget("depo_i32").borrow().clone(),
-            (0x24, false, true) => res = Instruction::insn_pool_nget("depo_i64").borrow().clone(),
+            (0x1e, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "truc_i32").borrow().clone(),
+            (0x1e, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "truc_i64").borrow().clone(),
+            (0x1f, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "conc_i64").borrow().clone(),
+            (0x20, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "conn_i64").borrow().clone(),
+            (0x21, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "swph_i32").borrow().clone(),
+            (0x21, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "swph_i64").borrow().clone(),
+            (0x22, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "swpw_i32").borrow().clone(),
+            (0x22, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "swpw_i64").borrow().clone(),
+            (0x23, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "swpd_i64").borrow().clone(),
+            (0x24, false, false) => res = Instruction::insn_pool_nget(&EVO_ARCH, "depo_i32").borrow().clone(),
+            (0x24, false, true) => res = Instruction::insn_pool_nget(&EVO_ARCH, "depo_i64").borrow().clone(),
 
             _ => {
                 log_error!("Decode opcode fail: 0x{:x}", opcode[0]);
@@ -3398,93 +3398,93 @@ mod evo_test {
         println!("{}", cpu.pool_info());
 
         // R-Type Insns Test 
-        let mut insn1  = Instruction::from_string("add_i32 t0, t1, t1");
-        let insn2  = Instruction::from_string("add_i64 t0, t2, 65535");
-        let insn3  = Instruction::from_string("sub_i32 t0, 4322, -4321");
-        let insn4  = Instruction::from_string("sub_i64 t0, t1, t2");
-        let insn5  = Instruction::from_string("neg_i32 t0, t1");
-        let insn6  = Instruction::from_string("neg_i64 t0, t1");
-        let insn7  = Instruction::from_string("mul_i32 t0, t1, t2");
-        let insn8  = Instruction::from_string("mul_i64 t0, t1, t2");
-        let insn9  = Instruction::from_string("div_i32 t0, t1, t2");
-        let insn10 = Instruction::from_string("div_i64 t0, t1, t2");
-        let insn11 = Instruction::from_string("div_u32 t0, t1, t2");
-        let insn12 = Instruction::from_string("div_u64 t0, t1, t2");
-        let insn13 = Instruction::from_string("rem_i32 t0, t1, t2");
-        let insn14 = Instruction::from_string("rem_i64 t0, t1, t2");
-        let insn15 = Instruction::from_string("rem_u32 t0, t1, t2");
-        let insn16 = Instruction::from_string("rem_u64 t0, t1, t2");
+        let mut insn1  = Instruction::from_string(&EVO_ARCH, "add_i32 t0, t1, t1");
+        let insn2  = Instruction::from_string(&EVO_ARCH, "add_i64 t0, t2, 65535");
+        let insn3  = Instruction::from_string(&EVO_ARCH, "sub_i32 t0, 4322, -4321");
+        let insn4  = Instruction::from_string(&EVO_ARCH, "sub_i64 t0, t1, t2");
+        let insn5  = Instruction::from_string(&EVO_ARCH, "neg_i32 t0, t1");
+        let insn6  = Instruction::from_string(&EVO_ARCH, "neg_i64 t0, t1");
+        let insn7  = Instruction::from_string(&EVO_ARCH, "mul_i32 t0, t1, t2");
+        let insn8  = Instruction::from_string(&EVO_ARCH, "mul_i64 t0, t1, t2");
+        let insn9  = Instruction::from_string(&EVO_ARCH, "div_i32 t0, t1, t2");
+        let insn10 = Instruction::from_string(&EVO_ARCH, "div_i64 t0, t1, t2");
+        let insn11 = Instruction::from_string(&EVO_ARCH, "div_u32 t0, t1, t2");
+        let insn12 = Instruction::from_string(&EVO_ARCH, "div_u64 t0, t1, t2");
+        let insn13 = Instruction::from_string(&EVO_ARCH, "rem_i32 t0, t1, t2");
+        let insn14 = Instruction::from_string(&EVO_ARCH, "rem_i64 t0, t1, t2");
+        let insn15 = Instruction::from_string(&EVO_ARCH, "rem_u32 t0, t1, t2");
+        let insn16 = Instruction::from_string(&EVO_ARCH, "rem_u64 t0, t1, t2");
 
-        let insn17 = Instruction::from_string("and_i32 t0, t1, t2");
-        let insn18 = Instruction::from_string("and_i64 t0, t1, t2");
-        let insn19 = Instruction::from_string("or_i32 t0, t1, t2");
-        let insn20 = Instruction::from_string("or_i64 t0, t1, t2");
-        let insn21 = Instruction::from_string("xor_i32 t0, t1, t2");
-        let insn22 = Instruction::from_string("xor_i64 t0, t1, t2");
-        let insn23 = Instruction::from_string("not_i32 t0, t1");
-        let insn24 = Instruction::from_string("not_i64 t0, t1");
-        let insn25 = Instruction::from_string("andc_i32 t0, t1, t2");
-        let insn26 = Instruction::from_string("andc_i64 t0, t1, t2");
-        let insn27 = Instruction::from_string("eqv_i32 t0, t1, t2");
-        let insn28 = Instruction::from_string("eqv_i64 t0, t1, t2");
-        let insn29 = Instruction::from_string("nand_i32 t0, t1, t2");
-        let insn30 = Instruction::from_string("nand_i64 t0, t1, t2");
-        let insn31 = Instruction::from_string("nor_i32 t0, t1, t2");
-        let insn32 = Instruction::from_string("nor_i64 t0, t1, t2");
-        let insn33 = Instruction::from_string("orc_i32 t0, t1, t2");
-        let insn34 = Instruction::from_string("orc_i64 t0, t1, t2");
+        let insn17 = Instruction::from_string(&EVO_ARCH, "and_i32 t0, t1, t2");
+        let insn18 = Instruction::from_string(&EVO_ARCH, "and_i64 t0, t1, t2");
+        let insn19 = Instruction::from_string(&EVO_ARCH, "or_i32 t0, t1, t2");
+        let insn20 = Instruction::from_string(&EVO_ARCH, "or_i64 t0, t1, t2");
+        let insn21 = Instruction::from_string(&EVO_ARCH, "xor_i32 t0, t1, t2");
+        let insn22 = Instruction::from_string(&EVO_ARCH, "xor_i64 t0, t1, t2");
+        let insn23 = Instruction::from_string(&EVO_ARCH, "not_i32 t0, t1");
+        let insn24 = Instruction::from_string(&EVO_ARCH, "not_i64 t0, t1");
+        let insn25 = Instruction::from_string(&EVO_ARCH, "andc_i32 t0, t1, t2");
+        let insn26 = Instruction::from_string(&EVO_ARCH, "andc_i64 t0, t1, t2");
+        let insn27 = Instruction::from_string(&EVO_ARCH, "eqv_i32 t0, t1, t2");
+        let insn28 = Instruction::from_string(&EVO_ARCH, "eqv_i64 t0, t1, t2");
+        let insn29 = Instruction::from_string(&EVO_ARCH, "nand_i32 t0, t1, t2");
+        let insn30 = Instruction::from_string(&EVO_ARCH, "nand_i64 t0, t1, t2");
+        let insn31 = Instruction::from_string(&EVO_ARCH, "nor_i32 t0, t1, t2");
+        let insn32 = Instruction::from_string(&EVO_ARCH, "nor_i64 t0, t1, t2");
+        let insn33 = Instruction::from_string(&EVO_ARCH, "orc_i32 t0, t1, t2");
+        let insn34 = Instruction::from_string(&EVO_ARCH, "orc_i64 t0, t1, t2");
 
-        let insn35 = Instruction::from_string("clz_i32 t0, t1, t2");
-        let insn36 = Instruction::from_string("clz_i64 t0, t1, t2");
-        let insn37 = Instruction::from_string("ctz_i32 t0, t1, t2");
-        let insn38 = Instruction::from_string("ctz_i64 t0, t1, t2");
-        let insn39 = Instruction::from_string("shl_i32 t0, t1, t2");
-        let insn40 = Instruction::from_string("shl_i64 t0, t1, t2");
-        let insn41 = Instruction::from_string("shr_i32 t0, t1, t2");
-        let insn42 = Instruction::from_string("shr_i64 t0, t1, t2");
-        let insn43 = Instruction::from_string("sar_i32 t0, t1, t2");
-        let insn44 = Instruction::from_string("sar_i64 t0, t1, t2");
-        let insn45 = Instruction::from_string("rol_i32 t0, t1, t2");
-        let insn46 = Instruction::from_string("rol_i64 t0, t1, t2");
-        let insn47 = Instruction::from_string("ror_i32 t0, t1, t2");
-        let insn48 = Instruction::from_string("ror_i64 t0, t1, t2");
+        let insn35 = Instruction::from_string(&EVO_ARCH, "clz_i32 t0, t1, t2");
+        let insn36 = Instruction::from_string(&EVO_ARCH, "clz_i64 t0, t1, t2");
+        let insn37 = Instruction::from_string(&EVO_ARCH, "ctz_i32 t0, t1, t2");
+        let insn38 = Instruction::from_string(&EVO_ARCH, "ctz_i64 t0, t1, t2");
+        let insn39 = Instruction::from_string(&EVO_ARCH, "shl_i32 t0, t1, t2");
+        let insn40 = Instruction::from_string(&EVO_ARCH, "shl_i64 t0, t1, t2");
+        let insn41 = Instruction::from_string(&EVO_ARCH, "shr_i32 t0, t1, t2");
+        let insn42 = Instruction::from_string(&EVO_ARCH, "shr_i64 t0, t1, t2");
+        let insn43 = Instruction::from_string(&EVO_ARCH, "sar_i32 t0, t1, t2");
+        let insn44 = Instruction::from_string(&EVO_ARCH, "sar_i64 t0, t1, t2");
+        let insn45 = Instruction::from_string(&EVO_ARCH, "rol_i32 t0, t1, t2");
+        let insn46 = Instruction::from_string(&EVO_ARCH, "rol_i64 t0, t1, t2");
+        let insn47 = Instruction::from_string(&EVO_ARCH, "ror_i32 t0, t1, t2");
+        let insn48 = Instruction::from_string(&EVO_ARCH, "ror_i64 t0, t1, t2");
 
-        let insn49 = Instruction::from_string("mov_i32 t0, t1");
-        let insn50 = Instruction::from_string("mov_i64 t0, t1");
-        let insn51 = Instruction::from_string("extb_i32 t0, t3");
-        let insn52 = Instruction::from_string("extb_i64 t0, t3");
-        let insn53 = Instruction::from_string("extb_u32 t0, t3");
-        let insn54 = Instruction::from_string("extb_u64 t0, t3");
-        let insn55 = Instruction::from_string("exth_i32 t0, 0x32 41 e3");
-        let insn56 = Instruction::from_string("exth_i64 t0, t3");
-        let insn57 = Instruction::from_string("exth_u32 t0, t3");
-        let insn58 = Instruction::from_string("exth_u64 t0, t3");
-        let insn59 = Instruction::from_string("extw_i32 t0, 0xf2");
-        let insn60 = Instruction::from_string("extw_i64 t0, t3");
-        let insn61 = Instruction::from_string("extw_u32 t0, t3");
-        let insn62 = Instruction::from_string("extw_u64 t0, t3");
+        let insn49 = Instruction::from_string(&EVO_ARCH, "mov_i32 t0, t1");
+        let insn50 = Instruction::from_string(&EVO_ARCH, "mov_i64 t0, t1");
+        let insn51 = Instruction::from_string(&EVO_ARCH, "extb_i32 t0, t3");
+        let insn52 = Instruction::from_string(&EVO_ARCH, "extb_i64 t0, t3");
+        let insn53 = Instruction::from_string(&EVO_ARCH, "extb_u32 t0, t3");
+        let insn54 = Instruction::from_string(&EVO_ARCH, "extb_u64 t0, t3");
+        let insn55 = Instruction::from_string(&EVO_ARCH, "exth_i32 t0, 0x32 41 e3");
+        let insn56 = Instruction::from_string(&EVO_ARCH, "exth_i64 t0, t3");
+        let insn57 = Instruction::from_string(&EVO_ARCH, "exth_u32 t0, t3");
+        let insn58 = Instruction::from_string(&EVO_ARCH, "exth_u64 t0, t3");
+        let insn59 = Instruction::from_string(&EVO_ARCH, "extw_i32 t0, 0xf2");
+        let insn60 = Instruction::from_string(&EVO_ARCH, "extw_i64 t0, t3");
+        let insn61 = Instruction::from_string(&EVO_ARCH, "extw_u32 t0, t3");
+        let insn62 = Instruction::from_string(&EVO_ARCH, "extw_u64 t0, t3");
 
 
-        let insn63 = Instruction::from_string("etr_i32 t0, t4, 1, 3");
-        let insn64 = Instruction::from_string("etr_i64 t0, t4, 3, 12");
-        let insn65 = Instruction::from_string("etr_u32 t0, t4, 0, 4");
-        let insn66 = Instruction::from_string("etr_u64 t0, t4, 0, 8");
-        let insn67 = Instruction::from_string("etrh_i32 t0, t4");
-        let insn68 = Instruction::from_string("etrl_i32 t0, t4");
-        let insn69 = Instruction::from_string("etrh_i64 t0, t4");
-        let insn70 = Instruction::from_string("etrl_i64 t0, t4");
+        let insn63 = Instruction::from_string(&EVO_ARCH, "etr_i32 t0, t4, 1, 3");
+        let insn64 = Instruction::from_string(&EVO_ARCH, "etr_i64 t0, t4, 3, 12");
+        let insn65 = Instruction::from_string(&EVO_ARCH, "etr_u32 t0, t4, 0, 4");
+        let insn66 = Instruction::from_string(&EVO_ARCH, "etr_u64 t0, t4, 0, 8");
+        let insn67 = Instruction::from_string(&EVO_ARCH, "etrh_i32 t0, t4");
+        let insn68 = Instruction::from_string(&EVO_ARCH, "etrl_i32 t0, t4");
+        let insn69 = Instruction::from_string(&EVO_ARCH, "etrh_i64 t0, t4");
+        let insn70 = Instruction::from_string(&EVO_ARCH, "etrl_i64 t0, t4");
 
-        let insn71 = Instruction::from_string("truc_i32 t0, t4");
-        let insn72 = Instruction::from_string("truc_i64 t0, t4");
-        let insn73 = Instruction::from_string("conc_i64 t0, t4, t1");
-        let insn74 = Instruction::from_string("conn_i64 t0, t4, t1");
-        let insn75 = Instruction::from_string("swph_i32 t0, t4");
-        let insn76 = Instruction::from_string("swph_i64 t0, t4");
-        let insn77 = Instruction::from_string("swpw_i32 t0, t4");
-        let insn78 = Instruction::from_string("swpw_i64 t0, t4");
-        let insn79 = Instruction::from_string("swpd_i64 t0, t4");
-        let insn80 = Instruction::from_string("depo_i32 t0, t4");
-        let insn81 = Instruction::from_string("depo_i64 t0, t4");
+        let insn71 = Instruction::from_string(&EVO_ARCH, "truc_i32 t0, t4");
+        let insn72 = Instruction::from_string(&EVO_ARCH, "truc_i64 t0, t4");
+        let insn73 = Instruction::from_string(&EVO_ARCH, "conc_i64 t0, t4, t1");
+        let insn74 = Instruction::from_string(&EVO_ARCH, "conn_i64 t0, t4, t1");
+        let insn75 = Instruction::from_string(&EVO_ARCH, "swph_i32 t0, t4");
+        let insn76 = Instruction::from_string(&EVO_ARCH, "swph_i64 t0, t4");
+        let insn77 = Instruction::from_string(&EVO_ARCH, "swpw_i32 t0, t4");
+        let insn78 = Instruction::from_string(&EVO_ARCH, "swpw_i64 t0, t4");
+        let insn79 = Instruction::from_string(&EVO_ARCH, "swpd_i64 t0, t4");
+        let insn80 = Instruction::from_string(&EVO_ARCH, "depo_i32 t0, t4");
+        let insn81 = Instruction::from_string(&EVO_ARCH, "depo_i64 t0, t4");
 
         insn1.set_label(Some("sieve: ".to_string()));
         cpu.execute(&insn1);

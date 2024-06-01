@@ -16,6 +16,7 @@ use crate::log_warning;
 use crate::util::log::Span;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
+use crate::core::cpu::CPUState;
 
 
 
@@ -39,7 +40,7 @@ impl Translator {
 
     thread_local! {
         /// HashMap of insn translator functions pool
-        pub static TRANS_FUNC_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static Arch, &'static str), fn(&Instruction) -> Vec<Instruction>>>> = Rc::new(RefCell::new(HashMap::new()));
+        pub static TRANS_FUNC_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static Arch, &'static str), fn(&CPUState, &Instruction) -> Vec<Instruction>>>> = Rc::new(RefCell::new(HashMap::new()));
         pub static TRANS_POOL: Rc<RefCell<HashMap<&'static Arch, Rc<RefCell<Translator>>>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
@@ -49,13 +50,13 @@ impl Translator {
         Self::trs_pool_get(src_arch)
     }
 
-    pub fn def_func(&self, insn_name: &'static str, func: fn(&Instruction) -> Vec<Instruction>) {
+    pub fn def_func(&self, insn_name: &'static str, func: fn(&CPUState, &Instruction) -> Vec<Instruction>) {
         Self::func_pool_nset(self.src_arch, self.trg_arch, insn_name, func);
     }
 
     /// Translate insn
-    pub fn translate(&self, insn: &Instruction) -> Vec<Instruction> {
-        let mut trg_insns = Self::func_pool_nget(self.src_arch, self.trg_arch, insn.name())(insn);
+    pub fn translate(&self, cpu: &CPUState, insn: &Instruction) -> Vec<Instruction> {
+        let mut trg_insns = Self::func_pool_nget(self.src_arch, self.trg_arch, insn.name())(cpu, insn);
         if trg_insns.len() > 0 {
             // set label
             trg_insns[0].set_label(insn.label.clone());
@@ -126,13 +127,13 @@ impl Translator {
         })
     }
 
-    pub fn func_pool_nset(src_arch: &'static Arch, trg_arch: &'static Arch, insn_name: &'static str, func: fn(&Instruction) -> Vec<Instruction>) {
+    pub fn func_pool_nset(src_arch: &'static Arch, trg_arch: &'static Arch, insn_name: &'static str, func: fn(&CPUState, &Instruction) -> Vec<Instruction>) {
         Self::TRANS_FUNC_POOL.with(|pool| {
             pool.borrow_mut().insert((src_arch, trg_arch, insn_name), func);
         })
     }
 
-    pub fn func_pool_nget(src_arch: &'static Arch, trg_arch: &'static Arch, insn_name: &'static str) -> fn(&Instruction) -> Vec<Instruction> {
+    pub fn func_pool_nget(src_arch: &'static Arch, trg_arch: &'static Arch, insn_name: &'static str) -> fn(&CPUState, &Instruction) -> Vec<Instruction> {
         Self::TRANS_FUNC_POOL.with(|pool| {
             pool.borrow().get(&(src_arch, trg_arch, insn_name)).unwrap().clone()
         })

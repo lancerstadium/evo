@@ -622,10 +622,10 @@ impl Instruction {
 
     // Init Opcode POOL
     thread_local! {
-        /// Register pool (Shared Global)
-        pub static REG_POOL : Rc<RefCell<Vec<Rc<RefCell<Operand>>>>> = Rc::new(RefCell::new(Vec::new()));
         /// IR Insn pool (Shared Global)
-        pub static INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<Instruction>>>>> = Rc::new(RefCell::new(Vec::new()));
+        // pub static INSN_POOL: Rc<RefCell<Vec<Rc<RefCell<Instruction>>>>> = Rc::new(RefCell::new(Vec::new()));
+
+        pub static INSN_POOL: Rc<RefCell<HashMap<(&'static Arch, &'static str), Rc<RefCell<Instruction>>>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     /// Get Undef Insn
@@ -660,9 +660,9 @@ impl Instruction {
             enc: Self::encode_pool_init(arch)
         };
         // add to pool
-        Instruction::insn_pool_push(insn);
+        Instruction::insn_pool_push(arch, insn);
         // return
-        Instruction::insn_pool_nget(name).borrow().clone()
+        Instruction::insn_pool_nget(arch, name).borrow().clone()
     }
 
     /// Encode
@@ -681,8 +681,8 @@ impl Instruction {
     }
 
     /// apply temp to Instruction
-    pub fn apply(name: &'static str, opr: Vec<Operand>) -> Instruction {
-        let mut insn = Instruction::insn_pool_nget(name).borrow().clone();
+    pub fn apply(arch: &'static Arch, name: &'static str, opr: Vec<Operand>) -> Instruction {
+        let mut insn = Instruction::insn_pool_nget(arch, name).borrow().clone();
         insn.encode(opr)
     }
 
@@ -753,41 +753,23 @@ impl Instruction {
     // ================= Instruction.insn_pool ================== //
 
     /// delete Insn from pool
-    pub fn insn_pool_del(name: &'static str) {
-        // Get index
-        let idx = Self::insn_pool_idx(name);
-        // Delete
-        Self::INSN_POOL.with(|pool| pool.borrow_mut().remove(idx));
-    }
-
-    /// Get Insn index from pool
-    pub fn insn_pool_idx(name: &'static str) -> usize {
-        Self::INSN_POOL.with(|pool| pool.borrow().iter().position(|r| r.borrow().name() == name).unwrap())
+    pub fn insn_pool_del(arch: &'static Arch, name: &'static str) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().remove(&(arch, name)));
     }
 
     /// get Insn from pool
-    pub fn insn_pool_nget(name: &'static str) -> Rc<RefCell<Instruction>> {
-        Self::INSN_POOL.with(|pool| pool.borrow().iter().find(|r| r.borrow().name() == name).unwrap().clone())
+    pub fn insn_pool_nget(arch: &'static Arch, name: &str) -> Rc<RefCell<Instruction>> {
+        Self::INSN_POOL.with(|pool| pool.borrow().get(&(arch, name)).unwrap().clone()) 
     }
 
     /// Set Insn from pool
-    pub fn insn_pool_nset(name: &'static str, insn: Instruction) {
-        Self::INSN_POOL.with(|pool| pool.borrow_mut().iter_mut().find(|r| r.borrow().name() == name).unwrap().replace(insn));
+    pub fn insn_pool_nset(arch: &'static Arch, name: &'static str, insn: Instruction) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().insert((arch, name), Rc::new(RefCell::new(insn))));
     }
 
     /// Insert Insn from pool
-    pub fn insn_pool_push(insn: Instruction) {
-        Self::INSN_POOL.with(|pool| pool.borrow_mut().push(Rc::new(RefCell::new(insn))));
-    }
-
-    /// Get Insn from pool
-    pub fn insn_pool_get(index: usize) -> Rc<RefCell<Instruction>> {
-        Self::INSN_POOL.with(|pool| pool.borrow()[index].clone())
-    }
-
-    /// Set Insn from pool
-    pub fn insn_pool_set(index: usize, insn: Instruction) {
-        Self::INSN_POOL.with(|pool| pool.borrow_mut()[index].replace(insn));
+    pub fn insn_pool_push(arch: &'static Arch, insn: Instruction) {
+        Self::INSN_POOL.with(|pool| pool.borrow_mut().insert((arch, insn.name()), Rc::new(RefCell::new(insn))));
     }
 
     /// Clear Temp Insn Pool
@@ -799,11 +781,12 @@ impl Instruction {
     pub fn insn_pool_info() -> String {
         let mut info = String::new();
         info.push_str(&format!("Instructions (Num = {}):\n", Self::insn_pool_size()));
-        
-        for i in 0..Self::insn_pool_size() {
-            let insn = Self::insn_pool_get(i).borrow().clone();
-            info.push_str(&format!("- {:<52}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
-        }
+        Self::INSN_POOL.with(|pool| 
+            for (arch, name) in pool.borrow().keys() {
+                let insn = Self::insn_pool_nget(arch, name).borrow().clone();
+                info.push_str(&format!("- {:<52}   {} ({})\n", insn.info(), insn.ty(), insn.opb));
+            }
+        );
         info
     }
 
@@ -1055,7 +1038,7 @@ impl Instruction {
     }
 
     /// From string to Instruction
-    pub fn from_string(str: &'static str) -> Instruction {
+    pub fn from_string(arch: &'static Arch, str: &'static str) -> Instruction {
         // 1. Deal with string
         let mut str = str.trim();
         let mut label = None;
@@ -1073,7 +1056,7 @@ impl Instruction {
         // Check if the string has space
         if !str.contains(' ') {
             let name = str;
-            let mut res = Instruction::insn_pool_nget(name).borrow().clone();
+            let mut res = Instruction::insn_pool_nget(arch, name).borrow().clone();
             res = res.encode(vec![]);
             res.set_label(label);
             return res;
@@ -1082,7 +1065,7 @@ impl Instruction {
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
         // 3. Find Insn from pool
-        let res = Instruction::insn_pool_nget(part.next().unwrap().trim());
+        let res = Instruction::insn_pool_nget(arch, part.next().unwrap().trim());
         // 4. Collect extra part: Divide by `,` and Get Operands str
         let extra_part = part.next().unwrap();
         let opr = extra_part.split(',').collect::<Vec<_>>();
