@@ -18,6 +18,7 @@
 // ============================================================================== //
 
 use std::cmp;
+use std::collections::HashMap;
 use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -40,11 +41,13 @@ use crate::arch::info::Arch;
 use crate::core::val::Value;
 // use crate::log_error;
 use crate::log_error;
+use crate::log_info;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::core::ty::Types;
 
 use super::insn::RegFile;
+use super::op::Operand;
 
 
 
@@ -327,7 +330,7 @@ pub struct CPUThread {
     /// `stack`: Stack, Store stack value
     pub stack: Vec<Rc<RefCell<Value>>>,
     /// Dispatch label table
-    pub labels : Rc<RefCell<Vec<String>>>,
+    pub labels : Rc<RefCell<HashMap<String, Value>>>,
     /// Thread status
     pub status : CPUThreadStatus,
 }
@@ -354,7 +357,7 @@ impl CPUThread {
             proc_id,
             registers: Vec::new(),
             stack: Vec::new(),
-            labels: Rc::new(RefCell::new(Vec::new())),
+            labels: Rc::new(RefCell::new(HashMap::new())),
             status: CPUThreadStatus::Ready,
         };
         // Store in thread pool
@@ -523,6 +526,24 @@ impl CPUThread {
         self.set_nreg("pc", value)
     }
 
+    /// Set label
+    pub fn set_label(&self, lab: Operand) {
+        self.labels.borrow_mut().insert(lab.label_nick(), lab.label_pc());
+    }
+
+    /// Get label
+    pub fn get_label(&self, nick: String) -> Operand {
+        let pc = self.labels.borrow().get(&nick).unwrap().clone();
+        Operand::label(nick, pc)
+    }
+
+    /// del label
+    pub fn del_label(&self, nick: String) {
+        log_info!("[TID: {}]: del label: <{}>", self.id, nick);
+        self.labels.borrow_mut().remove(&nick);
+    }
+
+
     // ================= CPUThread.stark ================== //
 
     /// stack push value
@@ -587,7 +608,7 @@ impl default::Default for CPUThread {
             proc_id: 0,
             registers: Vec::new(),
             stack: Vec::new(),
-            labels: Rc::new(RefCell::new(Vec::new())),
+            labels: Rc::new(RefCell::new(HashMap::new())),
             status: CPUThreadStatus::Ready,
         }
     }
@@ -985,6 +1006,19 @@ impl CPUProcess {
     /// Get reg pc
     pub fn get_pc(&self) -> Value {
         self.cur_thread.borrow().get_pc()
+    }
+
+
+    pub fn set_label(&self, lab: Operand) {
+        self.cur_thread.borrow_mut().set_label(lab)
+    }
+
+    pub fn get_label(&self, nick: String) -> Operand {
+        self.cur_thread.borrow().get_label(nick)
+    }
+
+    pub fn del_label(&self, nick: String) {
+        self.cur_thread.borrow_mut().del_label(nick)
     }
 
     // ================= CPUProcess.stack ================= //

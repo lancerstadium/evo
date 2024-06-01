@@ -91,8 +91,8 @@ pub enum OperandKind {
     /// |  base  |  idx  |  scala  | disp  |
     Mem(Operand, Operand, Value, Value),
 
-    /// |  name*  |  insn  |
-    Label(&'static str, Rc<RefCell<Instruction>>),
+    /// |  nick*  |  pc  |
+    Label(String, Value),
 
     /// Undefined
     Undef,
@@ -110,13 +110,7 @@ impl OperandKind {
             OperandKind::Reg(_, val, _) => val.kind(),
             OperandKind::Mem(_, _, _, disp) => disp.kind(),
             // Get Label ptr's kind
-            OperandKind::Label(_, insn) => {
-                if insn.borrow().is_32bit() {
-                    &TypesKind::I32
-                } else {
-                    &TypesKind::I64
-                }
-            },
+            OperandKind::Label(_, val) => val.kind(),
             OperandKind::Undef => &TypesKind::I32,
         }
     }
@@ -129,19 +123,30 @@ impl OperandKind {
             OperandKind::Reg(_, val, _) => val.hex(0, -1, false),
             OperandKind::Mem(_, _, _, _) => self.val().hex(0, -1, false),
             // Get Label ptr's hex
-            OperandKind::Label(_, insn) => insn.borrow().pc.as_ref().unwrap().hex(0, -1, false),
+            OperandKind::Label(_, val) => val.hex(0, -1, false),
             OperandKind::Undef => "0".to_string(),
         }
     }
 
-    /// Get name of the operand
+    /// Get name of the operand: reg
     pub fn name(&self) -> &'static str {
         match self {
             OperandKind::Imm(_) => "<Imm>",
             OperandKind::Reg(name, _, _) => name,
             OperandKind::Mem(_, _, _, _) => "<Mem>",
-            OperandKind::Label(name, _) => name,
+            OperandKind::Label(_, _) => "<Lab>",
             OperandKind::Undef => "<Und>",
+        }
+    }
+
+    /// Get nick of the operand: label
+    pub fn nick(&self) -> String {
+        match self {
+            OperandKind::Imm(_) => "<Imm>".to_string(),
+            OperandKind::Reg(_, _, _) => "<Reg>".to_string(),
+            OperandKind::Mem(_, _, _, _) => "<Mem>".to_string(),
+            OperandKind::Label(nick, _) => nick.clone(),
+            OperandKind::Undef => "<Und>".to_string(),
         }
     }
 
@@ -175,7 +180,7 @@ impl OperandKind {
                 info.push_str(format!(": {}", self.val().kind()).as_str());
                 info
             },
-            OperandKind::Label(name, insn) => format!("{}: {}", name, insn.borrow().pc.as_ref().unwrap().hex(0, -1, false)),
+            OperandKind::Label(name, val) => format!("{}: {}", name, val.kind()),
             OperandKind::Undef => "<Und>".to_string(),
         }
     }
@@ -186,7 +191,7 @@ impl OperandKind {
             OperandKind::Imm(val) => val.clone(),
             OperandKind::Reg(_, val, _) => val.clone(),
             OperandKind::Mem(base, idx, scale, disp) => Value::tuple(vec![base.val().clone(), idx.val().clone(), scale.clone(), disp.clone()]),
-            OperandKind::Label(_, insn) => insn.borrow().pc.as_ref().unwrap().clone(),
+            OperandKind::Label(_, val) => val.clone(),
             _ => Value::i32(0),
         }
     }
@@ -275,7 +280,7 @@ impl Operand {
 
     /// New Label Default: "<Lab>"
     pub fn lab_def() -> Self {
-        Self(Rc::new(RefCell::new(OperandKind::Label("<Lab>", Rc::new(RefCell::new(Instruction::undef()))))))
+        Self(Rc::new(RefCell::new(OperandKind::Label("<Lab>".to_string(), Value::i32(0)))))
     }
 
     /// New Operand Imm
@@ -289,8 +294,8 @@ impl Operand {
     }
 
     /// New Operand Label
-    pub fn label(name: &'static str, insn: Rc<RefCell<Instruction>>) -> Self {
-        Self(Rc::new(RefCell::new(OperandKind::Label(name, insn))))
+    pub fn label(name: String, val: Value) -> Self {
+        Self(Rc::new(RefCell::new(OperandKind::Label(name, val))))
     }
 
     /// New Operand Undef
@@ -356,7 +361,7 @@ impl Operand {
         let mut kind = self.kind(); // Create a mutable copy of the value
         match kind {
             OperandKind::Imm(_) => kind = OperandKind::Imm(val),
-            _ => kind = OperandKind::Imm(Value::u32(0)),
+            _ => kind = OperandKind::Imm(val),
         }
         self.0.replace(kind);
     }
@@ -366,17 +371,17 @@ impl Operand {
         let mut kind = self.kind(); // Create a mutable copy of the value
         match kind {
             OperandKind::Mem(_, _, _, _) => kind = OperandKind::Mem(base, idx, scale, disp),
-            _ => kind = OperandKind::Mem(Self::reg_def(), Self::reg_def(), Value::u32(0), Value::u32(0)),
+            _ => kind = OperandKind::Mem(base, idx, scale, disp),
         }
         self.0.replace(kind);
     }
 
     /// Set Label value
-    pub fn set_label(&mut self, insn: Rc<RefCell<Instruction>>) {
+    pub fn set_label(&mut self, val: Value) {
         let mut kind = self.kind(); // Create a mutable copy of the value
         match kind {
-            OperandKind::Label(_, _) => kind = OperandKind::Label(self.name(), insn),
-            _ => kind = OperandKind::Label("<Lab>", insn),
+            OperandKind::Label(nike, _) => kind = OperandKind::Label(nike, val),
+            _ => kind = OperandKind::Label("<Lab>".to_string(), val),
         }
         self.0.replace(kind);
     }
@@ -499,6 +504,23 @@ impl Operand {
                 (flag & 0b0011_0000) == REG_GLOB
             },
             _ => false,
+        }
+    }
+
+
+    // ================== Operand.label ================== //
+
+    pub fn label_nick(&self) -> String {
+        match self.kind() {
+            OperandKind::Label(nick, _) => nick.to_string(),
+            _ => "".to_string(),
+        }
+    }
+
+    pub fn label_pc(&self) -> Value {
+        match self.kind() {
+            OperandKind::Label(_, pc) => pc,
+            _ => Value::i32(0),
         }
     }
 
@@ -658,8 +680,8 @@ impl Operand {
             return Operand::imm(Value::from_string(opr));
         }
         // 4. Deal with label
-        if (sym & OPR_LAB != 0) && opr.chars().all(|c| c.is_ascii_digit() || c.is_ascii_alphabetic()) {
-            return Operand::label(opr, Rc::new(RefCell::new(Instruction::undef())));
+        if (sym & OPR_LAB != 0) && Value::is_ident(opr) {
+            return Operand::label(opr.to_string(), Value::i32(0));
         }
         // 5. Deal with undef
         log_warning!("Undefined operand: {}", opr);
