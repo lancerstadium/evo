@@ -3703,7 +3703,7 @@ mod evo_test {
         let insn82 = Instruction::from_string(&EVO_ARCH, "label xss, 0x23 4e ff 8a 23");
         let insn83 = Instruction::from_string(&EVO_ARCH, "unlabel xss");
 
-        insn1.set_label(Some("sieve: ".to_string()));
+        insn1.set_label(Some("sieve".to_string()));
         cpu.execute(&insn1);
         println!("{:<60} {:<70} -> t0 = {}", insn1.code.hex(0, -1, false), insn1.to_string(), cpu.get_nreg("t0").get_i64(0));
         cpu.execute(&insn2);

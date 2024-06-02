@@ -11,7 +11,7 @@ use crate::{log_warning, log_error};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT16, BIT32, BIT64, BIT8, LITTLE_ENDIAN};
 use crate::core::val::Value;
-use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
+use crate::core::op::{OpcodeKind, Operand, OperandKind, OPR_IMM, OPR_MEM, OPR_REG, REG_OFF8};
 use crate::core::insn::{Instruction, RegFile, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
@@ -109,7 +109,7 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&X86_ARCH);
 
-    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_IMM], "X", "0x88", 
+    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "", 
         |cpu, insn| {
             
         }
@@ -127,33 +127,162 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
         res.is_applied = true;
         return res;
     }
-    let mut opr = opr;
+    let mut new_opr = opr.clone();
+    let mut is_applied = true;
     // Check syms
     if insn.check_syms(opr.clone()) {
         // match opcode type kind and fill bytes by opreands
+        let mut code: Vec<u8> = vec![];
+        let syms = opr.iter().map(|x| x.sym()).collect::<Vec<_>>();
         match insn.opc.kind() {
             OpcodeKind::X(_, _) => {
-                // // rd: u5 -> 7->11
-                // let rd = opr[0].val().get_byte(0);
-                // insn.set_rd(rd);
-                // // rs1: u5 -> 15->19
-                // let rs1 = opr[1].val().get_byte(0);
-                // insn.set_rs1(rs1);
-                // // imm: u12 -> 20->32
-                // let imm = opr[2].val().get_half(0);
-                // insn.set_imm_i(imm);
-                // // refresh imm
-                // opr.pop();
-                // opr.push(Operand::imm(Value::bit(12, imm as i128)));
+                match (insn.name(), syms.as_slice()) {
+                    ("mov", [OPR_REG, OPR_REG]) => {
+                        if opr[0].is_8bit() {
+                            code.push(0x88);
+                            let rm8 = opr[0].val().get_byte(0);
+                            let r8  = opr[1].val().get_byte(0);
+                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                        } else {
+                            code.push(0x89);
+                            let rm = opr[0].val().get_byte(0);
+                            let r  = opr[1].val().get_byte(0);
+                            code.push(0b11_000_000 | rm << 3 | r);
+                        }
+                    },
+                    ("mov", [OPR_MEM, OPR_REG]) => {
+                        if opr[1].is_8bit() {
+                            code.push(0x88);
+                            let rm8 = opr[0].get_mem().0 as u8;
+                            let r8  = opr[1].val().get_byte(0);
+                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                        } else {
+                            code.push(0x89);
+                            let rm = opr[0].get_mem().0 as u8;
+                            let r  = opr[1].val().get_byte(0);
+                            code.push(0b11_000_000 | rm << 3 | r);
+                        }
+                    },
+                    ("mov", [OPR_REG, OPR_MEM]) => {
+                        if opr[0].is_8bit() {
+                            code.push(0x8a);
+                            let r8 = opr[0].val().get_byte(0);
+                            let rm8  = opr[1].get_mem().0 as u8;
+                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                        } else {
+                            code.push(0x8b);
+                            let r = opr[0].val().get_byte(0);
+                            let rm  = opr[1].get_mem().0 as u8;
+                            code.push(0b11_000_000 | rm << 3 | r);
+                        }
+                    },
+                    ("mov", [OPR_REG, OPR_IMM]) => {
+                        if opr[0].is_8bit() {
+                            code.push(0xb0);
+                            let r8 = opr[0].val().get_byte(0);
+                            code.push(0b11_000_000 | 0b000 << 3 | r8);
+                            let imm8 = opr[1].val().get_byte(0);
+                            new_opr[1] = Operand::imm(Value::u8(imm8));
+                            code.push(imm8);
+                        } else {
+                            code.push(0xb8);
+                            let r = opr[0].val().get_byte(0);
+                            code.push(0b11_000_000 | 0b000 << 3 | r);
+                            match opr[0].reg_scale() {
+                                16 => {
+                                    let imm16 = opr[1].val().get_half(0);
+                                    new_opr[1] = Operand::imm(Value::u16(imm16));
+                                    code.push(imm16 as u8);
+                                    code.push((imm16 >> 8) as u8);
+                                },
+                                32 => {
+                                    let imm32 = opr[1].val().get_word(0);
+                                    new_opr[1] = Operand::imm(Value::u32(imm32));
+                                    code.push(imm32 as u8);
+                                    code.push((imm32 >> 8) as u8);
+                                    code.push((imm32 >> 16) as u8);
+                                    code.push((imm32 >> 24) as u8);
+                                },
+                                64 => {
+                                    let imm64 = opr[1].val().get_dword(0);
+                                    new_opr[1] = Operand::imm(Value::u64(imm64));
+                                    code.push(imm64 as u8);
+                                    code.push((imm64 >> 8) as u8);
+                                    code.push((imm64 >> 16) as u8);
+                                    code.push((imm64 >> 24) as u8);
+                                    code.push((imm64 >> 32) as u8);
+                                    code.push((imm64 >> 40) as u8);
+                                    code.push((imm64 >> 48) as u8);
+                                    code.push((imm64 >> 56) as u8);
+                                },
+                                _ => {
+                                    log_error!("Not support scale {}", opr[0].reg_scale());
+                                },
+                            }
+                        }
+                    },
+                    ("mov", [OPR_MEM, OPR_IMM]) => {
+                        let rm_reg_scale = opr[0].get_mem_base().reg_scale();
+                        if rm_reg_scale == 8 {
+                            code.push(0xc6);
+                            let rm8 = opr[0].get_mem().0 as u8;
+                            code.push(0b11_000_000 | rm8 << 3);
+                            let imm8 = opr[1].val().get_byte(0);
+                            new_opr[1] = Operand::imm(Value::u8(imm8));
+                            code.push(imm8);
+                        } else {
+                            code.push(0xc7);
+                            let rm = opr[0].get_mem().0 as u8;
+                            code.push(0b11_000_000 | rm << 3);
+                            match rm_reg_scale {
+                                16 => {
+                                    let imm16 = opr[1].val().get_half(0);
+                                    new_opr[1] = Operand::imm(Value::u16(imm16));
+                                    code.push(imm16 as u8);
+                                    code.push((imm16 >> 8) as u8);
+                                },
+                                32 => {
+                                    let imm32 = opr[1].val().get_word(0);
+                                    new_opr[1] = Operand::imm(Value::u32(imm32));
+                                    code.push(imm32 as u8);
+                                    code.push((imm32 >> 8) as u8);
+                                    code.push((imm32 >> 16) as u8);
+                                    code.push((imm32 >> 24) as u8);
+                                },
+                                64 => {
+                                    let imm64 = opr[1].val().get_dword(0);
+                                    new_opr[1] = Operand::imm(Value::u64(imm64));
+                                    code.push(imm64 as u8);
+                                    code.push((imm64 >> 8) as u8);
+                                    code.push((imm64 >> 16) as u8);
+                                    code.push((imm64 >> 24) as u8);
+                                    code.push((imm64 >> 32) as u8);
+                                    code.push((imm64 >> 40) as u8);
+                                    code.push((imm64 >> 48) as u8);
+                                    code.push((imm64 >> 56) as u8);
+                                },
+                                _ => {
+                                    log_error!("Not support scale {}", opr[0].reg_scale());
+                                },
+                            }
+                        }
+                    },
+                    _ => {
+                        is_applied = false;
+                        log_error!("Encode operands not implemented: {} {}", insn.opc.name(), syms.iter().map(|x| OperandKind::sym_str(*x)).collect::<Vec<_>>().join(", "));
+                    },
+                }
             },
             _ => {
+                is_applied = false;
                 log_warning!("Not support opcode type {} in arch {}", insn.opc.kind(), X86_ARCH);
             },
         }
         // refresh status
         let mut res = insn.clone();
-        res.opr = opr;
-        res.is_applied = true;
+        res.opr = new_opr;
+        res.is_applied = is_applied;
+        res.code = Value::array_u8(RefCell::new(code));
         res
     } else {
         // Error
@@ -180,8 +309,6 @@ pub fn x86_decode(value: Value) -> Instruction {
 
     // 4. deal with opcode
 
-
-    
     // encode
     res.encode(opr)
 }
@@ -200,9 +327,11 @@ mod x86_test {
         cpu.set_nreg("ebx", Value::i32(3));
         cpu.mem_write(26, Value::i32(0x1ffff));
 
-        let insn1 = Instruction::from_string(&X86_ARCH, "mov [eax + ecx * 4 + 0xe3 32 41 22], 0X12 34");
+        println!("{}", RegFile::reg_pool_info(&X86_ARCH));
+
+        let insn1 = Instruction::from_string(&X86_ARCH, "mov [ah], 0x0");
         println!("code: {}", insn1.code);
-        println!("{}  -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
+        println!("{} -> eax: {}", insn1.to_string(), cpu.get_nreg("eax").get_i32(0));
     }
 
 }

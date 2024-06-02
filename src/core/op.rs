@@ -403,6 +403,14 @@ impl Operand {
         }
     }
 
+    pub fn get_mem_base(&self) -> Operand {
+        let kind = self.kind(); // Create a mutable copy of the value
+        match kind {
+            OperandKind::Mem(base, _, _, _) => base.clone(),
+            _ => Operand::undef(),
+        }
+    }
+
     pub fn is_8bit(&self) -> bool {
         match self.kind() {
             OperandKind::Reg(_, _, flag) => (flag & 0b0011) == BIT8,

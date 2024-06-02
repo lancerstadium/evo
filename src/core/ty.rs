@@ -546,7 +546,6 @@ impl Types {
 
     /// Returns an `array` type.
     pub fn array(ty: Types, size: usize) -> Types {
-        assert!(size != 0, "array size cannot be 0");
         Types::get(TypesKind::Array(ty, size))
     }
 

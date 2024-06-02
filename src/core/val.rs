@@ -102,6 +102,8 @@ impl Value {
                     // del `&`
                     let val_str = val_str[1..val_str.len()].trim();
                     Value::ptr(None, Some(Value::fill_string(val_str, Some(ty.clone()))))
+                } else if val_str.is_empty() {
+                    Value::bits(val_str)
                 } else {
                     log_error!("Invalid value: {}", val_str);
                     Value::new(ty)
@@ -2029,6 +2031,9 @@ impl Value {
 
     /// Get bits from String: `0b00001010 00001010`
     pub fn bits(value: &str) -> Value {
+        if value.is_empty() {
+            return Value::new(Types::bit(0));
+        }
         let (new_val, is_big_endian) = Self::bits_filter(value);
         // Get val size: Upper bound
         let val_size = (new_val.len() as f64 / 8.0).ceil() as usize;
