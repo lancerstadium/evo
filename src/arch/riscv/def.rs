@@ -114,7 +114,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("xor" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .100.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 ^ rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(u32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_u32(0);
@@ -189,7 +188,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("slt" , BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_REG], "R", "0B0000000. ........ .010.... .0110011",
         |cpu, insn| {
             // ======== rd = rs1 < rs2 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -428,7 +426,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("jalr", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG, OPR_IMM], "I", "0B........ ........ .000.... .1100111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = rs1 + imm ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get rs1(i32)
             let rs1 = proc0.get_reg(insn.rs1() as usize).get_i32(0);
@@ -633,7 +630,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("jal", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "J", "0B........ ........ ........ .1101111",
         |cpu, insn| {
             // ======== rd = pc + 4; pc = pc + imm ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get imm(i32)
             let imm = insn.imm_j() as i32;

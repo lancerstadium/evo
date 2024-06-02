@@ -23,30 +23,33 @@ use crate::core::val::Value;
 //                                 Const
 // ============================================================================== //
 
-/// no condition
-pub const COND_NO: u16 = 0b0000_0000;
-/// always condition
-pub const COND_ALL: u16 = 0b0001_0000;
-/// x == y
-pub const COND_EQ: u16 = 0b0010_0000;
-/// x != y
-pub const COND_NE: u16 = 0b0011_0000;
-/// x < y
-pub const COND_LT: u16 = 0b0100_0000;
-/// x >= y
-pub const COND_GE: u16 = 0b0101_0000;
-/// x <= y
-pub const COND_LE: u16 = 0b0110_0000;
-/// x > y
-pub const COND_GT: u16 = 0b0111_0000;
-/// x < y unsigned
-pub const COND_LTU: u16 = 0b1000_0000;
-/// x >= y unsigned
-pub const COND_GEU: u16 = 0b1001_0000;
-/// x <= y unsigned
-pub const COND_LEU: u16 = 0b1010_0000;
-/// x > y unsigned
-pub const COND_GTU: u16 = 0b1011_0000;
+/// no cond    0  : return false
+pub const COND_NO: u8 = 0b0000;
+/// always     1  : return true
+pub const COND_AL: u8 = 0b0001;
+/// x == y     2
+pub const COND_EQ: u8 = 0b0010;
+/// x != y     3
+pub const COND_NE: u8 = 0b0011;
+/// x < y      4
+pub const COND_LT: u8 = 0b0100;
+/// x <= y     5
+pub const COND_LE: u8 = 0b0101;
+/// x > y      6
+pub const COND_GT: u8 = 0b0110;
+/// x >= y     7
+pub const COND_GE: u8 = 0b0111;
+
+
+pub const INSN_BR_NO: u16 = (COND_NO << 4) as u16;
+pub const INSN_BR_AL: u16 = (COND_AL << 4) as u16;
+pub const INSN_BR_EQ: u16 = (COND_EQ << 4) as u16;
+pub const INSN_BR_NE: u16 = (COND_NE << 4) as u16;
+pub const INSN_BR_LT: u16 = (COND_LT << 4) as u16;
+pub const INSN_BR_LE: u16 = (COND_LE << 4) as u16;
+pub const INSN_BR_GT: u16 = (COND_GT << 4) as u16;
+pub const INSN_BR_GE: u16 = (COND_GE << 4) as u16;
+
 /// is branch insn
 pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
 /// is jump insn
