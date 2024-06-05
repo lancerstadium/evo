@@ -106,19 +106,19 @@ impl RegFile {
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
     /// │ │ │ │ ├─┴─┴─┘   (8-11) 64-bit scales: 0,   8,   16,  24,  32,  40,  48,  54,  64,  72,  80,  88,  96, 104, 112
-    /// │ │ │ │ └──────── (8-11) offset symbol: 000, 001, 010, 011, 100, 101, 110, 111
+    /// │ │ │ │ └──────── (8-11) offset symbol: 0000,0001,0010,0011,0100,0101,0110,0111,1000,1001,1010,1011,1100,1101,1110
     /// │ │ │ └────────── <Reserved>
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>
     /// └──────────────── <Reserved>
     /// ```
-    pub fn def(arch: &'static Arch, name: &'static str, val: Value, flag: u16) -> Rc<RefCell<Operand>> {
+    pub fn def(arch: &'static Arch, name: &'static str, idx: Value, flag: u16) -> Rc<RefCell<Operand>> {
         // 1. check arch is in
         if !Self::reg_pool_is_in(arch) {
             Self::reg_pool_init(arch);
         }
         // 2. set reg: if not in, push
-        let reg = Operand::reg(name, val, flag);
+        let reg = Operand::reg(name, idx, flag);
         if !Self::reg_poolr_is_in(arch, name) {
             Self::reg_poolr_push(arch, reg);
         } else {
@@ -1056,21 +1056,18 @@ impl Instruction {
             }
         }
 
-        // Check if the string has space
-        if !str.contains(' ') {
-            let name = str;
-            let mut res = Instruction::insn_pool_nget(arch, name).borrow().clone();
-            res = res.encode(vec![]);
-            res.set_label(label);
-            return res;
-        }
-
         // 2. Divide in first space and Get Opcode: `[opc] [opr1], [opr2], ...`
         let mut part = str.splitn(2, ' ');
         // 3. Find Insn from pool
         let res = Instruction::insn_pool_nget(arch, part.next().unwrap().trim());
         // 4. Collect extra part: Divide by `,` and Get Operands str
-        let extra_part = part.next().unwrap();
+        let pn = part.next();
+        let extra_part = if pn.is_none() { 
+            ""
+        } else {
+            pn.unwrap()
+        };
+        // let extra_part = part.next().unwrap();
         let opr = extra_part.split(',').collect::<Vec<_>>();
         // 5. Get Operands by sym
         let opr_sym = res.borrow().syms();
@@ -1080,7 +1077,7 @@ impl Instruction {
             if i < opr.len() {
                 r = Operand::from_string(opr_sym[i], opr[i].trim());
             } else {
-                r = Operand::undef();
+                r = Operand::off();
             }
             opr_vec.push(r);
         }

@@ -8,7 +8,7 @@ use std::cell::RefCell;
 
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::arch::info::{Arch, ArchKind, BIT32, LITTLE_ENDIAN};
+use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::core::val::Value;
 use crate::core::op::{OpcodeKind, Operand, OPR_IMM, OPR_REG};
 use crate::core::insn::{Instruction, RegFile};
@@ -62,7 +62,8 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     RegFile::def(&RISCV32_ARCH, "x29", Value::bit(5, 29), BIT32 | LITTLE_ENDIAN);
     RegFile::def(&RISCV32_ARCH, "x30", Value::bit(5, 30), BIT32 | LITTLE_ENDIAN);
     RegFile::def(&RISCV32_ARCH, "x31", Value::bit(5, 31), BIT32 | LITTLE_ENDIAN);
-    RegFile::def(&RISCV32_ARCH, "pc" , Value::bit(5, 32), BIT32 | LITTLE_ENDIAN);
+
+    RegFile::def(&RISCV32_ARCH, "pc" , Value::u8(32), BIT32 | LITTLE_ENDIAN);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&RISCV32_ARCH);
@@ -855,6 +856,59 @@ pub fn riscv32_decode(value: Value) -> Instruction {
     }
     // 3. encode
     res.encode(opr)
+}
+
+
+
+// ============================================================================== //
+//                                 RISCV-64
+// ============================================================================== //
+
+pub const RISCV64_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 65);
+
+/// Insn temp and Reg and Interpreter Pool Init
+pub fn riscv64_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
+
+    // 1. Init regs pool
+    RegFile::def(&RISCV64_ARCH, "x0", Value::bit(5, 0), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x1", Value::bit(5, 1), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x2", Value::bit(5, 2), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x3", Value::bit(5, 3), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x4", Value::bit(5, 4), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x5", Value::bit(5, 5), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x6", Value::bit(5, 6), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x7", Value::bit(5, 7), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x8", Value::bit(5, 8), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x9", Value::bit(5, 9), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x10", Value::bit(5, 10), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x11", Value::bit(5, 11), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x12", Value::bit(5, 12), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x13", Value::bit(5, 13), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x14", Value::bit(5, 14), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x15", Value::bit(5, 15), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x16", Value::bit(5, 16), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x17", Value::bit(5, 17), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x18", Value::bit(5, 18), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x19", Value::bit(5, 19), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x20", Value::bit(5, 20), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x21", Value::bit(5, 21), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x22", Value::bit(5, 22), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x23", Value::bit(5, 23), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x24", Value::bit(5, 24), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x25", Value::bit(5, 25), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x26", Value::bit(5, 26), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x27", Value::bit(5, 27), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x28", Value::bit(5, 28), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x29", Value::bit(5, 29), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x30", Value::bit(5, 30), BIT64 | LITTLE_ENDIAN);
+    RegFile::def(&RISCV64_ARCH, "x31", Value::bit(5, 31), BIT64 | LITTLE_ENDIAN);
+
+    RegFile::def(&RISCV32_ARCH, "pc" , Value::u8(64), BIT64 | LITTLE_ENDIAN);
+
+    // 2. Init insns & insns interpreter
+    let itp = Interpreter::def(&RISCV32_ARCH);
+
+    Some(itp)
 }
 
 

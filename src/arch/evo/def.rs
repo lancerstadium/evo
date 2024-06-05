@@ -10,7 +10,7 @@ use crate::{log_error, log_info};
 use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::core::val::Value;
-use crate::core::op::{OpcodeKind, Operand, OperandKind, OPR_IMM, OPR_LAB, OPR_REG, OPR_UND};
+use crate::core::op::{OpcodeKind, Operand, OperandKind, OPR_IMM, OPR_LAB, OPR_OFF, OPR_REG, OPR_UND};
 use crate::core::insn::{Instruction, RegFile, COND_AL, COND_EQ, COND_GE, COND_GT, COND_LE, COND_LT, COND_NE, COND_NO, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 
@@ -65,6 +65,9 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     RegFile::def(&EVO_ARCH, "t29", Value::bit(8, 29), BIT64 | LITTLE_ENDIAN);
     RegFile::def(&EVO_ARCH, "t30", Value::bit(8, 30), BIT64 | LITTLE_ENDIAN);
     RegFile::def(&EVO_ARCH, "t31", Value::bit(8, 31), BIT64 | LITTLE_ENDIAN);
+
+
+    RegFile::def(&EVO_ARCH, "pc", Value::bit(8, 64), BIT64 | LITTLE_ENDIAN);
 
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&EVO_ARCH);
@@ -2797,13 +2800,27 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("brc2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
         |cpu, insn| {
             // ======== brcond ======== //
-            log_info!("TODO: brcond2 $label, rs1_low, rs1_high, rs2_low, rs2_high, cc");
+            log_info!("TODO: brc
+                0ond2 $label, rs1_low, rs1_high, rs2_low, rs2_high, cc");
         }
     );
     itp.borrow_mut().def_insn("exit_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG], "E", "0xea",
         |cpu, insn| {
             // ======== exit tb and return 0 to rd ======== //
             log_info!("TODO: exit_tb rd");
+        }
+    );
+    itp.borrow_mut().def_insn("yes" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_OFF | OPR_IMM | OPR_REG], "E", "0xff",
+        |cpu, insn| {
+            let proc0 = cpu.proc.borrow().clone();
+            let val = if insn.opr[0].sym() == OPR_REG {
+                Some(proc0.get_reg(insn.opr[0].val().get_byte(0) as usize).get_u64(0))
+            } else if insn.opr[0].sym() == OPR_IMM {
+                Some(insn.opr[0].val().get_dword(0))
+            } else {
+                None
+            };
+            println!("yes yes yes !!! {}", if val.is_some() { val.unwrap().to_string() } else { "".to_string() });
         }
     );
 
@@ -2945,8 +2962,23 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.extend_from_slice(&imm2.val().get_dword(0).to_le_bytes());
                         },
                         // Match Most Format in A & B field
+                        ([OPR_OFF], _) => {
+                            code[0] = 0b000_000_00 | flag_sb;
+                        },
+                        ([OPR_IMM], false) => {
+                            code[0] = 0b001_000_00 | flag_sb;
+                            let imm1 = &opr[0];
+                            new_opr[0] = Operand::imm(Value::u32(imm1.val().get_word(0)));
+                            code.extend_from_slice(&imm1.val().get_word(0).to_le_bytes());
+                        },
+                        ([OPR_IMM], true) => {
+                            code[0] = 0b001_000_00 | flag_sb;
+                            let imm1 = &opr[0];
+                            new_opr[0] = Operand::imm(Value::u64(imm1.val().get_dword(0)));
+                            code.extend_from_slice(&imm1.val().get_dword(0).to_le_bytes());
+                        },
                         ([OPR_LAB, OPR_IMM], _) => {
-                            code[0] = 0b000_001_00 | flag_sb;
+                            code[0] = 0b001_000_00 | flag_sb;
                             let imm1 = &opr[1];
                             if imm1.val().scale_sum() > 32{
                                 code[0] |= 0b0000_0001;
@@ -3216,10 +3248,12 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
         res.code = Value::array_u8(RefCell::new(code));
         res
     } else {
+        log_error!("Encode operands failed: {} , check syms: {}", insn.opc.name(), opr.iter().map(|x| OperandKind::sym_str(x.sym())).collect::<Vec<_>>().join(", "));
+        let mut res = insn.clone();
+        res.is_applied = false;
+        res.opr = opr.clone();
         // Error
-        log_error!("Encode operands failed: {} , check syms", insn.opc.name());
-        // Revert
-        Instruction::undef()
+        res
     }
 }
 
@@ -3587,7 +3621,6 @@ pub fn evo_decode(value: Value) -> Instruction {
     }
     
 
-    // }
     // 3. encode
     res.encode(opr)
 }
@@ -3702,6 +3735,7 @@ mod evo_test {
         let insn81 = Instruction::from_string(&EVO_ARCH, "depo_i64 t0, t4");
         let insn82 = Instruction::from_string(&EVO_ARCH, "label xss, 0x23 4e ff 8a 23");
         let insn83 = Instruction::from_string(&EVO_ARCH, "unlabel xss");
+        let insn84 = Instruction::from_string(&EVO_ARCH, "yes");
 
         insn1.set_label(Some("sieve".to_string()));
         cpu.execute(&insn1);
@@ -3873,6 +3907,9 @@ mod evo_test {
         println!("{:<60} {:<70} -> t0 = {}", insn82.code.hex(0, -1, false), insn82.to_string(), cpu.get_nreg("t0").hex(0, -1, false));
         cpu.execute(&insn83);
         println!("{:<60} {:<70} -> t0 = {}", insn83.code.hex(0, -1, false), insn83.to_string(), cpu.get_nreg("t0").hex(0, -1, false));
+        cpu.execute(&insn84);
+        println!("{:<60} {:<70} -> {:?}", insn84.code.hex(0, -1, false), insn84.to_string(), insn84.info());
+
 
     }
 }
