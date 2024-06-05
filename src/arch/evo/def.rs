@@ -2804,7 +2804,13 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
                 0ond2 $label, rs1_low, rs1_high, rs2_low, rs2_high, cc");
         }
     );
-    itp.borrow_mut().def_insn("exit_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG], "E", "0xea",
+    itp.borrow_mut().def_insn("goto_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xea",
+        |cpu, insn| {
+            // ======== exit tb and return 0 to rd ======== //
+            log_info!("TODO: goto_tb rd");
+        }
+    );
+    itp.borrow_mut().def_insn("exit_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM, OPR_IMM], "E", "0xeb",
         |cpu, insn| {
             // ======== exit tb and return 0 to rd ======== //
             log_info!("TODO: exit_tb rd");
@@ -3625,6 +3631,14 @@ pub fn evo_decode(value: Value) -> Instruction {
     res.encode(opr)
 }
 
+#[macro_export]
+macro_rules! evo_gen {
+    ($evo_opcode:literal $(, $($evo_operands:expr),*)?) => {
+        Instruction::insn_pool_nget(&EVO_ARCH, $evo_opcode).borrow().clone().encode(vec![
+            $($($evo_operands,)*)?
+        ]);
+    };
+}
 
 
 #[cfg(test)]

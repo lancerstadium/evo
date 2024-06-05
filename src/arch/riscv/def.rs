@@ -608,7 +608,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("lui", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_IMM], "U", "0B........ ........ ........ .0110111",
         |cpu, insn| {
             // ======== rd = imm << 12 ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get imm(i32)
             let imm = insn.imm_u() as i32;
@@ -726,7 +725,7 @@ pub fn riscv32_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction 
                 insn.set_imm_u(imm);
                 // refresh imm
                 opr.pop();
-                opr.push(Operand::imm(Value::bit(12, imm as i128)));
+                opr.push(Operand::imm(Value::bit(20, imm as i128)));
             },
             OpcodeKind::J(_, _) => {
                 // rd: u5 -> 7->11

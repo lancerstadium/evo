@@ -23,10 +23,14 @@ use crate::core::val::Value;
 pub struct BasicBlock {
     
     pub flag: u16,
-    pub pc: Option<Value>,
-    pub label: Option<String>,
     pub src_insns: Vec<Instruction>,
     pub src_arch: &'static Arch,
+
+    pub predecessors: Vec<Rc<RefCell<BasicBlock>>>,     // Predecessors <- Self
+    pub successors: Vec<Rc<RefCell<BasicBlock>>>,       // Self <- Successors
+
+    pub addr: Option<Value>,
+    pub label: Option<String>,
     
     pub trg_insns: Option<Vec<Instruction>>,
     pub trg_arch: Option<&'static Arch>,
@@ -43,8 +47,10 @@ impl BasicBlock {
         if trg_arch.is_none() {
             Self {
                 flag,
-                pc: None,
+                addr: None,
                 label: None,
+                predecessors: Vec::new(),
+                successors: Vec::new(),
                 src_insns,
                 trg_insns: None,
                 src_arch,
@@ -55,8 +61,10 @@ impl BasicBlock {
         } else {
             Self {
                 flag,
-                pc: None,
+                addr: None,
                 label: None,
+                predecessors: Vec::new(),
+                successors: Vec::new(),
                 src_insns,
                 trg_insns: None,
                 src_arch,
@@ -91,7 +99,7 @@ impl BasicBlock {
             // set label: src_insns[0].label
             if self.src_insns.len() > 0 && self.trg_insns.as_ref().unwrap().len() > 0 {
                 self.label = self.src_insns[0].label.clone();
-                self.pc = self.trg_insns.as_ref().unwrap()[0].pc.clone();
+                self.addr = self.trg_insns.as_ref().unwrap()[0].addr.clone();
             }
         }
     }
@@ -145,7 +153,7 @@ mod blk_test {
 
     #[test]
     fn blk_init() {
-        let mut cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
+        let cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
 
         let src_insn1 = Instruction::from_string(&RISCV32_ARCH, "nihao: add x0, x1, x2");
         let src_insn2 = Instruction::from_string(&RISCV32_ARCH, "sub x0, x1, x2");

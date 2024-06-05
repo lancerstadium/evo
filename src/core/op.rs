@@ -66,10 +66,11 @@ pub const REG_OFF120: u16 = 0b1111_0000_0000;
 pub const REG_GLOB: u16 = 0b0000_0000;
 /// global reg: bundled
 pub const REG_BUND: u16 = 0b0001_0000;
-/// local reg: Basic Block scope
-pub const REG_TEMP: u16 = 0b0010_0000;
-/// local reg: Translate Block scope
-pub const REG_LOCA: u16 = 0b0011_0000;
+/// local reg: Using for local variable
+pub const REG_LOCA: u16 = 0b0010_0000;
+/// local reg: using for temp reg
+pub const REG_TEMP: u16 = 0b0011_0000;
+
 
 
 
@@ -362,6 +363,16 @@ impl Operand {
         OperandKind::sym_str(self.0.borrow_mut().sym())
     }
 
+    /// Get reg
+    pub fn get_reg(&self) -> usize {
+        match self.kind() {
+            OperandKind::Reg(_, val, _) => val.get_byte(0) as usize,
+            _ => {
+                log_warning!("Invalid Reg index: {}", self.to_string());
+                return 0;
+            }
+        }
+    }
     // ================== Operand.set ==================== //
 
     /// Set Operand value
@@ -491,19 +502,28 @@ impl Operand {
         }
     }
 
-    pub fn is_reg_bund(&self) -> bool {
-        match self.kind() {
-            OperandKind::Reg(_, _, flag) => {
-                (flag & 0b0011_0000) == REG_BUND
-            },
-            _ => false,
-        }
-    }
-
     pub fn set_reg_global(&self) {
         match self.kind() {
             OperandKind::Reg(_, _, flag) => {
                 self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_GLOB));
+            }
+            _ => {},
+        }
+    }
+
+    pub fn set_reg_local(&self) {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_LOCA));
+            }
+            _ => {},
+        }
+    }
+
+    pub fn set_reg_temp(&self) {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                self.0.replace(OperandKind::Reg(self.name(), self.val(), (flag & 0b1111_1111_1100_1111) | REG_TEMP));
             }
             _ => {},
         }
@@ -524,10 +544,37 @@ impl Operand {
         }
     }
 
+    pub fn is_reg_bund(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                (flag & 0b0011_0000) == REG_BUND
+            },
+            _ => false,
+        }
+    }
+
     pub fn is_reg_global(&self) -> bool {
         match self.kind() {
             OperandKind::Reg(_, _, flag) => {
                 (flag & 0b0011_0000) == REG_GLOB
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_reg_local(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                (flag & 0b0011_0000) == REG_LOCA
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_reg_temp(&self) -> bool {
+        match self.kind() {
+            OperandKind::Reg(_, _, flag) => {
+                (flag & 0b0011_0000) == REG_TEMP
             },
             _ => false,
         }

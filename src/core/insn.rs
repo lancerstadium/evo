@@ -174,6 +174,17 @@ impl RegFile {
         (0, Rc::new(RefCell::new(Operand::reg_def())))
     }
 
+    /// Get first local reg in RegFile
+    pub fn get_local(&self) -> (usize, Rc<RefCell<Operand>>) {
+        for i in 0..self.0.borrow().len() {
+            if self.0.borrow()[i].borrow().is_reg_local() {
+                return (i, self.0.borrow()[i].clone());
+            }
+        }
+        log_error!("RegFile no local reg!");
+        (0, Rc::new(RefCell::new(Operand::reg_def())))
+    }
+
 
     pub fn nget(&self, name: &str) -> Rc<RefCell<Operand>> {
         self.get(self.idx(name))
@@ -377,11 +388,11 @@ impl RegFile {
     }
 
 
-    pub fn reg_bundle(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
+    pub fn reg_bund(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
         Self::reg_map_pool_nset(src_arch, trg_arch, src_name, trg_name);
     }
 
-    pub fn reg_release(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
+    pub fn reg_free(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
         Self::reg_map_pool_ndel(src_arch, trg_arch, src_name);
     }
 
@@ -609,7 +620,7 @@ pub struct Instruction {
     /// └──────────────── <Reserved>
     /// ```
     pub flag: u16,
-    pub pc: Option<Value>,
+    pub addr: Option<Value>,
     pub label: Option<String>,
     pub opc : Opcode,
     pub opr : Vec<Operand>,
@@ -635,7 +646,7 @@ impl Instruction {
     pub fn undef() -> Instruction {
         Instruction {
             flag: 0,
-            pc: None,
+            addr: None,
             label: None,
             opc: Opcode::new(".insn", Vec::new(), "Undef"),
             opr: Vec::new(),
@@ -652,7 +663,7 @@ impl Instruction {
         let opc = Opcode::new(name, syms, ty);
         let insn = Instruction {
             flag: flag,
-            pc: None,
+            addr: None,
             label: None,
             opc: opc.clone(),
             opr: Vec::new(),

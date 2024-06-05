@@ -325,6 +325,8 @@ pub struct CPUThread {
     pub proc_id: usize,
     /// self Thread ID
     pub id: usize,
+    /// pc step: PC step size
+    pub pc_step : usize,
     /// `registers`: Register File, Store register value
     pub registers: Vec<Rc<RefCell<Value>>>,
     /// `stack`: Stack, Store stack value
@@ -355,6 +357,7 @@ impl CPUThread {
             stack_size,
             id : 0,
             proc_id,
+            pc_step : 4,
             registers: Vec::new(),
             stack: Vec::new(),
             labels: Rc::new(RefCell::new(HashMap::new())),
@@ -526,6 +529,31 @@ impl CPUThread {
         self.set_nreg("pc", value)
     }
 
+    /// Get next pc
+    pub fn get_pc_next(&self) -> Value {
+        if self.arch.mode.is_32bit() {
+            Value::i32(self.get_pc().get_i32(0) + self.pc_step as i32)
+        } else if self.arch.mode.is_64bit() {
+            Value::i64(self.get_pc().get_i64(0) + self.pc_step as i64)
+        } else {
+            unreachable!()
+        }
+    }
+
+    /// Set next pc: set pc_step
+    pub fn set_pc_next(&mut self, step: Value) {
+        if self.arch.mode.is_32bit() {
+            self.pc_step = step.get_i32(0) as usize;
+            self.set_pc(Value::i32(self.get_pc().get_i32(0) + self.pc_step as i32));
+        } else if self.arch.mode.is_64bit() {
+            self.pc_step = step.get_i64(0) as usize;
+            self.set_pc(Value::i64(self.get_pc().get_i64(0) + step.get_i64(0) as i64));
+        } else {
+            unreachable!()
+        }
+    }
+
+
     /// Set label
     pub fn set_label(&self, lab: Operand) {
         self.labels.borrow_mut().insert(lab.label_nick(), lab.label_pc());
@@ -606,6 +634,7 @@ impl default::Default for CPUThread {
             stack_size: 0,
             id: 0,
             proc_id: 0,
+            pc_step : 0,
             registers: Vec::new(),
             stack: Vec::new(),
             labels: Rc::new(RefCell::new(HashMap::new())),
@@ -1006,6 +1035,25 @@ impl CPUProcess {
     /// Get reg pc
     pub fn get_pc(&self) -> Value {
         self.cur_thread.borrow().get_pc()
+    }
+
+    /// Get pc step
+    pub fn get_pc_step(&self) -> usize {
+        self.cur_thread.borrow().pc_step
+    }
+
+    /// Set pc step
+    pub fn set_pc_step(&self, step: usize) {
+        self.cur_thread.borrow_mut().pc_step = step
+    }
+
+
+    pub fn get_pc_next(&self) -> Value {
+        self.cur_thread.borrow().get_pc_next()
+    }
+
+    pub fn set_pc_next(&self, step: Value) {
+        self.cur_thread.borrow_mut().set_pc_next(step)
     }
 
 
