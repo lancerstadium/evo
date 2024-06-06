@@ -5,6 +5,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::arch::evo::def::EVO_ARCH;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
 use crate::core::trs::Translator;
@@ -22,12 +23,15 @@ use crate::core::val::Value;
 #[derive(Debug, Clone, PartialEq)]
 pub struct BasicBlock {
     
+
+    /// `BasicBlock`: Basic Block Flag
+    /// 
     pub flag: u16,
     pub src_insns: Vec<Instruction>,
     pub src_arch: &'static Arch,
 
-    pub predecessors: Vec<Rc<RefCell<BasicBlock>>>,     // Predecessors <- Self
-    pub successors: Vec<Rc<RefCell<BasicBlock>>>,       // Self <- Successors
+    pub predecessors: Vec<*mut BasicBlock>,     // Predecessors <- Self
+    pub successors: Vec<*mut BasicBlock>,       // Self <- Successors
 
     pub addr: Option<Value>,
     pub label: Option<String>,
@@ -42,8 +46,19 @@ pub struct BasicBlock {
 impl BasicBlock {
 
 
+    // ================== BasicBlock: crl =================== //
+
     pub fn new(src_insns: Vec<Instruction>, trg_arch: Option<&'static Arch>, flag: u16) -> BasicBlock {
-        let src_arch = src_insns[0].arch;
+        let src_arch;
+        let label;
+        if src_insns.len() == 0 { 
+            src_arch = &EVO_ARCH;
+            label = None;
+        } else {
+            src_arch = src_insns[0].arch;
+            label = src_insns[0].label.clone();
+        }
+        
         if trg_arch.is_none() {
             Self {
                 flag,
@@ -62,7 +77,7 @@ impl BasicBlock {
             Self {
                 flag,
                 addr: None,
-                label: None,
+                label,
                 predecessors: Vec::new(),
                 successors: Vec::new(),
                 src_insns,
@@ -75,13 +90,52 @@ impl BasicBlock {
         }
     }
 
-    pub fn set_label(&mut self, label: String) {
-        self.label = Some(label);
+
+    /// Returns the number of instructions in the basic block.
+    pub fn size(&self) -> usize {
+        self.src_insns.len()
     }
+
+    pub fn push(&mut self, insn: Instruction) {
+        self.src_insns.push(insn);
+    }
+
+    // ================== BasicBlock: is ==================== //
 
     pub fn is_translated(&self) -> bool {
         self.trg_insns.is_some()
     }
+
+    // ================== BasicBlock: set =================== //
+
+    pub fn set_addr(&mut self, addr: Value) {
+        self.addr = Some(addr);
+    }
+
+    pub fn set_label(&mut self, label: String) {
+        self.label = Some(label);
+    }
+
+    // ================== BasicBlock: get =================== //
+
+
+
+    // ================== BasicBlock: jmp =================== //
+
+    pub fn set_branch(&mut self, _then: &mut BasicBlock, _else: &mut BasicBlock) {
+        if _then.addr == _else.addr {       // 1 branch
+            _then.predecessors.push(self);
+            self.successors.push(_then);
+        } else {                            // 2 branch
+            _then.predecessors.push(self);
+            self.successors.push(_then);
+            _else.predecessors.push(self);
+            self.successors.push(_else);
+        }
+    }
+
+
+    // ================== BasicBlock: trs =================== //
 
     pub fn translate(&mut self, cpu: &CPUState) {
         if self.trs.is_some() {

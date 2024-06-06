@@ -627,6 +627,7 @@ pub struct Instruction {
     pub opb : &'static str,
     pub code : Value,
     pub arch : &'static Arch,
+    pub regfile : Rc<RefCell<RegFile>>,
     pub is_applied : bool,
     /// encode func
     pub enc : Option<fn(&mut Instruction, Vec<Operand>) -> Instruction>,
@@ -653,6 +654,7 @@ impl Instruction {
             opb: "",
             code: Value::bit(0, 0),
             arch: &EVO_ARCH,
+            regfile: Rc::new(RefCell::new(RegFile::new(&EVO_ARCH))),
             is_applied: false,
             enc: None,
         }
@@ -670,6 +672,7 @@ impl Instruction {
             opb,
             code: Value::from_string(opb),
             arch,
+            regfile: Rc::new(RefCell::new(RegFile::new(arch))),
             is_applied: false,
             enc: Self::encode_pool_init(arch)
         };
