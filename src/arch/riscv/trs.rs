@@ -7,19 +7,16 @@ use std::cell::RefCell;
 use std::vec;
 
 
-use crate::core::cpu::CPUState;
-use crate::log_error;
+use crate::{log_error, log_info};
 use crate::util::log::Span;
 use crate::arch::info::Arch;
-use crate::core::insn::{Instruction, RegFile, COND_EQ, COND_GE, COND_LT, COND_NE};
+use crate::core::insn::{Instruction, RegFile, COND_EQ, COND_GE, COND_LT, COND_NE, TRAP_SYS};
 use crate::core::val::Value;
 use crate::core::op::Operand;
 use crate::core::trs::Translator;
 use crate::arch::riscv::def::RISCV32_ARCH;
 use crate::arch::evo::def::EVO_ARCH;
 use crate::evo_gen;
-
-
 
 
 macro_rules! trs_evo_r {
@@ -76,39 +73,39 @@ macro_rules! trs_evo_b {
     };
 }
 
-macro_rules! u_evo_trs {
-    ($trs:expr, $opcode:literal, $target_opcode:literal $(, $($params:expr),*)?) => {
-        $trs.borrow_mut().def_func($opcode, 
-            |_, insn| {
-                let mut trg_insns = Vec::new();
-                let insn1 = evo_gen!($target_opcode,
-                    RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.opr[0].get_reg()).borrow().clone(),
-                    insn.opr[1].clone()
-                    $(, $($params),*)?
-                );
-                trg_insns.push(insn1);
-                trg_insns
-            }
-        );
-    };
-}
+// macro_rules! u_evo_trs {
+//     ($trs:expr, $opcode:literal, $target_opcode:literal $(, $($params:expr),*)?) => {
+//         $trs.borrow_mut().def_func($opcode, 
+//             |_, insn| {
+//                 let mut trg_insns = Vec::new();
+//                 let insn1 = evo_gen!($target_opcode,
+//                     RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.opr[0].get_reg()).borrow().clone(),
+//                     insn.opr[1].clone()
+//                     $(, $($params),*)?
+//                 );
+//                 trg_insns.push(insn1);
+//                 trg_insns
+//             }
+//         );
+//     };
+// }
 
-macro_rules! j_evo_trs {
-    ($trs:expr, $opcode:literal, $target_opcode:literal $(, $($params:expr),*)?) => {
-        $trs.borrow_mut().def_func($opcode, 
-            |_, insn| {
-                let mut trg_insns = Vec::new();
-                let insn1 = evo_gen!($target_opcode,
-                    RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.opr[0].get_reg()).borrow().clone(),
-                    insn.opr[1].clone()
-                    $(, $($params),*)?
-                );
-                trg_insns.push(insn1);
-                trg_insns
-            }
-        );
-    };
-}
+// macro_rules! j_evo_trs {
+//     ($trs:expr, $opcode:literal, $target_opcode:literal $(, $($params:expr),*)?) => {
+//         $trs.borrow_mut().def_func($opcode, 
+//             |_, insn| {
+//                 let mut trg_insns = Vec::new();
+//                 let insn1 = evo_gen!($target_opcode,
+//                     RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.opr[0].get_reg()).borrow().clone(),
+//                     insn.opr[1].clone()
+//                     $(, $($params),*)?
+//                 );
+//                 trg_insns.push(insn1);
+//                 trg_insns
+//             }
+//         );
+//     };
+// }
 
 
 
@@ -122,9 +119,9 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
     match *trg_arch {
         EVO_ARCH => {
             // bundle regs
-            RegFile::reg_bund(&RISCV32_ARCH, &EVO_ARCH, "x1", "t0");
-            RegFile::reg_free(&RISCV32_ARCH, &EVO_ARCH, "x1");
-            RegFile::reg_bund(&RISCV32_ARCH, &EVO_ARCH, "x2", "t9");
+            RegFile::reg_bundle(&RISCV32_ARCH, &EVO_ARCH, "x1", "t0");
+            RegFile::reg_release(&RISCV32_ARCH, &EVO_ARCH, "x1");
+            RegFile::reg_bundle(&RISCV32_ARCH, &EVO_ARCH, "x2", "t9");
             let trs = Translator::def(&RISCV32_ARCH, &EVO_ARCH);
             // Translate to evo: R Type
             trs_evo_r!(trs, "add", "add_i32");
@@ -155,9 +152,9 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
             trs_evo_i!(trs, "sw"  , "stw_i32");
 
             trs.borrow_mut().def_func("ecall", 
-                |_, insn| {
+                |_, _| {
                     let mut trg_insns = Vec::new();
-                    let insn1 = evo_gen!("syscall");
+                    let insn1 = evo_gen!("trap", Operand::imm(Value::u32(TRAP_SYS as u32)));
                     trg_insns.push(insn1);
                     trg_insns
                 }
@@ -185,8 +182,7 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
                 }
             );
             trs.borrow_mut().def_func("lui", 
-                |cpu, insn| {
-                    let proc0 = cpu.proc.borrow().clone();
+                |_, insn| {
                     let mut trg_insns = Vec::new();
                     let insn1 = evo_gen!("mov_i32", 
                         RegFile::reg_alloc(&RISCV32_ARCH, &EVO_ARCH, insn.opr[0].get_reg()).borrow().clone(), 
@@ -227,6 +223,10 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
 
             Some(trs)
         },
+        RISCV32_ARCH => {
+            log_info!("Translator same arch riscv32-{}", trg_arch);
+            None
+        },
         _ => {
             log_error!("Translator riscv32-{} not support", trg_arch);
             None
@@ -245,7 +245,7 @@ mod riscv_test {
 
     #[test]
     fn rv32_trs() {
-        let mut cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
+        let cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
         let trs = Translator::trs_pool_init(&RISCV32_ARCH, &EVO_ARCH).unwrap();
         println!("{}", Translator::func_pool_info());
 

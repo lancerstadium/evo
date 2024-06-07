@@ -2,14 +2,10 @@
 // ============================================================================== //
 //                                 Use Mods
 // ============================================================================== //
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use crate::arch::evo::def::EVO_ARCH;
 use crate::arch::info::Arch;
 use crate::core::insn::Instruction;
-use crate::core::trs::Translator;
-use crate::core::cpu::CPUState;
 use crate::core::val::Value;
 
 
@@ -25,21 +21,40 @@ pub struct BasicBlock {
     
 
     /// `BasicBlock`: Basic Block Flag
-    /// 
+    /// ```txt
+    /// (0-7):
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ ├─┴─┘   (0-2) 000 is 8-bit , 001 is 16-bit, 010 is 32-bit , 011 is 64-bit
+    /// │ │ │ │ │ └────── (0-2) 100 is 80-bit, 101 is 96-bit, 110 is 128-bit, 111 is 256-bit
+    /// │ │ │ │ └──────── (3) 0 is little-endian, 1 is big-endian
+    /// │ │ │ │         ┌ (4-7) 0000: COND_NO , 0001: COND_ALL, 0010: COND_EQ , 0011: COND_NE
+    /// │ │ │ │         │ (4-7) 0100: COND_LT , 0101: COND_GE , 0110: COND_LE , 0111: COND_GT
+    /// ├─┴─┴─┘         │ (4-7) 1000: COND_LTU, 1001: COND_GEU, 1010: COND_LEU, 1011: COND_GTU
+    /// └───────────────┴ (4-7) 
+    /// (8-15):
+    /// 0 0 0 0 0 0 0 0
+    /// │ │ │ │ │ │ │ │
+    /// │ │ │ │ │ │ │ └── (8) 0: is not branch, 1: is branch
+    /// │ │ │ │ │ │ └──── (9) 0: is not jump, 1: is jump
+    /// │ │ │ │ │ └────── (10) 0: is not exit, 1: is exit
+    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ └────────── <Reserved>
+    /// │ │ └──────────── <Reserved>
+    /// │ └────────────── <Reserved>
+    /// └──────────────── <Reserved>
+    /// ```
     pub flag: u16,
-    pub src_insns: Vec<Instruction>,
-    pub src_arch: &'static Arch,
+
+    pub addr: Option<Value>,
+    pub label: Option<String>,
+
+    pub arch: &'static Arch,
+    pub insns: Vec<Instruction>,
 
     pub predecessors: Vec<*mut BasicBlock>,     // Predecessors <- Self
     pub successors: Vec<*mut BasicBlock>,       // Self <- Successors
 
-    pub addr: Option<Value>,
-    pub label: Option<String>,
-    
-    pub trg_insns: Option<Vec<Instruction>>,
-    pub trg_arch: Option<&'static Arch>,
-    pub trs_insn_idxs: Option<Vec<usize>>,
-    pub trs: Option<Rc<RefCell<Translator>>>
 }
 
 
@@ -48,62 +63,53 @@ impl BasicBlock {
 
     // ================== BasicBlock: crl =================== //
 
-    pub fn new(src_insns: Vec<Instruction>, trg_arch: Option<&'static Arch>, flag: u16) -> BasicBlock {
-        let src_arch;
-        let label;
-        if src_insns.len() == 0 { 
-            src_arch = &EVO_ARCH;
-            label = None;
-        } else {
-            src_arch = src_insns[0].arch;
-            label = src_insns[0].label.clone();
-        }
-        
-        if trg_arch.is_none() {
-            Self {
-                flag,
-                addr: None,
-                label: None,
-                predecessors: Vec::new(),
-                successors: Vec::new(),
-                src_insns,
-                trg_insns: None,
-                src_arch,
-                trg_arch: None,
-                trs_insn_idxs: None,
-                trs: None
-            }
-        } else {
-            Self {
-                flag,
-                addr: None,
-                label,
-                predecessors: Vec::new(),
-                successors: Vec::new(),
-                src_insns,
-                trg_insns: None,
-                src_arch,
-                trg_arch,
-                trs_insn_idxs: None,
-                trs: Translator::trs_pool_init(src_arch, trg_arch.unwrap())
-            }
-        }
+    pub fn new(arch: &'static Arch) -> Box<BasicBlock> {
+        Box::new(Self {
+            flag: 0,
+            addr: None,
+            label: None,
+            predecessors: Vec::new(),
+            successors: Vec::new(),
+            insns: Vec::new(),
+            arch
+        })
     }
 
+    pub fn init(insns: Vec<Instruction>) -> Box<BasicBlock> {
+        let arch;
+        let label;
+        if insns.len() == 0 { 
+            arch = &EVO_ARCH;
+            label = None;
+        } else {
+            arch = insns[0].arch;
+            label = insns[0].label.clone();
+        }
+        Box::new(Self {
+            flag: 0,
+            addr: None,
+            label,
+            predecessors: Vec::new(),
+            successors: Vec::new(),
+            insns,
+            arch
+        })
+        
+    }
 
     /// Returns the number of instructions in the basic block.
     pub fn size(&self) -> usize {
-        self.src_insns.len()
+        self.insns.len()
     }
 
     pub fn push(&mut self, insn: Instruction) {
-        self.src_insns.push(insn);
+        self.insns.push(insn);
     }
 
-    // ================== BasicBlock: is ==================== //
-
-    pub fn is_translated(&self) -> bool {
-        self.trg_insns.is_some()
+    pub fn info(&self) -> String {
+        let mut info = String::new();
+        info.push_str(&format!("{}\n", self.insns.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("\n")));
+        info
     }
 
     // ================== BasicBlock: set =================== //
@@ -135,63 +141,12 @@ impl BasicBlock {
     }
 
 
-    // ================== BasicBlock: trs =================== //
+    // ================== BasicBlock: str =================== //
 
-    pub fn translate(&mut self, cpu: &CPUState) {
-        if self.trs.is_some() {
-            let mut trg_insns = Vec::new();
-            let mut trs_insn_idxs = Vec::new();
-            let mut sum_insn_idx = 0;
-            for src_insn in &self.src_insns {
-                let mut trg_tmp_insns = self.trs.as_ref().unwrap().borrow_mut().translate(cpu, src_insn);
-                trs_insn_idxs.push(sum_insn_idx);
-                sum_insn_idx += trg_tmp_insns.len();
-                trg_insns.append(&mut trg_tmp_insns);
-            }
-            self.trs_insn_idxs = Some(trs_insn_idxs);
-            self.trg_insns = Some(trg_insns);
-            // set label: src_insns[0].label
-            if self.src_insns.len() > 0 && self.trg_insns.as_ref().unwrap().len() > 0 {
-                self.label = self.src_insns[0].label.clone();
-                self.addr = self.trg_insns.as_ref().unwrap()[0].addr.clone();
-            }
-        }
-    }
-
-    pub fn trs_insn_info(&self, src_insn_idx: usize) -> String {
-        if src_insn_idx >= self.src_insns.len() || !self.is_translated() {
-            return "".to_string();
-        } else {
-            let mut info = String::new();
-            let src_insn = &self.src_insns[src_insn_idx];
-            let trs_insn_idx = self.trs_insn_idxs.as_ref().unwrap()[src_insn_idx];
-            let trs_insn_num = if src_insn_idx + 1 < self.src_insns.len() {
-                self.trs_insn_idxs.as_ref().unwrap()[src_insn_idx+1] - trs_insn_idx
-            } else {
-                self.trg_insns.as_ref().unwrap().len() - trs_insn_idx
-            };
-            let trs_insn = &self.trg_insns.as_ref().unwrap()[trs_insn_idx..trs_insn_idx+trs_insn_num];
-            info.push_str(&format!(
-                "[Src: {}, idx: {}]\n{}\n[Trg: {}, idx: {}]\n{}\n",
-                self.src_arch, src_insn_idx, src_insn,
-                self.trg_arch.unwrap(), trs_insn_idx, trs_insn.iter().map(|i| i.to_string()).collect::<Vec<String>>().join("\n")
-            ));
-            info
-        }
-    }
-
-    pub fn translate_info(&self, src_insn_idx: i32) -> String {
-        if src_insn_idx < 0 || src_insn_idx >= self.src_insns.len() as i32 {
-            let mut src_info = String::new();
-            let mut trg_info = String::new();
-            let mut info = String::new();
-            src_info.push_str(&format!("[Src: {}, Nums: {}]: \n{}\n", self.src_arch, self.src_insns.len(), self.src_insns.iter().map(|i| i.to_string()).collect::<Vec<String>>().join("\n")));
-            trg_info.push_str(&format!("[Trg: {}, Nums: {}]: \n{}\n", self.trg_arch.unwrap(), self.trg_insns.as_ref().unwrap().len(), self.trg_insns.as_ref().unwrap().iter().map(|i| i.to_string()).collect::<Vec<String>>().join("\n")));
-            info.push_str(&format!("{}\n{}\n", src_info, trg_info));
-            info
-        } else {
-            self.trs_insn_info(src_insn_idx as usize)
-        }
+    pub fn from_string(arch: &'static Arch, s: &str) -> Box<BasicBlock> {
+        // Divide insns by "\n"
+        let insns = s.split("\n").map(|x| Instruction::from_string(arch, x)).collect::<Vec<Instruction>>();
+        Self::init(insns)
     }
 
 }
@@ -201,21 +156,26 @@ impl BasicBlock {
 mod blk_test {
 
     use super::*;
-    use crate::core::insn::RegFile;
     use crate::arch::riscv::def::RISCV32_ARCH;
     use crate::arch::evo::def::EVO_ARCH;
+    use crate::core::cpu::CPUState;
 
     #[test]
     fn blk_init() {
         let cpu = CPUState::init(&RISCV32_ARCH, &EVO_ARCH, None, None, None);
 
-        let src_insn1 = Instruction::from_string(&RISCV32_ARCH, "nihao: add x0, x1, x2");
-        let src_insn2 = Instruction::from_string(&RISCV32_ARCH, "sub x0, x1, x2");
-
-        let src_insns = vec![src_insn1, src_insn2];
-        let mut bb = BasicBlock::new(src_insns, Some(&EVO_ARCH), 0);
-        println!("{}", RegFile::reg_pool_info(&EVO_ARCH));
-        bb.translate(&cpu);
-        println!("{}", bb.translate_info(-1));
+        let mut bb1 = BasicBlock::init(vec![
+            Instruction::from_string(&RISCV32_ARCH, "BB1: add x0, x1, x2"),
+            Instruction::from_string(&RISCV32_ARCH, "sub x0, x1, x2")
+        ]);
+        let mut bb2 = BasicBlock::from_string(&RISCV32_ARCH, 
+            "BB2: add x0, x1, x2
+             sub x0, x1, x2
+             lbu x0, x1, 0b11001111"
+        );
+        let tb1 = cpu.lift(&mut bb1);
+        let tb2 = cpu.lift(&mut bb2);
+        println!("{}", tb1.info());
+        println!("{}", tb2.info());
     }
 }

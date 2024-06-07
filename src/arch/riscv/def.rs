@@ -441,7 +441,6 @@ pub fn riscv32_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     itp.borrow_mut().def_insn("ecall", BIT32 | LITTLE_ENDIAN, vec![], "I", "0B00000000 0000.... .000.... .1110111",
         |cpu, _| {
             // ======== ecall ======== //
-
             let proc0 = cpu.proc.borrow().clone();
             // System will do next part according to register `a7`(x17)
             proc0.set_status(CPUThreadStatus::Blocked);

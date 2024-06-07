@@ -10,12 +10,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::arch::evo::def::{evo_decode, evo_encode, EVO_ARCH};
-use crate::arch::info::{Arch, BIT32, BIT64};
+use crate::arch::info::{Arch, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::arch::riscv::def::{riscv32_decode, riscv32_encode, RISCV32_ARCH};
 use crate::arch::x86::def::{x86_decode, x86_encode, X86_ARCH};
 use crate::{log_error, log_warning};
 use crate::util::log::Span;
-use crate::core::op::{Opcode, Operand};
+use crate::core::op::{Opcode, Operand, REG_LOCA};
 use crate::core::val::Value;
 
 
@@ -39,6 +39,17 @@ pub const COND_LE: u8 = 0b0101;
 pub const COND_GT: u8 = 0b0110;
 /// x >= y     7
 pub const COND_GE: u8 = 0b0111;
+
+/// Trap: Find next TB start addr 
+pub const TRAP_FTB: u8 = 0;
+/// Trap: Guest PC => Find undefined insn Op
+pub const TRAP_UND: u8 = 1;
+/// Trap: Host Insn => Call Syscall Num
+pub const TRAP_SYS: u8 = 2;
+/// Trap: Guest Addr => Dynamic Jump
+pub const TRAP_DYN: u8 = 3;
+/// Trap: Guest Mem => Mem access fault
+pub const TRAP_MAF: u8 = 4;
 
 
 pub const INSN_BR_NO: u16 = (COND_NO << 4) as u16;
@@ -67,7 +78,10 @@ pub const INSN_USD: u16 = 0b0001_0000_0000_0000;
 // ============================================================================== //
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RegFile(Rc<RefCell<Vec<Rc<RefCell<Operand>>>>>);
+pub struct RegFile{
+    rf: Rc<RefCell<Vec<Rc<RefCell<Operand>>>>>,
+    arch: &'static Arch
+}
 
 impl RegFile {
 
@@ -128,13 +142,23 @@ impl RegFile {
         Self::reg_poolr_nget(arch, name)
     }
 
+    /// Number of registers
     pub fn num(&self) -> usize {
-        self.0.borrow().len()
+        self.rf.borrow().len()
+    }
+
+    /// Max number of registers
+    pub fn contain(&self) -> usize {
+        self.arch.reg_num
+    }
+
+    pub fn last(&self) -> Rc<RefCell<Operand>> {
+        self.rf.borrow()[self.rf.borrow().len() - 1].clone()
     }
 
     pub fn idx(&self, name: &str) -> usize {
-        for i in 0..self.0.borrow().len() {
-            if self.0.borrow()[i].borrow().name() == name {
+        for i in 0..self.rf.borrow().len() {
+            if self.rf.borrow()[i].borrow().name() == name {
                 return i;
             }
         }
@@ -143,12 +167,12 @@ impl RegFile {
     }
 
     pub fn val(&self, name: &str) -> Value {
-        self.0.borrow()[self.idx(name)].borrow().val()
+        self.rf.borrow()[self.idx(name)].borrow().val()
     }
 
     pub fn is_in(&self, name: &str) -> bool {
-        for i in 0..self.0.borrow().len() {
-            if self.0.borrow()[i].borrow().name() == name {
+        for i in 0..self.rf.borrow().len() {
+            if self.rf.borrow()[i].borrow().name() == name {
                 return true;
             }
         }
@@ -156,50 +180,57 @@ impl RegFile {
     }
     
     pub fn get(&self, index: usize) -> Rc<RefCell<Operand>> {
-        if index >= self.0.borrow().len() {
+        if index >= self.rf.borrow().len() {
             log_error!("RegFile index out of range: {}", index);
             return Rc::new(RefCell::new(Operand::reg_def()));
         }
-        self.0.borrow()[index].clone()
+        self.rf.borrow()[index].clone()
     }
 
     /// Get first global reg in RegFile
     pub fn get_global(&self) -> (usize, Rc<RefCell<Operand>>) {
-        for i in 0..self.0.borrow().len() {
-            if self.0.borrow()[i].borrow().is_reg_global() {
-                return (i, self.0.borrow()[i].clone());
+        for i in 0..self.rf.borrow().len() {
+            if self.rf.borrow()[i].borrow().is_reg_global() {
+                return (i, self.rf.borrow()[i].clone());
             }
         }
         log_error!("RegFile no global reg!");
         (0, Rc::new(RefCell::new(Operand::reg_def())))
     }
 
-    /// Get first local reg in RegFile
-    pub fn get_local(&self) -> (usize, Rc<RefCell<Operand>>) {
-        for i in 0..self.0.borrow().len() {
-            if self.0.borrow()[i].borrow().is_reg_local() {
-                return (i, self.0.borrow()[i].clone());
-            }
+    /// Alloc a local reg in RegFile
+    pub fn new_local(&self) -> (usize, Rc<RefCell<Operand>>) {
+        if self.num() < self.contain() {
+            Self::def(self.arch, "<Loc>", Value::bit(8, self.num() as i128), REG_LOCA | LITTLE_ENDIAN);
+            return (self.num(), self.last());
         }
-        log_error!("RegFile no local reg!");
+        log_error!("RegFile no extra local reg, contain: {}!", self.contain());
         (0, Rc::new(RefCell::new(Operand::reg_def())))
     }
 
+    /// Free a local reg in RegFile
+    pub fn free_local(&self, index: usize) {
+        if index >= self.rf.borrow().len() {
+            log_error!("RegFile index out of range: {}", index);
+            return;
+        }
+        self.rf.borrow_mut().remove(index);
+    }
 
     pub fn nget(&self, name: &str) -> Rc<RefCell<Operand>> {
         self.get(self.idx(name))
     }
 
     pub fn push(&self, reg: Operand) {
-        self.0.borrow_mut().push(Rc::new(RefCell::new(reg)));
+        self.rf.borrow_mut().push(Rc::new(RefCell::new(reg)));
     }
 
     pub fn set(&self, index: usize, reg: Operand) {
-        if index >= self.0.borrow().len() {
+        if index >= self.rf.borrow().len() {
             log_error!("RegFile index out of range: {}", index);
             return;
         }
-        self.0.borrow_mut()[index] = Rc::new(RefCell::new(reg));
+        self.rf.borrow_mut()[index] = Rc::new(RefCell::new(reg));
     }
 
     pub fn nset(&self, name: &str, reg: Operand) {
@@ -208,16 +239,24 @@ impl RegFile {
 
     pub fn info(&self) -> String {
         let mut info = String::new();
-        info.push_str(&format!("Regs(Nums={}):\n", self.0.borrow().len()));
-        for i in 0..self.0.borrow().len() {
-            info.push_str(&format!("- {}", &self.0.borrow()[i].borrow().info()));
+        info.push_str(&format!("Regs(Nums={}):\n", self.rf.borrow().len()));
+        for i in 0..self.rf.borrow().len() {
+            info.push_str(&format!("- {}", &self.rf.borrow()[i].borrow().info()));
             info.push('\n');
         }
         info
     }
 
+    pub fn del(&self, index: usize) {
+        self.rf.borrow_mut().remove(index);
+    }
+
+    pub fn ndel(&self, name: &str) {
+        self.del(self.idx(name));
+    }
+
     pub fn clr(&self) {
-        self.0.borrow_mut().clear();
+        self.rf.borrow_mut().clear();
     }
 
 
@@ -256,7 +295,10 @@ impl RegFile {
     }
 
     pub fn reg_pool_init(arch: &'static Arch) {
-        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().insert(arch, RegFile(Rc::new(RefCell::new(Vec::new())))));
+        Self::REG_POOL.with(|pool_map| pool_map.borrow_mut().insert(arch, RegFile{ 
+            rf: Rc::new(RefCell::new(Vec::new())),
+            arch
+        }));
     }
 
     pub fn reg_pool_is_in(arch: &'static Arch) -> bool {
@@ -279,11 +321,23 @@ impl RegFile {
         Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().get(index))
     }
 
+    pub fn reg_poolr_last(arch: &'static Arch) -> Rc<RefCell<Operand>> {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().last())
+    }
+
     pub fn reg_poolr_get_global(arch: &'static Arch) -> (usize, Rc<RefCell<Operand>>) {
         // find reg in arch when get a global reg exit
         Self::REG_POOL.with(|pool_map| 
             pool_map.borrow().get(arch).unwrap().get_global()
         )
+    }
+
+    pub fn reg_poolr_new_local(arch: &'static Arch) -> (usize, Rc<RefCell<Operand>>) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().new_local())
+    }
+
+    pub fn reg_poolr_free_local(arch: &'static Arch, index: usize) {
+        Self::REG_POOL.with(|pool_map| pool_map.borrow().get(arch).unwrap().free_local(index));
     }
 
     pub fn reg_poolr_set(arch: &'static Arch, index: usize, value: Operand) {
@@ -388,11 +442,11 @@ impl RegFile {
     }
 
 
-    pub fn reg_bund(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
+    pub fn reg_bundle(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str, trg_name: &str) {
         Self::reg_map_pool_nset(src_arch, trg_arch, src_name, trg_name);
     }
 
-    pub fn reg_free(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
+    pub fn reg_release(src_arch: &'static Arch, trg_arch: &'static Arch, src_name: &str) {
         Self::reg_map_pool_ndel(src_arch, trg_arch, src_name);
     }
 
@@ -407,6 +461,14 @@ impl RegFile {
             RegFile::reg_map_pool_set(src_arch, trg_arch, src_idx, trg_idx);
             trg_reg
         }
+    }
+
+    pub fn reg_new_local(arch: &'static Arch) -> (usize, Rc<RefCell<Operand>>) {
+        RegFile::reg_poolr_new_local(arch)
+    }
+
+    pub fn reg_free_local(arch: &'static Arch, idx: usize) {
+        RegFile::reg_poolr_free_local(arch, idx)
     }
 
 
@@ -1055,7 +1117,7 @@ impl Instruction {
     }
 
     /// From string to Instruction
-    pub fn from_string(arch: &'static Arch, str: &'static str) -> Instruction {
+    pub fn from_string(arch: &'static Arch, str: &str) -> Instruction {
         // 1. Deal with string
         let mut str = str.trim();
         let mut label = None;

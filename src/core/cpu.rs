@@ -3,6 +3,7 @@
 //!
 
 
+
 // ============================================================================== //
 //                                 Use Mods
 // ============================================================================== //
@@ -19,8 +20,9 @@ use crate::core::insn::Instruction;
 use crate::core::mem::CPUProcess;
 use crate::core::itp::Interpreter;
 use crate::core::mem::CPUThreadStatus;
-
-use super::insn::RegFile;
+use crate::core::blk::BasicBlock;
+use crate::core::insn::RegFile;
+use crate::core::trs::Translator;
 
 
 // ============================================================================== //
@@ -36,8 +38,10 @@ pub struct CPUState {
     pub ir_arch: &'static Arch,
     /// `proc`: Process Handle
     pub proc: Rc<RefCell<CPUProcess>>,
-    /// `itp`: EVO IR Interpreter
+    /// `itp`: IR Interpreter
     pub itp: Option<Rc<RefCell<Interpreter>>>,
+    /// `trs`: IR Translator
+    pub trs: Option<Rc<RefCell<Translator>>>,
 }
 
 
@@ -69,15 +73,34 @@ impl CPUState {
             ir_arch,
             proc: CPUProcess::init(ir_arch, base_addr, mem_size, stack_size),
             itp: Interpreter::itp_pool_init(ir_arch),
+            trs: Translator::trs_pool_init(src_arch, ir_arch),
         };
         cpu
     }
 
-    /// excute by Interpreter
+    /// Excute by Interpreter
     pub fn execute(&self, insn: &Instruction) {
         if let Some(itp) = &self.itp {
             itp.borrow_mut().execute(self, insn);
         }
+    }
+
+    /// Lift Guest ISA to IR by Translator
+    pub fn lift(&self, bb: &mut BasicBlock) -> Box<BasicBlock> {
+        // Check if bb's arch is same as src_arch
+        if bb.arch != self.src_arch {
+            log_warning!("[Lift] Basic Block arch mismatch: {} != {}", bb.arch, self.src_arch);
+            return BasicBlock::new(self.ir_arch);
+        }
+        if self.trs.is_some() {
+            let mut ir_insns = Vec::new();
+            for src_insn in &bb.insns {
+                let mut ir_tmp_insns = self.trs.as_ref().unwrap().borrow_mut().translate(self, src_insn);
+                ir_insns.append(&mut ir_tmp_insns);
+            }
+            return BasicBlock::init(ir_insns);
+        }
+        BasicBlock::new(self.ir_arch)
     }
 
     // =================== IRCtx.get ======================= //
@@ -290,7 +313,6 @@ mod cpu_test {
 
     #[test]
     fn cpu_info() {
-        // println!("{}", CPUState::info());
         let cpu = CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
 
         // Check pool info

@@ -332,7 +332,7 @@ pub struct CPUThread {
     /// `stack`: Stack, Store stack value
     pub stack: Vec<Rc<RefCell<Value>>>,
     /// Dispatch label table
-    pub labels : Rc<RefCell<HashMap<String, Value>>>,
+    pub labels : Rc<RefCell<HashMap<String, Rc<RefCell<Operand>>>>>,
     /// Thread status
     pub status : CPUThreadStatus,
 }
@@ -555,19 +555,20 @@ impl CPUThread {
 
 
     /// Set label
-    pub fn set_label(&self, lab: Operand) {
-        self.labels.borrow_mut().insert(lab.label_nick(), lab.label_pc());
+    pub fn set_label(&self, lab: Rc<RefCell<Operand>>) {
+        let nick = lab.borrow().label_nick();
+        log_info!("[ TID_{:<2}] set label: `{}`", self.id, nick);
+        self.labels.borrow_mut().insert(nick, lab);
     }
 
     /// Get label
-    pub fn get_label(&self, nick: String) -> Operand {
-        let pc = self.labels.borrow().get(&nick).unwrap().clone();
-        Operand::label(nick, pc)
+    pub fn get_label(&self, nick: String) -> Rc<RefCell<Operand>> {
+        self.labels.borrow().get(&nick).unwrap().clone()
     }
 
     /// del label
     pub fn del_label(&self, nick: String) {
-        log_info!("[TID: {}]: del label: <{}>", self.id, nick);
+        log_info!("[ TID_{:<2}] del label: `{}`", self.id, nick);
         self.labels.borrow_mut().remove(&nick);
     }
 
@@ -1057,11 +1058,11 @@ impl CPUProcess {
     }
 
 
-    pub fn set_label(&self, lab: Operand) {
+    pub fn set_label(&self, lab: Rc<RefCell<Operand>>) {
         self.cur_thread.borrow_mut().set_label(lab)
     }
 
-    pub fn get_label(&self, nick: String) -> Operand {
+    pub fn get_label(&self, nick: String) -> Rc<RefCell<Operand>> {
         self.cur_thread.borrow().get_label(nick)
     }
 

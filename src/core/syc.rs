@@ -31,25 +31,27 @@ pub struct Syscaller {
 impl Syscaller {
 
     thread_local! {
+        /// Syscall Map
+        pub static SYSCALL_MAP: Rc<RefCell<HashMap<usize, &'static str>>> = Rc::new(RefCell::new(HashMap::new()));
         /// Syscall Pool
-        pub static SYSCALL_POOL: Rc<RefCell<HashMap<usize, (&'static str, fn(&CPUState) -> u64)>>> = Rc::new(RefCell::new(HashMap::new()));
+        pub static SYSCALL_POOL: Rc<RefCell<HashMap<&'static str, (&'static str, fn(&CPUState) -> u64)>>> = Rc::new(RefCell::new(HashMap::new()));
     }
 
     /// Define syscall
-    pub fn def(id : usize, name: &'static str, call: fn(&CPUState) -> u64) {
-        Self::pool_set(id, name, call)
+    pub fn def(name: &'static str, call: fn(&CPUState) -> u64) {
+        Self::pool_nset(name, call);
     }
 
     /// Call syscall
-    pub fn call(cpu: &CPUState, syscall_id: usize) -> u64 {
-        Self::pool_get(syscall_id).1(cpu)
+    pub fn call(cpu: &CPUState, name: &'static str) -> u64 {
+        Self::pool_nget(name).1(cpu)
     }
 
     // =================== Syscall.ctl ======================= //
 
     /// Init a Syscaller pool
     pub fn pool_init() {
-        Syscaller::def(93, "exit",
+        Syscaller::def("exit",
             |cpu| {
                 // ========= Exit Program ========= //
                 // 1. Get x10/a0 Reg
@@ -58,7 +60,7 @@ impl Syscaller {
                 unsafe { libc::exit(code) };
             }
         );
-        Syscaller::def(57, "close",
+        Syscaller::def("close",
             |cpu| {
                 // ========= Close File ========= //
                 // 1. Get x10/a0 Reg
@@ -70,7 +72,7 @@ impl Syscaller {
                 ret as u64
             }
         );
-        Syscaller::def(63, "read",
+        Syscaller::def("read",
             |cpu| {
                 // ========= Read File ========= //
                 // 1. Get x10/a0 Reg
@@ -86,7 +88,7 @@ impl Syscaller {
                 ret as u64
             }
         );
-        Syscaller::def(64, "write",
+        Syscaller::def("write",
             |cpu| {
                 // ========= Write File ========= //
                 // 1. Get x10/a0 Reg
@@ -102,7 +104,7 @@ impl Syscaller {
                 ret as u64
             }
         );
-        Syscaller::def(80, "fstat",
+        Syscaller::def("fstat",
             |cpu| {
                 // ========= Stat File ========= //
                 // 1. Get x10/a0 Reg
@@ -116,7 +118,7 @@ impl Syscaller {
                 ret as u64
             }
         );
-        Syscaller::def(169, "gettimeofday",
+        Syscaller::def("gettimeofday",
             |cpu| {
                 // ========= Get Time ========= //
                 // 1. Get x10/a0 Reg
@@ -130,7 +132,7 @@ impl Syscaller {
                 ret as u64
             }
         );
-        Syscaller::def(214, "brk",
+        Syscaller::def("brk",
             |cpu| {
                 // ========= Get Time ========= //
                 // 1. Get x10/a0 Reg
@@ -145,23 +147,23 @@ impl Syscaller {
     }
 
     /// Get syscall
-    pub fn pool_get(id : usize) -> (&'static str, fn(&CPUState) -> u64) {
+    pub fn pool_nget(name: &'static str) -> (&'static str, fn(&CPUState) -> u64) {
         Self::SYSCALL_POOL.with(|pool| {
-            pool.borrow().get(&id).unwrap().clone()
+            pool.borrow().get(name).unwrap().clone()
         })
     }
 
     /// Set syscall
-    pub fn pool_set(id : usize, name: &'static str, call: fn(&CPUState) -> u64) {
+    pub fn pool_nset(name: &'static str, call: fn(&CPUState) -> u64) {
         Self::SYSCALL_POOL.with(|pool| {
-            pool.borrow_mut().insert(id, (name, call));
+            pool.borrow_mut().insert(name, (name, call));
         })
     }
 
     /// Delete syscall
-    pub fn pool_del(id : usize) {
+    pub fn pool_ndel(name: &'static str) {
         Self::SYSCALL_POOL.with(|pool| {
-            pool.borrow_mut().remove(&id);
+            pool.borrow_mut().remove(name);
         })
     }
 
@@ -178,8 +180,8 @@ impl Syscaller {
     }
 
     /// Check is in pool
-    pub fn pool_is_in(id : usize) -> bool {
-        Self::SYSCALL_POOL.with(|pool| pool.borrow().get(&id).is_some())
+    pub fn pool_is_in(name: &'static str) -> bool {
+        Self::SYSCALL_POOL.with(|pool| pool.borrow().get(name).is_some())
     }
 
     /// Pool Info
@@ -187,8 +189,10 @@ impl Syscaller {
         let mut info = String::new();
         info.push_str(&format!("Syscalls (Num = {}):\n", Self::pool_size()));
         Self::SYSCALL_POOL.with(|pool| {
-            for (id, (name, _)) in pool.borrow().iter() {
-                info.push_str(&format!("[{:>4}] {}\n", id, name));
+            let mut i = 0;
+            for (name, _) in pool.borrow().iter() {
+                info.push_str(&format!("[{:>4}] {}\n", i, name));
+                i += 1;
             }
         });
         info

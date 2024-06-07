@@ -160,7 +160,7 @@ impl OperandKind {
     pub fn to_string(&self) -> String {
         match self {
             OperandKind::Imm(val) =>  format!("{}: {}", val.hex(0, -1, false) , val.kind()),
-            OperandKind::Reg(name, val, _) => format!("{:>3}: {}", name, val.kind()),
+            OperandKind::Reg(name, val, _) => format!("{:<3}: {}", name, val.kind()),
             OperandKind::Mem(base, idx, scale, disp) => {
                 let mut info = String::new();
                 let mut is_gen = false;
@@ -590,7 +590,7 @@ impl Operand {
         }
     }
 
-    pub fn label_pc(&self) -> Value {
+    pub fn label_addr(&self) -> Value {
         match self.kind() {
             OperandKind::Label(_, pc) => pc,
             _ => Value::i32(0),
@@ -647,7 +647,7 @@ impl Operand {
     /// [<Reg> + <Reg> * <Imm> + <Imm>]
     ///   base    idx    scale    disp
     /// ```
-    pub fn from_string(sym: u16, opr: &'static str) -> Self {
+    pub fn from_string(sym: u16, opr: &str) -> Self {
         let opr = opr.trim();
         // 0. if sym == OPR_UND, return
         if sym == OPR_UND {

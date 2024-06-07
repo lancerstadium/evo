@@ -76,6 +76,12 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     //                              Arithmetic Instructions
     // ============================================================================== //
 
+    itp.borrow_mut().def_insn("nop" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![], "E", "0x00",
+        |_, _| {
+            // ======== No Operation ======== //
+        }
+    );
+
     itp.borrow_mut().def_insn("add_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG,  vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x01", 
         |cpu, insn| {
             // ======== rd = rs1 + rs2 ======== //
@@ -2575,6 +2581,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             let proc0 = cpu.proc.borrow().clone();
             // 1. Get label
             let mut lab = insn.opr[0].clone();
+            println!("lab: {:?}", lab);
             // 2. Get val
             let val = if insn.opr[1].sym() == OPR_REG || insn.opr[1].sym() == OPR_IMM  {
                 insn.opr[1].val()
@@ -2583,7 +2590,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             };
             // 3. Set label
             lab.set_label(val);
-            proc0.set_label(lab);
+            proc0.set_label(Rc::new(RefCell::new(lab)));
         }
     );
     itp.borrow_mut().def_insn("unlabel" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe3",
@@ -2791,13 +2798,13 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             log_info!("TODO: jmp $label");
         }
     );
-    itp.borrow_mut().def_insn("brc" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
+    itp.borrow_mut().def_insn("brcond" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brcond $label, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("brc2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
+    itp.borrow_mut().def_insn("brcond2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brc
@@ -2816,6 +2823,12 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             log_info!("TODO: exit_tb rd");
         }
     );
+    itp.borrow_mut().def_insn("trap" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xec",
+        |cpu, insn| {
+            // ======== trap TRAP_CODE ======== //
+            log_info!("TODO: trap TRAP_CODE");
+        }
+    );
     itp.borrow_mut().def_insn("yes" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_OFF | OPR_IMM | OPR_REG], "E", "0xff",
         |cpu, insn| {
             let proc0 = cpu.proc.borrow().clone();
@@ -2826,7 +2839,7 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             } else {
                 None
             };
-            println!("yes yes yes !!! {}", if val.is_some() { val.unwrap().to_string() } else { "".to_string() });
+            println!("yes yes yes: {} !!!", if val.is_some() { val.unwrap().to_string() } else { "".to_string() });
         }
     );
 
@@ -2874,11 +2887,9 @@ pub fn evo_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                         ([OPR_LAB], _) => {
                             code[0] = 0b000_001_00 | flag_sb;
                             let lab = &opr[0];
-                            if lab.label_pc().scale_sum() > 32 {
-                                new_opr[0] = Operand::imm(Value::u64(lab.val().get_dword(0)));
+                            if lab.label_addr().scale_sum() > 32 {
                                 code.extend_from_slice(&lab.val().get_dword(0).to_le_bytes());
                             } else {
-                                new_opr[0] = Operand::imm(Value::u32(lab.val().get_word(0)));
                                 code.extend_from_slice(&lab.val().get_word(0).to_le_bytes());
                             }
                         },
@@ -3636,7 +3647,7 @@ macro_rules! evo_gen {
     ($evo_opcode:literal $(, $($evo_operands:expr),*)?) => {
         Instruction::insn_pool_nget(&EVO_ARCH, $evo_opcode).borrow().clone().encode(vec![
             $($($evo_operands,)*)?
-        ]);
+        ])
     };
 }
 
@@ -3748,7 +3759,7 @@ mod evo_test {
         let insn80 = Instruction::from_string(&EVO_ARCH, "depo_i32 t0, t4");
         let insn81 = Instruction::from_string(&EVO_ARCH, "depo_i64 t0, t4");
         let insn82 = Instruction::from_string(&EVO_ARCH, "label xss, 0x23 4e ff 8a 23");
-        let insn83 = Instruction::from_string(&EVO_ARCH, "unlabel xss");
+        let insn83 = Instruction::from_string(&EVO_ARCH, "unlabel xss, 0x12");
         let insn84 = Instruction::from_string(&EVO_ARCH, "yes");
 
         insn1.set_label(Some("sieve".to_string()));
