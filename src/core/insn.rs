@@ -67,6 +67,9 @@ pub const INSN_BR: u16 = 0b0000_0001_0000_0000;
 pub const INSN_JP: u16 = 0b0000_0010_0000_0000;
 /// is exit insn
 pub const INSN_ET: u16 = 0b0000_0100_0000_0000;
+/// is bb end insn
+pub const INSN_ED: u16 = 0b0000_1000_0000_0000;
+
 /// res is signed operands
 pub const INSN_SIG: u16 = 0b0000_0000_0000_0000;
 /// res is unsigned operands
@@ -672,10 +675,10 @@ pub struct Instruction {
     /// (8-15):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ │ │ └── (8) 0: is not branch, 1: is branch
-    /// │ │ │ │ │ │ └──── (9) 0: is not jump, 1: is jump
-    /// │ │ │ │ │ └────── (10) 0: is not exit, 1: is exit
-    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ │ │ │ │ └── (8)  0: is not branch , 1: is branch
+    /// │ │ │ │ │ │ └──── (9)  0: is not jump   , 1: is jump
+    /// │ │ │ │ │ └────── (10) 0: is not exit   , 1: is exit
+    /// │ │ │ │ └──────── (11) 0: is not bb end , 1: is bb end
     /// │ │ │ └────────── (12) 0: have signed operands, 1: all unsigned operands
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>

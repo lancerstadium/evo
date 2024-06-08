@@ -11,7 +11,7 @@ use crate::util::log::Span;
 use crate::arch::info::{Arch, ArchKind, BIT32, BIT64, LITTLE_ENDIAN};
 use crate::core::val::Value;
 use crate::core::op::{OpcodeKind, Operand, OperandKind, OPR_IMM, OPR_LAB, OPR_OFF, OPR_REG, OPR_UND};
-use crate::core::insn::{Instruction, RegFile, COND_AL, COND_EQ, COND_GE, COND_GT, COND_LE, COND_LT, COND_NE, COND_NO, INSN_SIG, INSN_USD};
+use crate::core::insn::{Instruction, RegFile, COND_AL, COND_EQ, COND_GE, COND_GT, COND_LE, COND_LT, COND_NE, COND_NO, INSN_BR, INSN_JP, INSN_SIG, INSN_USD};
 use crate::core::itp::Interpreter;
 
 
@@ -2793,25 +2793,25 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.del_label(lab.label_nick());
         }
     );
-    itp.borrow_mut().def_insn("jp" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe7",
+    itp.borrow_mut().def_insn("jp" , BIT32 | LITTLE_ENDIAN | INSN_SIG | INSN_JP, vec![OPR_LAB], "E", "0xe7",
         |cpu, insn| {
             // ======== jump ======== //
             log_info!("TODO: jp $label");
         }
     );
-    itp.borrow_mut().def_insn("br" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
+    itp.borrow_mut().def_insn("br" , BIT32 | LITTLE_ENDIAN | INSN_SIG | INSN_BR, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: br $label, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("brc" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
+    itp.borrow_mut().def_insn("brc" , BIT32 | LITTLE_ENDIAN | INSN_SIG | INSN_BR, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brcond $label, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("brc2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xea",
+    itp.borrow_mut().def_insn("brc2" , BIT32 | LITTLE_ENDIAN | INSN_SIG | INSN_BR, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xea",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brc

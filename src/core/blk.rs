@@ -35,10 +35,10 @@ pub struct BasicBlock {
     /// (8-15):
     /// 0 0 0 0 0 0 0 0
     /// │ │ │ │ │ │ │ │
-    /// │ │ │ │ │ │ │ └── (8) 0: is not branch, 1: is branch
-    /// │ │ │ │ │ │ └──── (9) 0: is not jump, 1: is jump
-    /// │ │ │ │ │ └────── (10) 0: is not exit, 1: is exit
-    /// │ │ │ │ └──────── <Reserved>
+    /// │ │ │ │ │ │ │ └── (8)  0: is not branch , 1: is branch
+    /// │ │ │ │ │ │ └──── (9)  0: is not jump   , 1: is jump
+    /// │ │ │ │ │ └────── (10) 0: is not exit   , 1: is exit
+    /// │ │ │ │ └──────── (11) 0: is not bb end , 1: is bb end
     /// │ │ │ └────────── <Reserved>
     /// │ │ └──────────── <Reserved>
     /// │ └────────────── <Reserved>
