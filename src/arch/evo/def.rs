@@ -1644,7 +1644,6 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::u64(res));
         }
     );
-
     itp.borrow_mut().def_insn("etrl_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM], "E", "0x1c",
         |cpu, insn| {
             // ======== rd = rs1(i32 -> low half) ======== //
@@ -2500,7 +2499,192 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     );
 
     // ============================================================================== //
-    //                         Register Merge Instructions
+    //                         Compare value Instructions
+    // ============================================================================== //
+    
+    itp.borrow_mut().def_insn("cmp_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x2d",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1(i32)
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i32(0)
+            } else {
+                0
+            };
+            // 2. Get rs2(i32)
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i32(0)
+            } else {
+                0
+            };
+            // 3. Get cc
+            let cc = if insn.opr[3].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_i32(0)
+            } else if insn.opr[3].sym() == OPR_IMM {
+                insn.opr[3].val().get_i32(0)
+            } else {
+                0
+            };
+            // 4. Get res
+            let res = match cc as u8 {
+                COND_NO => false,
+                COND_AL => true,
+                COND_EQ => rs1 == rs2,
+                COND_NE => rs1 != rs2,
+                COND_LT => rs1 < rs2,
+                COND_LE => rs1 <= rs2,
+                COND_GT => rs1 > rs2,
+                COND_GE => rs1 >= rs2,
+                _ => false
+            };
+            // 5. Set rd
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
+        }
+    );
+    itp.borrow_mut().def_insn("cmp_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x2d", 
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            // 1. Get rs1(i64)
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                cpu.proc.borrow().get_reg(insn.opr[1].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_i64(0)
+            } else {
+                0
+            };
+            // 2. Get rs2(i64)
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                cpu.proc.borrow().get_reg(insn.opr[2].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_i64(0)
+            } else {
+                0
+            };
+            // 3. Get cc
+            let cc = if insn.opr[3].sym() == OPR_REG {
+                cpu.proc.borrow().get_reg(insn.opr[3].val().get_byte(0) as usize).get_i64(0)
+            } else if insn.opr[3].sym() == OPR_IMM {
+                insn.opr[3].val().get_i64(0)
+            } else {
+                0
+            };
+            // 4. Get res
+            let res = match cc as u8 {
+                COND_NO => false,
+                COND_AL => true,
+                COND_EQ => rs1 == rs2,
+                COND_NE => rs1 != rs2,
+                COND_LT => rs1 < rs2,
+                COND_LE => rs1 <= rs2,
+                COND_GT => rs1 > rs2,
+                COND_GE => rs1 >= rs2,
+                _ => false
+            };
+            // 5. Set rd
+            cpu.proc.borrow_mut().set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
+        }   
+    );
+    itp.borrow_mut().def_insn("cmp_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x2d",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1(u32)
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_u32(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_u32(0)
+            } else {
+                0
+            };
+            // 2. Get rs2(u32)
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_u32(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_u32(0)
+            } else {
+                0
+            };
+            // 3. Get cc
+            let cc = if insn.opr[3].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_u32(0)
+            } else if insn.opr[3].sym() == OPR_IMM {
+                insn.opr[3].val().get_u32(0)
+            } else {
+                0
+            };
+            // 4. Get res
+            let res = match cc as u8 {
+                COND_NO => false,
+                COND_AL => true,
+                COND_EQ => rs1 == rs2,
+                COND_NE => rs1 != rs2,
+                COND_LT => rs1 < rs2,
+                COND_LE => rs1 <= rs2,
+                COND_GT => rs1 > rs2,
+                COND_GE => rs1 >= rs2,
+                _ => false
+            };
+            // 5. Set rd
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::u32(res as u32));
+        }
+    );
+    itp.borrow_mut().def_insn("cmp_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0x2d",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            let proc0 = cpu.proc.borrow().clone();
+            // 1. Get rs1(u64)
+            let rs1 = if insn.opr[1].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_u64(0)
+            } else if insn.opr[1].sym() == OPR_IMM {
+                insn.opr[1].val().get_u64(0)
+            } else {
+                0
+            };
+            // 2. Get rs2(u64)
+            let rs2 = if insn.opr[2].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_u64(0)
+            } else if insn.opr[2].sym() == OPR_IMM {
+                insn.opr[2].val().get_u64(0)
+            } else {
+                0
+            };
+            // 3. Get cc
+            let cc = if insn.opr[3].sym() == OPR_REG {
+                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_u64(0)
+            } else if insn.opr[3].sym() == OPR_IMM {
+                insn.opr[3].val().get_u64(0)
+            } else {
+                0
+            };
+            // 4. Get res
+            let res = match cc as u8 {
+                COND_NO => false,
+                COND_AL => true,
+                COND_EQ => rs1 == rs2,
+                COND_NE => rs1 != rs2,
+                COND_LT => rs1 < rs2,
+                COND_LE => rs1 <= rs2,
+                COND_GT => rs1 > rs2,
+                COND_GE => rs1 >= rs2,
+                _ => false
+            };
+            // 5. Set rd
+            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::u64(res as u64));
+        }
+    );
+    itp.borrow_mut().def_insn("cmpv" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], "E", "0x2e",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2 ? v1 : v2) ======== //
+            log_info!("TODO: condval rd, rs1, rs2, cc, v1, v2");
+        }
+    );
+    // ============================================================================== //
+    //                      Register Double Operate Instructions
     // ============================================================================== //
 
     itp.borrow_mut().def_insn("add2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG], "E", "0x81",
@@ -2551,7 +2735,6 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             log_info!("TODO: mul2_i64 rd_low, rd_high, rs1_low, rs1_high, rs2_low, rs2_high");
         }
     );
-
     itp.borrow_mut().def_insn("etr2_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0x84",
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
@@ -2562,6 +2745,12 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         |cpu, insn| {
             // ======== rd = rs1, pos, len ======== //
             log_info!("TODO: etr2_i64 rd, rs1, rs2, pos");
+        }
+    );
+    itp.borrow_mut().def_insn("cmp2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe5",
+        |cpu, insn| {
+            // ======== rd = (rs1 cc rs2) ======== //
+            log_info!("TODO: cond2 rd, rs1_low, rs1_high, rs2_low, rs2_high, cc");
         }
     );
 
@@ -2604,229 +2793,47 @@ pub fn evo_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             proc0.del_label(lab.label_nick());
         }
     );
-    itp.borrow_mut().def_insn("cond_i32" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0xe4",
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2) ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(i32)
-            let rs1 = if insn.opr[1].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_i32(0)
-            } else if insn.opr[1].sym() == OPR_IMM {
-                insn.opr[1].val().get_i32(0)
-            } else {
-                0
-            };
-            // 2. Get rs2(i32)
-            let rs2 = if insn.opr[2].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_i32(0)
-            } else if insn.opr[2].sym() == OPR_IMM {
-                insn.opr[2].val().get_i32(0)
-            } else {
-                0
-            };
-            // 3. Get cc
-            let cc = if insn.opr[3].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_i32(0)
-            } else if insn.opr[3].sym() == OPR_IMM {
-                insn.opr[3].val().get_i32(0)
-            } else {
-                0
-            };
-            // 4. Get res
-            let res = match cc as u8 {
-                COND_NO => false,
-                COND_AL => true,
-                COND_EQ => rs1 == rs2,
-                COND_NE => rs1 != rs2,
-                COND_LT => rs1 < rs2,
-                COND_LE => rs1 <= rs2,
-                COND_GT => rs1 > rs2,
-                COND_GE => rs1 >= rs2,
-                _ => false
-            };
-            // 5. Set rd
-            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
-        }
-    );
-    itp.borrow_mut().def_insn("cond_i64" , BIT64 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0xe4", 
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2) ======== //
-            // 1. Get rs1(i64)
-            let rs1 = if insn.opr[1].sym() == OPR_REG {
-                cpu.proc.borrow().get_reg(insn.opr[1].val().get_byte(0) as usize).get_i64(0)
-            } else if insn.opr[1].sym() == OPR_IMM {
-                insn.opr[1].val().get_i64(0)
-            } else {
-                0
-            };
-            // 2. Get rs2(i64)
-            let rs2 = if insn.opr[2].sym() == OPR_REG {
-                cpu.proc.borrow().get_reg(insn.opr[2].val().get_byte(0) as usize).get_i64(0)
-            } else if insn.opr[2].sym() == OPR_IMM {
-                insn.opr[2].val().get_i64(0)
-            } else {
-                0
-            };
-            // 3. Get cc
-            let cc = if insn.opr[3].sym() == OPR_REG {
-                cpu.proc.borrow().get_reg(insn.opr[3].val().get_byte(0) as usize).get_i64(0)
-            } else if insn.opr[3].sym() == OPR_IMM {
-                insn.opr[3].val().get_i64(0)
-            } else {
-                0
-            };
-            // 4. Get res
-            let res = match cc as u8 {
-                COND_NO => false,
-                COND_AL => true,
-                COND_EQ => rs1 == rs2,
-                COND_NE => rs1 != rs2,
-                COND_LT => rs1 < rs2,
-                COND_LE => rs1 <= rs2,
-                COND_GT => rs1 > rs2,
-                COND_GE => rs1 >= rs2,
-                _ => false
-            };
-            // 5. Set rd
-            cpu.proc.borrow_mut().set_reg(insn.opr[0].val().get_byte(0) as usize, Value::i64(res as i64));
-        }   
-    );
-    itp.borrow_mut().def_insn("cond_u32" , BIT32 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0xe4",
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2) ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u32)
-            let rs1 = if insn.opr[1].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_u32(0)
-            } else if insn.opr[1].sym() == OPR_IMM {
-                insn.opr[1].val().get_u32(0)
-            } else {
-                0
-            };
-            // 2. Get rs2(u32)
-            let rs2 = if insn.opr[2].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_u32(0)
-            } else if insn.opr[2].sym() == OPR_IMM {
-                insn.opr[2].val().get_u32(0)
-            } else {
-                0
-            };
-            // 3. Get cc
-            let cc = if insn.opr[3].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_u32(0)
-            } else if insn.opr[3].sym() == OPR_IMM {
-                insn.opr[3].val().get_u32(0)
-            } else {
-                0
-            };
-            // 4. Get res
-            let res = match cc as u8 {
-                COND_NO => false,
-                COND_AL => true,
-                COND_EQ => rs1 == rs2,
-                COND_NE => rs1 != rs2,
-                COND_LT => rs1 < rs2,
-                COND_LE => rs1 <= rs2,
-                COND_GT => rs1 > rs2,
-                COND_GE => rs1 >= rs2,
-                _ => false
-            };
-            // 5. Set rd
-            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::u32(res as u32));
-        }
-    );
-    itp.borrow_mut().def_insn("cond_u64" , BIT64 | LITTLE_ENDIAN | INSN_USD, vec![OPR_REG, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM, OPR_REG | OPR_IMM], "E", "0xe4",
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2) ======== //
-            let proc0 = cpu.proc.borrow().clone();
-            // 1. Get rs1(u64)
-            let rs1 = if insn.opr[1].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[1].val().get_byte(0) as usize).get_u64(0)
-            } else if insn.opr[1].sym() == OPR_IMM {
-                insn.opr[1].val().get_u64(0)
-            } else {
-                0
-            };
-            // 2. Get rs2(u64)
-            let rs2 = if insn.opr[2].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[2].val().get_byte(0) as usize).get_u64(0)
-            } else if insn.opr[2].sym() == OPR_IMM {
-                insn.opr[2].val().get_u64(0)
-            } else {
-                0
-            };
-            // 3. Get cc
-            let cc = if insn.opr[3].sym() == OPR_REG {
-                proc0.get_reg(insn.opr[3].val().get_byte(0) as usize).get_u64(0)
-            } else if insn.opr[3].sym() == OPR_IMM {
-                insn.opr[3].val().get_u64(0)
-            } else {
-                0
-            };
-            // 4. Get res
-            let res = match cc as u8 {
-                COND_NO => false,
-                COND_AL => true,
-                COND_EQ => rs1 == rs2,
-                COND_NE => rs1 != rs2,
-                COND_LT => rs1 < rs2,
-                COND_LE => rs1 <= rs2,
-                COND_GT => rs1 > rs2,
-                COND_GE => rs1 >= rs2,
-                _ => false
-            };
-            // 5. Set rd
-            proc0.set_reg(insn.opr[0].val().get_byte(0) as usize, Value::u64(res as u64));
-        }
-    );
-
-    itp.borrow_mut().def_insn("cond2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe5",
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2) ======== //
-            log_info!("TODO: cond2 rd, rs1_low, rs1_high, rs2_low, rs2_high, cc");
-        }
-    );
-    itp.borrow_mut().def_insn("condval" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_REG, OPR_REG, OPR_REG, OPR_IMM, OPR_IMM, OPR_IMM], "E", "0xe6",
-        |cpu, insn| {
-            // ======== rd = (rs1 cc rs2 ? v1 : v2) ======== //
-            log_info!("TODO: condval rd, rs1, rs2, cc, v1, v2");
-        }
-    );
-    itp.borrow_mut().def_insn("jmp" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe7",
+    itp.borrow_mut().def_insn("jp" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB], "E", "0xe7",
         |cpu, insn| {
             // ======== jump ======== //
-            log_info!("TODO: jmp $label");
+            log_info!("TODO: jp $label");
         }
     );
-    itp.borrow_mut().def_insn("brcond" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
+    itp.borrow_mut().def_insn("br" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe8",
+        |cpu, insn| {
+            // ======== brcond ======== //
+            log_info!("TODO: br $label, rs1, rs2, cc");
+        }
+    );
+    itp.borrow_mut().def_insn("brc" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brcond $label, rs1, rs2, cc");
         }
     );
-    itp.borrow_mut().def_insn("brcond2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xe9",
+    itp.borrow_mut().def_insn("brc2" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_LAB, OPR_REG, OPR_REG, OPR_REG, OPR_REG, OPR_IMM], "E", "0xea",
         |cpu, insn| {
             // ======== brcond ======== //
             log_info!("TODO: brc
                 0ond2 $label, rs1_low, rs1_high, rs2_low, rs2_high, cc");
         }
     );
-    itp.borrow_mut().def_insn("goto_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xea",
+    itp.borrow_mut().def_insn("trap" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xeb",
+        |cpu, insn| {
+            // ======== trap TRAP_CODE ======== //
+            log_info!("TODO: trap TRAP_CODE");
+        }
+    );
+    itp.borrow_mut().def_insn("goto_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xec",
         |cpu, insn| {
             // ======== exit tb and return 0 to rd ======== //
             log_info!("TODO: goto_tb rd");
         }
     );
-    itp.borrow_mut().def_insn("exit_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM, OPR_IMM], "E", "0xeb",
+    itp.borrow_mut().def_insn("exit_tb" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM, OPR_IMM], "E", "0xed",
         |cpu, insn| {
             // ======== exit tb and return 0 to rd ======== //
             log_info!("TODO: exit_tb rd");
-        }
-    );
-    itp.borrow_mut().def_insn("trap" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_IMM], "E", "0xec",
-        |cpu, insn| {
-            // ======== trap TRAP_CODE ======== //
-            log_info!("TODO: trap TRAP_CODE");
         }
     );
     itp.borrow_mut().def_insn("yes" , BIT32 | LITTLE_ENDIAN | INSN_SIG, vec![OPR_OFF | OPR_IMM | OPR_REG], "E", "0xff",

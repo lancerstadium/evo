@@ -132,16 +132,16 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
             trs_evo_r!(trs, "sll", "shl_i32");
             trs_evo_r!(trs, "srl", "shr_i32");
             trs_evo_r!(trs, "sra", "sar_i32");
-            trs_evo_r!(trs, "slt" , "cond_i32", Operand::imm(Value::u32(COND_LT as u32)));
-            trs_evo_r!(trs, "sltu", "cond_u32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_r!(trs, "slt" , "cmp_i32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_r!(trs, "sltu", "cmp_u32", Operand::imm(Value::u32(COND_LT as u32)));
 
             // Translate to evo: I Type
             trs_evo_i!(trs, "addi", "add_i32");
             trs_evo_i!(trs, "ori" , "or_i32" );
             trs_evo_i!(trs, "andi", "and_i32");
             trs_evo_i!(trs, "xori", "xor_i32");
-            trs_evo_i!(trs, "slti" , "cond_i32", Operand::imm(Value::u32(COND_LT as u32)));
-            trs_evo_i!(trs, "sltiu", "cond_u32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_i!(trs, "slti" , "cmp_i32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_i!(trs, "sltiu", "cmp_u32", Operand::imm(Value::u32(COND_LT as u32)));
             trs_evo_i!(trs, "lb"  , "ldb_i32");
             trs_evo_i!(trs, "lh"  , "ldh_i32");
             trs_evo_i!(trs, "lw"  , "ldw_i32");
@@ -161,12 +161,12 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
             );
 
             // Translate to evo: B Type
-            trs_evo_b!(trs, "beq" , "cond_i32", Operand::imm(Value::u32(COND_EQ as u32)));
-            trs_evo_b!(trs, "bne" , "cond_i32", Operand::imm(Value::u32(COND_NE as u32)));
-            trs_evo_b!(trs, "blt" , "cond_i32", Operand::imm(Value::u32(COND_LT as u32)));
-            trs_evo_b!(trs, "bge" , "cond_i32", Operand::imm(Value::u32(COND_GE as u32)));
-            trs_evo_b!(trs, "bltu", "cond_u32", Operand::imm(Value::u32(COND_LT as u32)));
-            trs_evo_b!(trs, "bgeu", "cond_u32", Operand::imm(Value::u32(COND_GE as u32)));
+            trs_evo_b!(trs, "beq" , "cmp_i32", Operand::imm(Value::u32(COND_EQ as u32)));
+            trs_evo_b!(trs, "bne" , "cmp_i32", Operand::imm(Value::u32(COND_NE as u32)));
+            trs_evo_b!(trs, "blt" , "cmp_i32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_b!(trs, "bge" , "cmp_i32", Operand::imm(Value::u32(COND_GE as u32)));
+            trs_evo_b!(trs, "bltu", "cmp_u32", Operand::imm(Value::u32(COND_LT as u32)));
+            trs_evo_b!(trs, "bgeu", "cmp_u32", Operand::imm(Value::u32(COND_GE as u32)));
 
             // Translate to evo: U Type
             trs.borrow_mut().def_func("auipc", 
@@ -210,7 +210,7 @@ pub fn riscv32_trs_init(trg_arch: &'static Arch) -> Option<Rc<RefCell<Translator
                         Operand::imm(Value::i32(proc0.get_pc_next().get_i32(0) + insn.imm_u() as i32))
                     );
                     let insn4 = evo_gen!("exit_tb",
-                        Operand::imm(Value::i32(0)),
+                        Operand::imm(Value::i32(0)),    // 啥东西不知道
                         Operand::imm(Value::i32(0))
                     );
                     trg_insns.push(insn1);
