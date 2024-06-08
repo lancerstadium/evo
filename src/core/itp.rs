@@ -29,14 +29,7 @@ use crate::core::insn::Instruction;
 #[derive(Clone, PartialEq)]
 pub struct Interpreter {
     /// arch
-    pub arch: &'static Arch,
-    /// Interface Function Table
-    pub ift : Rc<RefCell<HashMap<usize, String>>>,
-    /// Branch Instructions (For Branch Optimization)
-    pub bis : Rc<RefCell<Vec<Instruction>>>,
-    /// Performence Tools
-    #[cfg(feature = "perf")]
-    pub insn_num : usize
+    pub arch: &'static Arch
 }
 
 
@@ -53,12 +46,7 @@ impl Interpreter {
     /// Define a Interpreter and set in pool
     pub fn def(arch: &'static Arch) -> Rc<RefCell<Interpreter>> {
         let v = Self { 
-            arch,
-            ift : Rc::new(RefCell::new(HashMap::new())),
-            bis : Rc::new(RefCell::new(Vec::new())),
-
-            #[cfg(feature = "perf")]
-            insn_ident_size : 0
+            arch
         };
         // Store in pool
         Self::itp_pool_set(arch, Rc::new(RefCell::new(v)));

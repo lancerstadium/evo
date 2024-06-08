@@ -18,7 +18,6 @@
 // ============================================================================== //
 
 use std::cmp;
-use std::collections::HashMap;
 use std::default;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -37,17 +36,16 @@ use libc::{c_void, MAP_PRIVATE, MAP_ANONYMOUS, PROT_READ, PROT_WRITE, MAP_FAILED
 use colored::*;
 use crate::arch::evo::def::EVO_ARCH;
 use crate::arch::info::Arch;
-// use crate::util::log::Span;
 use crate::core::val::Value;
 // use crate::log_error;
 use crate::log_error;
-use crate::log_info;
 use crate::log_warning;
 use crate::util::log::Span;
 use crate::core::ty::Types;
+use crate::core::insn::RegFile;
+use crate::core::op::Operand;
 
-use super::insn::RegFile;
-use super::op::Operand;
+use super::task::TaskContext;
 
 
 
@@ -308,6 +306,7 @@ impl fmt::Display for CPUThreadStatus {
 }
 
 
+
 // ============================================================================== //
 //                              mem::CPUThread
 // ============================================================================== //
@@ -331,8 +330,8 @@ pub struct CPUThread {
     pub registers: Vec<Rc<RefCell<Value>>>,
     /// `stack`: Stack, Store stack value
     pub stack: Vec<Rc<RefCell<Value>>>,
-    /// Dispatch label table
-    pub labels : Rc<RefCell<HashMap<String, Rc<RefCell<Operand>>>>>,
+    // /// Dispatch label table
+    // pub labels : Rc<RefCell<HashMap<String, Rc<RefCell<Operand>>>>>,
     /// Thread status
     pub status : CPUThreadStatus,
 }
@@ -360,7 +359,7 @@ impl CPUThread {
             pc_step : 4,
             registers: Vec::new(),
             stack: Vec::new(),
-            labels: Rc::new(RefCell::new(HashMap::new())),
+            // labels: Rc::new(RefCell::new(HashMap::new())),
             status: CPUThreadStatus::Ready,
         };
         // Store in thread pool
@@ -554,25 +553,6 @@ impl CPUThread {
     }
 
 
-    /// Set label
-    pub fn set_label(&self, lab: Rc<RefCell<Operand>>) {
-        let nick = lab.borrow().label_nick();
-        log_info!("[ TID_{:<2}] set label: `{}`", self.id, nick);
-        self.labels.borrow_mut().insert(nick, lab);
-    }
-
-    /// Get label
-    pub fn get_label(&self, nick: String) -> Rc<RefCell<Operand>> {
-        self.labels.borrow().get(&nick).unwrap().clone()
-    }
-
-    /// del label
-    pub fn del_label(&self, nick: String) {
-        log_info!("[ TID_{:<2}] del label: `{}`", self.id, nick);
-        self.labels.borrow_mut().remove(&nick);
-    }
-
-
     // ================= CPUThread.stark ================== //
 
     /// stack push value
@@ -638,7 +618,7 @@ impl default::Default for CPUThread {
             pc_step : 0,
             registers: Vec::new(),
             stack: Vec::new(),
-            labels: Rc::new(RefCell::new(HashMap::new())),
+            // labels: Rc::new(RefCell::new(HashMap::new())),
             status: CPUThreadStatus::Ready,
         }
     }
@@ -672,6 +652,8 @@ pub struct CPUProcess {
     pub id: usize,
     /// `name`: Process Name
     pub name: String,
+    /// `ctx`: TaskContext
+    pub ctx: TaskContext,
     /// `code_segment`: Code Segment
     pub code_segment: Rc<RefCell<Vec<Value>>>,
     /// `mem_segment`: Data Segment
@@ -701,6 +683,7 @@ impl CPUProcess {
             stack_size,
             id:0,
             name: arch.to_string(),
+            ctx: TaskContext::new(),
             code_segment: Rc::new(RefCell::new(Vec::new())),
             mem_segment: Rc::new(RefCell::new(Value::default())),
             threads_id: Rc::new(RefCell::new(Vec::new())),
@@ -1059,15 +1042,15 @@ impl CPUProcess {
 
 
     pub fn set_label(&self, lab: Rc<RefCell<Operand>>) {
-        self.cur_thread.borrow_mut().set_label(lab)
+        self.ctx.set_label(lab);
     }
 
     pub fn get_label(&self, nick: String) -> Rc<RefCell<Operand>> {
-        self.cur_thread.borrow().get_label(nick)
+        self.ctx.get_label(nick)
     }
 
     pub fn del_label(&self, nick: String) {
-        self.cur_thread.borrow_mut().del_label(nick)
+        self.ctx.del_label(nick);
     }
 
     // ================= CPUProcess.stack ================= //
