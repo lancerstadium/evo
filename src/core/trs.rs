@@ -71,7 +71,7 @@ impl Translator {
         match *src_arch {
             RISCV32_ARCH => riscv32_trs_init(trg_arch),
             _ => {
-                log_warning!("Translator init fail, not support arch: {}", src_arch.name);
+                log_warning!("Translator init fail, not support arch: {}-{}", src_arch.name, trg_arch.name);
                 None
             }
         }
