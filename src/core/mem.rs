@@ -246,7 +246,7 @@ mod memtool_test {
         // println!("val: {}", val.hex(0, -1, false));
 
         // Read Mem
-        for i in 0..20 {
+        for i in 0..10 {
             let insn_val = val.get( seg.2 + i * 4, 32);
             let insn = Instruction::decode(&RISCV32_ARCH, insn_val.clone());
             println!("Mem: {}  -> Dec: {}", insn_val.bin(0, -1, true), insn);

@@ -992,7 +992,7 @@ impl Instruction {
     }
 
     pub fn opcode(&self) -> u8 {
-        self.code.get_ubyte(0, 0, 6)
+        self.code.get_ubyte(0, 0, 7)
     }
 
     pub fn rs1(&self) -> u8 {

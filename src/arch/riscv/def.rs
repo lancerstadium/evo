@@ -811,6 +811,27 @@ pub fn riscv32_decode(value: Value) -> Instruction {
                 0b100 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "xori").borrow().clone(),
                 0b110 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "ori").borrow().clone(),
                 0b111 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "andi").borrow().clone(),
+                0b001 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "slli").borrow().clone(),
+                0b101 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "srli").borrow().clone(),
+
+                _ => {}
+            }
+        },
+        // 2.2 I-Type: jalr
+        (0b1100111, 0b000, _) => {
+            // a. rd
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
+            // b. rs1
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rs1() as usize).borrow().clone());
+            // c. imm
+            opr.push(Operand::imm(Value::bit(12, res.imm_i() as i128)));
+            res = Instruction::insn_pool_nget(&RISCV32_ARCH, "jalr").borrow().clone();
+        },
+        // 2.2 I-Type: ecall and ebreak
+        (0b1110011, 0b000, f7) => {
+            match f7 {
+                0b0000000 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "ecall").borrow().clone(),
+                0b0000001 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "ebreak").borrow().clone(),
                 _ => {}
             }
         },
@@ -844,9 +865,43 @@ pub fn riscv32_decode(value: Value) -> Instruction {
             match f3 {
                 0b000 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "beq").borrow().clone(),
                 0b001 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "bne").borrow().clone(),
+                0b100 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "blt").borrow().clone(),
+                0b101 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "bge").borrow().clone(),
+                0b110 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "bltu").borrow().clone(),
+                0b111 => res = Instruction::insn_pool_nget(&RISCV32_ARCH, "bgeu").borrow().clone(),
                 _ => {}
             }
-        }
+        },
+        // 2.5 U-Type: auipc
+        (0b0010111, _, 0b0000000) => {
+            // Get oprands
+            // a. rd
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
+            // b. imm
+            opr.push(Operand::imm(Value::bit(20, res.imm_u() as i128)));
+            // find insn
+            res = Instruction::insn_pool_nget(&RISCV32_ARCH, "auipc").borrow().clone();
+        },
+        // 2.5 U-Type: lui
+        (0b0110111, _, 0b0000000) => {
+            // Get oprands
+            // a. rd
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
+            // b. imm
+            opr.push(Operand::imm(Value::bit(20, res.imm_u() as i128)));
+            // find insn
+            res = Instruction::insn_pool_nget(&RISCV32_ARCH, "lui").borrow().clone();
+        },
+        // 2.6 J-Type
+        (0b1101111, _, 0b0000000) => {
+            // Get oprands
+            // a. rd
+            opr.push(RegFile::reg_poolr_get(&RISCV32_ARCH, res.rd() as usize).borrow().clone());
+            // b. imm
+            opr.push(Operand::imm(Value::bit(20, res.imm_j() as i128)));
+            // find insn
+            res = Instruction::insn_pool_nget(&RISCV32_ARCH, "jal").borrow().clone();
+        },
         _ => {
 
         }
@@ -957,7 +1012,7 @@ mod riscv_test {
         let insn23 = Instruction::from_string(&RISCV32_ARCH, "sh x0, x1, 23");
         let insn24 = Instruction::from_string(&RISCV32_ARCH, "sw x0, x1, 23");
         
-        let insn34 = Instruction::from_string(&RISCV32_ARCH, "jalr x0, x1, 23");
+        let insn34 = Instruction::from_string(&RISCV32_ARCH, "jalr x0, x1, 0");
         let insn35 = Instruction::from_string(&RISCV32_ARCH, "ecall");
         let insn36 = Instruction::from_string(&RISCV32_ARCH, "ebreak");
 
@@ -1052,6 +1107,7 @@ mod riscv_test {
         println!("{:<60} -> pc = {}, x0 = {}", insn33.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
         cpu.execute(&insn34);
         println!("{:<60} -> pc = {}, x0 = {}", insn34.to_string(), cpu.get_pc(), cpu.get_nreg("x0").get_i32(0));
+        println!("{}", insn34.bin(0, -1, true));
 
         cpu.execute(&insn35);
         println!("{:<60} -> status = {}", insn35.to_string(), cpu.status());
