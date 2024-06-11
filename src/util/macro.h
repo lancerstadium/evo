@@ -16,6 +16,8 @@
 
 #define GET_ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
+#define ARG_FIRST(first, ...) first
+#define ARG_OTHER(first, ...) , ## __VA_ARGS__
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((unused))

@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../dec/rvdec.h"
+#include "minunit.h"
+#include <dec/rvdec.h>
 
 
 static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
@@ -20,12 +20,12 @@ static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
     else
         rv_format(&inst, sizeof fmt, fmt);
     if ((retval < 0 || (unsigned) retval == len) && !strcmp(fmt, exp_fmt)) {
-        printf("OK: %s\n", fmt);
+        mu_msg("OK: %s", fmt);
         return 0;
     }
-    printf("Failed case: %08" PRIx32, inst_raw);
-    printf("\n  Exp (%2zu): %s", sizeof inst_raw, exp_fmt);
-    printf("\n  Got (%2d): %s\n", retval, fmt);
+    mu_msg("Failed case: %08" PRIx32, inst_raw);
+    mu_msg("- Exp (%2zu): %s", sizeof inst_raw, exp_fmt);
+    mu_msg("- Got (%2d): %s", retval, fmt);
     return -1;
 }
 
@@ -33,7 +33,8 @@ static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
 #define test64(...) test_impl(RV_RV64, __VA_ARGS__)
 #define test(...) test32(__VA_ARGS__) | test64(__VA_ARGS__)
 
-int main() {
+
+char *test_decode(){
     unsigned failed = 0;
     failed |= test(4, 0x00000000, "UNDEF");
     failed |= test(4, 0x00054703, "lbu r14 r10");
@@ -72,7 +73,14 @@ int main() {
     failed |= test(2, 0xa029, "jal r0 10");
     failed |= test(2, 0x78fd, "lui r17 -4096");
     failed |= test(2, 0x0001, "addi r0 r0"); /* C.ADDI is normally not allowed an imm=0, except with rd=0 encoding a NOP */
-
-    puts(failed ? "Some tests FAILED" : "All tests PASSED");
-    return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+    return (failed ? "Some tests FAILED" : NULL);
 }
+
+
+char *all_tests() {
+    mu_suite_start();
+    mu_run_test(test_decode);
+    return NULL;
+}
+
+RUN_TESTS(all_tests);

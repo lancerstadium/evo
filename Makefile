@@ -1,60 +1,94 @@
 CC = gcc
-CFLAGS = --std=gnu11 -g -static
-CODEDIR = src
+APP = evo
+INCDIR = src
+SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
-LDFLAGS = $(foreach dir, $(FOLDERS), -L$(CODEDIR)/$(dir))
-INCDIR = $(foreach dir, $(FOLDERS), -I$(CODEDIR)/$(dir))
-EVO = $(CODEDIR)/app/evo
-EMU = $(CODEDIR)/app/emu
-TEST_UTIL = $(CODEDIR)/app/test-util
-TEST_DEC = $(CODEDIR)/app/test-dec
-EXES = $(EVO).c $(EMU).c $(TEST_UTIL).c $(TEST_DEC).c
-SRCS = $(filter-out $(EXES), $(foreach dir, $(FOLDERS), $(wildcard $(CODEDIR)/$(dir)/*.c)))
-OBJS = $(patsubst $(CODEDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
+INCFLAGS = $(addprefix -I,$(INCDIR))
+OPTFLAGS = 
+CFLAGS = -g -O2 -Wall -Wextra $(INCFLAGS) -rdynamic -DCONFIG_NO_DEBUG $(OPTFLAGS)
+PREFIX ?= /usr/local
+LIBS = -ldl $(OPTLIBS)
+OS=$(shell lsb_release -si)
+ifeq ($(OS),Ubuntu)
+	LDLIBS=-l$(APP) -L./build -lm
+endif
 
-FOLDERS = app core dec emu fmt jit mem util
+SRCS=$(wildcard src/**/*.c src/*.c)
+OBJS=$(patsubst %.c,%.o,$(SRCS))
 
-# 创建目录
-$(shell mkdir -p $(OBJDIR) $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)))
+SRCTEST=$(wildcard test/*_tests.c)
+TESTS=$(patsubst %.c,%,$(SRCTEST))
 
-all: evo emu test-util test-dec
+TARGET=build/lib$(APP).a
+SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
+BIN_TARGET=bin/$(APP)
 
-evo: $(OBJS) $(OBJDIR)/evo.o
-	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/evo
+# Config
+CFG_REPORT=0
+CFG_TEST=
 
-emu: $(OBJS) $(OBJDIR)/emu.o
-	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/emu
+# The Target Build
+all: $(TARGET) $(BIN_TARGET) tests
 
-test-util: $(OBJS) $(OBJDIR)/test-util.o
-	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/test-util
+dev: CFLAGS=-g -Wall $(INCFLAGS) -Wall -Wextra $(OPTFLAGS)
+dev: all
 
-test-dec: $(OBJS) $(OBJDIR)/test-dec.o
-	$(CC) $(LDFLAGS) $^ -o $(BINDIR)/test-dec
+$(TARGET): CFLAGS += -fPIC
+$(TARGET): build $(OBJS)
+	ar rcs $@ $(OBJS)
+	ranlib $@
 
-$(OBJDIR)/%.o: $(CODEDIR)/%.c
-	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
+# $(SO_TARGET): $(TARGET) $(OBJS)
+# 	$(CC) -shared -o $@ $(OBJS)
 
-$(OBJDIR)/evo.o: $(EVO).c
-	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
+$(BIN_TARGET): build $(OBJS)
+	$(CC) -o $@ $(OBJS)
 
-$(OBJDIR)/emu.o: $(EMU).c
-	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
+build:
+	@mkdir -p build
+	@mkdir -p bin
 
-$(OBJDIR)/test-util.o: $(TEST_UTIL).c
-	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
-
-$(OBJDIR)/test-dec.o: $(TEST_DEC).c
-	$(CC) $(CFLAGS) $(INCDIR) -c $< -o $@
-
-run:
-
+# The Unit Tests
+.PHONY: tests
+tests: LDLIBS += $(TARGET)
+tests: $(TESTS)
+ifeq ($(CFG_REPORT),1)
+	@echo "tests report: ./test/tests.report"
+	@sh ./test/runtests.sh $(CFG_TEST) | sed 's/\x1B\[[0-9;]*[JKmsu]//g' > test/tests.report
+else
+	@sh ./test/runtests.sh $(CFG_TEST)
+endif
 
 test:
-	$(BINDIR)/util-test
+	@$(VALGRIND) ./test/$(SECOND_GOAL)_tests 2>> test/tests.log
 
+valgrind:
+	@echo "valgrind log: ./test/valgrind.log"
+	VALGRIND="valgrind --log-file=./test/valgrind.log" $(MAKE)
+
+log:
+	@tail -n $$(($$(tac test/tests.log | grep -m 1 -n '^────── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$$/d'
+
+# The Cleaner
 clean:
-	rm -f $(BINDIR)/evo $(BINDIR)/emu $(BINDIR)/test-util $(BINDIR)/test-dec
-	rm -f $(OBJDIR)/*.o $(foreach dir, $(FOLDERS), $(OBJDIR)/$(dir)/*.o)
+	rm -rf build $(OBJS) $(TESTS)
+	rm -f test/tests.log test/valgrind.log
+	find . -name "*.gc*" -exec rm {} \;
+	rm -rf `find . -name "*.dSYM" -print`
 
-.PHONY: evo util-test run test clean
+# The Install
+install: all
+	install -d $(DESTDIR)/$(PREFIX)/lib/
+	install $(TARGET) $(DESTDIR)/$(PREFIX)/lib/
+
+commit:
+	git add .
+	git commit -m "$(shell date)"
+	git push
+
+# The Checker
+BADFUNCS='[^_.>a-zA-Z0-9](str(n?cpy|n?cat|xfrm|n?dup|str|pbrk|tok|_)|stpn?cpy|a?sn?printf|byte_)'
+check:
+	@echo Files with potentially dangerous functions.
+	@egrep $(BADFUNCS) $(SRCS) || true
