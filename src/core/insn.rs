@@ -961,7 +961,7 @@ impl Instruction {
 
     // ==================== Instruction.code ==================== //
     
-    /// Get Byte Code clone of Instruction
+    /// Applied code: Get Byte Code clone of Instruction
     pub fn code(&self) -> Value {
         if !self.is_applied {
             log_warning!("Code not applied: {} ", self.opc.name());

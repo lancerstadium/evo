@@ -110,17 +110,71 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
     // 2. Init insns & insns interpreter
     let itp = Interpreter::def(&X86_ARCH);
 
-    itp.borrow_mut().def_insn("add", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "",
+    itp.borrow_mut().def_insn("add", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x00",
         |cpu, insn| {
             
         }
     );
-    itp.borrow_mut().def_insn("or", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "",
+    itp.borrow_mut().def_insn("or", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x08",
         |cpu, insn| {
             
         }
     );
-    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "", 
+    itp.borrow_mut().def_insn("adc", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x10",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("sbb", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x18",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("and", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x20",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("sub", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x28",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("xor", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x30",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("cmp", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x38",
+        |cpu, insn| {
+            
+        }
+    );
+
+    // pattern 2
+    itp.borrow_mut().def_insn("inc", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x40",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("dec", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x48",
+        |cpu, insn| {
+            
+        }
+    );
+    // pattern 3
+    itp.borrow_mut().def_insn("push", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x50",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("pop", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x58",
+        |cpu, insn| {
+            
+        }
+    );
+
+    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x8b", 
         |cpu, insn| {
             
         }
@@ -145,25 +199,23 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
     if insn.check_syms(opr.clone()) {
         // match opcode type kind and fill bytes by opreands
         let mut code: Vec<u8> = vec![];
+        code.extend_from_slice(&insn.code.get_bin(0));
         let syms = opr.iter().map(|x| x.sym()).collect::<Vec<_>>();
         match insn.opc.kind() {
             OpcodeKind::X(_, _) => {
-                match insn.name() {
-                    "add" => {  // 00-05
-                        code.push(0x00);
+                let pattern: u32 = match insn.name() {         // pre operate
+                    "add" | "or" | "adc" | "sbb" | "and" | "sub" | "xor" | "cmp" => {
+                        1
                     },
-                    "or" => {   // 08-0d
-                        code.push(0x08);
-                    },
-                    "mov" => {  // 88-9d
-                        code.push(0x88);
+                    "inc" | "dec" | "push" | "pop" => {
+                        2
                     },
                     _ => {
-                        is_applied = false;
+                        0
                     }
                 };
-                match syms.as_slice() {
-                    [OPR_REG, OPR_REG] => {     // [r/m8 r8]  [r/m16/32 r16/32]
+                match (pattern, syms.as_slice()) {
+                    (1, [OPR_REG, OPR_REG]) => {    // [r/m8 r8]  [r/m16/32 r16/32]
                         if opr[0].is_8bit() {
                             let rm8 = opr[0].val().get_byte(0);
                             let r8  = opr[1].val().get_byte(0);
@@ -175,7 +227,7 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(0b11_000_000 | rm << 3 | r);
                         }
                     },
-                    [OPR_MEM, OPR_REG] => {     // [r/m8 r8]  [r/m16/32 r16/32]
+                    (1, [OPR_MEM, OPR_REG]) => {    // [r/m8 r8]  [r/m16/32 r16/32]
                         if opr[1].is_8bit() {
                             let rm8 = opr[0].get_mem().0 as u8;
                             let r8  = opr[1].val().get_byte(0);
@@ -187,7 +239,7 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(0b11_000_000 | rm << 3 | r);
                         }
                     },
-                    [OPR_REG, OPR_MEM] => {     // [r8 r/m8]  [r16/32 r/m16/32]
+                    (1, [OPR_REG, OPR_MEM]) => {    // [r8 r/m8]  [r16/32 r/m16/32]
                         if opr[0].is_8bit() {
                             if let Some(last) = code.last_mut() { *last += 2; }
                             let r8  = opr[0].val().get_byte(0);
@@ -200,7 +252,7 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             code.push(0b11_000_000 | rm << 3 | r);
                         }
                     },
-                    [OPR_REG, OPR_IMM] => {     // [AL imm8]  [eAX imm16/32]
+                    (1, [OPR_REG, OPR_IMM]) => {    // [AL imm8]  [eAX imm16/32]
                         if opr[0].is_8bit() {
                             if let Some(last) = code.last_mut() { *last += 4; }
                             let r8 = opr[0].val().get_byte(0);
@@ -244,6 +296,9 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                                 },
                             }
                         }
+                    },
+                    (2, [OPR_REG]) => {             // [r16/32]
+                        if let Some(last) = code.last_mut() { *last += opr[0].val().get_byte(0); }
                     },
                     _ => {
                         is_applied = false;
@@ -308,17 +363,89 @@ mod x86_test {
         // println!("{}", RegFile::reg_pool_info(&X86_ARCH));
 
         let insn1 = Instruction::from_string(&X86_ARCH, "add ax, bx");
-        println!("{:20} {}", insn1.code.to_string(), insn1.to_string());
-
         let insn2 = Instruction::from_string(&X86_ARCH, "add [ax], bx");
-        println!("{:20} {}", insn2.code.to_string(), insn2.to_string());
-
         let insn3 = Instruction::from_string(&X86_ARCH, "add ax, [bx]");
-        println!("{:20} {}", insn3.code.to_string(), insn3.to_string());
-
         let insn4 = Instruction::from_string(&X86_ARCH, "add ax, 0x1ffff"); 
+        println!("{:20} {}", insn1.code.to_string(), insn1.to_string());
+        println!("{:20} {}", insn2.code.to_string(), insn2.to_string());
+        println!("{:20} {}", insn3.code.to_string(), insn3.to_string());
         println!("{:20} {}", insn4.code.to_string(), insn4.to_string());
+
+        let insn5 = Instruction::from_string(&X86_ARCH, "or ax, bx");
+        let insn6 = Instruction::from_string(&X86_ARCH, "or [ax], bx");
+        let insn7 = Instruction::from_string(&X86_ARCH, "or ax, [bx]");
+        let insn8 = Instruction::from_string(&X86_ARCH, "or ax, 0x1ffff"); 
+        println!("{:20} {}", insn5.code.to_string(), insn5.to_string());
+        println!("{:20} {}", insn6.code.to_string(), insn6.to_string());
+        println!("{:20} {}", insn7.code.to_string(), insn7.to_string());
+        println!("{:20} {}", insn8.code.to_string(), insn8.to_string());
         
+        let insn9 = Instruction::from_string(&X86_ARCH, "adc ax, bx");
+        let insn10 = Instruction::from_string(&X86_ARCH, "adc [ax], bx");
+        let insn11 = Instruction::from_string(&X86_ARCH, "adc ax, [bx]");
+        let insn12 = Instruction::from_string(&X86_ARCH, "adc ax, 0x1ffff"); 
+        println!("{:20} {}", insn9.code.to_string(), insn9.to_string());
+        println!("{:20} {}", insn10.code.to_string(), insn10.to_string());
+        println!("{:20} {}", insn11.code.to_string(), insn11.to_string());
+        println!("{:20} {}", insn12.code.to_string(), insn12.to_string());
+
+        let insn13 = Instruction::from_string(&X86_ARCH, "sbb ax, bx");
+        let insn14 = Instruction::from_string(&X86_ARCH, "sbb [ax], bx");
+        let insn15 = Instruction::from_string(&X86_ARCH, "sbb ax, [bx]");
+        let insn16 = Instruction::from_string(&X86_ARCH, "sbb ax, 0x1ffff"); 
+        println!("{:20} {}", insn13.code.to_string(), insn13.to_string());
+        println!("{:20} {}", insn14.code.to_string(), insn14.to_string());
+        println!("{:20} {}", insn15.code.to_string(), insn15.to_string());
+        println!("{:20} {}", insn16.code.to_string(), insn16.to_string());
+
+        let insn17 = Instruction::from_string(&X86_ARCH, "and ax, bx");
+        let insn18 = Instruction::from_string(&X86_ARCH, "and [ax], bx");
+        let insn19 = Instruction::from_string(&X86_ARCH, "and ax, [bx]");
+        let insn20 = Instruction::from_string(&X86_ARCH, "and ax, 0x1ffff"); 
+        println!("{:20} {}", insn17.code.to_string(), insn17.to_string());
+        println!("{:20} {}", insn18.code.to_string(), insn18.to_string());
+        println!("{:20} {}", insn19.code.to_string(), insn19.to_string());
+        println!("{:20} {}", insn20.code.to_string(), insn20.to_string());
+
+        let insn21 = Instruction::from_string(&X86_ARCH, "sub ax, bx");
+        let insn22 = Instruction::from_string(&X86_ARCH, "sub [ax], bx");
+        let insn23 = Instruction::from_string(&X86_ARCH, "sub ax, [bx]");
+        let insn24 = Instruction::from_string(&X86_ARCH, "sub ax, 0x1ffff"); 
+        println!("{:20} {}", insn21.code.to_string(), insn21.to_string());
+        println!("{:20} {}", insn22.code.to_string(), insn22.to_string());
+        println!("{:20} {}", insn23.code.to_string(), insn23.to_string());
+        println!("{:20} {}", insn24.code.to_string(), insn24.to_string());
+
+        let insn25 = Instruction::from_string(&X86_ARCH, "xor ax, bx");
+        let insn26 = Instruction::from_string(&X86_ARCH, "xor [ax], bx");
+        let insn27 = Instruction::from_string(&X86_ARCH, "xor ax, [bx]");
+        let insn28 = Instruction::from_string(&X86_ARCH, "xor ax, 0x1ffff"); 
+        println!("{:20} {}", insn25.code.to_string(), insn25.to_string());
+        println!("{:20} {}", insn26.code.to_string(), insn26.to_string());
+        println!("{:20} {}", insn27.code.to_string(), insn27.to_string());
+        println!("{:20} {}", insn28.code.to_string(), insn28.to_string());
+
+        let insn29 = Instruction::from_string(&X86_ARCH, "cmp ax, bx");
+        let insn30 = Instruction::from_string(&X86_ARCH, "cmp [ax], bx");
+        let insn31 = Instruction::from_string(&X86_ARCH, "cmp ax, [bx]");
+        let insn32 = Instruction::from_string(&X86_ARCH, "cmp ax, 0x1ffff"); 
+        println!("{:20} {}", insn29.code.to_string(), insn29.to_string());
+        println!("{:20} {}", insn30.code.to_string(), insn30.to_string());
+        println!("{:20} {}", insn31.code.to_string(), insn31.to_string());
+        println!("{:20} {}", insn32.code.to_string(), insn32.to_string());
+
+        let insn33 = Instruction::from_string(&X86_ARCH, "inc al");
+        let insn34 = Instruction::from_string(&X86_ARCH, "inc ebx");
+        let insn35 = Instruction::from_string(&X86_ARCH, "dec edx");
+        let insn36 = Instruction::from_string(&X86_ARCH, "dec ecx");
+        let insn37 = Instruction::from_string(&X86_ARCH, "push edx");
+        let insn38 = Instruction::from_string(&X86_ARCH, "pop ecx");
+        println!("{:20} {}", insn33.code.to_string(), insn33.to_string());
+        println!("{:20} {}", insn34.code.to_string(), insn34.to_string());
+        println!("{:20} {}", insn35.code.to_string(), insn35.to_string());
+        println!("{:20} {}", insn36.code.to_string(), insn36.to_string());
+        println!("{:20} {}", insn37.code.to_string(), insn37.to_string());
+        println!("{:20} {}", insn38.code.to_string(), insn38.to_string());
     }
 
 }
