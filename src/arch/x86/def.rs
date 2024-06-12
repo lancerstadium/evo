@@ -42,7 +42,7 @@ use crate::core::mem::CPUThreadStatus;
 /// │  111   │    edi    │    di     │    --    │   --    │
 /// └────────┴───────────┴───────────┴──────────┴─────────┘
 /// ```
-pub const X86_ARCH: Arch = Arch::new(ArchKind::X86, BIT32 | LITTLE_ENDIAN, 8);
+pub const X86_ARCH: Arch = Arch::new(ArchKind::X86, BIT32 | LITTLE_ENDIAN, 8, ["byte ptr", "word ptr", "dword ptr", "qword ptr"]);
 
 /// `amd64`
 /// ### Registers
@@ -69,7 +69,7 @@ pub const X86_ARCH: Arch = Arch::new(ArchKind::X86, BIT32 | LITTLE_ENDIAN, 8);
 /// │  1111  │  r15   │  r15d  │  r15h  │  r15b  │ r15l  │
 /// └────────┴────────┴────────┴────────┴────────┴───────┘
 /// ```
-pub const X86_64_ARCH: Arch = Arch::new(ArchKind::X86, BIT64 | LITTLE_ENDIAN, 16);
+pub const X86_64_ARCH: Arch = Arch::new(ArchKind::X86, BIT64 | LITTLE_ENDIAN, 16, ["byte ptr", "word ptr", "dword ptr", "qword ptr"]);
 
 // ============================================================================== //
 //                          evo::def::interpreter
@@ -150,7 +150,6 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             
         }
     );
-
     // pattern 2
     itp.borrow_mut().def_insn("inc", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x40",
         |cpu, insn| {
@@ -162,7 +161,6 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             
         }
     );
-    // pattern 3
     itp.borrow_mut().def_insn("push", BIT32 | LITTLE_ENDIAN, vec![OPR_REG], "X", "0x50",
         |cpu, insn| {
             
@@ -173,8 +171,111 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             
         }
     );
+    // Pattern 3
+    itp.borrow_mut().def_insn("jo", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x70",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jno", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x71",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jb", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x72",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jnb", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x73",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("je", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x74",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jne", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x75",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jbe", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x76",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("ja", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x77",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("js", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x78",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jns", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x79",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jpe", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7a",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jpo", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7b",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jl", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7c",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jge", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7d",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jle", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7e",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("jg", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x7f",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("test", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG], "X", "0x84",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("xchg", BIT32 | LITTLE_ENDIAN, vec![OPR_REG, OPR_REG], "X", "0x86",
+        |cpu, insn| {
+            
+        }
+    );
+    // 
+    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x88", 
+        |cpu, insn| {
+            
+        }
+    );
+    // 
+    itp.borrow_mut().def_insn("lea", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM], "X", "0x8d",
+        |cpu, insn| {
+            
+        }
+    );
 
-    itp.borrow_mut().def_insn("mov", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM | OPR_IMM], "X", "0x8b", 
+    itp.borrow_mut().def_insn("nop", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x90",
         |cpu, insn| {
             
         }
@@ -210,33 +311,37 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                     "inc" | "dec" | "push" | "pop" => {
                         2
                     },
+                    "jo" | "jno" | "jb" | "jae" | "je" | "jne" | "jbe" | "ja" | "js" | "jns" | "jp" | "jpe" | "jnp" | "jpo" | "jl" | "jge" | "jle" | "jg" => {
+                        3
+                    },
                     _ => {
                         0
                     }
                 };
                 match (pattern, syms.as_slice()) {
+                    (0, _) => {},                  // nothing
                     (1, [OPR_REG, OPR_REG]) => {    // [r/m8 r8]  [r/m16/32 r16/32]
                         if opr[0].is_8bit() {
                             let rm8 = opr[0].val().get_byte(0);
                             let r8  = opr[1].val().get_byte(0);
-                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                            code.push(0b11_000_000 | r8 << 3 | rm8);
                         } else {
                             if let Some(last) = code.last_mut() { *last += 1; }
                             let rm = opr[0].val().get_byte(0);
                             let r  = opr[1].val().get_byte(0);
-                            code.push(0b11_000_000 | rm << 3 | r);
+                            code.push(0b11_000_000 | r << 3 | rm);
                         }
                     },
                     (1, [OPR_MEM, OPR_REG]) => {    // [r/m8 r8]  [r/m16/32 r16/32]
                         if opr[1].is_8bit() {
                             let rm8 = opr[0].get_mem().0 as u8;
                             let r8  = opr[1].val().get_byte(0);
-                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                            code.push(0b00_000_000 | r8 << 3 | rm8);
                         } else {
                             if let Some(last) = code.last_mut() { *last += 1; }
                             let rm = opr[0].get_mem().0 as u8;
                             let r  = opr[1].val().get_byte(0);
-                            code.push(0b11_000_000 | rm << 3 | r);
+                            code.push(0b00_000_000 | r << 3 | rm);
                         }
                     },
                     (1, [OPR_REG, OPR_MEM]) => {    // [r8 r/m8]  [r16/32 r/m16/32]
@@ -244,26 +349,26 @@ pub fn x86_encode(insn: &mut Instruction, opr: Vec<Operand>) -> Instruction {
                             if let Some(last) = code.last_mut() { *last += 2; }
                             let r8  = opr[0].val().get_byte(0);
                             let rm8 = opr[1].get_mem().0 as u8;
-                            code.push(0b11_000_000 | rm8 << 3 | r8);
+                            code.push(0b11_000_000 | r8 << 3 | rm8);
                         } else {
                             if let Some(last) = code.last_mut() { *last += 3; }
                             let r  = opr[0].val().get_byte(0);
                             let rm = opr[1].get_mem().0 as u8;
-                            code.push(0b11_000_000 | rm << 3 | r);
+                            code.push(0b11_000_000 | r << 3 | rm);
                         }
                     },
                     (1, [OPR_REG, OPR_IMM]) => {    // [AL imm8]  [eAX imm16/32]
                         if opr[0].is_8bit() {
                             if let Some(last) = code.last_mut() { *last += 4; }
                             let r8 = opr[0].val().get_byte(0);
-                            code.push(0b11_000_000 | 0b000 << 3 | r8);
+                            code.push(0b11_000_000 | r8 << 3 | 0b000);
                             let imm8 = opr[1].val().get_byte(0);
                             new_opr[1] = Operand::imm(Value::u8(imm8));
                             code.push(imm8);
                         } else {
                             if let Some(last) = code.last_mut() { *last += 5; }
                             let r = opr[0].val().get_byte(0);
-                            code.push(0b11_000_000 | 0b000 << 3 | r);
+                            code.push(0b11_000_000 | r << 3 | 0b000);
                             match opr[0].reg_scale() {
                                 16 => {
                                     let imm16 = opr[1].val().get_half(0);
@@ -362,8 +467,8 @@ mod x86_test {
 
         // println!("{}", RegFile::reg_pool_info(&X86_ARCH));
 
-        let insn1 = Instruction::from_string(&X86_ARCH, "add ax, bx");
-        let insn2 = Instruction::from_string(&X86_ARCH, "add [ax], bx");
+        let insn1 = Instruction::from_string(&X86_ARCH, "add ecx, eax");
+        let insn2 = Instruction::from_string(&X86_ARCH, "add [eax], eax");
         let insn3 = Instruction::from_string(&X86_ARCH, "add ax, [bx]");
         let insn4 = Instruction::from_string(&X86_ARCH, "add ax, 0x1ffff"); 
         println!("{:20} {}", insn1.code.to_string(), insn1.to_string());

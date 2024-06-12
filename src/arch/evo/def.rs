@@ -20,7 +20,7 @@ use crate::core::itp::Interpreter;
 //                             evo::def::arch
 // ============================================================================== //
 
-pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, BIT64 | LITTLE_ENDIAN, 256);
+pub const EVO_ARCH: Arch = Arch::new(ArchKind::EVO, BIT64 | LITTLE_ENDIAN, 256, ["byte", "half", "word", "dword"]);
 
 
 

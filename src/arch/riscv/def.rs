@@ -23,7 +23,7 @@ use crate::core::mem::CPUThreadStatus;
 //                                 RISCV-32
 // ============================================================================== //
 
-pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 33);
+pub const RISCV32_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 33, ["byte", "half", "word", "dword"]);
 
 
 /// Insn temp and Reg and Interpreter Pool Init
@@ -917,7 +917,7 @@ pub fn riscv32_decode(value: Value) -> Instruction {
 //                                 RISCV-64
 // ============================================================================== //
 
-pub const RISCV64_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 65);
+pub const RISCV64_ARCH: Arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 65, ["byte", "half", "word", "dword"]);
 
 /// Insn temp and Reg and Interpreter Pool Init
 pub fn riscv64_itp_init() -> Option<Rc<RefCell<Interpreter>>> {

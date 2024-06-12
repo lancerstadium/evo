@@ -240,7 +240,7 @@ mod memtool_test {
     #[test]
     fn elf_test() {
         CPUState::init(&RISCV32_ARCH, &RISCV32_ARCH, None, None, None);
-        let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello.elf").unwrap();
+        let seg = MemoryTool::elf_load("/home/lexer/item/evo-rs/test/hello_rv32.elf").unwrap();
         println!("segs: {:?}", seg);
         let val = MemoryTool::seg_to_val(seg);
         // println!("val: {}", val.hex(0, -1, false));
@@ -249,7 +249,7 @@ mod memtool_test {
         for i in 0..10 {
             let insn_val = val.get( seg.2 + i * 4, 32);
             let insn = Instruction::decode(&RISCV32_ARCH, insn_val.clone());
-            println!("Mem: {}  -> Dec: {}", insn_val.bin(0, -1, true), insn);
+            println!("{:>5x}: {} {}", i*4, insn_val.hex(0, -1, false), insn);
         }
 
         MemoryTool::elf_unload(seg);

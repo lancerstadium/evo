@@ -199,6 +199,7 @@ pub struct Arch {
     pub kind: ArchKind,
     pub mode: ArchMode,
     pub reg_num: usize,
+    pub mem_sym: [&'static str; 4],
 }
 
 
@@ -211,7 +212,7 @@ impl Arch {
 
     // ==================== Arch.ctl ======================= //
 
-    pub const fn new(kind: ArchKind, mode_flag: u16, reg_num: usize) -> Self {
+    pub const fn new(kind: ArchKind, mode_flag: u16, reg_num: usize, mem_sym: [&'static str; 4]) -> Self {
         let mode = ArchMode::new(mode_flag);
         let name = ArchKind::to_string(&kind);
         Self {
@@ -219,6 +220,7 @@ impl Arch {
             kind,
             mode,
             reg_num,
+            mem_sym,
         }
     }
 
@@ -347,7 +349,7 @@ mod arch_info_test {
     #[test]
     fn arch_from() {
 
-        let arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 32);
+        let arch = Arch::new(ArchKind::RISCV, BIT32 | LITTLE_ENDIAN, 32, ["D1", "D2", "D4", "D8"]);
         let arch = Arch::def(arch);
         println!("{}", arch);
         println!("{}", Arch::pool_info());
