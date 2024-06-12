@@ -268,20 +268,214 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
             
         }
     );
-    // 
     itp.borrow_mut().def_insn("lea", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM], "X", "0x8d",
         |cpu, insn| {
             
         }
     );
-
-    
-
     itp.borrow_mut().def_insn("nop", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x90",
         |cpu, insn| {
             
         }
     );
+    itp.borrow_mut().def_insn("cwd", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM], "X", "0x98",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("cdq", BIT32 | LITTLE_ENDIAN, vec![OPR_REG | OPR_MEM, OPR_REG | OPR_MEM], "X", "0x99",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("callf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9a",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("wait", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9b",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("pushf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9c",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("popf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9d",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("sahf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9e",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("lahf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x9f",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("movs", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xa4",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("cmps", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xa6",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("stos", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xaa",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("lods", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xac",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("scas", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xae",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("rol", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("ror", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("rcl", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("rcr", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("shl", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("shr", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("sar", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc0",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("retn", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc2",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("les", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc4",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("lds", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc5",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("enter", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc8",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("leave", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xc9",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("retf", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xca",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("int", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xcc",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("into", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xce",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("iret", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xcf",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("aam", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd4",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("amx", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd4",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("aad", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd5",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("adx", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd5",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("salc", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd6",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("xlat", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd7",
+        |cpu, insn| {
+            
+        }
+    );
+
+    // FPU Instruction
+    itp.borrow_mut().def_insn("fadd", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd8",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("fsub", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd8",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("fmul", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd8",
+        |cpu, insn| {
+            
+        }
+    );
+    itp.borrow_mut().def_insn("fdiv", BIT32 | LITTLE_ENDIAN, vec![], "X", "0xd8",
+        |cpu, insn| {
+            
+        }
+    );
+
 
     Some(itp)
 }
