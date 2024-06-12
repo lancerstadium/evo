@@ -275,6 +275,8 @@ pub fn x86_itp_init() -> Option<Rc<RefCell<Interpreter>>> {
         }
     );
 
+    
+
     itp.borrow_mut().def_insn("nop", BIT32 | LITTLE_ENDIAN, vec![], "X", "0x90",
         |cpu, insn| {
             
