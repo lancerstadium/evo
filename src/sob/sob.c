@@ -10,30 +10,31 @@ ArgParser_def_fn(all) {
 
 ArgParser_def_fn(sys) {
     CStr* cmd1, *cmd2, *cmd3;
-    CStr* cmd4;
-    CStr* cmd5 = (CStr[]) {"AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", NULL};
+    CStr* cmd4, *cmd5;
     CStrArray_new(cmd1, "uname", "-a");
     CStrArray_new(cmd2, "ls", "-l");
     CStrArray_push(cmd2, "isam");
 
+    CStrArray_pushn(cmd2, "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH");
     CStrArray_new(cmd3, "make", "all");
     CStrArray_from(cmd4, "ls -l -a");
-
-    
-    CStrArray_pushn(cmd2, cmd5);
+    CStrArray_from(cmd5, "echo db");
     
     CStrArray_display(cmd4);
+    CStrArray_display(cmd5);
 
-
-    CStr mm;
-    CStrArray_pop(cmd2, mm);
-    printf("mm: %s\n", mm);
-
-    bool b = IS_DIR("./docs");
-    printf("%s\n", b ? "true" : "false");
-
+    /// TODO: 注释一个可执行
+    // EXEC("ls -l");
     EXEC("echo nihao");
-    EXEC("ls -l");
+
+
+    // CStr mm;
+    // CStrArray_pop(cmd2, mm);
+    // printf("mm: %s\n", mm);
+
+    // bool b = IS_DIR("./doc");
+    // printf("%s\n", b ? "true" : "false");
+
 
     CStr* files;
     LIST_FILES("./", files);

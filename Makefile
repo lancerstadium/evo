@@ -77,6 +77,7 @@ log:
 
 # The Cleaner
 clean:
+	rm -f $(SOB_TARGET)
 	rm -rf build $(OBJS) $(TESTS)
 	rm -f test/tests.log test/valgrind.log
 	find . -name "*.gc*" -exec rm {} \;
