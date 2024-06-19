@@ -4,9 +4,10 @@ INCDIR = src
 SRCDIR = src
 BINDIR = bin
 OBJDIR = obj
+SOBDIR = src/sob
 INCFLAGS = $(addprefix -I,$(INCDIR))
 OPTFLAGS = 
-CFLAGS = -g -O2 -Wall -Wextra $(INCFLAGS) -rdynamic -DCONFIG_NO_DEBUG $(OPTFLAGS)
+CFLAGS = -g -O2 -Wall -Wextra $(INCFLAGS) -rdynamic -DSOB_APP_OFF -DSOB_LOG_DBG_OFF $(OPTFLAGS)
 PREFIX ?= /usr/local
 LIBS = -ldl $(OPTLIBS)
 OS=$(shell lsb_release -si)
@@ -22,6 +23,7 @@ TESTS=$(patsubst %.c,%,$(SRCTEST))
 
 TARGET=build/lib$(APP).a
 SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
+SOB_TARGET=sob
 BIN_TARGET=bin/$(APP)
 
 # Config
@@ -29,7 +31,7 @@ CFG_REPORT=0
 CFG_TEST=
 
 # The Target Build
-all: $(TARGET) $(BIN_TARGET) tests
+all: $(SOB_TARGET) $(TARGET) tests
 
 dev: CFLAGS=-g -Wall $(INCFLAGS) -Wall -Wextra $(OPTFLAGS)
 dev: all
@@ -42,8 +44,11 @@ $(TARGET): build $(OBJS)
 # $(SO_TARGET): $(TARGET) $(OBJS)
 # 	$(CC) -shared -o $@ $(OBJS)
 
-$(BIN_TARGET): build $(OBJS)
-	$(CC) -o $@ $(OBJS)
+$(SOB_TARGET): 
+	$(CC) -o $@ $(SOBDIR)/sob.c -I$(SOBDIR)
+
+# $(BIN_TARGET): build $(OBJS)
+# 	$(CC) -o $@ $(OBJS)
 
 build:
 	@mkdir -p build

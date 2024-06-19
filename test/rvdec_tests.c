@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "minunit.h"
+#include <sob/sob.h>
 #include <dec/rvdec.h>
 
 
@@ -20,12 +20,12 @@ static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
     else
         rv_format(&inst, sizeof fmt, fmt);
     if ((retval < 0 || (unsigned) retval == len) && !strcmp(fmt, exp_fmt)) {
-        mu_msg("OK: %s", fmt);
+        UnitTest_msg("OK: %s", fmt);
         return 0;
     }
-    mu_msg("Failed case: %08" PRIx32, inst_raw);
-    mu_msg("- Exp (%2zu): %s", sizeof inst_raw, exp_fmt);
-    mu_msg("- Got (%2d): %s", retval, fmt);
+    UnitTest_msg("Failed case: %08" PRIx32, inst_raw);
+    UnitTest_msg("- Exp (%2zu): %s", sizeof inst_raw, exp_fmt);
+    UnitTest_msg("- Got (%2d): %s", retval, fmt);
     return -1;
 }
 
@@ -78,9 +78,8 @@ char *test_decode(){
 
 
 char *all_tests() {
-    mu_suite_start();
-    mu_run_test(test_decode);
+    UnitTest_add(test_decode);
     return NULL;
 }
 
-RUN_TESTS(all_tests);
+UnitTest_run(all_tests);

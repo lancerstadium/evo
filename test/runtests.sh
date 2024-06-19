@@ -20,7 +20,7 @@ if [ -z "$1" ]; then
             else
                 printf "${ANSI_RED}[Test ${test_count} Failed]${ANSI_RESET}\n"
                 printf "${ANSI_CYAN}[Log]:${ANSI_RESET}\n"
-                tail -n $(($(tac test/tests.log | grep -m 1 -n '^────── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$/d'
+                tail -n $(($(tac test/tests.log | grep -m 1 -n '^───── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$/d'
                 exit 1
             fi
         fi
@@ -32,13 +32,13 @@ else
         test_to_run="test/${test_name}_tests"
         if test -f $test_to_run
         then
-            if $VALGRIND ./$test_to_run 2>> tests/tests.log
+            if $VALGRIND ./$test_to_run 2>> test/tests.log
             then
                 printf "${ANSI_GREEN}[Test ${test_count} Passed]${ANSI_RESET}\n"
             else
                 printf "${ANSI_RED}[Test ${test_count} Failed]${ANSI_RESET}\n"
                 printf "${ANSI_CYAN}[Log]:${ANSI_RESET}\n"
-                tail -n $(($(tac test/tests.log | grep -m 1 -n '^────── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$/d'
+                tail -n $(($(tac test/tests.log | grep -m 1 -n '^───── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$/d'
                 exit 1
             fi
         else
