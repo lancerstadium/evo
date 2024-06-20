@@ -561,10 +561,3 @@ void rv_format(const RvInst* inst, size_t len, char* restrict buf) {
   }
 }
 
-
-
-// 将指令格式字符串转换为 RvInst 结构体
-int rv_parse(RvInst* inst, const char* fmt) {
-
-    return 0;
-}

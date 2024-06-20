@@ -71,16 +71,16 @@ LPSTR GetLastErrorAsString(void);
 #include <stdbool.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // ==================================================================================== //
 //                                    sob: SOB Config (SOB)
 // ==================================================================================== //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // #define SOB_APP_OFF
-// #define SOB_CL_OFF
+// #define SOB_CLR_OFF
 // #define SOB_LOG_DBG_OFF
 #define SOB_DS_DSIZE 16
 // 1e3: us, 1e6: ms, 1e9: s
@@ -133,9 +133,10 @@ extern "C" {
 #define REP_SEP ,
 
 #define STR(s) #s
-#define CONCAT(a, b) a ## b
-#define CONCAT3(a, b, c) a ## b ## c
-#define CONCAT4(a, b, c, d) a ## b ## c ## d
+#define _CONCAT(a, b) a ## b
+#define CONCAT(a, b) _CONCAT(a, b)
+#define CONCAT3(a, b, c) CONCAT(CONCAT(a, b), c)
+#define CONCAT4(a, b, c, d) CONCAT(CONCAT3(a, b, c), d)
 #define STR_BOOL(b) ((b) ? "true" : "false")
 #define STR_FMT(SD, fmt, ...) sprintf(SD, fmt, __VA_ARGS__)
 #define STR_FMTN(SD, N, fmt, ...) snprintf(SD, (size_t)(N), fmt, __VA_ARGS__)
@@ -163,7 +164,7 @@ extern "C" {
 //                                    sob: Color (CL)
 // ==================================================================================== //
 
-#ifdef SOB_CL_OFF
+#ifdef SOB_CLR_OFF
 
 #define ANSI_RESET                  ""
 #define ANSI_BOLD                   ""
@@ -341,6 +342,7 @@ static LogElem sob_log_elem[] = {
 typedef struct {
     enum {
         ERROR_SOB_NONE,
+        ERROR_XA_ALLOC_FAIL,
         ERROR_CS_ALLOC_FAIL,
         ERROR_CS_ACCESS_FAIL,
         ERROR_CS_CHANGE_FAIL,
@@ -362,6 +364,7 @@ typedef struct {
 
 UNUSED static LogError sob_log_error[] = {
     { ERROR_SOB_NONE            ,  NULL                         },
+    { ERROR_XA_ALLOC_FAIL       , "XMemory Allocation Failed"   },
     { ERROR_CS_ALLOC_FAIL       , "Memory Allocation Failed"    },
     { ERROR_CS_ACCESS_FAIL      , "Memory Access Failed"        },
     { ERROR_CS_CHANGE_FAIL      , "String Change Failed"        },
@@ -440,6 +443,29 @@ UNUSED static Logger sob_logger = {
 #define Log_check_dbg(A, M, ...)    if(!(A)) { Log_dbg(M, ##__VAmsg_ARGS__); errno=0; goto error; }
 #define LOG_TAG                     Log_dbg(_BLUE("%s") "() is called", __func__);
 
+
+// ==================================================================================== //
+//                                    sob: XAlloc (XA)
+// ==================================================================================== //
+
+#define XAlloc_def()                                         \
+    static inline void* xmalloc(size_t size) {               \
+        void* p;                                             \
+        if ((p = malloc(size)) == NULL)                      \
+            exit(EXIT_FAILURE);                              \
+        return p;                                            \
+    }                                                        \
+    static inline void* xcalloc(size_t nmemb, size_t size) { \
+        void* p;                                             \
+        if ((p = calloc(nmemb, size)) == NULL)               \
+            exit(EXIT_FAILURE);                              \
+        return p;                                            \
+    }                                                        \
+    static inline void* xrealloc(void* ptr, size_t size) {   \
+        if ((ptr = realloc(ptr, size)) == NULL)              \
+            exit(EXIT_FAILURE);                              \
+        return ptr;                                          \
+    }
 
 // ==================================================================================== //
 //                                    sob: CString (CS)
