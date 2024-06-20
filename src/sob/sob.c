@@ -1,7 +1,5 @@
 #include "sob.h"
 
-
-
 #ifndef SOB_APP_OFF
 
 
@@ -61,9 +59,10 @@ ArgParser_def_fn(test) {
 }
 
 ArgParser_def_fn(clean) {
-    FILE *fp;
+    int n;
     EXEC("rm -rf build");
     EXEC("rm -f test/tests.log test/valgrind.log");
+    EXES(n, "rm -rf test/*_tests");
 }
 
 
