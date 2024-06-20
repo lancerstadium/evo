@@ -559,6 +559,8 @@ static inline size_t VA_ARGS_COUNT(va_list args) {
 // #define CStrArray_suffix(SA, FIX)       CStrArray_forauto(SA, I, S, CStr_cat(SD, S, FIX); CStrArray_set(SA, I, SD);)
 // #define CStrArray_display(SA)           CStrArray_forauto(SA, I, S, CStr_put(S); CStr_put(" ");); CStr_put("\n");
 
+
+
 // #define CStrArray_size(SA, N)                                                 \
 //     do {                                                                      \
 //         N = (size_t)0;                                                        \
