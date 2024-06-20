@@ -1,36 +1,12 @@
-[16:58:45] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
+[17:04:23] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
 
 ───── Run: [34m./test/rvdec_tests[0m
-[16:58:45] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
+[17:04:23] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
 ───── Sub: [34mtest_decode[0m
-[16:58:45] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.082 ms
-[16:58:45] [36mDEBU[0m[30m test/huhu_tests.c:15: [0m
+[17:04:23] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.149 ms
+[17:04:23] [36mDEBU[0m[30m test/huhu_tests.c:15: [0m
 
 ───── Run: [34m./test/huhu_tests[0m
-[16:58:45] [36mDEBU[0m[30m test/huhu_tests.c:11: [0m
+[17:04:23] [36mDEBU[0m[30m test/huhu_tests.c:11: [0m
 ───── Sub: [34mtest_hello[0m
-[16:58:45] [36mDEBU[0m[30m test/huhu_tests.c:11: [0mtotal exec 0.000 ms
-[16:59:06] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
-
-───── Run: [34m./test/rvdec_tests[0m
-[16:59:06] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
-───── Sub: [34mtest_decode[0m
-[16:59:06] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.118 ms
-[16:59:06] [36mDEBU[0m[30m test/huhu_tests.c:15: [0m
-
-───── Run: [34m./test/huhu_tests[0m
-[16:59:06] [36mDEBU[0m[30m test/huhu_tests.c:11: [0m
-───── Sub: [34mtest_hello[0m
-[16:59:06] [36mDEBU[0m[30m test/huhu_tests.c:11: [0mtotal exec 0.000 ms
-[16:59:58] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
-
-───── Run: [34m./test/rvdec_tests[0m
-[16:59:58] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
-───── Sub: [34mtest_decode[0m
-[16:59:58] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.066 ms
-[16:59:58] [36mDEBU[0m[30m test/huhu_tests.c:15: [0m
-
-───── Run: [34m./test/huhu_tests[0m
-[16:59:58] [36mDEBU[0m[30m test/huhu_tests.c:11: [0m
-───── Sub: [34mtest_hello[0m
-[16:59:58] [36mDEBU[0m[30m test/huhu_tests.c:11: [0mtotal exec 0.000 ms
+[17:04:23] [36mDEBU[0m[30m test/huhu_tests.c:11: [0mtotal exec 0.000 ms

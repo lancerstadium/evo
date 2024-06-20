@@ -10,7 +10,7 @@
 CStrArray_def()
 
 ArgParser_def_fn(all) {
-    printf("Hello World\n");
+    ECHO("Hello World\n");
 }
 
 ArgParser_def_fn(log) {
