@@ -24,9 +24,11 @@ ArgParser_def_fn(logs) {
 ArgParser_def_fn(sys) {
     CStr* cmd1, *cmd2, *cmd3;
     CStrArray_init(&cmd1, "uname", "-a", NULL);
-    CStrArray_init(&cmd3, "isam", NULL);
+    CStrArray_init(&cmd3, "isam", "wuhu", NULL);
     CStrArray_display(cmd1);
     CStrArray_from(&cmd2, "ls -l");
+    CStrArray_display(cmd3);
+    CStrArray_set(cmd3, 0, "sll");
     CStrArray_display(cmd3);
 
     EXEC("ls -l");
@@ -81,7 +83,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
     ArgParser_init("Sob - Super Nobuild Toolkit with only .h file", NULL);
     ArgParser_use_cmd(NULL, "run all" , "This is usage", all  , default_args);
-    // ArgParser_use_cmd(NULL, "run sys" , "This is usage", sys, default_args);
+    ArgParser_use_cmd(NULL, "run sys" , "This is usage", sys, default_args);
     ArgParser_use_cmd(NULL, "run test", "This is usage", test , default_args);
     ArgParser_use_cmd("log", "run log" , "This is usage", logs , default_args);
     ArgParser_use_cmd(NULL, "run clean" , "This is usage", clean , default_args);

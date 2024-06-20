@@ -568,7 +568,13 @@ static inline size_t VA_ARGS_COUNT(va_list args) {
             return sa[i];                                                      \
         }                                                                      \
     }                                                                          \
-    static inline CStr CStrArray_OP_def(set)(CStr * sa, size_t i) {            \
+    static inline void CStrArray_OP_def(set)(CStr * sa, size_t i, CStr s) {    \
+        size_t n = CStrArray_OP(length)(sa);                                   \
+        if (sa == NULL || i > n) {                                             \
+            CStrArray_ast_no(sa != NULL, ERROR_CS_ALLOC_FAIL, i, get);         \
+        } else {                                                               \
+            sa[i] = strdup(s);                                                 \
+        }                                                                      \
     }                                                                          \
     static inline void CStrArray_OP_def(display)(CStr * sa) {                  \
         size_t n = CStrArray_OP(length)(sa);                                   \
@@ -1096,7 +1102,6 @@ typedef struct {
     do {                           \
         CStr* cmd;                 \
         CStrArray_from(&cmd, (S)); \
-        CStrArray_display(cmd);    \
         SobPid PID;                \
         FORK(PID);                 \
         if (cmd) {                 \
