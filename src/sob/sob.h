@@ -495,63 +495,80 @@ static inline size_t VA_ARGS_COUNT(va_list args) {
 #define CStrArray_OP_def(OP)                UNUSED CStrArray_OP(OP)
 #define CStrArray_err_no(N, OP, VAL)        Log_err_no(N, "[CStrArray]: wrong val `%s` to %s.", #VAL ,#OP)
 #define CStrArray_ast_no(expr, N, OP, VAL)  Log_ast_no(expr, N, "[CStrArray]: wrong val `%s` to %s.", #VAL ,#OP)
-#define CStrArray_def()                                                                   \
-    static inline size_t CStrArray_OP_def(length)(CStr * sa) {                            \
-        size_t n = 0;                                                                     \
-        while (sa[n] != NULL) {                                                           \
-            n++;                                                                          \
-        }                                                                                 \
-        return n;                                                                         \
-    }                                                                                     \
-    static inline void CStrArray_OP_def(init)(CStr * *sa, ...) {                          \
-        va_list args;                                                                     \
-        va_start(args, *sa);                                                              \
-        size_t count = VA_ARGS_COUNT(args);                                               \
-        va_end(args);                                                                     \
-        *sa = (CStr*)malloc(sizeof(CStr) * count);                                        \
-        if (*sa == NULL) {                                                                \
-            va_end(args);                                                                 \
-            return;                                                                       \
-        }                                                                                 \
-        va_start(args, *sa);                                                              \
-        for (size_t i = 0; i < count; i++) {                                              \
-            (*sa)[i] = va_arg(args, CStr);                                                \
-        }                                                                                 \
-        va_end(args);                                                                     \
-    }                                                                                     \
-    static inline CStr CStrArray_OP_def(from)(CStr * sa, CStr s) {                        \
-        const char* delimiter = " ";                                                      \
-        char* token;                                                                      \
-        char* str = strdup(s);                                                            \
-        token = strtok(str, delimiter);                                                   \
-        while (token != NULL) {                                                           \
-            sa = realloc(sa, (strlen(token) + 1 + (sa ? strlen(sa) : 0)) * sizeof(CStr)); \
-            if (sa == NULL) {                                                             \
-                break;                                                                    \
-            }                                                                             \
-            strcpy((char*)sa + strlen(sa), token);                                        \
-            token = strtok(NULL, delimiter);                                              \
-        }                                                                                 \
-        free(str);                                                                        \
-    }                                                                                     \
-    static inline CStr CStrArray_OP_def(get)(CStr * sa, size_t i) {                       \
-        size_t n = CStrArray_OP(length)(sa);                                              \
-        if (sa == NULL || i > n) {                                                        \
-            CStrArray_ast_no(sa != NULL, ERROR_CS_ALLOC_FAIL, i, get);                    \
-            return NULL;                                                                  \
-        } else {                                                                          \
-            return sa[i];                                                                 \
-        }                                                                                 \
-    }                                                                                     \
-    static inline CStr CStrArray_OP_def(set)(CStr * sa, size_t i) {                       \
-    }                                                                                     \
-    static inline void CStrArray_OP_def(display)(CStr * sa) {                             \
-        size_t n = CStrArray_OP(length)(sa);                                              \
-        for (size_t i = 0; i < n; i++) {                                                  \
-            CStr_put(sa[i]);                                                              \
-            CStr_put(" ");                                                                \
-        }                                                                                 \
-        CStr_put("\n");                                                                   \
+#define CStrArray_def()                                                     \
+    static inline size_t CStrArray_OP_def(length)(CStr * sa) {              \
+        if (sa == NULL) return 0;                                           \
+        size_t n = 0;                                                       \
+        while (sa[n] != NULL) {                                             \
+            n++;                                                            \
+        }                                                                   \
+        return n;                                                           \
+    }                                                                       \
+    static inline void CStrArray_OP_def(init)(CStr * *sa, ...) {            \
+        va_list args;                                                       \
+        va_start(args, *sa);                                                \
+        size_t count = VA_ARGS_COUNT(args);                                 \
+        va_end(args);                                                       \
+        printf("%lu\n", count);                                             \
+        *sa = (CStr*)malloc(sizeof(CStr) * count);                          \
+        if (*sa == NULL) {                                                  \
+            va_end(args);                                                   \
+            return;                                                         \
+        }                                                                   \
+        va_start(args, *sa);                                                \
+        for (size_t i = 0; i < count; i++) {                                \
+            (*sa)[i] = va_arg(args, CStr);                                  \
+        }                                                                   \
+        va_end(args);                                                       \
+    }                                                                       \
+    static inline CStr CStrArray_OP_def(from)(CStr * *sa, CStr s) {         \
+        if (s == NULL) return;                                              \
+        char* temp1 = strdup(s);                                            \
+        if (!temp1) {                                                       \
+            perror("strdup failed");                                        \
+            return;                                                         \
+        }                                                                   \
+        size_t count = 0;                                                   \
+        char* token = strtok(temp1, " ");                                   \
+        while (token != NULL) {                                             \
+            count++;                                                        \
+            token = strtok(NULL, " ");                                      \
+        }                                                                   \
+        *sa = (CStr*)malloc((count + 1) * sizeof(CStr));                    \
+        if (*sa == NULL) {                                                  \
+            perror("malloc failed");                                        \
+            free(temp1);                                                    \
+            return;                                                         \
+        }                                                                   \
+        char* temp2 = strdup(s);                                            \
+        token = strtok(temp2, " ");                                         \
+        size_t index = 0;                                                   \
+        while (token != NULL) {                                             \
+            printf("%s\n", token);                                          \
+            (*sa)[index++] = token;                                         \
+            token = strtok(NULL, " ");                                      \
+        }                                                                   \
+        (*sa)[index] = NULL;                                                \
+        free(temp1);                                                        \
+    }                                                                       \
+    static inline CStr CStrArray_OP_def(get)(CStr * sa, size_t i) {         \
+        size_t n = CStrArray_OP(length)(sa);                                \
+        if (sa == NULL || i > n) {                                          \
+            CStrArray_ast_no(sa != NULL, ERROR_CS_ALLOC_FAIL, i, get);      \
+            return NULL;                                                    \
+        } else {                                                            \
+            return sa[i];                                                   \
+        }                                                                   \
+    }                                                                       \
+    static inline CStr CStrArray_OP_def(set)(CStr * sa, size_t i) {         \
+    }                                                                       \
+    static inline void CStrArray_OP_def(display)(CStr * sa) {               \
+        size_t n = CStrArray_OP(length)(sa);                                \
+        for (size_t i = 0; i < n; i++) {                                    \
+            CStr_put(sa[i]);                                                \
+            CStr_put(" ");                                                  \
+        }                                                                   \
+        CStr_put("\n");                                                     \
     }
 
 // #define CStrArray_get(SA, I)            (((SA == NULL) || ((SA)[I] == NULL)) ? NULL : (SA)[I])
@@ -1123,7 +1140,7 @@ typedef struct {
     do {                                                    \
         Log_sysc(_RED("[%d] ") _BLUE_UL("mkdir"), getpid());\
         CStr* paths;                                        \
-        CStrArray_new(paths, __VA_ARGS__);                  \
+        CStrArray_init(&paths, __VA_ARGS__);                \
         CStrArray_forauto(paths, i, path,                   \
             if (!IS_DIR(path)) {                            \
                 if(mkdir(path, 0777) < 0) {                 \
@@ -1149,17 +1166,6 @@ typedef struct {
             fclose(f);                                  \
             Log_info(_GREEN_BD("+") " %s", path);       \
         );                                              \
-    } while (0)
-
-#define ECHO(...)                                           \
-    do {                                                    \
-        Log_sysc(_RED("[%d] ") _BLUE_UL("echo"), getpid()); \
-        CStr* paths;                                        \
-        CStrArray_new(paths, __VA_ARGS__);                  \
-        CStrArray_forauto(paths, i, path, {                 \
-            fprintf(stdout, "%s ", path);                   \
-        });                                                 \
-        fprintf(stdout, "\n");                              \
     } while (0)
 
 #define RM(...)                                             \
@@ -1260,21 +1266,21 @@ typedef struct {
         }                                                           \
     } while (0)
 
-#define EXEC(S)                   \
-    do {                          \
-        CStr* cmd;                \
-        CStrArray_from(cmd, (S)); \
-        CStrArray_display(cmd);   \
-        SobPid PID;               \
-        FORK(PID);                \
-        if (cmd) {                \
-            CMD(PID, cmd);        \
-        }                         \
+#define EXEC(S)                    \
+    do {                           \
+        CStr* cmd;                 \
+        CStrArray_from(&cmd, (S)); \
+        CStrArray_display(cmd);    \
+        SobPid PID;                \
+        FORK(PID);                 \
+        if (cmd) {                 \
+            CMD(PID, cmd);         \
+        }                          \
     } while (0)
 
 #define LIST_FILES(PATH, SA)                             \
     do {                                                 \
-        CStrArray_new(SA, NULL);                         \
+        CStrArray_init(&SA, NULL);                       \
         DIR* dir;                                        \
         struct dirent* entry;                            \
         if (IS_DIR(PATH)) {                              \
@@ -1528,17 +1534,11 @@ UNUSED static ArgParser sob_ap = {
         sob_ap.n_cmd++;                                                                      \
     } while (0)
 
-#define ArgParser_sys_cmd(S)    \
-    do {                        \
-        CStr* cmd;              \
-        CStrArray_from(cmd, S); \
-        ArgParser_sys_CMD(cmd); \
-    } while (0)
-
-#define ArgParser_sys_cmd_exec(Cmd)         \
-    do {                                    \
-        Cmd = malloc(sizeof(ArgParserCmd)); \
-        Cmd->type = AP_CMD_SYS;             \
+#define ArgParser_sys_cmd(S)     \
+    do {                         \
+        CStr* cmd;               \
+        CStrArray_from(&cmd, S); \
+        ArgParser_sys_CMD(cmd);  \
     } while (0)
 
 #define ArgParser_print_base_command(Cmd)                                                                                    \
