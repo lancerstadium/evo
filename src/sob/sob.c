@@ -60,6 +60,12 @@ ArgParser_def_fn(test) {
     EXNF(fp);
 }
 
+ArgParser_def_fn(clean) {
+    FILE *fp;
+    EXEC("rm -rf build");
+    EXEC("rm -f test/tests.log test/valgrind.log");
+}
+
 
 ArgParser_def_args(default_args) = {
     ArgParser_arg_INPUT,
@@ -71,9 +77,10 @@ int main(int argc, char *argv[], char *envp[]) {
 
     ArgParser_init("Sob - Super Nobuild Toolkit with only .h file", NULL);
     ArgParser_use_cmd(NULL, "run all" , "This is usage", all  , default_args);
-    ArgParser_use_cmd(NULL, "run sys" , "This is usage", sys, default_args);
+    // ArgParser_use_cmd(NULL, "run sys" , "This is usage", sys, default_args);
     ArgParser_use_cmd(NULL, "run test", "This is usage", test , default_args);
     ArgParser_use_cmd(NULL, "run log" , "This is usage", log , default_args);
+    ArgParser_use_cmd(NULL, "run clean" , "This is usage", clean , default_args);
     
     ArgParser_sys_cmd("uname -a");
     ArgParser_sys_cmd("perf record -e cycles -F 999 ls -l");
