@@ -23,7 +23,7 @@ TESTS=$(patsubst %.c,%,$(SRCTEST))
 
 TARGET=build/lib$(APP).a
 SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
-SOB_TARGET=sob
+SOB_TARGET=./sob
 BIN_TARGET=bin/$(APP)
 
 # Config
@@ -60,9 +60,9 @@ tests: LDLIBS += $(TARGET)
 tests: $(TESTS)
 ifeq ($(CFG_REPORT),1)
 	@echo "tests report: ./test/tests.report"
-	@sh ./test/runtests.sh $(CFG_TEST) | sed 's/\x1B\[[0-9;]*[JKmsu]//g' > test/tests.report
+	@$(SOB_TARGET) test | sed 's/\x1B\[[0-9;]*[JKmsu]//g' > test/tests.report
 else
-	@sh ./test/runtests.sh $(CFG_TEST)
+	@$(SOB_TARGET) test
 endif
 
 test:

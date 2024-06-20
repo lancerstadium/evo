@@ -34,7 +34,7 @@ static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
 #define test(...) test32(__VA_ARGS__) | test64(__VA_ARGS__)
 
 
-char *test_decode(){
+UnitTest_fn_def(test_decode){
     unsigned failed = 0;
     failed |= test(4, 0x00000000, "UNDEF");
     failed |= test(4, 0x00054703, "lbu r14 r10");
@@ -77,7 +77,7 @@ char *test_decode(){
 }
 
 
-char *all_tests() {
+UnitTest_fn_def(all_tests) {
     UnitTest_add(test_decode);
     return NULL;
 }
