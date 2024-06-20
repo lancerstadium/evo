@@ -63,6 +63,7 @@ LPSTR GetLastErrorAsString(void);
 #include <time.h>
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 #include <assert.h>
 #include <string.h>
 #include <stdarg.h>
@@ -137,7 +138,7 @@ extern "C" {
 #define CONCAT4(a, b, c, d) a ## b ## c ## d
 #define STR_BOOL(b) ((b) ? "true" : "false")
 #define STR_FMT(SD, fmt, ...) sprintf(SD, fmt, __VA_ARGS__)
-#define STR_FMTN(SD, N, fmt, ...) sprintf(SD, N, fmt, __VA_ARGS__)
+#define STR_FMTN(SD, N, fmt, ...) snprintf(SD, (size_t)(N), fmt, __VA_ARGS__)
 
 
 // ==================================================================================== //
@@ -529,7 +530,7 @@ static inline size_t VA_ARGS_COUNT(va_list args) {
         }                                                                      \
         va_end(args);                                                          \
     }                                                                          \
-    static inline CStr CStrArray_OP_def(from)(CStr * *sa, CStr s) {            \
+    static inline void CStrArray_OP_def(from)(CStr * *sa, CStr s) {            \
         if (s == NULL) return;                                                 \
         char* temp1 = strdup(s);                                               \
         if (!temp1) {                                                          \
