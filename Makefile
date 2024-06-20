@@ -73,7 +73,7 @@ valgrind:
 	VALGRIND="valgrind --log-file=./test/valgrind.log" $(MAKE)
 
 log:
-	@tail -n $$(($$(tac test/tests.log | grep -m 1 -n '^────── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$$/d'
+	@tail -n $$(($$(tac test/tests.log | grep -m 1 -n '^───── Run' | cut -d: -f1) + 1)) test/tests.log | sed '/^$$/d'
 
 # The Cleaner
 clean:

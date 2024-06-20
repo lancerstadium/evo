@@ -1,6 +1,6 @@
-[23:06:38] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
+[12:39:39] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
 
 ───── Run: [34m./test/rvdec_tests[0m
-[23:06:38] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
+[12:39:39] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0m
 ───── Sub: [34mtest_decode[0m
-[23:06:38] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.684 ms
+[12:39:39] [36mDEBU[0m[30m test/rvdec_tests.c:81: [0mtotal exec 0.079 ms
