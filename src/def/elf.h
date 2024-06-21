@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 
-#define ELF_WORD_SIZE EVO_WORD_SIZE
+#define ELF_WORD_SIZE CFG_WORD_SIZE
 #define ElfN(X) CONCAT3(Elf, ELF_WORD_SIZE, _ ## X)
 #define ELFN(X) CONCAT3(ELF, ELF_WORD_SIZE, _ ## X)
 #define ELF_R_SYM ELFN(R_SYM)
@@ -34,16 +34,6 @@ typedef ElfN(Verdef)    Elf_verdef;
 typedef ElfN(Verneed)   Elf_verneed;
 typedef ElfN(Versym)    Elf_versym;
 typedef ElfN(Half)      Elf_half;
-
-#if ELF_WORD_SIZE == 64
-#define XFMT "0x%lx"
-#define AFMT "%lx"
-#define UFMT "%lu"
-#else
-#define XFMT "0x%x"
-#define AFMT "%x"
-#define UFMT "%u"
-#endif
 
 /**
  * @brief Section Type Identifier
