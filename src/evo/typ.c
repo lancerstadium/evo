@@ -10,8 +10,6 @@
             .as_##T = val};            \
     }
 
-
-
 Width_def(Word, u32);
 Width_def(Word, i32);
 Width_def(Word, f32);

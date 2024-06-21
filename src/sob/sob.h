@@ -109,15 +109,22 @@ extern "C" {
 // ==================================================================================== //
 
 
-#ifdef __GNUC__
-#define UNUSED __attribute__((unused))
-#define NORETURN __attribute__((noreturn))
+#if defined(__GNUC__) || defined(__clang__)
+#define UNUSED      __attribute__((unused))
+#define EXPORT      __attribute__((visibility("default")))
+#define NORETURN    __attribute__((noreturn))
+#define PACKED(D)   D __attribute__((packed))
+#elif defined(MSC_VER)
+#define UNUSED      __pragma(warning(suppress:4100))
+#define EXPORT      __pragma(warning(suppress:4091))
+#define PACKED(D)   __pragma(pack(push, 1)) D __pragma(pack(pop))
+#define NORETURN
 #else
 #define UNUSED
+#define EXPORT
+#define PACKED(D)   D
 #define NORETURN
 #endif
-
-#define ARR_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -132,7 +139,8 @@ extern "C" {
 #define REP8(M, a1, a2, a3, a4, a5, a6, a7, a8) REP7 (M, a1, a2, a3, a4, a5, a6, a7) REP_SEP M (a8)
 #define REP_SEP ,
 
-#define STR(s) #s
+#define _STR(s) #s
+#define STR(s) _STR(s)
 #define _CONCAT(a, b) a ## b
 #define CONCAT(a, b) _CONCAT(a, b)
 #define CONCAT3(a, b, c) CONCAT(CONCAT(a, b), c)
@@ -141,6 +149,59 @@ extern "C" {
 #define STR_FMT(SD, fmt, ...) sprintf(SD, fmt, __VA_ARGS__)
 #define STR_FMTN(SD, N, fmt, ...) snprintf(SD, (size_t)(N), fmt, __VA_ARGS__)
 
+#define STRLEN(cs) (sizeof(cs) - 1)
+#define ARRLEN(arr) (sizeof(arr) / sizeof(arr[0]))
+
+#define ROUNDUP(a, sz)   ((((uintptr_t)a) + (sz) - 1) & ~((sz) - 1))
+#define ROUNDDOWN(a, sz) ((((uintptr_t)a)) & ~((sz) - 1))
+
+#define BITMASK(bits)   ((1ull << (bits)) - 1)
+#define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog
+
+// ==================================================================================== //
+//                                    sob: Macro Testing
+// ==================================================================================== //
+
+// macro testing
+// See https://stackoverflow.com/questions/26099745/test-if-preprocessor-symbol-is-defined-inside-macro
+#define CHOOSE2nd(a, b, ...) b
+#define MUX_WITH_COMMA(contain_comma, a, b) CHOOSE2nd(contain_comma a, b)
+#define MUX_MACRO_PROPERTY(p, macro, a, b) MUX_WITH_COMMA(concat(p, macro), a, b)
+// define placeholders for some property
+#define __P_DEF_0  X,
+#define __P_DEF_1  X,
+#define __P_ONE_1  X,
+#define __P_ZERO_0 X,
+// define some selection functions based on the properties of BOOLEAN macro
+#define MUXDEF(macro, X, Y)  MUX_MACRO_PROPERTY(__P_DEF_, macro, X, Y)
+#define MUXNDEF(macro, X, Y) MUX_MACRO_PROPERTY(__P_DEF_, macro, Y, X)
+#define MUXONE(macro, X, Y)  MUX_MACRO_PROPERTY(__P_ONE_, macro, X, Y)
+#define MUXZERO(macro, X, Y) MUX_MACRO_PROPERTY(__P_ZERO_,macro, X, Y)
+
+// test if a boolean macro is defined
+#define ISDEF(macro) MUXDEF(macro, 1, 0)
+// test if a boolean macro is undefined
+#define ISNDEF(macro) MUXNDEF(macro, 1, 0)
+// test if a boolean macro is defined to 1
+#define ISONE(macro) MUXONE(macro, 1, 0)
+// test if a boolean macro is defined to 0
+#define ISZERO(macro) MUXZERO(macro, 1, 0)
+// test if a macro of ANY type is defined
+// NOTE1: it ONLY works inside a function, since it calls `strcmp()`
+// NOTE2: macros defined to themselves (#define A A) will get wrong results
+#define isdef(macro) (strcmp("" #macro, "" str(macro)) != 0)
+
+// simplification for conditional compilation
+#define __IGNORE(...)
+#define __KEEP(...) __VA_ARGS__
+// keep the code if a boolean macro is defined
+#define IFDEF(macro, ...) MUXDEF(macro, __KEEP, __IGNORE)(__VA_ARGS__)
+// keep the code if a boolean macro is undefined
+#define IFNDEF(macro, ...) MUXNDEF(macro, __KEEP, __IGNORE)(__VA_ARGS__)
+// keep the code if a boolean macro is defined to 1
+#define IFONE(macro, ...) MUXONE(macro, __KEEP, __IGNORE)(__VA_ARGS__)
+// keep the code if a boolean macro is defined to 0
+#define IFZERO(macro, ...) MUXZERO(macro, __KEEP, __IGNORE)(__VA_ARGS__)
 
 // ==================================================================================== //
 //                                    sob: Args (VA)
@@ -448,23 +509,20 @@ UNUSED static Logger sob_logger = {
 //                                    sob: XAlloc (XA)
 // ==================================================================================== //
 
-#define XAlloc_def()                                         \
-    static inline void* xmalloc(size_t size) {               \
-        void* p;                                             \
-        if ((p = malloc(size)) == NULL)                      \
-            exit(EXIT_FAILURE);                              \
-        return p;                                            \
-    }                                                        \
-    static inline void* xcalloc(size_t nmemb, size_t size) { \
-        void* p;                                             \
-        if ((p = calloc(nmemb, size)) == NULL)               \
-            exit(EXIT_FAILURE);                              \
-        return p;                                            \
-    }                                                        \
-    static inline void* xrealloc(void* ptr, size_t size) {   \
-        if ((ptr = realloc(ptr, size)) == NULL)              \
-            exit(EXIT_FAILURE);                              \
-        return ptr;                                          \
+#define XAlloc_def()                                                                                      \
+    static inline void* xmalloc(size_t size) {                                                            \
+        void* p;                                                                                          \
+        Log_ast_no((p = malloc(size)) == NULL, ERROR_XA_ALLOC_FAIL, "Xmalloc: %lu", size);                \
+        return p;                                                                                         \
+    }                                                                                                     \
+    static inline void* xcalloc(size_t nmemb, size_t size) {                                              \
+        void* p;                                                                                          \
+        Log_ast_no((p = calloc(nmemb, size)) == NULL, ERROR_XA_ALLOC_FAIL, "Xcalloc: %lu", nmemb * size); \
+        return p;                                                                                         \
+    }                                                                                                     \
+    static inline void* xrealloc(void* ptr, size_t size) {                                                \
+        Log_ast_no((ptr = realloc(ptr, size)) == NULL, ERROR_XA_ALLOC_FAIL, "Xrealloc: %lu", size);       \
+        return ptr;                                                                                       \
     }
 
 // ==================================================================================== //

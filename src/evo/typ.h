@@ -2,14 +2,18 @@
 #ifndef _EVO_TYP_H_
 #define _EVO_TYP_H_
 
-#include <evo/evo.h>
+#include <evo/cfg.h>
 #include <stdint.h>
-
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+// ==================================================================================== //
+//                                    evo: typedef
+// ==================================================================================== //
 
 typedef uint8_t     u8;
 typedef uint16_t    u16;
@@ -22,6 +26,16 @@ typedef int8_t      i8;
 typedef float       f32;
 typedef double      f64;
 typedef void*       ptr;
+
+#if EVO_WORD_SIZE == 64
+typedef u64 vaddr;
+#else
+typedef u32 vaddr;
+#endif
+
+// ==================================================================================== //
+//                                    evo: Width
+// ==================================================================================== //
 
 typedef union {
     u8 as_u8;
@@ -55,23 +69,35 @@ typedef union {
 Word Word_u32_new(u32 val);
 Word Word_i32_new(i32 val);
 Word Word_f32_new(f32 val);
+#if EVO_WORD_SIZE == 32
 Word Word_ptr_new(ptr val);
+#endif
 
 Dword Dword_u64_new(u64 val);
 Dword Dword_i64_new(i64 val);
 Dword Dword_f64_new(f64 val);
+#if EVO_WORD_SIZE == 64
 Dword Dword_ptr_new(ptr val);
+#endif
+
+#define Wsize(W) sizeof(W)
+
+// ==================================================================================== //
+//                                    evo: Type
+// ==================================================================================== //
+
+
 
 
 typedef enum {
     TYPE_ANY = 0,
-    TYPE_FLOAT,
-    TYPE_SINT,
-    TYPE_UINT,
+    TYPE_FLT,
+    TYPE_INT_S,
+    TYPE_INT_U,
     TYPE_MEM_ADDR,
-    TYPE_INST_ADDR,
-    TYPE_STACK_ADDR,
-    TYPE_NATIVE_ID,
+    TYPE_INS_ADDR,
+    TYPE_STK_ADDR,
+    TYPE_SYM_ID,
     TYPE_BOOL,
     TYPE_SIZE
 } Type;

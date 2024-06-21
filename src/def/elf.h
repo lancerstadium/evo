@@ -45,19 +45,26 @@ typedef ElfN(Half)      Elf_half;
 #define UFMT "%u"
 #endif
 
+/**
+ * @brief Section Type Identifier
+ * 
+ * @note
+ * ## Normal Section Type
+ * 
+ */
 typedef enum {
     SH_NULL,
     SH_INTERP,
-    SH_TEXT,
-    SH_DYNSTR,
+    SH_TEXT,                    /** code section */
+    SH_DYNSTR,                  
     SH_DYNAMIC,
     SH_RELA_DYN,
     SH_REL_DYN,
     SH_RELA_PLT,
     SH_REL_PLT,
-    SH_INIT,
+    SH_INIT,                    /** executable initial code section */
     SH_GOT_PLT,
-    SH_DATA,
+    SH_DATA,                    /** writable data section */
     SH_DYNSYM,
     SH_HASH,
     SH_GNU_HASH,
@@ -70,11 +77,11 @@ typedef enum {
     SH_NOTE,
     SH_EH_FRAME_HDR,
     SH_EH_FRAME,
-    SH_RODATA,
+    SH_RODATA,                  /** read-only data section */
     SH_INIT_ARRAY,
     SH_FINI_ARRAY,
     SH_GOT,
-    SH_BSS,
+    SH_BSS,                     /** uninitialized data section */
     SECTIONID_SIZE
 } SectionId;
 
@@ -90,6 +97,11 @@ typedef struct {
     unsigned int size;
 } Section;
 
+
+/**
+ * @brief ELF-File Format
+ * - Use `man 5 elf` for more information.
+ */
 typedef struct {
     Elf_ehdr *ehdr;
     Elf_phdr *phdr;
@@ -130,8 +142,7 @@ typedef struct {
     SectionList *section_list;
 
     /* Sections not associated with a segment, e.g. .symtab, .strtab etc., and
-     * the section header table.
-     */
+     * the section header table. */
     Section sections;
 } Elf;
 

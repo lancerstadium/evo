@@ -4,14 +4,18 @@
 #include <def/elf.h>
 
 
+/**
+ * @brief String table section `.strtab`. 
+ * Record strings in new section's locations.
+ */
 typedef struct {
     SectionId id;
     char* name;
-    size_t len;
-} Str_tbl;
+    unsigned int len;
+} Strtbl;
 
 
-UNUSED static Str_tbl shstrtab[] = {
+UNUSED static Strtbl shstrtab[] = {
     { SH_NULL           , ""                ,  0 },
     { SH_INTERP         , ".interp"         ,  7 },
     { SH_TEXT           , ".text"           ,  5 },
