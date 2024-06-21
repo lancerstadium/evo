@@ -12,7 +12,6 @@
 
 
 
-#if CFG_WORD_SIZE == 64
 Width_def(Word, u32);
 Width_def(Word, i32);
 Width_def(Word, f32);
@@ -20,8 +19,3 @@ Width_def(Dword, u64);
 Width_def(Dword, i64);
 Width_def(Dword, f64);
 Width_def(Dword, ptr);
-#elif CFG_WORD_SIZE == 32
-
-
-#endif
-

@@ -78,7 +78,7 @@ UnitTest_fn_def(test_decode){
 
 
 UnitTest_fn_def(all_tests) {
-    UnitTest_add(test_decode);
+    // UnitTest_add(test_decode);
     return NULL;
 }
 

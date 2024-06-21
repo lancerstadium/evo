@@ -16,7 +16,7 @@ extern "C" {
 //                                    evo: Width
 // ==================================================================================== //
 
-#if CFG_WORD_SIZE == 64
+
 typedef union {
     u8 as_u8;
     i8 as_i8;
@@ -36,14 +36,8 @@ typedef union {
     f64 as_f64;
     ptr as_ptr;
 } Dword;
-#elif CFG_WORD_SIZE == 32
 
 
-#endif
-
-
-
-#if CFG_WORD_SIZE == 64
 Word Word_u32_new(u32 val);
 Word Word_i32_new(i32 val);
 Word Word_f32_new(f32 val);
@@ -51,33 +45,44 @@ Dword Dword_u64_new(u64 val);
 Dword Dword_i64_new(i64 val);
 Dword Dword_f64_new(f64 val);
 Dword Dword_ptr_new(ptr val);
-#elif CFG_WORD_SIZE == 32
 
-
-
-#endif
 
 #define Wsize(W) sizeof(W)
+
+typedef struct {
+    Byte* val;
+    size_t size;
+} ByteVec;
+
+#define ByVec(...) { .val = (Byte[]){__VA_ARGS__}, .size = (sizeof((Byte[]){__VA_ARGS__}) / sizeof(Byte)) }
 
 // ==================================================================================== //
 //                                    evo: Type
 // ==================================================================================== //
 
 
-
-
 typedef enum {
-    TYPE_ANY = 0,
-    TYPE_FLT,
-    TYPE_INT_S,
-    TYPE_INT_U,
-    TYPE_MEM_ADDR,
-    TYPE_INS_ADDR,
-    TYPE_STK_ADDR,
-    TYPE_SYM_ID,
-    TYPE_BOOL,
-    TYPE_SIZE
+    TYPE_ANY        = 0,
+    TYPE_FLOAT      = 1 << 0,
+    TYPE_SINT       = 1 << 1,
+    TYPE_UINT       = 1 << 2,
+    TYPE_MEM_ADDR   = 1 << 3,
+    TYPE_INSN_ADDR  = 1 << 4,
+    TYPE_STARK_ADDR = 1 << 5,
+    TYPE_REG_ID     = 1 << 6,
+    TYPE_SYMBOL_ID  = 1 << 7,
+    TYPE_BOOL       = 1 << 8
 } Type;
+
+
+typedef struct {
+    Type* tys;
+    size_t size;
+} TypeVec;
+
+
+#define TyVec(...) { .tys = (Type[]){__VA_ARGS__}, .size = (sizeof((Type[]){__VA_ARGS__}) / sizeof(Type)) }
+
 
 
 #ifdef __cplusplus

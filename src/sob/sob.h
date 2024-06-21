@@ -766,6 +766,7 @@ static inline size_t VA_ARGS_COUNT(va_list args) {
         return obj;                                                                                \
     }
 
+#define DSArray_new(T, ...)         { .varr = {__VA_ARGS__}, .size = (sizeof((T[]){__VA_ARGS__}) / sizeof(T)), .els_num = (sizeof((T[]){__VA_ARGS__}) / sizeof(T))}
 #define DSArray_create(T, V, L)     (DSArray_OP(T, create) (&(V), L))
 #define DSArray_destroy(T, V)       (DSArray_OP(T, destroy) (&(V)))
 #define DSArray_length(T, V)        (DSArray_OP(T, length) (V))
