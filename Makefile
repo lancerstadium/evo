@@ -80,6 +80,7 @@ clean:
 	rm -f $(SOB_TARGET)
 	rm -rf build $(OBJS) $(TESTS)
 	rm -f test/tests.log test/valgrind.log
+	rm -f *.out *.elf
 	find . -name "*.gc*" -exec rm {} \;
 	rm -rf `find . -name "*.dSYM" -print`
 

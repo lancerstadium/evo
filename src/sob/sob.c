@@ -97,6 +97,7 @@ ArgParser_def_fn(clean) {
     EXEC("rm -rf build");
     EXEC("rm -f test/tests.log test/valgrind.log");
     EXES(n, "rm -rf test/*_tests");
+    EXES(n, "rm -rf *.out *.elf");
 }
 
 
