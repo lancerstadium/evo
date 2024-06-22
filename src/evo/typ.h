@@ -50,11 +50,36 @@ Dword Dword_ptr_new(ptr val);
 #define Wsize(W) sizeof(W)
 
 typedef struct {
-    Byte* val;
+    u8* val;
     size_t size;
 } ByteVec;
 
-#define ByVec(...) { .val = (Byte[]){__VA_ARGS__}, .size = (sizeof((Byte[]){__VA_ARGS__}) / sizeof(Byte)) }
+#define ByVec(...) { .val = (u8[]){__VA_ARGS__}, .size = (sizeof((u8[]){__VA_ARGS__}) / sizeof(Byte)) }
+#define ByU32(V) \
+    {   .val = (u8[]){   \
+        (u8)((V) >>  0), \
+        (u8)((V) >>  8), \
+        (u8)((V) >> 16), \
+        (u8)((V) >> 24), \
+        }, .size = 4 }
+
+
+char* ByHex(ByteVec v) {
+    char* tmp = malloc((3 + v.size * 4)* sizeof(char));
+    snprintf(tmp, 3, "0x");
+    for(size_t i = 0; i < v.size; i++) {
+        char hex[4];
+        if(v.val[i]) {
+            snprintf(hex, 4, "%02x ", v.val[i]);
+        } else {
+            snprintf(hex, 4, "00 ");
+        }
+        strcat(tmp, hex);
+    }
+    return tmp;
+}
+
+
 
 // ==================================================================================== //
 //                                    evo: Type

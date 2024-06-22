@@ -137,6 +137,7 @@ extern "C" {
 #define REP6(M, a1, a2, a3, a4, a5, a6) REP5 (M, a1, a2, a3, a4, a5) REP_SEP M (a6)
 #define REP7(M, a1, a2, a3, a4, a5, a6, a7) REP6 (M, a1, a2, a3, a4, a5, a6) REP_SEP M (a7)
 #define REP8(M, a1, a2, a3, a4, a5, a6, a7, a8) REP7 (M, a1, a2, a3, a4, a5, a6, a7) REP_SEP M (a8)
+#define REP9(M, a1, a2, a3, a4, a5, a6, a7, a8, a9) REP8 (M, a1, a2, a3, a4, a5, a6, a7, a8) REP_SEP M (a9)
 #define REP_SEP ,
 
 #define _STR(s) #s

@@ -67,7 +67,9 @@ typedef u32  PAddr;
 #define UFMT "%u"
 #endif
 
-
-
+#define BFMT "0x%02x"
+#define HFMT "0x%04x"
+#define WFMT "0x%08x"
+#define DFMT "0x%16lx"
 
 #endif // _EVO_CFG_H_
