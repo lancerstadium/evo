@@ -29,23 +29,42 @@ typedef void*       ptr;
 //                                    evo: config
 // ==================================================================================== //
 
+#define CFG_MODE_EMU
+// #define CFG_MODE_ITP
+// #define CFG_MODE_AOT
+// #define CFG_MODE_JIT
+// #define CFG_MODE_HYB
 
-#define CFG_SISA(C)      CONCAT(CFG_SISA_, C)
-#define CFG_TISA(C)      CONCAT(CFG_TISA_, C)
-
-
-#ifndef CFG_TRG_ISA_NAME
+#define CFG_SISA        RV
+#define CFG_SISA_RV
+#define CFG_SISA_BIT    32
+#define CFG_IISA        EIR
+#define CFG_IISA_EIR
+#define CFG_IISA_BIT    64
+#define CFG_TISA        X86
+#define CFG_TISA_X86
+#define CFG_TISA_BIT    64
+#if !defined(CFG_MODE_EMU) && !defined(CFG_TISA)
 #ifdef __i386__
-
+#define CFG_TISA        X86
+#define CFG_TISA_X86
+#define CFG_TISA_BIT    32
 #elif  __x86_64__
-
+#define CFG_TISA        X86
+#define CFG_TISA_X86
+#define CFG_TISA_BIT    64
 #elif  __arm__
-
+#define CFG_TISA        ARM
+#define CFG_TISA_ARM
+#define CFG_TISA_BIT    32
 #elif  __aarch64__
-
-#endif  // __ARCH__
-#endif  // CFG_ARG_ISA
-
+#define CFG_TISA        ARM
+#define CFG_TISA_ARM
+#define CFG_TISA_BIT    64
+#elif  __riscv__
+#define CFG_TISA        RV
+#endif // __ARCH__
+#endif // CFG_TISA
 
 
 #define CFG_WORD_SIZE       __WORDSIZE
@@ -53,9 +72,7 @@ typedef void*       ptr;
 #define CFG_MEM_BASE        0x8000000
 #define CFG_MEM_CAP         1024
 #define CFG_STACK_CAP       1024
-#define CFG_GEN_ELF         "out.elf"
-#define CFG_ISA(A)          CONCAT(CFG_ISA_, A)
-#define CFG_ISA_SIZE        
+#define CFG_GEN_ELF         "out.elf"      
 
 #if CFG_WORD_SIZE == 64
 typedef u64  PAddr;

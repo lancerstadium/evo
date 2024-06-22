@@ -1,9 +1,7 @@
+#ifndef _GEN_EBC_H_
+#define _GEN_EBC_H_
 
-#ifndef _EVO_EBC_H_
-#define _EVO_EBC_H_
-
-#include <evo/typ.h>
-
+#include <evo/cfg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +22,7 @@ PACKED(struct EBCFileMeta{
     u64 ext_size;
 });
 
-typedef struct EBCFileMeta EBCFileMeta;
+typedef struct EBCMeta EBCMeta;
 
 
 
@@ -33,4 +31,4 @@ typedef struct EBCFileMeta EBCFileMeta;
 }
 #endif  // __cplusplus
 
-#endif // _EVO_EBC_H_
+#endif // _GEN_EBC_H_

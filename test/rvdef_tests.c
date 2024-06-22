@@ -1,4 +1,5 @@
 #include <sob/sob.h>
+#include <evo/evo.h>
 #include <isa/rv/def.h>
 
 UnitTest_fn_def(test_insn_display){

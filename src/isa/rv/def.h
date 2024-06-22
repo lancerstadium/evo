@@ -13,9 +13,7 @@
 #ifndef _ISA_RV_DEF_H_
 #define _ISA_RV_DEF_H_
 
-#include <evo/reg.h>
-#include <evo/ins.h>
-#include <evo/cpu.h>
+#include <evo/evo.h>
 
 
 #define RV_EL(I)    RV_##I
@@ -123,13 +121,21 @@ InsnID_def(RV,
 
 
 InsnDef_def(RV,
-    [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bv = ByU32(0x00) },
-    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bv = ByU32(0b110011 + (0b000 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
-    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bv = ByU32(0b110011 + (0b000 << 12) + (0x20 << 25))  , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
-    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bv = ByU32(0b110011 + (0b100 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
+    [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bc = ByU32(0x00) },
+    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = ByU32(0b110011 + (0b000 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
+    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = ByU32(0b110011 + (0b000 << 12) + (0x20 << 25))  , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
+    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = ByU32(0b110011 + (0b100 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
 );
 
 CPUState_def(RV,
+#if CFG_SISA_BIT == 64
+    u64 gpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
+    u64 pc;
+#else
+    u32 gpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
+    u32 pc;
+#endif
+,
 
 );
 
