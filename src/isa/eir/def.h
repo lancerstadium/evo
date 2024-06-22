@@ -15,7 +15,7 @@
 
 InsnID_def(EIR, 
     REP1(EIR_EL, NOP),
-    REP1(EIR_EL, ADD_I32)
+    REP1(EIR_EL, ADD_I32),
 );
 
 InsnDef_def(EIR,
