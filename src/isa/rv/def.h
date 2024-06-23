@@ -137,7 +137,7 @@ InsnDef_def(RV,
     [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bc = Val_u32(0x00) },
     [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = Val_u32(0b110011 + (0b000 << 12))                   , .tv = Tys_rvR() },
     [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = Val_u32(0b110011 + (0b000 << 12) + (0x20 << 25))    , .tv = Tys_rvR() },
-    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = Val_u32(0b110011 + (0b100 << 12))                   , .tv = Tys_rvS() },
+    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = Val_u32(0b110011 + (0b100 << 12))                   , .tv = Tys_rv_ri() },
 );
 
 CPUState_def(RV,
