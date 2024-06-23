@@ -128,21 +128,49 @@ char* ByHex(ByteVec v) {
 /**
  * @brief 
  * 
- * @code
+ * @note
  * 
  * ```
- * Type Pattern:
+ * Pattern (Main):
+ *  - Insn      :   $name
+ *  - Insn Sep  :   ;
  *  - Off       :   x
- *  - All       :   o
- *  - Reg       :   r(idx)(<name>)([lo:hi])
- *  - Imm       :   i(scl)(<numb>)([lo:hi])
- *  - Mem       :   m(scl)(<flag>)([])
- *  - Label     :   l()
+ *  - All       :   o(scl)(<numb>)([hi:lo|...])
+ *  - Reg       :   r(idx)(<name>)([hi:lo|...])
+ *  - Imm       :   i(scl)(<numb>)([hi:lo|...])
+ *  - Mem       :   m(scl)(<flag>)([hi:lo|...])
+ *  - Label     :   l([hi:lo|...])
+ * 
+ * Pattern (Simple):
+ *  - Imm Zero  :   z
+ *  
+ * 
+ * Pattern (RV):
+ *  - Opcode    :   rvop = o[ 6: 0]
+ *  - Funct3    :   rvf3 = o[14:12]
+ *  - Funct7    :   rvf7 = o[31:25]
+ *  - Reg Dest  :   rvrd = r[11: 7]
+ *  - Reg Src1  :   rvr1 = r[19:15]
+ *  - Reg Src2  :   rvr2 = r[24:20]
+ *  - Reg Csr1  :   rvrt = r[ 6: 2]                 - Csr (16-bits Insn)
+ *  - Reg Csr2  :   rvru = r[ 9: 7]                 - Csr (16-bits Insn)
+ *  - Reg Csr3  :   rvrv = r[ 4: 2]                 - Csr (16-bits Insn)
+ *  - Imm I     :   rvii = i[31:20]
+ *  - Imm S     :   rvis = i[31:25|11:7]
+ *  - Imm B     :   rvib = i[31|7|30:25|11:8]
+ *  - Imm U     :   rviu = i[31:12]
+ *  - Imm J     :   rvij =
+ * 
+ * 
  * 
  * Note:
- *  - idx       :   [0..32/64]          - Reg ID Index
- *  - scl       :   [0..3]              - Scale 1 / 2 / 4 / 8 Byte
- *  - flag      :   [...|mm|c|f|s]      - Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
+ *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
+ *  - dec       :   [0-9]+                          - Dec Integer Number
+ *  - hex       :   0x[0-9A-F]+                     - Hex Number
+ *  - bin       :   0b[01]+                         - Bin Number
+ *  - idx       :   [0..32/64]                      - Reg ID Index
+ *  - scl       :   [0..3]                          - Scale 1 / 2 / 4 / 8 Byte
+ *  - flag      :   [...|mm|c|f|s]                  - U8 Flag: Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
  * ```
  */
 typedef enum {
