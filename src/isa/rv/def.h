@@ -120,11 +120,24 @@ InsnID_def(RV,
 );
 
 
+#define Ty_rvrd(V)      Ty_r(V, {11,  7})
+#define Ty_rvr1(V)      Ty_r(V, {19, 15})
+#define Ty_rvr2(V)      Ty_r(V, {24, 20})
+#define Ty_rvii(V)      Ty_i(V, {31, 20})
+#define Ty_rvis(V)      Ty_i(V, {11,  7}, {31, 25})
+#define Ty_rvib(V)      Ty_i(V, {11,  8}, {30, 25}, { 7,  7}, {31, 31})
+#define Ty_rviu(V)      Ty_i(V, {31, 12})
+#define Ty_rvij(V)      Ty_i(V, {30, 21}, {20, 20}, {19, 12}, {31, 31})
+#define Tys_rvR(...)    Tys_new(Ty_rvrd({}), Ty_rvr1({}), Ty_rvr2({}))
+#define Tys_rvI(...)    Tys_new(Ty_rvrd({}), Ty_rvr1({}), Ty_rvii({}))
+#define Tys_rvS(...)    Tys_new(Ty_rvr1({}), Ty_rvr2({}), Ty_rvis({}))
+#define Tys_rv_ri()     Tys_new(Ty_or(Ty_or(Ty_rvib({}), r, {}, {22, 1}), r, {}, {21, 3}))
+
 InsnDef_def(RV,
-    [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bc = ByU32(0x00) },
-    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = ByU32(0b110011 + (0b000 << 12))                 , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
-    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = ByU32(0b110011 + (0b000 << 12) + (0x20 << 25))  , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
-    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = ByU32(0b110011 + (0b100 << 12))                 , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
+    [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bc = Val_u32(0x00) },
+    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = Val_u32(0b110011 + (0b000 << 12))                   , .tv = Tys_rvR() },
+    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = Val_u32(0b110011 + (0b000 << 12) + (0x20 << 25))    , .tv = Tys_rvR() },
+    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = Val_u32(0b110011 + (0b100 << 12))                   , .tv = Tys_rvS() },
 );
 
 CPUState_def(RV,

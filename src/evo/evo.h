@@ -46,9 +46,9 @@ typedef struct {
 #define Width_OP_def(W, T, OP)      UNUSED Width_OP(W, T, OP)
 
 #define Width_def(W, T)                \
-    W Width_OP_def(W, T, new)(T val) { \
+    W Width_OP_def(W, T, new)(T b) { \
         return (W){                    \
-            .as_##T = val};            \
+            .as_##T = b};            \
     }
 
 Width_def(Word, u32);
@@ -59,39 +59,357 @@ Width_def(Dword, i64);
 Width_def(Dword, f64);
 Width_def(Dword, ptr);
 
+
+// ==================================================================================== //
+//                                    evo: Type
+// ==================================================================================== //
+
+
+/**
+ * @brief 
+ * 
+ * ### Insn Format Constant Length
+ * - riscv format:
+ * ```txt
+ * (32-bits):  <-- Big Endian View.
+ *  ┌────────┬─────┬─────┬────┬──────┬────┬─────┬────────────────┐
+ *  │31    25│24 20│19 15│  12│11   7│6  0│ Typ │      Arch      │
+ *  ├────────┼─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+ *  │   f7   │ rs2 │ rs1 │ f3 │  rd  │ op │  R  │ RISC-V, EIR    │
+ *  ├────────┴─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+ *  │    imm[12]   │ rs1 │ f3 │  rd  │ op │  I  │ RISC-V, EIR    │
+ *  ├────────┬─────┼─────┼────┼──────┼────┼─────┼────────────────┤
+ *  │  imm1  │ rs2 │ rs1 │ f3 │ imm0 │ op │  S  │ RISC-V         │
+ *  ├─┬──────┼─────┼─────┼────┼────┬─┼────┼─────┼────────────────┤
+ *  │3│  i1  │ rs2 │ rs1 │ f3 │ i0 │2│ op │  B  │ RISC-V         │
+ *  ├─┴──────┴─────┴─────┴────┼────┴─┼────┼─────┼────────────────┤
+ *  │          imm[20]        │  rd  │ op │  U  │ RISC-V         │
+ *  ├─┬──────────┬─┬──────────┼──────┼────┼─────┼────────────────┤
+ *  │3│   imm0   │1│   imm2   │  rd  │ op │  J  │ RISC-V         │
+ *  ├─┴──────────┴─┴──────────┴──────┴────┼─────┼────────────────┤
+ *  │   ?????                             │  ?  │ ?????          │
+ *  └─────────────────────────────────────┴─────┴────────────────┘
+ * ```
+ * 
+ * ### Insn Format Variable Length
+ * - evo format:
+ * ```txt
+ *  Max reg nums: 2^8 = 256
+ *  Max general opcode nums: 2^8 = 256 (Without bits/sign mode)
+ *  Max extend 1 opcode nums: 2^8 * 2^8 = 65536 (Without bits/sign mode)
+ *  --> Little Endian View.
+ *  ┌────────────────┬───────────────────────────────────────────┐
+ *  │    Type: E     │             Arch: EIR                     │
+ *  ├────────────────┼────────────────────────┬──────────────────┤
+ *  │   flag & Op    │        A field         │     B field      │
+ *  ├────────────┬───┼────────────────────────┼──────────────────┤
+ *  │     1      │ 1 │          ???           │       ???        │
+ *  ├────────────┼───┼────────────────────────┼──────────────────┤
+ *  │ 000 000 00 │ o │ 000.x: off(0)          │ 000.x: off(0)    │
+ *  │ ─── ─── ── │ p │ 001.x: reg(1)          │ 001.0: imm(4)    │
+ *  │ BBB AAA sb │ c │ 010.x: reg(1,1)        │ 001.1: imm(8)    │
+ *  │         ^^ │ o │ 011.x: reg(1,1,1)      │ 010.0: imm(4,4)  │
+ *  │       flag │ d │ 100.x: reg(1,1,1,1)    │ 010.1: imm(8,8)  │
+ *  │            │ e │ 101.0: reg(1,1)imm(4)  │ 011.0: imm(4,4,4)│
+ *  │            │   │ 101.1: reg(1,1)imm(8)  │ 011.1: imm(8,8,8)│
+ *  │            │   │ 110.0: reg(1,1)imm(4,4)│ 100.0: mem(7)    │
+ *  │            │   │ 110.1: reg(1,1)imm(8,8)│ 100.1: mem(11)   │
+ *  │            │   │ 111.x: opcode(1)       │ 101.0: mem(7,7)  │
+ *  │            │   │                        │ 101.1: mem(11,11)│
+ *  │            │   │                        │ 110.x: off(0)ExtC│
+ *  │            │   │                        │ 111.x: off(0)ExtV│
+ *  └────────────┴───┴────────────────────────┴──────────────────┘
+ * 
+ *  flag:
+ *    0. bits mode: 0: 32-bits, 1: 64-bits
+ *    1. sign mode: 0: signed,  1: unsigned
+ *    You can see such as: (`_i32`, `_u32`, `_i64`, `_u64`) in insn name.
+ * 
+ *  decode:
+ *    -> check opcode: if AAA is 111, append two bytes else append one byte
+ *    -> check flag: get A/B field length and parse as operands
+ *    -> if BBB/VVV is 110/111: read one more byte and check ExtC/ExtV flag, 
+ *         extend length and repeat (if AAA is 111, append to opcode)
+ *    -> if BBB/VVV is not 110/111, read end
+ *    -> match opcode and operands
+ *    
+ * 
+ *  encode:
+ *    -> you should encode opcode and all flags.
+ *    -> then you can fill the operands to blank bytes.
+ * 
+ *  ┌────────────────┬───────────┬──────────────────────────────────┐
+ *  │   ExtC flag    │  A field  │             B field              │
+ *  ├────────────────┼───────────┼──────────────────────────────────┤
+ *  │       1        │    ???    │               ???                │
+ *  ├────────────────┼───────────┼──────────────────────────────────┤
+ *  │  000 000 00    │    ...    │ 000.x: (110->000) off(0)         │
+ *  │  ─── ─── ──    │   Same    │ 001.z: imm(4)   / imm(8)         │
+ *  │  BBB AAA MM    │    as     │ 010.z: imm(4,4) / imm(8,8)       │
+ *  │                │  A field  │ ... (Same as B field)            │
+ *  │                │           │ 110.x: (110->110) off(0)ExtC     │
+ *  │                │           │ 111.x: (110->111) off(0)ExtV     │
+ *  └────────────────┴───────────┴──────────────────────────────────┘
+ * 
+ *  Extension Constant(Same as A&B field):
+ *    -> find in first Byte 0b110 in forward flag.
+ *    -> Read 1 more Byte and check flag for length of fields.
+ *    -> MM : Mem accessing enhance mode, 00: 8-byte, 01: 16-byte, 10: 32-byte, 11: 64-byte.
+ * 
+ *  ┌────────────────┬───────────────────────────────────────────┐
+ *  │   ExtV flag    │               ExtV Field                  │
+ *  ├────────────────┼───────────────────────────────────────────┤
+ *  │       1        │                   ???                     │
+ *  ├────────────────┼───────────────────────────────────────────┤
+ *  │   000  00000   │   000.x: (111->000) off(0)                │
+ *  │   ───  ─────   │   001.x: vec,len                          │
+ *  │   VVV  index   │   010.x: vec,vec,len                      │
+ *  │                │   ... (User define Operand Pattern)       │
+ *  │        00002   │   110.x: (111->110) off(0)ExtC            │
+ *  │  (ExtV `VEC`)  │   111.x: (111->111) off(0)ExtV            │
+ *  └────────────────┴───────────────────────────────────────────┘
+ * 
+ *  Extension Variable(User define field):
+ *    -> find in first Byte 0b111 in forward flag.
+ *    -> Read 1 more Byte and check ExtV table index.
+ *    -> According to index deal with operands.
+ * 
+ * ```
+ * 
+ * - i386/x86_64 format:
+ * ```txt
+ * (Variable-length/Byte): MAX 15 Bytes. --> Little Endian View.
+ *  ┌──────────────────┬─────────────────────────────────────────┐
+ *  │     Type: X      │          Arch: i386, x86_64             │
+ *  ├──────┬───────────┼─────┬──────────────┬────────────┬───┬───┤
+ *  │ Pref │    Rex    │ Opc │    ModR/M    │    SIB     │ D │ I │
+ *  ├──────┼───────────┼─────┼──────────────┼────────────┼───┼───┤
+ *  │ 0,1  │    0,1    │ 1~3 │     0,1      │    0,1     │ 0 │ 0 │
+ *  ├──────┼───────────┼─────┼──────────────┼────────────┤ 1 │ 1 │
+ *  │ insn │ 0100 1101 │ ??? │  ?? ??? ???  │ ?? ??? ??? │ 2 │ 2 │
+ *  │ addr │ ──── ──── │ ─── │  ── ─── ───  │ ── ─── ─── │ 4 │ 4 │
+ *  │ .... │ patt WRXB │ po  │ mod r/op r/m │ ss idx bas │   │ 8'│
+ *  └──────┴───────────┴─────┴──────────────┴────────────┴───┴───┘
+ *  Default Env:        64bit    32bit   16bit
+ *    - address-size:    64       32      16
+ *    - operand-size:    32       32      16
+ *  Opcode:
+ *    0. po: 1~3 Byte of Opcode such as: ADD eax, i32 (po=0x05).
+ *    1. trans2: 2 Byte po, if first Byte is 0x0f.
+ *    2. trans3: 3 Byte po, if fisrt and second Bytes are 0x0f 38.
+ *    3. field extention: po need to concat ModR/M.op(3-bits) field.
+ *  Imm(I):
+ *    0. imm: (0,1,2,4,8) Byte of Imm such as: ADD eax 0X4351FF23 (imm=0x23 ff 51 43).
+ *  Hidden Reg:
+ *    0. eax: when po=0x05, auto use eax as target reg. (Insn=0x05 23 ff 51 43)
+ *  ModR/M :
+ *    0~2. r/m - As Direct/Indirect operand(E): Reg/Mem.
+ *    3~5. r/op - As Reg ref(G), or as 3-bit opcode extension.
+ *    6~7. mod - 0b00: [base], 0b01: [base + disp8], 0b10: [base + disp32], 0b11: Reg.
+ *    Such as: ADD ecx, esi (po=0x01), set ModR/M : 0b11 110(esi) 001(ecx)=0xf1.
+ *    Get (Insn=0x01 f1)
+ *  Prefixs(Legacy):
+ *    - instruction prefix
+ *    - address-size override prefix: 0x67(Default: 32 -> 16)
+ *    - operand-size override prefix: 0x66(Default: 32 -> 16)
+ *    - segment override prefix: 0x2e(CS) 0x3e(DS) 0x26(ES) 0x36(SS) 0x64(FS) 0x65(GS)
+ *    - repne/repnz prefix: 0xf2 0xf3
+ *    - lock prefix: 0xf0
+ *    Such as: MOV r/m32, r32 (po=0x89), set opr-prefix: 0x66
+ *    Get MOV r/m16, r16 (Insn=0x66 89 ..)
+ *  SIB :
+ *    0~2. base
+ *    3~5. index
+ *    6~7. scale - 0b00: [idx], 0b01: [idx*2], 0b10: [idx*4], 0b11: [idx*8].
+ *  Rex Prefix(Only x86_64):
+ *    0. B - Extension of SIB.base field.
+ *    1. X - Extension of SIB.idx field.
+ *    2. R - Extension of ModR/M.reg field (Reg Num: 8 -> 16).
+ *    3. W - 0: 64-bits operand, 1: default(32-bits) operand.
+ *    5~8. 0100 - Fixed bit patten.
+ *    Such as: ADD rcx, rsi (po=0x01, 64-bits), set Rex: 0b0100 1000=0x48.
+ *    Get (Insn=0x48 01 f1)
+ *    Such as: ADD rcx, r9(0b1001) (po=0x01, 64-bits), set Rex: 0b0100 1100=0x4c.
+ *    Set ModR/M : 0b11 001 001=0xc9, Get (Insn=0x4c 01 c9)
+ *  Disp(D):
+ *    0. imm: (0,1,2,4) Byte of Imm as addr disp.
+ * ```
+ * 
+ * ### Pattern
+ * 
+ * ``` txt
+ * 
+ * Pattern (Ctrl)
+ *  - Insn      :   $name
+ *  - Insn Sep  :   ;
+ *  - Insn Bit  :   I(scl)(<numb>)([hi:lo|...])
+ * 
+ * Pattern (Ops)
+ *  - Off       :   x
+ *  - All       :   o
+ *  - Reg       :   r(idx)(<name>)([hi:lo|...])
+ *  - Imm       :   i(scl)(<numb>)([hi:lo|...])
+ *  - Mem       :   m(scl)(<flag>)([hi:lo|...])
+ *  - Lab       :   l([hi:lo|...])
+ * 
+ * 
+ * Pattern (RV)
+ *  - Opcode    :   rvop = I[ 6: 0]
+ *  - Funct3    :   rvf3 = I[14:12]
+ *  - Funct7    :   rvf7 = I[31:25]
+ *  - Reg Dest  :   rvrd = r[11: 7]
+ *  - Reg Src1  :   rvr1 = r[19:15]
+ *  - Reg Src2  :   rvr2 = r[24:20]
+ *  - Reg Csr1  :   rvrt = r[ 6: 2]                 - Csr (16-bits Insn)
+ *  - Reg Csr2  :   rvru = r[ 9: 7]                 - Csr (16-bits Insn)
+ *  - Reg Csr3  :   rvrv = r[ 4: 2]                 - Csr (16-bits Insn)
+ *  - Imm I     :   rvii = i[31:20]                 - (12-bits)
+ *  - Imm S     :   rvis = i[11:7|31:25]            - (12-bits)
+ *  - Imm B     :   rvib = i[11:8|30:25|7|31]       - (12-bits)
+ *  - Imm U     :   rviu = i[31:12]                 - (20-bits)
+ *  - Imm J     :   rvij = i[30:21|20|19:12|31]     - (20-bits)
+ *  - Imm K     :   rvik = i[12|6:2]                - Csr (16-bits Insn) (6-bits)
+ * 
+ * Note:
+ *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
+ *  - dec       :   [0-9]+                          - Dec Integer Number
+ *  - hex       :   0x[0-9A-F]+                     - Hex Number
+ *  - bin       :   0b[01]+                         - Bin Number
+ *  - idx       :   [0..32/64]                      - (Dec) Reg ID Index
+ *  - scl       :   [0..3]                          - (Dec) Scale 1 / 2 / 4 / 8 Byte
+ *  - flag      :   [...|mm|c|f|s]                  - (Bin) U8 Flag: Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
+ * ```
+ */
+typedef enum {
+    TY_x,
+    TY_o,
+    TY_r,
+    TY_i,
+    TY_m,
+    TY_l                          
+} TyKd;
+
+typedef struct {
+    size_t h;
+    size_t l;
+} BitMap;
+
+typedef struct Ty {
+    TyKd k;
+    BitMap* map;
+    size_t  len;
+    const char* sym;
+    struct Ty* or;
+
+    union {
+        // Reg
+        struct {
+            size_t  rid;
+            char*   rnm;
+        } r;
+        // Imm
+        struct {
+            size_t iscl;
+            int    inum;
+        } i;
+        // Mem
+        struct {
+            size_t mscl;
+            u8     flag;
+        } m;
+        // Lab
+        struct {
+
+        } l;
+    };
+
+} Ty;
+
+#define Ty_new(K, V, ...)           { .or = NULL   , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_r(V, ...)    Ty_new(r, V, __VA_ARGS__)
+#define Ty_i(V, ...)    Ty_new(i, V, __VA_ARGS__)
+#define Ty_m(V, ...)    Ty_new(m, V, __VA_ARGS__)
+#define Ty_l(V, ...)    Ty_new(l, V, __VA_ARGS__)
+
+char* Ty_sym(Ty t) {
+    char* tmp = malloc((24)* sizeof(char));
+    tmp[0] = '\0';
+    Ty* cur = &t;
+    while(cur != NULL && strlen(tmp) < 24) {
+        char sym[3];
+        if(strlen(tmp) >= 1) {
+            snprintf(sym, 2, "|");
+            strcat(tmp, sym);
+        }
+        if(cur->sym) {
+            snprintf(sym, 2, "%s", cur->sym);
+        } else {
+            snprintf(sym, 2, "x");
+        }
+        strcat(tmp, sym);
+        cur = cur->or;
+    }
+    Log_dbg("%s", tmp);
+    return tmp;
+}
+
+typedef struct {
+    Ty* t;
+    size_t len;
+} Tys;
+
+
+#define Tys_new(...) { .t = (Ty[]){__VA_ARGS__}, .len = (sizeof((Ty[]){__VA_ARGS__}) / sizeof(Ty)) }
+
+char* Tys_sym(Tys v) {
+    char* tmp = malloc((1 + v.len * 6)* sizeof(char));
+    tmp[0] = '\0';
+    for(size_t i = 0; i < v.len; i++) {
+        char sym[24];
+        if(v.t[i].sym) {
+            sprintf(sym, "%s ", Ty_sym(v.t[i]));
+        } else {
+            snprintf(sym, 3, "x ");
+        }
+        strcat(tmp, sym);
+    }
+    return tmp;
+}
+
 // ==================================================================================== //
 //                                    evo: Byte Map
 // ==================================================================================== //
 
 typedef struct {
-    u8* val;
-    size_t size;
-} ByteVec;
+    u8* b;
+    size_t len;
+} Val;
 
-#define ByVec(...)  { .val = (u8[]){__VA_ARGS__}, .size = (sizeof((u8[]){__VA_ARGS__}) / sizeof(Byte)) }
-#define ByN0(N)    { .val = {0}, .size = (N) }
+#define Val_new(...)  { .b = (u8[]){__VA_ARGS__}, .len = (sizeof((u8[]){__VA_ARGS__}) / sizeof(Byte)) }
+#define Val_zero(N)   { .b = {0}, .len = (N) }
 
-#define ByU8(V) \
-    {   .val = (u8[]){   \
+#define Val_u8(V) \
+    {   .b = (u8[]){   \
         (u8)((V) >>  0), \
-        }, .size = 1 }
+        }, .len = 1 }
 
-#define ByU16(V) \
-    {   .val = (u8[]){   \
+#define Val_u16(V) \
+    {   .b = (u8[]){   \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
-        }, .size = 2 }
+        }, .len = 2 }
 
-#define ByU32(V) \
-    {   .val = (u8[]){   \
+#define Val_u32(V) \
+    {   .b = (u8[]){   \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
         (u8)((V) >> 16), \
         (u8)((V) >> 24), \
-        }, .size = 4 }
+        }, .len = 4 }
 
-#define ByU64(V) \
-    {   .val = (u8[]){  \
+#define Val_u64(V) \
+    {   .b = (u8[]){  \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
         (u8)((V) >> 16), \
@@ -100,15 +418,15 @@ typedef struct {
         (u8)((V) >> 38), \
         (u8)((V) >> 46), \
         (u8)((V) >> 54), \
-        }, size = 8}
+        }, len = 8}
 
-char* ByHex(ByteVec v) {
-    char* tmp = malloc((3 + v.size * 4)* sizeof(char));
+char* Val_hex(Val v) {
+    char* tmp = malloc((3 + v.len * 4)* sizeof(char));
     snprintf(tmp, 3, "0x");
-    for(size_t i = 0; i < v.size; i++) {
+    for(size_t i = 0; i < v.len; i++) {
         char hex[4];
-        if(v.val[i]) {
-            snprintf(hex, 4, "%02x ", v.val[i]);
+        if(v.b[i]) {
+            snprintf(hex, 4, "%02x ", v.b[i]);
         } else {
             snprintf(hex, 4, "00 ");
         }
@@ -116,98 +434,6 @@ char* ByHex(ByteVec v) {
     }
     return tmp;
 }
-
-// ==================================================================================== //
-//                                    evo: Type
-// ==================================================================================== //
-
-#define TY_EL(s)    CONCAT(TY_, s)
-#define TP_EL(s)    CONCAT(TP_, s)
-
-
-/**
- * @brief 
- * 
- * @note
- * 
- * ```
- * Pattern (Main):
- *  - Insn      :   $name
- *  - Insn Sep  :   ;
- *  - Off       :   x
- *  - All       :   o(scl)(<numb>)([hi:lo|...])
- *  - Reg       :   r(idx)(<name>)([hi:lo|...])
- *  - Imm       :   i(scl)(<numb>)([hi:lo|...])
- *  - Mem       :   m(scl)(<flag>)([hi:lo|...])
- *  - Label     :   l([hi:lo|...])
- * 
- * Pattern (Simple):
- *  - Imm Zero  :   z
- *  
- * 
- * Pattern (RV):
- *  - Opcode    :   rvop = o[ 6: 0]
- *  - Funct3    :   rvf3 = o[14:12]
- *  - Funct7    :   rvf7 = o[31:25]
- *  - Reg Dest  :   rvrd = r[11: 7]
- *  - Reg Src1  :   rvr1 = r[19:15]
- *  - Reg Src2  :   rvr2 = r[24:20]
- *  - Reg Csr1  :   rvrt = r[ 6: 2]                 - Csr (16-bits Insn)
- *  - Reg Csr2  :   rvru = r[ 9: 7]                 - Csr (16-bits Insn)
- *  - Reg Csr3  :   rvrv = r[ 4: 2]                 - Csr (16-bits Insn)
- *  - Imm I     :   rvii = i[31:20]
- *  - Imm S     :   rvis = i[31:25|11:7]
- *  - Imm B     :   rvib = i[31|7|30:25|11:8]
- *  - Imm U     :   rviu = i[31:12]
- *  - Imm J     :   rvij =
- * 
- * 
- * 
- * Note:
- *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
- *  - dec       :   [0-9]+                          - Dec Integer Number
- *  - hex       :   0x[0-9A-F]+                     - Hex Number
- *  - bin       :   0b[01]+                         - Bin Number
- *  - idx       :   [0..32/64]                      - Reg ID Index
- *  - scl       :   [0..3]                          - Scale 1 / 2 / 4 / 8 Byte
- *  - flag      :   [...|mm|c|f|s]                  - U8 Flag: Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
- * ```
- */
-typedef enum {
-    TY_ANY        = 0,
-    TY_FLOAT      = 1 << 0,
-    TY_SINT       = 1 << 1,
-    TY_UINT       = 1 << 2,
-    TY_MEM_ADDR   = 1 << 3,
-    TY_INSN_ADDR  = 1 << 4,
-    TY_STARK_ADDR = 1 << 5,
-    TY_REG_ID     = 1 << 6,
-    TY_SYMBOL_ID  = 1 << 7,
-    TY_BOOL       = 1 << 8,
-    /* Type Pattern */         
-    TP_x,
-    TP_o,                 
-    TP_r,                                     
-} Type;
-
-
-typedef struct {
-    Type* tys;
-    size_t size;
-} TypeVec;
-
-
-#define TyVec(...) { .tys = (Type[]){__VA_ARGS__}, .size = (sizeof((Type[]){__VA_ARGS__}) / sizeof(Type)) }
-
-
-// ==================================================================================== //
-//                                    evo: Val
-// ==================================================================================== //
-
-typedef struct {
-    TypeVec t;
-    ByteVec b;
-} Val;
 
 
 // ==================================================================================== //
@@ -236,18 +462,18 @@ typedef struct {
         const char* alias; \
     } RegDef(T)
 
-#define RegDef_def(T, ...)                                                \
-    RegDef_T(T);                                                          \
-    static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};                \
-    void RegDef_OP_def(T, displayone)(char* res, size_t i) {              \
-        if (i < RegMax(T)) {                                              \
-            sprintf(res, "%d: %s", RegTbl(T)[i].id, RegTbl(T)[i].name);   \
-        }                                                                 \
-    }                                                                     \
-    void RegDef_OP_def(T, display)(char* res) {                           \
-        for (size_t i = 0; i < RegMax(T); i++) {                          \
-            sprintf(res, "%d: %s\n", RegTbl(T)[i].id, RegTbl(T)[i].name); \
-        }                                                                 \
+#define RegDef_def(T, ...)                                                                          \
+    RegDef_T(T);                                                                                    \
+    static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};                                          \
+    void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                        \
+        if (i < RegMax(T)) {                                                                        \
+            sprintf(res, "%2d: %-3s (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias);   \
+        }                                                                                           \
+    }                                                                                               \
+    void RegDef_OP_def(T, display)(char* res) {                                                     \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                    \
+            sprintf(res, "%2d: %-3s (%s)\n", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias); \
+        }                                                                                           \
     }
 
 #define RegDef_display(T, res)  RegDef_OP(T, display)(res)
@@ -277,22 +503,22 @@ typedef struct {
     typedef struct {      \
         InsnID(T) id;     \
         const char* name; \
-        ByteVec bc;       \
-        TypeVec tv;       \
+        Val bc;           \
+        Tys tv;           \
     } InsnDef(T)
 
-#define InsnDef_def(T, ...)                                                        \
-    InsnDef_T(T);                                                                  \
-    static InsnDef(T) InsnTbl(T)[InsnMax(T)] = {__VA_ARGS__};                      \
-    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                      \
-        if (i < InsnMax(T)) {                                                      \
-            sprintf(res, "%-14s %s", ByHex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name); \
-        }                                                                          \
-    }                                                                              \
-    void InsnDef_OP_def(T, display)(char* res) {                                   \
-        for (size_t i = 0; i < InsnMax(T); i++) {                                  \
-            sprintf(res, "%s\n", InsnTbl(T)[i].name);                              \
-        }                                                                          \
+#define InsnDef_def(T, ...)                                                          \
+    InsnDef_T(T);                                                                    \
+    static InsnDef(T) InsnTbl(T)[InsnMax(T)] = {__VA_ARGS__};                        \
+    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                        \
+        if (i < InsnMax(T)) {                                                        \
+            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tv)); \
+        }                                                                            \
+    }                                                                                \
+    void InsnDef_OP_def(T, display)(char* res) {                                     \
+        for (size_t i = 0; i < InsnMax(T); i++) {                                    \
+            sprintf(res, "%s\n", InsnTbl(T)[i].name);                                \
+        }                                                                            \
     }
 
 #define InsnDef_display(T, res) InsnDef_OP(T, display)(res)
