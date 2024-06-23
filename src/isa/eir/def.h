@@ -20,5 +20,5 @@ InsnID_def(EIR,
 
 InsnDef_def(EIR,
     [EIR_NOP]       = { .id = EIR_NOP       , .name = "nop"     , .bc = ByVec(0x00) },
-    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = ByVec(0x01) , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
+    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = ByVec(0x01) , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
 );

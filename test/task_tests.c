@@ -4,7 +4,7 @@
 UnitTest_fn_def(test_dump_elf){
     Task(Dump)* d = Task_create(Dump, "dp-01");
     Task_run(Dump, d);
-    UnitTest_msg("%s", STR_BOOL(IS_FILE("a.out")));
+    UnitTest_ast(IS_FILE("out.elf"), "Not found out.elf");
     return NULL;
 }
 

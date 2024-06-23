@@ -122,9 +122,9 @@ InsnID_def(RV,
 
 InsnDef_def(RV,
     [RV_NOP]    = { .id = RV_NOP    , .name = "nop" , .bc = ByU32(0x00) },
-    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = ByU32(0b110011 + (0b000 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
-    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = ByU32(0b110011 + (0b000 << 12) + (0x20 << 25))  , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
-    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = ByU32(0b110011 + (0b100 << 12))                 , .tv = TyVec(TYPE_REG_ID, TYPE_REG_ID, TYPE_REG_ID) },
+    [RV_ADD]    = { .id = RV_ADD    , .name = "add" , .bc = ByU32(0b110011 + (0b000 << 12))                 , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
+    [RV_SUB]    = { .id = RV_SUB    , .name = "sub" , .bc = ByU32(0b110011 + (0b000 << 12) + (0x20 << 25))  , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
+    [RV_XOR]    = { .id = RV_XOR    , .name = "xor" , .bc = ByU32(0b110011 + (0b100 << 12))                 , .tv = TyVec(TY_REG_ID, TY_REG_ID, TY_REG_ID) },
 );
 
 CPUState_def(RV,

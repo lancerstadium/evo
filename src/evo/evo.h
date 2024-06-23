@@ -121,17 +121,45 @@ char* ByHex(ByteVec v) {
 //                                    evo: Type
 // ==================================================================================== //
 
+#define TY_EL(s)    CONCAT(TY_, s)
+#define TP_EL(s)    CONCAT(TP_, s)
+
+
+/**
+ * @brief 
+ * 
+ * @code
+ * 
+ * ```
+ * Type Pattern:
+ *  - Off       :   x
+ *  - All       :   o
+ *  - Reg       :   r(idx)(<name>)([lo:hi])
+ *  - Imm       :   i(scl)(<numb>)([lo:hi])
+ *  - Mem       :   m(scl)(<flag>)([])
+ *  - Label     :   l()
+ * 
+ * Note:
+ *  - idx       :   [0..32/64]          - Reg ID Index
+ *  - scl       :   [0..3]              - Scale 1 / 2 / 4 / 8 Byte
+ *  - flag      :   [...|mm|c|f|s]      - Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
+ * ```
+ */
 typedef enum {
-    TYPE_ANY        = 0,
-    TYPE_FLOAT      = 1 << 0,
-    TYPE_SINT       = 1 << 1,
-    TYPE_UINT       = 1 << 2,
-    TYPE_MEM_ADDR   = 1 << 3,
-    TYPE_INSN_ADDR  = 1 << 4,
-    TYPE_STARK_ADDR = 1 << 5,
-    TYPE_REG_ID     = 1 << 6,
-    TYPE_SYMBOL_ID  = 1 << 7,
-    TYPE_BOOL       = 1 << 8,
+    TY_ANY        = 0,
+    TY_FLOAT      = 1 << 0,
+    TY_SINT       = 1 << 1,
+    TY_UINT       = 1 << 2,
+    TY_MEM_ADDR   = 1 << 3,
+    TY_INSN_ADDR  = 1 << 4,
+    TY_STARK_ADDR = 1 << 5,
+    TY_REG_ID     = 1 << 6,
+    TY_SYMBOL_ID  = 1 << 7,
+    TY_BOOL       = 1 << 8,
+    /* Type Pattern */         
+    TP_x,
+    TP_o,                 
+    TP_r,                                     
 } Type;
 
 
@@ -305,7 +333,7 @@ Task_def(Dump,
         ElfCtx_gen(ctx->elf, name);
     }
     void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx) {
-        TaskCtx_OP(Dump, elf)(ctx, "a.out");
+        TaskCtx_OP(Dump, elf)(ctx, CFG_GEN_ELF);
     }
     void TaskCtx_OP_def(Dump, clean) (TaskCtx(Dump) *ctx) {
         ElfCtx_free(ctx->elf);
