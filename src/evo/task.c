@@ -4,7 +4,7 @@
 
 
 #if defined(CFG_MODE_ITP) || defined(CFG_MODE_AOT) || defined(CFG_MODE_JIT) || defined(CFG_MODE_HYB)
-// typedef CONCAT(CPUState_, CFG_IISA) CPUState_0;
+typedef CONCAT(CPUState_, CFG_IISA) CPUState;
 #elif defined(CFG_MODE_EMU)
 typedef CONCAT(CPUState_, CFG_SISA) CPUState;
 #else

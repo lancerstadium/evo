@@ -262,7 +262,7 @@ typedef struct {
  *  - Imm K     :   rvik = i[12|6:2]                - Csr (16-bits Insn) (6-bits)
  * 
  * Pattern (ARM)
- * 
+ *  - Opcode    :   armop = 
  * 
  * Note:
  *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
