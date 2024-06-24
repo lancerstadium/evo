@@ -45,20 +45,11 @@ typedef struct {
 #define Width_OP(W, T, OP)          CONCAT3(W##_, T##_, OP)
 #define Width_OP_def(W, T, OP)      UNUSED Width_OP(W, T, OP)
 
-#define Width_def(W, T)                \
+#define Width_def(W, T)              \
     W Width_OP_def(W, T, new)(T b) { \
-        return (W){                    \
+        return (W){                  \
             .as_##T = b};            \
     }
-
-Width_def(Word, u32);
-Width_def(Word, i32);
-Width_def(Word, f32);
-Width_def(Dword, u64);
-Width_def(Dword, i64);
-Width_def(Dword, f64);
-Width_def(Dword, ptr);
-
 
 // ==================================================================================== //
 //                                    evo: Type
@@ -270,6 +261,9 @@ Width_def(Dword, ptr);
  *  - Imm J     :   rvij = i[30:21|20|19:12|31]     - (20-bits)
  *  - Imm K     :   rvik = i[12|6:2]                - Csr (16-bits Insn) (6-bits)
  * 
+ * Pattern (ARM)
+ * 
+ * 
  * Note:
  *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
  *  - dec       :   [0-9]+                          - Dec Integer Number
@@ -331,51 +325,15 @@ typedef struct Ty {
 #define Ty_i(V, ...)                Ty_new(i, V, __VA_ARGS__)
 #define Ty_m(V, ...)                Ty_new(m, V, __VA_ARGS__)
 #define Ty_l(V, ...)                Ty_new(l, V, __VA_ARGS__)
-
-char* Ty_sym(Ty t) {
-    char* tmp = malloc((24)* sizeof(char));
-    tmp[0] = '\0';
-    Ty* cur = &t;
-    while(cur != NULL && strlen(tmp) < 24) {
-        char sym[3];
-        if(strlen(tmp) >= 1) {
-            snprintf(sym, 2, "|");
-            strcat(tmp, sym);
-        }
-        if(cur->sym) {
-            snprintf(sym, 2, "%s", cur->sym);
-        } else {
-            snprintf(sym, 2, "x");
-        }
-        strcat(tmp, sym);
-        cur = cur->or;
-    }
-    Log_dbg("%s", tmp);
-    return tmp;
-}
+char* Ty_sym(Ty t);
 
 typedef struct {
     Ty* t;
     size_t len;
 } Tys;
 
-
 #define Tys_new(...) { .t = (Ty[]){__VA_ARGS__}, .len = (sizeof((Ty[]){__VA_ARGS__}) / sizeof(Ty)) }
-
-char* Tys_sym(Tys v) {
-    char* tmp = malloc((1 + v.len * 6)* sizeof(char));
-    tmp[0] = '\0';
-    for(size_t i = 0; i < v.len; i++) {
-        char sym[24];
-        if(v.t[i].sym) {
-            sprintf(sym, "%s ", Ty_sym(v.t[i]));
-        } else {
-            snprintf(sym, 3, "x ");
-        }
-        strcat(tmp, sym);
-    }
-    return tmp;
-}
+char* Tys_sym(Tys v);
 
 // ==================================================================================== //
 //                                    evo: Byte Map
@@ -420,20 +378,7 @@ typedef struct {
         (u8)((V) >> 54), \
         }, len = 8}
 
-char* Val_hex(Val v) {
-    char* tmp = malloc((3 + v.len * 4)* sizeof(char));
-    snprintf(tmp, 3, "0x");
-    for(size_t i = 0; i < v.len; i++) {
-        char hex[4];
-        if(v.b[i]) {
-            snprintf(hex, 4, "%02x ", v.b[i]);
-        } else {
-            snprintf(hex, 4, "00 ");
-        }
-        strcat(tmp, hex);
-    }
-    return tmp;
-}
+char* Val_hex(Val v);
 
 
 // ==================================================================================== //
@@ -463,9 +408,13 @@ char* Val_hex(Val v) {
         BitMap  map;       \
     } RegDef(T)
 
-#define RegDef_def(T, ...)                                                                            \
-    RegDef_T(T);                                                                                      \
-    static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};                                            \
+#define RegDef_def(T, ...)                                  \
+    RegDef_T(T);                                            \
+    UNUSED static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};  \
+    void RegDef_OP_def(T, displayone)(char* res, size_t i); \
+    void RegDef_OP_def(T, display)(char* res);
+
+#define RegDef_fn_def(T) \
     void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                          \
         if (i < RegMax(T)) {                                                                          \
             sprintf(res, "%2d: %-3s   [%3lu:%3lu] (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].map.h , RegTbl(T)[i].map.l , RegTbl(T)[i].alias);   \
@@ -508,9 +457,13 @@ char* Val_hex(Val v) {
         Tys tv;           \
     } InsnDef(T)
 
-#define InsnDef_def(T, ...)                                                          \
-    InsnDef_T(T);                                                                    \
-    static InsnDef(T) InsnTbl(T)[InsnMax(T)] = {__VA_ARGS__};                        \
+#define InsnDef_def(T, ...)                                          \
+    InsnDef_T(T);                                                    \
+    UNUSED static InsnDef(T) InsnTbl(T)[InsnMax(T)] = {__VA_ARGS__}; \
+    void InsnDef_OP_def(T, displayone)(char* res, size_t i);         \
+    void InsnDef_OP_def(T, display)(char* res);
+
+#define InsnDef_fn_def(T) \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                        \
         if (i < InsnMax(T)) {                                                        \
             sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tv)); \
@@ -563,6 +516,10 @@ char* Val_hex(Val v) {
     TaskCtx_def(T, S);                             \
     Task_T(T);                                     \
     __VA_ARGS__                                    \
+    Task(T) * Task_OP_def(T, create)(char* name);  \
+    void Task_OP_def(T, run)(Task(T) * t);
+
+#define Task_fn_def(T) \
     Task(T) * Task_OP_def(T, create)(char* name) { \
         Task(T)* t = malloc(sizeof(Task(T)));      \
         t->name = name;                            \
@@ -573,26 +530,34 @@ char* Val_hex(Val v) {
         TaskCtx_OP(T, run)(&t->ctx);               \
     }
 
+#define Task_dbg(T, ...)  Log_dbg(_MAGENTA("[" #T "] ") __VA_ARGS__)
+#define Task_err(T, ...)  Log_err(_MAGENTA("[" #T "] ") __VA_ARGS__)
+#define Task_warn(T, ...) Log_warn(_MAGENTA("[" #T "] ") __VA_ARGS__)
+#define Task_info(T, ...) Log_info(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_str(T) STR(T)
 #define Task_create(T, name) Task_OP(T, create)(name)
 #define Task_run(T, t) Task_OP(T, run)(t)
 
+Task_def(Load,
+
+,
+
+);
+
+
+Task_def(Dec,
+
+,
+
+);
 
 Task_def(Dump,
     ElfCtx *elf;
 ,
-    void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx) {
-        ctx->elf = ElfCtx_init();
-    }
-    void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name) {
-        ElfCtx_gen(ctx->elf, name);
-    }
-    void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx) {
-        TaskCtx_OP(Dump, elf)(ctx, CFG_GEN_ELF);
-    }
-    void TaskCtx_OP_def(Dump, clean) (TaskCtx(Dump) *ctx) {
-        ElfCtx_free(ctx->elf);
-    }
+    void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx);
+    void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name);
+    void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx);
+    void TaskCtx_OP_def(Dump, clean) (TaskCtx(Dump) *ctx);
 );
 
 
@@ -610,10 +575,10 @@ Task_def(Dump,
 #define CPUState_def(T, S, ...) \
     CPUState_T(T, S); __VA_ARGS__
 
-
+#define CPUState_fn_def(T)
 
 // ==================================================================================== //
-//                                    evo: ISA
+//                                    evo: ISA (Must In Last)
 // ==================================================================================== //
 
 #if defined(CFG_SISA_EIR) || defined(CFG_IISA_EIR) || defined(CFG_TISA_EIR)
@@ -628,15 +593,6 @@ Task_def(Dump,
 #if defined(CFG_SISA_RV)  || defined(CFG_IISA_RV)  || defined(CFG_TISA_RV)
 #include <isa/rv/def.h>
 #endif
-
-#if defined(CFG_MODE_ITP) || defined(CFG_MODE_AOT) || defined(CFG_MODE_JIT) || defined(CFG_MODE_HYB)
-typedef CONCAT(CPUState_, CFG_IISA) CPUState_0;
-#elif defined(CFG_MODE_EMU)
-typedef CONCAT(CPUState_, CFG_SISA) CPUState_0;
-#else
-#error Unsupport EVO_MODE, Config options: EMU / ITP / AOT / JIT / HYB 
-#endif
-
 
 
 #ifdef __cplusplus

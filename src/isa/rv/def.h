@@ -118,6 +118,8 @@ RegDef_def(RV,
 #endif
 );
 
+
+
 InsnID_def(RV, 
     REP1(RV_EL, NOP),
 #ifdef CFG_SISA_RVI
@@ -261,15 +263,15 @@ InsnDef_def(RV,
     [RV_EBREAK] = { .id = RV_EBREAK , .name = "ebreak"  , .bc = Val_u32(0b1110011 + (0b000 << 12) + (0x01 << 20))   , .tv = Tys_rvIe() },
 );
 
+
+
 CPUState_def(RV,
     CONCAT(u, CFG_SISA_BIT) pc;
     CONCAT(u, CFG_SISA_BIT) gpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
 #if defined(CFG_SISA_RVF) || defined(CFG_SISA_RVD) || defined(CFG_SISA_RVQ)
     CONCAT(u, CFG_SISA_BIT) fpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
 #endif
-
 ,
-
 
 );
 

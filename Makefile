@@ -15,7 +15,7 @@ ifeq ($(OS),Ubuntu)
 	LDLIBS=-l$(APP) -L./build -lm
 endif
 
-SRCS=$(wildcard src/**/*.c src/*.c)
+SRCS=$(wildcard src/**/**/*.c src/**/*.c src/*.c)
 OBJS=$(patsubst %.c,%.o,$(SRCS))
 
 SRCTEST=$(wildcard test/*_tests.c)

@@ -1,136 +1,25 @@
-[17:27:47] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
+[20:28:13] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
 
 ───── Run: [34m./test/temp_tests[0m
-[17:27:47] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
+[20:28:13] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
 ───── Sub: [34mtest_hello[0m
-[17:27:47] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
-[17:27:47] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
-
-───── Run: [34m./test/rvdec_tests[0m
-[17:27:47] [36mDEBU[0m[30m test/task_tests.c:17: [0m
+[20:28:13] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
+[20:28:13] [36mDEBU[0m[30m test/task_tests.c:17: [0m
 
 ───── Run: [34m./test/task_tests[0m
-[17:27:47] [36mDEBU[0m[30m test/task_tests.c:13: [0m
+[20:28:13] [36mDEBU[0m[30m test/task_tests.c:13: [0m
 ───── Sub: [34mtest_dump_elf[0m
-[17:27:47] [36mDEBU[0m[30m test/task_tests.c:13: [0mtotal exec 0.056 ms
-[17:27:47] [36mDEBU[0m[30m test/rvdef_tests.c:32: [0m
+[20:28:13] [92mINFO[0m[30m src/evo/task.c:21: [0m[35m[Dump] [0m[32m[1m+[0m out.elf
+[20:28:13] [36mDEBU[0m[30m test/task_tests.c:13: [0mtotal exec 0.201 ms
+[20:28:13] [36mDEBU[0m[30m test/rvdec_tests.c:85: [0m
+
+───── Run: [34m./test/rvdec_tests[0m
+[20:28:13] [36mDEBU[0m[30m test/rvdef_tests.c:32: [0m
 
 ───── Run: [34m./test/rvdef_tests[0m
-[17:27:47] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0m
+[20:28:13] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0m
 ───── Sub: [34mtest_insn_display[0m
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mi
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m src/evo/evo.h:353: [0mr
-[17:27:47] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0mtotal exec 0.775 ms
-[17:27:47] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0m
+[20:28:13] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0mtotal exec 0.530 ms
+[20:28:13] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0m
 ───── Sub: [34mtest_reg_display[0m
-[17:27:47] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0mtotal exec 0.023 ms
+[20:28:13] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0mtotal exec 0.346 ms
