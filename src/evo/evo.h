@@ -452,7 +452,7 @@ char* Val_hex(Val v);
 #define InsnDef_T(T)      \
     typedef struct {      \
         InsnID(T) id;     \
-        const char* name; \
+        const char* mnem; \
         Val bc;           \
         Tys tv;           \
     } InsnDef(T)
@@ -466,12 +466,12 @@ char* Val_hex(Val v);
 #define InsnDef_fn_def(T) \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                        \
         if (i < InsnMax(T)) {                                                        \
-            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tv)); \
+            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].mnem, Tys_sym(InsnTbl(T)[i].tv)); \
         }                                                                            \
     }                                                                                \
     void InsnDef_OP_def(T, display)(char* res) {                                     \
         for (size_t i = 0; i < InsnMax(T); i++) {                                    \
-            sprintf(res, "%s\n", InsnTbl(T)[i].name);                                \
+            sprintf(res, "%s\n", InsnTbl(T)[i].mnem);                                \
         }                                                                            \
     }
 
