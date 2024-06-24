@@ -267,6 +267,7 @@ CPUState_def(RV,
 #if defined(CFG_SISA_RVF) || defined(CFG_SISA_RVD) || defined(CFG_SISA_RVQ)
     CONCAT(u, CFG_SISA_BIT) fpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
 #endif
+
 ,
 
 
