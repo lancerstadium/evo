@@ -19,6 +19,6 @@ InsnID_def(EIR,
 );
 
 InsnDef_def(EIR,
-    [EIR_NOP]       = { .id = EIR_NOP       , .mnem = "nop"     , .bc = Val_u32(0x00) },
-    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u32(0x01) , .tv = Tys_new() },
+    [EIR_NOP]       = { .id = EIR_NOP       , .name = "nop"     , .bc = Val_u32(0x00) },
+    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = Val_u32(0x01) , .tv = Tys_new() },
 );

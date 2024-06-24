@@ -53,12 +53,12 @@ RegDef_def(ARM,
 // ==================================================================================== //
 
 InsnID_def(ARM,
-
+    REP1(ARM_EL, NOP),
 );
 
 
 InsnDef_def(ARM,
-
+    [ARM_NOP]       = { .id = ARM_NOP    , .name = "nop"     , .bc = Val_u32(0x00) },
 );
 
 
