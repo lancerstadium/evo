@@ -305,17 +305,17 @@ typedef struct Ty {
         // Reg
         struct {
             size_t  rid;
-            char*   rnm;
+            char*   rname;
         } r;
         // Imm
         struct {
-            size_t iscl;
-            int    inum;
+            size_t  iscl;
+            int     inum;
         } i;
         // Mem
         struct {
-            size_t mscl;
-            u8     flag;
+            size_t  mscl;
+            u8      mflag;
         } m;
         // Lab
         struct {
@@ -327,10 +327,10 @@ typedef struct Ty {
 
 #define Ty_new(K, V, ...)           { .or = NULL   , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
 #define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
-#define Ty_r(V, ...)    Ty_new(r, V, __VA_ARGS__)
-#define Ty_i(V, ...)    Ty_new(i, V, __VA_ARGS__)
-#define Ty_m(V, ...)    Ty_new(m, V, __VA_ARGS__)
-#define Ty_l(V, ...)    Ty_new(l, V, __VA_ARGS__)
+#define Ty_r(V, ...)                Ty_new(r, V, __VA_ARGS__)
+#define Ty_i(V, ...)                Ty_new(i, V, __VA_ARGS__)
+#define Ty_m(V, ...)                Ty_new(m, V, __VA_ARGS__)
+#define Ty_l(V, ...)                Ty_new(l, V, __VA_ARGS__)
 
 char* Ty_sym(Ty t) {
     char* tmp = malloc((24)* sizeof(char));
@@ -460,20 +460,21 @@ char* Val_hex(Val v) {
         RegID(T) id;       \
         const char* name;  \
         const char* alias; \
+        BitMap  map;       \
     } RegDef(T)
 
-#define RegDef_def(T, ...)                                                                          \
-    RegDef_T(T);                                                                                    \
-    static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};                                          \
-    void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                        \
-        if (i < RegMax(T)) {                                                                        \
-            sprintf(res, "%2d: %-3s (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias);   \
-        }                                                                                           \
-    }                                                                                               \
-    void RegDef_OP_def(T, display)(char* res) {                                                     \
-        for (size_t i = 0; i < RegMax(T); i++) {                                                    \
+#define RegDef_def(T, ...)                                                                            \
+    RegDef_T(T);                                                                                      \
+    static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};                                            \
+    void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                          \
+        if (i < RegMax(T)) {                                                                          \
+            sprintf(res, "%2d: %-3s   [%3lu:%3lu] (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].map.h , RegTbl(T)[i].map.l , RegTbl(T)[i].alias);   \
+        }                                                                                             \
+    }                                                                                                 \
+    void RegDef_OP_def(T, display)(char* res) {                                                       \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                      \
             sprintf(res, "%2d: %-3s (%s)\n", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias); \
-        }                                                                                           \
+        }                                                                                             \
     }
 
 #define RegDef_display(T, res)  RegDef_OP(T, display)(res)
@@ -602,8 +603,8 @@ Task_def(Dump,
 #define CPUState(T)             CONCAT(CPUState_, T)
 #define CPUState_T(T, S)      \
     typedef struct {          \
-        Task(Dump) task_dump; \
         S                     \
+        Task(Dump) task_dump; \
     } CPUState(T)
 
 #define CPUState_def(T, S, ...) \

@@ -36,31 +36,42 @@ typedef void*       ptr;
 // #define CFG_MODE_HYB
 
 #define CFG_SISA        RV
-#define CFG_SISA_RV
 #define CFG_SISA_BIT    32
+#define CFG_SISA_RV
+#define CFG_SISA_RVI
+#define CFG_SISA_RVZifencei
+#define CFG_SISA_RVZicsr
+// #define CFG_SISA_RVM
+// #define CFG_SISA_RVA
+// #define CFG_SISA_RVF
+// #define CFG_SISA_RVD
+// #define CFG_SISA_RVQ
+
 #define CFG_IISA        EIR
-#define CFG_IISA_EIR
 #define CFG_IISA_BIT    64
+#define CFG_IISA_EIR
+
 #define CFG_TISA        X86
-#define CFG_TISA_X86
 #define CFG_TISA_BIT    64
+#define CFG_TISA_X86
 #if !defined(CFG_MODE_EMU) && !defined(CFG_TISA)
 #ifdef __i386__
 #define CFG_TISA        X86
-#define CFG_TISA_X86
 #define CFG_TISA_BIT    32
+#define CFG_TISA_X86
+
 #elif  __x86_64__
 #define CFG_TISA        X86
-#define CFG_TISA_X86
 #define CFG_TISA_BIT    64
+#define CFG_TISA_X86
 #elif  __arm__
 #define CFG_TISA        ARM
-#define CFG_TISA_ARM
 #define CFG_TISA_BIT    32
+#define CFG_TISA_ARM
 #elif  __aarch64__
 #define CFG_TISA        ARM
-#define CFG_TISA_ARM
 #define CFG_TISA_BIT    64
+#define CFG_TISA_ARM
 #elif  __riscv__
 #define CFG_TISA        RV
 #endif // __ARCH__
