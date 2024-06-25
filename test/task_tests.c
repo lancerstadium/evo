@@ -1,5 +1,6 @@
 #include <sob/sob.h>
 #include <evo/evo.h>
+#include <evo/task.h>
 
 UnitTest_fn_def(test_dump_elf){
     Task(Dump)* d = Task_create(Dump, "dp-01");

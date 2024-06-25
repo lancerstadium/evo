@@ -3,7 +3,6 @@
 #define _EVO_EVO_H_
 
 #include <evo/cfg.h>
-#include <gen/gen.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -484,7 +483,7 @@ char* Val_hex(Val v);
 #define Insn_T(T, S)  \
     typedef struct {  \
         InsnID(T) id; \
-        Byte      bc; \
+        Val       bc; \
         S             \
     } Insn(T)
 
@@ -513,6 +512,8 @@ char* Val_hex(Val v);
     CPUState_T(T, S); __VA_ARGS__
 
 #define CPUState_fn_def(T)
+
+
 
 // ==================================================================================== //
 //                                    evo: Task
@@ -569,41 +570,9 @@ char* Val_hex(Val v);
 #define Task_create(T, name) Task_OP(T, create)(name)
 #define Task_run(T, t) Task_OP(T, run)(t)
 
-Task_def(Load,
-
-,
-
-);
-
-
-// Task_def(Decode,
-//     Val pc;                 /* pc   : Program Counter       */
-//     Val snpc;               /* snpc : Static Next PC        */
-//     Val dnpc;               /* dnpc : Dynamic Next PC       */
-// #if defined(CFG_PERF_DECODE)
-
-// #endif
-// ,
-    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val insn);
-    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val insn);
-    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val insn);
-// );
-
-Task_def(Dump,
-    ElfCtx *elf;            /* elf  : Elf Dump Context      */
-#if defined(CFG_PERF_DUMP)
-
-#endif
-,
-    void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx);
-    void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name);
-    void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx);
-    void TaskCtx_OP_def(Dump, clear) (TaskCtx(Dump) *ctx);
-);
-
 
 // ==================================================================================== //
-//                                    evo: ISA (Must In Last)
+//                                    evo: ISA (Must Last)
 // ==================================================================================== //
 
 #if defined(CFG_SISA_EIR) || defined(CFG_IISA_EIR) || defined(CFG_TISA_EIR)

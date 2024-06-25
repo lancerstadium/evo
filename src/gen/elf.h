@@ -155,11 +155,11 @@ typedef struct {
     int symtab_idx;
     int strtab_idx;
     int section_idx;
-} ElfCtx;
+} ELFDump;
 
-ElfCtx* ElfCtx_init();
-void ElfCtx_free(ElfCtx* t);
-void ElfCtx_gen(ElfCtx *t, char* outfile);
+ELFDump* ELFDump_init();
+void ELFDump_free(ELFDump* t);
+void ELFDump_gen(ELFDump *t, char* outfile);
 
 #ifdef __cplusplus
 }

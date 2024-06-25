@@ -44,9 +44,9 @@ UNUSED static Strtbl shstrtab[] = {
 };
 
 
-ElfCtx* ElfCtx_init() {
-    ElfCtx* t;
-    t = (ElfCtx*)malloc(sizeof(ElfCtx));
+ELFDump* ELFDump_init() {
+    ELFDump* t;
+    t = (ELFDump*)malloc(sizeof(ELFDump));
     t->header_len = 0x54;
     t->code_start = ELF_START + t->header_len;
     t->code = malloc(ELF_MAX_CODE);
@@ -58,7 +58,7 @@ ElfCtx* ElfCtx_init() {
     return t;
 }
 
-void ElfCtx_free(ElfCtx* t) {
+void ELFDump_free(ELFDump* t) {
 
     free(t->code);
     free(t->data);
@@ -68,42 +68,42 @@ void ElfCtx_free(ElfCtx* t) {
     free(t->section);
 }
 
-void ElfCtx_section_wstr(ElfCtx *t, char *vals, int len) {
+void ELFDump_section_wstr(ELFDump *t, char *vals, int len) {
     for (int i = 0; i < len; i++) {
         t->section[t->section_idx++] = vals[i];
     }
 }
-void ElfCtx_data_wstr(ElfCtx *t, char *vals, int len) {
+void ELFDump_data_wstr(ELFDump *t, char *vals, int len) {
     for (int i = 0; i < len; i++) {
         t->data[t->data_idx++] = vals[i];
     }
 }
-void ElfCtx_header_wbyte(ElfCtx *t, int val) {
+void ELFDump_header_wbyte(ELFDump *t, int val) {
     t->header[t->header_idx++] = val;
 }
-void ElfCtx_section_wbyte(ElfCtx *t, char val) {
+void ELFDump_section_wbyte(ELFDump *t, char val) {
     t->section[t->section_idx++] = val;
 }
-int ElfCtx_wint(char *buf, int index, int val) {
+int ELFDump_wint(char *buf, int index, int val) {
     for (int i = 0; i < 4; i++)
         buf[index++] = EBYTE(val, i);
     return index;
 }
-void ElfCtx_header_wint(ElfCtx *t, int val) {
-    t->header_idx = ElfCtx_wint(t->header, t->header_idx, val);
+void ELFDump_header_wint(ELFDump *t, int val) {
+    t->header_idx = ELFDump_wint(t->header, t->header_idx, val);
 }
-void ElfCtx_section_wint(ElfCtx *t, int val) {
-    t->section_idx = ElfCtx_wint(t->section, t->section_idx, val);
+void ELFDump_section_wint(ELFDump *t, int val) {
+    t->section_idx = ELFDump_wint(t->section, t->section_idx, val);
 }
-void ElfCtx_symbol_wint(ElfCtx *t, int val) {
-    t->symtab_idx = ElfCtx_wint(t->symtab, t->symtab_idx, val);
+void ELFDump_symbol_wint(ELFDump *t, int val) {
+    t->symtab_idx = ELFDump_wint(t->symtab, t->symtab_idx, val);
 }
-void ElfCtx_code_wint(ElfCtx *t, int val) {
-    t->code_idx = ElfCtx_wint(t->code, t->code_idx, val);
+void ELFDump_code_wint(ELFDump *t, int val) {
+    t->code_idx = ELFDump_wint(t->code, t->code_idx, val);
 }
 
 
-void ElfCtx_align(ElfCtx *t) {
+void ELFDump_align(ELFDump *t) {
     int remainder = t->data_idx & 3;
     if (remainder)
         t->data_idx += (4 - remainder);
@@ -117,156 +117,156 @@ void ElfCtx_align(ElfCtx *t) {
         t->strtab_idx += (4 - remainder);
 }
 
-void ElfCtx_gen_sections(ElfCtx *t) {
+void ELFDump_gen_sections(ELFDump *t) {
     /* symtab section */
     for (int b = 0; b < t->symtab_idx; b++)
-        ElfCtx_section_wbyte(t, t->symtab[b]);
+        ELFDump_section_wbyte(t, t->symtab[b]);
 
     /* strtab section */
     for (int b = 0; b < t->strtab_idx; b++)
-        ElfCtx_section_wbyte(t, t->strtab[b]);
+        ELFDump_section_wbyte(t, t->strtab[b]);
 
     /* shstr section; len = 39 */
-    ElfCtx_section_wbyte(t, 0);
-    ElfCtx_section_wstr(t, ".shstrtab", 9);
-    ElfCtx_section_wbyte(t, 0);
-    ElfCtx_section_wstr(t, ".text", 5);
-    ElfCtx_section_wbyte(t, 0);
-    ElfCtx_section_wstr(t, ".data", 5);
-    ElfCtx_section_wbyte(t, 0);
-    ElfCtx_section_wstr(t, ".symtab", 7);
-    ElfCtx_section_wbyte(t, 0);
-    ElfCtx_section_wstr(t, ".strtab", 7);
-    ElfCtx_section_wbyte(t, 0);
+    ELFDump_section_wbyte(t, 0);
+    ELFDump_section_wstr(t, ".shstrtab", 9);
+    ELFDump_section_wbyte(t, 0);
+    ELFDump_section_wstr(t, ".text", 5);
+    ELFDump_section_wbyte(t, 0);
+    ELFDump_section_wstr(t, ".data", 5);
+    ELFDump_section_wbyte(t, 0);
+    ELFDump_section_wstr(t, ".symtab", 7);
+    ELFDump_section_wbyte(t, 0);
+    ELFDump_section_wstr(t, ".strtab", 7);
+    ELFDump_section_wbyte(t, 0);
 
     /* section header table */
 
     /* NULL section */
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
 
     /* .text */
-    ElfCtx_section_wint(t, 0xb);
-    ElfCtx_section_wint(t, 1);
-    ElfCtx_section_wint(t, 7);
-    ElfCtx_section_wint(t, ELF_START + t->header_len);
-    ElfCtx_section_wint(t, t->header_len);
-    ElfCtx_section_wint(t, t->code_idx);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 4);
-    ElfCtx_section_wint(t, 0);
+    ELFDump_section_wint(t, 0xb);
+    ELFDump_section_wint(t, 1);
+    ELFDump_section_wint(t, 7);
+    ELFDump_section_wint(t, ELF_START + t->header_len);
+    ELFDump_section_wint(t, t->header_len);
+    ELFDump_section_wint(t, t->code_idx);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 4);
+    ELFDump_section_wint(t, 0);
 
     /* .data */
-    ElfCtx_section_wint(t, 0x11);
-    ElfCtx_section_wint(t, 1);
-    ElfCtx_section_wint(t, 3);
-    ElfCtx_section_wint(t, t->code_start + t->code_idx);
-    ElfCtx_section_wint(t, t->header_len + t->code_idx);
-    ElfCtx_section_wint(t, t->data_idx);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 4);
-    ElfCtx_section_wint(t, 0);
+    ELFDump_section_wint(t, 0x11);
+    ELFDump_section_wint(t, 1);
+    ELFDump_section_wint(t, 3);
+    ELFDump_section_wint(t, t->code_start + t->code_idx);
+    ELFDump_section_wint(t, t->header_len + t->code_idx);
+    ELFDump_section_wint(t, t->data_idx);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 4);
+    ELFDump_section_wint(t, 0);
 
     /* .symtab */
-    ElfCtx_section_wint(t, 0x17);
-    ElfCtx_section_wint(t, 2);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, t->header_len + t->code_idx + t->data_idx);
-    ElfCtx_section_wint(t, t->symtab_idx); /* size */
-    ElfCtx_section_wint(t, 4);
-    ElfCtx_section_wint(t, t->symbol_idx);
-    ElfCtx_section_wint(t, 4);
-    ElfCtx_section_wint(t, 16);
+    ELFDump_section_wint(t, 0x17);
+    ELFDump_section_wint(t, 2);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, t->header_len + t->code_idx + t->data_idx);
+    ELFDump_section_wint(t, t->symtab_idx); /* size */
+    ELFDump_section_wint(t, 4);
+    ELFDump_section_wint(t, t->symbol_idx);
+    ELFDump_section_wint(t, 4);
+    ELFDump_section_wint(t, 16);
 
     /* .strtab */
-    ElfCtx_section_wint(t, 0x1f);
-    ElfCtx_section_wint(t, 3);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, t->header_len + t->code_idx + t->data_idx +
+    ELFDump_section_wint(t, 0x1f);
+    ELFDump_section_wint(t, 3);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, t->header_len + t->code_idx + t->data_idx +
                           t->symtab_idx);
-    ElfCtx_section_wint(t, t->strtab_idx); /* size */
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 1);
-    ElfCtx_section_wint(t, 0);
+    ELFDump_section_wint(t, t->strtab_idx); /* size */
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 1);
+    ELFDump_section_wint(t, 0);
 
     /* .shstr */
-    ElfCtx_section_wint(t, 1);
-    ElfCtx_section_wint(t, 3);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, t->header_len + t->code_idx + t->data_idx +
+    ELFDump_section_wint(t, 1);
+    ELFDump_section_wint(t, 3);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, t->header_len + t->code_idx + t->data_idx +
                           t->symtab_idx + t->strtab_idx);
-    ElfCtx_section_wint(t, 39);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 0);
-    ElfCtx_section_wint(t, 1);
-    ElfCtx_section_wint(t, 0);
+    ELFDump_section_wint(t, 39);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 0);
+    ELFDump_section_wint(t, 1);
+    ELFDump_section_wint(t, 0);
 }
 
 
-void ElfCtx_gen_header(ElfCtx *t) {
+void ELFDump_gen_header(ELFDump *t) {
     /* ELF header */
-    ElfCtx_header_wint(t, 0x464c457f);                  /* Magic: 0x7F followed by ELF */
-    ElfCtx_header_wbyte(t, 1);                          /* 32-bit */
-    ElfCtx_header_wbyte(t, 1);                          /* little-endian */
-    ElfCtx_header_wbyte(t, 1);                          /* EI_VERSION */
-    ElfCtx_header_wbyte(t, 0);                          /* System V */
-    ElfCtx_header_wint(t, 0);                           /* EI_ABIVERSION */
-    ElfCtx_header_wint(t, 0);                           /* EI_PAD: unused */
-    ElfCtx_header_wbyte(t, 2);                          /* ET_EXEC */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, ELF_MACHINE);
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wint(t, 1);                           /* ELF version */
-    ElfCtx_header_wint(t, ELF_START + t->header_len);   /* entry point */
-    ElfCtx_header_wint(t, 0x34); /* program header offset */
-    ElfCtx_header_wint(t, t->header_len + t->code_idx + t->data_idx + 39 +
+    ELFDump_header_wint(t, 0x464c457f);                  /* Magic: 0x7F followed by ELF */
+    ELFDump_header_wbyte(t, 1);                          /* 32-bit */
+    ELFDump_header_wbyte(t, 1);                          /* little-endian */
+    ELFDump_header_wbyte(t, 1);                          /* EI_VERSION */
+    ELFDump_header_wbyte(t, 0);                          /* System V */
+    ELFDump_header_wint(t, 0);                           /* EI_ABIVERSION */
+    ELFDump_header_wint(t, 0);                           /* EI_PAD: unused */
+    ELFDump_header_wbyte(t, 2);                          /* ET_EXEC */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, ELF_MACHINE);
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wint(t, 1);                           /* ELF version */
+    ELFDump_header_wint(t, ELF_START + t->header_len);   /* entry point */
+    ELFDump_header_wint(t, 0x34); /* program header offset */
+    ELFDump_header_wint(t, t->header_len + t->code_idx + t->data_idx + 39 +
                          t->symtab_idx +
                          t->strtab_idx); /* section header offset */
     /* flags */
-    ElfCtx_header_wint(t, ELF_FLAGS);
-    ElfCtx_header_wbyte(t, 0x34);                       /* header size */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, 0x20);                       /* program header size */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, 1);                          /* number of program headers */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, 0x28);                       /* section header size */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, 6);                          /* number of sections */
-    ElfCtx_header_wbyte(t, 0);
-    ElfCtx_header_wbyte(t, 5);                          /* section index with names */
-    ElfCtx_header_wbyte(t, 0);
+    ELFDump_header_wint(t, ELF_FLAGS);
+    ELFDump_header_wbyte(t, 0x34);                       /* header size */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, 0x20);                       /* program header size */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, 1);                          /* number of program headers */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, 0x28);                       /* section header size */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, 6);                          /* number of sections */
+    ELFDump_header_wbyte(t, 0);
+    ELFDump_header_wbyte(t, 5);                          /* section index with names */
+    ELFDump_header_wbyte(t, 0);
 
     /* program header - code and data combined */
-    ElfCtx_header_wint(t, 1);                           /* PT_LOAD */
-    ElfCtx_header_wint(t, t->header_len);               /* offset of segment */
-    ElfCtx_header_wint(t, ELF_START + t->header_len);   /* virtual address */
-    ElfCtx_header_wint(t, ELF_START + t->header_len);   /* physical address */
-    ElfCtx_header_wint(t, t->code_idx + t->data_idx);   /* size in file */
-    ElfCtx_header_wint(t, t->code_idx + t->data_idx);   /* size in memory */
-    ElfCtx_header_wint(t, 7);                           /* flags */
-    ElfCtx_header_wint(t, 4);                           /* alignment */
+    ELFDump_header_wint(t, 1);                           /* PT_LOAD */
+    ELFDump_header_wint(t, t->header_len);               /* offset of segment */
+    ELFDump_header_wint(t, ELF_START + t->header_len);   /* virtual address */
+    ELFDump_header_wint(t, ELF_START + t->header_len);   /* physical address */
+    ELFDump_header_wint(t, t->code_idx + t->data_idx);   /* size in file */
+    ELFDump_header_wint(t, t->code_idx + t->data_idx);   /* size in memory */
+    ELFDump_header_wint(t, 7);                           /* flags */
+    ELFDump_header_wint(t, 4);                           /* alignment */
 }
 
-void ElfCtx_add_symbol(ElfCtx *t, char *symbol, int len, int pc) {
-    ElfCtx_symbol_wint(t, t->strtab_idx);
-    ElfCtx_symbol_wint(t, pc);
-    ElfCtx_symbol_wint(t, 0);
-    ElfCtx_symbol_wint(t, pc == 0 ? 0 : 1 << 16);
+void ELFDump_add_symbol(ELFDump *t, char *symbol, int len, int pc) {
+    ELFDump_symbol_wint(t, t->strtab_idx);
+    ELFDump_symbol_wint(t, pc);
+    ELFDump_symbol_wint(t, 0);
+    ELFDump_symbol_wint(t, pc == 0 ? 0 : 1 << 16);
 
     strncpy(t->strtab + t->strtab_idx, symbol, len);
     t->strtab_idx += len;
@@ -274,15 +274,15 @@ void ElfCtx_add_symbol(ElfCtx *t, char *symbol, int len, int pc) {
     t->symbol_idx++;
 }
 
-void ElfCtx_gen(ElfCtx *t, char* outfile) {
+void ELFDump_gen(ELFDump *t, char* outfile) {
     t->symbol_idx = 0;
     t->symtab_idx = 0;
     t->strtab_idx = 0;
     t->section_idx = 0;
 
-    ElfCtx_align(t);
-    ElfCtx_gen_header(t);
-    ElfCtx_gen_sections(t);
+    ELFDump_align(t);
+    ELFDump_gen_header(t);
+    ELFDump_gen_sections(t);
 
     if(!outfile) {
         outfile = "a.out";
