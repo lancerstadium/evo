@@ -234,7 +234,7 @@ typedef struct {
  *  - Insn Sep  :   ;
  *  - Insn Bit  :   I(scl)(<numb>)([hi:lo|...])
  * 
- * Pattern (Ops)
+ * Pattern (Oprs)
  *  - Off       :   x
  *  - All       :   o
  *  - Reg       :   r(idx)(<name>)([hi:lo|...])
@@ -274,6 +274,12 @@ typedef struct {
  * ```
  */
 typedef enum {
+    /* ctrl */
+    TY_ctrl = 0,
+    TY_I = TY_ctrl,
+    TY_S,
+    /* oprs */
+    TY_oprs,
     TY_x,
     TY_o,
     TY_r,
@@ -289,37 +295,15 @@ typedef struct {
 
 typedef struct Ty {
     TyKd k;
+    char* sym;
     BitMap* map;
     size_t  len;
-    const char* sym;
     struct Ty* or;
-
-    union {
-        // Reg
-        struct {
-            size_t  rid;
-            char*   rname;
-        } r;
-        // Imm
-        struct {
-            size_t  iscl;
-            int     inum;
-        } i;
-        // Mem
-        struct {
-            size_t  mscl;
-            u8      mflag;
-        } m;
-        // Lab
-        struct {
-
-        } l;
-    };
-
 } Ty;
 
-#define Ty_new(K, V, ...)           { .or = NULL   , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
-#define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .k = CONCAT(TY_,K), .K = V , .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_new(K, V, ...)           { .or = NULL   , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_I(V, ...)                Ty_new(I, V, __VA_ARGS__)
 #define Ty_r(V, ...)                Ty_new(r, V, __VA_ARGS__)
 #define Ty_i(V, ...)                Ty_new(i, V, __VA_ARGS__)
 #define Ty_m(V, ...)                Ty_new(m, V, __VA_ARGS__)
@@ -456,7 +440,8 @@ u64 Val_get_u64(Val v, size_t i);
         InsnID(T) id;     \
         const char* name; \
         Val bc;           \
-        Tys tv;           \
+        Tys tc;           \
+        Tys tr;           \
     } InsnDef(T)
 
 #define InsnDef_def(T, ...)                                          \
@@ -468,7 +453,7 @@ u64 Val_get_u64(Val v, size_t i);
 #define InsnDef_fn_def(T) \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                        \
         if (i < InsnMax(T)) {                                                        \
-            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tv)); \
+            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tr)); \
         }                                                                            \
     }                                                                                \
     void InsnDef_OP_def(T, display)(char* res) {                                     \
@@ -487,7 +472,7 @@ u64 Val_get_u64(Val v, size_t i);
     typedef struct {  \
         InsnID(T) id; \
         Val       bc; \
-        Val*    args; \
+        Val*    oprs; \
         size_t   len; \
         S             \
     } Insn(T)

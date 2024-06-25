@@ -199,7 +199,9 @@ InsnID_def(RV,
 #endif
 );
 
-
+#define Ty_rvop(V)      Ty_I(V, { 6,  0})
+#define Ty_rvf3(V)      Ty_I(V, {14, 12})
+#define Ty_rvf7(V)      Ty_I(V, {31, 25})
 #define Ty_rvrd(V)      Ty_r(V, {11,  7})
 #define Ty_rvr1(V)      Ty_r(V, {19, 15})
 #define Ty_rvr2(V)      Ty_r(V, {24, 20})
@@ -208,6 +210,10 @@ InsnID_def(RV,
 #define Ty_rvib(V)      Ty_i(V, {11,  8}, {30, 25}, { 7,  7}, {31, 31})
 #define Ty_rviu(V)      Ty_i(V, {31, 12})
 #define Ty_rvij(V)      Ty_i(V, {30, 21}, {20, 20}, {19, 12}, {31, 31})
+#define Tys_rvr(...)    Tys_new(Ty_rvop({}), Ty_rvf3({}), Ty_rvf7({}))
+#define Tys_rvi(...)    Tys_new(Ty_rvop({}), Ty_rvf3({}))
+#define Tys_rvu(...)    Tys_new(Ty_rvop({}))
+#define Tys_rvie()      Tys_new(Ty_rvop({}), Ty_rvf3({}), Ty_I({}, {31, 20}))
 #define Tys_rvR(...)    Tys_new(Ty_rvrd({}), Ty_rvr1({}), Ty_rvr2({}))
 #define Tys_rvI(...)    Tys_new(Ty_rvrd({}), Ty_rvr1({}), Ty_rvii({}))
 #define Tys_rvS(...)    Tys_new(Ty_rvr1({}), Ty_rvr2({}), Ty_rvis({}))
@@ -220,52 +226,52 @@ InsnID_def(RV,
 InsnDef_def(RV,
     [RV_NOP]    = { .id = RV_NOP    , .name = "nop"     , .bc = Val_u32(0x00) },
     /* RV32I: R-Type Arithmetic */
-    [RV_ADD]    = { .id = RV_ADD    , .name = "add"     , .bc = Val_u32(0b0110011 + (0b000 << 12))                  , .tv = Tys_rvR()  },
-    [RV_SUB]    = { .id = RV_SUB    , .name = "sub"     , .bc = Val_u32(0b0110011 + (0b000 << 12) + (0x20 << 25))   , .tv = Tys_rvR()  },
-    [RV_XOR]    = { .id = RV_XOR    , .name = "xor"     , .bc = Val_u32(0b0110011 + (0b100 << 12))                  , .tv = Tys_rvR()  },
-    [RV_OR]     = { .id = RV_OR     , .name = "or"      , .bc = Val_u32(0b0110011 + (0b110 << 12))                  , .tv = Tys_rvR()  },
-    [RV_AND]    = { .id = RV_AND    , .name = "and"     , .bc = Val_u32(0b0110011 + (0b111 << 12))                  , .tv = Tys_rvR()  },
-    [RV_SLL]    = { .id = RV_SLL    , .name = "sll"     , .bc = Val_u32(0b0110011 + (0b001 << 12))                  , .tv = Tys_rvR()  },
-    [RV_SRL]    = { .id = RV_SRL    , .name = "srl"     , .bc = Val_u32(0b0110011 + (0b101 << 12))                  , .tv = Tys_rvR()  },
-    [RV_SRA]    = { .id = RV_SRA    , .name = "sra"     , .bc = Val_u32(0b0110011 + (0b101 << 12) + (0x20 << 25))   , .tv = Tys_rvR()  },
-    [RV_SLT]    = { .id = RV_SLT    , .name = "slt"     , .bc = Val_u32(0b0110011 + (0b010 << 12))                  , .tv = Tys_rvR()  },
-    [RV_SLTU]   = { .id = RV_SLTU   , .name = "sltu"    , .bc = Val_u32(0b0110011 + (0b011 << 12))                  , .tv = Tys_rvR()  },
+    [RV_ADD]    = { .id = RV_ADD    , .name = "add"     , .bc = Val_u32(0b0110011 + (0b000 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SUB]    = { .id = RV_SUB    , .name = "sub"     , .bc = Val_u32(0b0110011 + (0b000 << 12) + (0x20 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_XOR]    = { .id = RV_XOR    , .name = "xor"     , .bc = Val_u32(0b0110011 + (0b100 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_OR]     = { .id = RV_OR     , .name = "or"      , .bc = Val_u32(0b0110011 + (0b110 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_AND]    = { .id = RV_AND    , .name = "and"     , .bc = Val_u32(0b0110011 + (0b111 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SLL]    = { .id = RV_SLL    , .name = "sll"     , .bc = Val_u32(0b0110011 + (0b001 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SRL]    = { .id = RV_SRL    , .name = "srl"     , .bc = Val_u32(0b0110011 + (0b101 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SRA]    = { .id = RV_SRA    , .name = "sra"     , .bc = Val_u32(0b0110011 + (0b101 << 12) + (0x20 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SLT]    = { .id = RV_SLT    , .name = "slt"     , .bc = Val_u32(0b0110011 + (0b010 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_SLTU]   = { .id = RV_SLTU   , .name = "sltu"    , .bc = Val_u32(0b0110011 + (0b011 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
     /* RV32I: I-Type Arithmetic */ 
-    [RV_ADDI]   = { .id = RV_ADDI   , .name = "addi"    , .bc = Val_u32(0b0010011 + (0b000 << 12))                  , .tv = Tys_rvI()  },
-    [RV_XORI]   = { .id = RV_XORI   , .name = "xori"    , .bc = Val_u32(0b0010011 + (0b100 << 12))                  , .tv = Tys_rvI()  },
-    [RV_ORI]    = { .id = RV_ORI    , .name = "ori"     , .bc = Val_u32(0b0010011 + (0b110 << 12))                  , .tv = Tys_rvI()  },
-    [RV_ANDI]   = { .id = RV_ANDI   , .name = "andi"    , .bc = Val_u32(0b0010011 + (0b111 << 12))                  , .tv = Tys_rvI()  },
-    [RV_SLLI]   = { .id = RV_SLLI   , .name = "slli"    , .bc = Val_u32(0b0010011 + (0b001 << 12))                  , .tv = Tys_rvI()  },
-    [RV_SRLI]   = { .id = RV_SRLI   , .name = "srli"    , .bc = Val_u32(0b0010011 + (0b101 << 12))                  , .tv = Tys_rvI()  },
-    [RV_SRAI]   = { .id = RV_SRAI   , .name = "srai"    , .bc = Val_u32(0b0010011 + (0b101 << 12) + (0x20 << 25))   , .tv = Tys_rvI()  },
-    [RV_SLTI]   = { .id = RV_SLTI   , .name = "slti"    , .bc = Val_u32(0b0010011 + (0b010 << 12))                  , .tv = Tys_rvI()  },
-    [RV_SLTIU]  = { .id = RV_SLTIU  , .name = "sltiu"   , .bc = Val_u32(0b0010011 + (0b011 << 12))                  , .tv = Tys_rvI()  },
+    [RV_ADDI]   = { .id = RV_ADDI   , .name = "addi"    , .bc = Val_u32(0b0010011 + (0b000 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_XORI]   = { .id = RV_XORI   , .name = "xori"    , .bc = Val_u32(0b0010011 + (0b100 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_ORI]    = { .id = RV_ORI    , .name = "ori"     , .bc = Val_u32(0b0010011 + (0b110 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_ANDI]   = { .id = RV_ANDI   , .name = "andi"    , .bc = Val_u32(0b0010011 + (0b111 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_SLLI]   = { .id = RV_SLLI   , .name = "slli"    , .bc = Val_u32(0b0010011 + (0b001 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvI()  },
+    [RV_SRLI]   = { .id = RV_SRLI   , .name = "srli"    , .bc = Val_u32(0b0010011 + (0b101 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvI()  },
+    [RV_SRAI]   = { .id = RV_SRAI   , .name = "srai"    , .bc = Val_u32(0b0010011 + (0b101 << 12) + (0x20 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvI()  },
+    [RV_SLTI]   = { .id = RV_SLTI   , .name = "slti"    , .bc = Val_u32(0b0010011 + (0b010 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_SLTIU]  = { .id = RV_SLTIU  , .name = "sltiu"   , .bc = Val_u32(0b0010011 + (0b011 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
     /* RV32I: U-Type Arithmetic */
-    [RV_LUI]    = { .id = RV_LUI    , .name = "lui"     , .bc = Val_u32(0b0110111)                                  , .tv = Tys_rvU()  },
-    [RV_AUIPC]  = { .id = RV_AUIPC  , .name = "auipc"   , .bc = Val_u32(0b0010111)                                  , .tv = Tys_rvU()  },
+    [RV_LUI]    = { .id = RV_LUI    , .name = "lui"     , .bc = Val_u32(0b0110111)                                  , .tc = Tys_rvu()   , .tr = Tys_rvU()  },
+    [RV_AUIPC]  = { .id = RV_AUIPC  , .name = "auipc"   , .bc = Val_u32(0b0010111)                                  , .tc = Tys_rvu()   , .tr = Tys_rvU()  },
     /* RV32I: Load I-Type */
-    [RV_LB]     = { .id = RV_LB     , .name = "lb"      , .bc = Val_u32(0b0000011 + (0b000 << 12))                  , .tv = Tys_rvI()  },
-    [RV_LH]     = { .id = RV_LH     , .name = "lh"      , .bc = Val_u32(0b0000011 + (0b001 << 12))                  , .tv = Tys_rvI()  },
-    [RV_LW]     = { .id = RV_LW     , .name = "lw"      , .bc = Val_u32(0b0000011 + (0b010 << 12))                  , .tv = Tys_rvI()  },
-    [RV_LBU]    = { .id = RV_LBU    , .name = "lbu"     , .bc = Val_u32(0b0000011 + (0b100 << 12))                  , .tv = Tys_rvI()  },
-    [RV_LHU]    = { .id = RV_LHU    , .name = "lhu"     , .bc = Val_u32(0b0000011 + (0b101 << 12))                  , .tv = Tys_rvI()  },
+    [RV_LB]     = { .id = RV_LB     , .name = "lb"      , .bc = Val_u32(0b0000011 + (0b000 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_LH]     = { .id = RV_LH     , .name = "lh"      , .bc = Val_u32(0b0000011 + (0b001 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_LW]     = { .id = RV_LW     , .name = "lw"      , .bc = Val_u32(0b0000011 + (0b010 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_LBU]    = { .id = RV_LBU    , .name = "lbu"     , .bc = Val_u32(0b0000011 + (0b100 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_LHU]    = { .id = RV_LHU    , .name = "lhu"     , .bc = Val_u32(0b0000011 + (0b101 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
     /* RV32I: Store S-Type */
-    [RV_SB]     = { .id = RV_SB     , .name = "sb"      , .bc = Val_u32(0b0100011 + (0b000 << 12))                  , .tv = Tys_rvS()  },
-    [RV_SH]     = { .id = RV_SH     , .name = "sh"      , .bc = Val_u32(0b0100011 + (0b001 << 12))                  , .tv = Tys_rvS()  },
-    [RV_SW]     = { .id = RV_SW     , .name = "sw"      , .bc = Val_u32(0b0100011 + (0b010 << 12))                  , .tv = Tys_rvS()  },
+    [RV_SB]     = { .id = RV_SB     , .name = "sb"      , .bc = Val_u32(0b0100011 + (0b000 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvS()  },
+    [RV_SH]     = { .id = RV_SH     , .name = "sh"      , .bc = Val_u32(0b0100011 + (0b001 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvS()  },
+    [RV_SW]     = { .id = RV_SW     , .name = "sw"      , .bc = Val_u32(0b0100011 + (0b010 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvS()  },
     /* RV32I: Branch B-Type */
-    [RV_BEQ]    = { .id = RV_BEQ    , .name = "beq"     , .bc = Val_u32(0b1100011 + (0b000 << 12))                  , .tv = Tys_rvB()  },
-    [RV_BNE]    = { .id = RV_BNE    , .name = "bne"     , .bc = Val_u32(0b1100011 + (0b001 << 12))                  , .tv = Tys_rvB()  },
-    [RV_BLT]    = { .id = RV_BLT    , .name = "blt"     , .bc = Val_u32(0b1100011 + (0b100 << 12))                  , .tv = Tys_rvB()  },
-    [RV_BGE]    = { .id = RV_BGE    , .name = "bge"     , .bc = Val_u32(0b1100011 + (0b101 << 12))                  , .tv = Tys_rvB()  },
-    [RV_BLTU]   = { .id = RV_BLTU   , .name = "bltu"    , .bc = Val_u32(0b1100011 + (0b110 << 12))                  , .tv = Tys_rvB()  },
-    [RV_BGEU]   = { .id = RV_BGEU   , .name = "bgeu"    , .bc = Val_u32(0b1100011 + (0b111 << 12))                  , .tv = Tys_rvB()  },
+    [RV_BEQ]    = { .id = RV_BEQ    , .name = "beq"     , .bc = Val_u32(0b1100011 + (0b000 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
+    [RV_BNE]    = { .id = RV_BNE    , .name = "bne"     , .bc = Val_u32(0b1100011 + (0b001 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
+    [RV_BLT]    = { .id = RV_BLT    , .name = "blt"     , .bc = Val_u32(0b1100011 + (0b100 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
+    [RV_BGE]    = { .id = RV_BGE    , .name = "bge"     , .bc = Val_u32(0b1100011 + (0b101 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
+    [RV_BLTU]   = { .id = RV_BLTU   , .name = "bltu"    , .bc = Val_u32(0b1100011 + (0b110 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
+    [RV_BGEU]   = { .id = RV_BGEU   , .name = "bgeu"    , .bc = Val_u32(0b1100011 + (0b111 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvB()  },
     /* RV32I: Jump J-Type */
-    [RV_JALR]   = { .id = RV_JALR   , .name = "jalr"    , .bc = Val_u32(0b1100111 + (0b000 << 12))                  , .tv = Tys_rvI()  },
-    [RV_JAL]    = { .id = RV_JAL    , .name = "jal"     , .bc = Val_u32(0b1101111)                                  , .tv = Tys_rvJ()  },
+    [RV_JALR]   = { .id = RV_JALR   , .name = "jalr"    , .bc = Val_u32(0b1100111 + (0b000 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_JAL]    = { .id = RV_JAL    , .name = "jal"     , .bc = Val_u32(0b1101111)                                  , .tc = Tys_rvu()   , .tr = Tys_rvJ()  },
     /* RV32I: Device & System */
-    [RV_ECALL]  = { .id = RV_ECALL  , .name = "ecall"   , .bc = Val_u32(0b1110011 + (0b000 << 12) + (0x00 << 20))   , .tv = Tys_rvIe() },
-    [RV_EBREAK] = { .id = RV_EBREAK , .name = "ebreak"  , .bc = Val_u32(0b1110011 + (0b000 << 12) + (0x01 << 20))   , .tv = Tys_rvIe() },
+    [RV_ECALL]  = { .id = RV_ECALL  , .name = "ecall"   , .bc = Val_u32(0b1110011 + (0b000 << 12) + (0x00 << 20))   , .tc = Tys_rvie()  , .tr = Tys_rvIe() },
+    [RV_EBREAK] = { .id = RV_EBREAK , .name = "ebreak"  , .bc = Val_u32(0b1110011 + (0b000 << 12) + (0x01 << 20))   , .tc = Tys_rvie()  , .tr = Tys_rvIe() },
 );
 
 
