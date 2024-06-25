@@ -82,7 +82,7 @@ typedef struct {
  * ```
  * 
  * - arm format:
- * ```
+ * ```txt
  *  <Opcode>{<Cond>}<S>  <Rd>, <Rn> {,<Opcode2>}
  * ```
  * 

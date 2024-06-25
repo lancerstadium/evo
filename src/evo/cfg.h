@@ -36,7 +36,7 @@ typedef void*       ptr;
 // #define CFG_MODE_HYB
 
 #define CFG_SISA        RV
-#define CFG_SISA_BIT    32
+#define CFG_SISA_BIT    64
 #define CFG_SISA_RV
 #define CFG_SISA_RVI
 #define CFG_SISA_RVZifencei
