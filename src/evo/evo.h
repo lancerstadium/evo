@@ -391,6 +391,8 @@ Val* Val_alloc(size_t len);
 
 #define RegMax(T)              T##_REGID_SIZE
 #define RegTbl(T)              T##_reg_tbl
+#define RegName(T, ID)         RegTbl(T)[ID].name
+#define RegAlias(T, ID)        RegTbl(T)[ID].alias
 #define RegDef(T)              CONCAT(RegDef_, T)
 #define RegDef_OP(T, OP)       CONCAT3(RegDef_, T ## _, OP)
 #define RegDef_OP_def(T, OP)   UNUSED RegDef_OP(T, OP)
@@ -528,28 +530,41 @@ Val* Val_alloc(size_t len);
 #define CPUState_T(T, S)      \
     typedef struct {          \
         Val* pc;              \
-        Val reg[RegMax(T)];   \
+        Val* reg[RegMax(T)];  \
         Val* mem;             \
         S                     \
     } CPUState(T)
 
-#define CPUState_def(T, S, ...)                                     \
-    CPUState_T(T, S);                                               \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);        \
-    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res); \
+#define CPUState_def(T, S, ...)                                                   \
+    CPUState_T(T, S);                                                             \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                      \
+    void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id); \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
     __VA_ARGS__
 
-#define CPUState_fn_def(T)                                           \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {        \
-        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));              \
-        cpu->pc = Val_alloc(8);                                      \
-        return cpu;                                                  \
-    }                                                                \
-    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) { \
-        sprintf(res, "PC: %s", Val_hex(cpu->pc));                    \
+#define CPUState_fn_def(T)                                                         \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {                      \
+        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                            \
+        cpu->pc = Val_alloc(8);                                                    \
+        for (size_t i = 0; i < RegMax(T); i++) {                                   \
+            cpu->reg[i] = Val_alloc(8);                                            \
+        }                                                                          \
+        cpu->mem = Val_alloc(mem_size / 8);                                        \
+        return cpu;                                                                \
+    }                                                                              \
+    void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id) { \
+        sprintf(res, "%3s: %s", RegName(T, id), Val_hex(cpu->reg[id]));            \
+    }                                                                              \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {               \
+        sprintf(res, "Arch: %s, PC: %s", #T, Val_hex(cpu->pc));                    \
+        for (size_t i = 0; i < RegMax(T); i++) {                                   \
+            CPUState_OP(T, displayone)(cpu, res, i);                               \
+            strcat(res, "\n");                                                     \
+        }                                                                          \
     }
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
+#define CPUState_displayone(T, C, S, ID) CPUState_OP(T, displayone)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
 
 // ==================================================================================== //
