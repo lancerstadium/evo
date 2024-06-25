@@ -288,11 +288,7 @@ Insn_def(RV,
 // ==================================================================================== //
 
 CPUState_def(RV,
-    CONCAT(u, CFG_SISA_BIT) pc;
-    CONCAT(u, CFG_SISA_BIT) gpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
-#if defined(CFG_SISA_RVF) || defined(CFG_SISA_RVD) || defined(CFG_SISA_RVQ)
-    CONCAT(u, CFG_SISA_BIT) fpr[MUXDEF(CFG_SISA_RVE, 16, 32)];
-#endif
+
 ,
 
 );

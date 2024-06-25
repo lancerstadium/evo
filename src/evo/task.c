@@ -17,7 +17,7 @@ typedef CONCAT(CPUState_, CFG_SISA) CPUState;
 Task_fn_def(Decode);
 
 void TaskCtx_OP_def(Decode, init) (TaskCtx(Decode) *ctx, Val* val) {
-
+    
 }
 void TaskCtx_OP_def(Decode, run) (TaskCtx(Decode) *ctx) {
 

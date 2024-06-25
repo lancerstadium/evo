@@ -363,12 +363,17 @@ typedef struct {
         }, len = 8}
 
 Val* Val_str(char* str);
-char* Val_hex(Val v);
+char* Val_hex(Val* v);
 char* Val_as_str(Val* v);
-u8 Val_get_u8(Val v, size_t i);
-u16 Val_get_u16(Val v, size_t i);
-u32 Val_get_u32(Val v, size_t i);
-u64 Val_get_u64(Val v, size_t i);
+u8 Val_get_u8(Val *v, size_t i);
+u16 Val_get_u16(Val *v, size_t i);
+u32 Val_get_u32(Val *v, size_t i);
+u64 Val_get_u64(Val *v, size_t i);
+void Val_set_u8(Val *v, size_t i, u8 val);
+void Val_set_u16(Val *v, size_t i, u16 val);
+void Val_set_u32(Val *v, size_t i, u32 val);
+void Val_set_u64(Val *v, size_t i, u64 val);
+Val* Val_alloc(size_t len);
 
 // ==================================================================================== //
 //                                    evo: Reg
@@ -457,7 +462,7 @@ u64 Val_get_u64(Val v, size_t i);
 #define InsnDef_fn_def(T)                                                                                          \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                                                      \
         if (i < InsnMax(T)) {                                                                                      \
-            sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tr)); \
+            sprintf(res, "%-14s %s %s", Val_hex(&InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tr)); \
         }                                                                                                          \
     }                                                                                                              \
     void InsnDef_OP_def(T, display)(char* res) {                                                                   \
@@ -490,7 +495,7 @@ u64 Val_get_u64(Val v, size_t i);
 
 #define Insn_fn_def(T)                                                            \
     void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                     \
-        sprintf(res, "o %-14s %s", Val_hex(insn->bc), InsnTbl(T)[insn->id].name); \
+        sprintf(res, "o %-14s %s", Val_hex(&insn->bc), InsnTbl(T)[insn->id].name); \
     }                                                                             \
     Insn(T) * Insn_OP_def(T, new)(size_t id) {                                    \
         Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);              \
@@ -518,17 +523,34 @@ u64 Val_get_u64(Val v, size_t i);
 // ==================================================================================== //
 
 #define CPUState(T)             CONCAT(CPUState_, T)
+#define CPUState_OP(T, OP)       CONCAT3(CPUState_, T##_, OP)
+#define CPUState_OP_def(T, OP)   UNUSED CPUState_OP(T, OP)
 #define CPUState_T(T, S)      \
     typedef struct {          \
+        Val* pc;              \
+        Val reg[RegMax(T)];   \
+        Val* mem;             \
         S                     \
     } CPUState(T)
 
-#define CPUState_def(T, S, ...) \
-    CPUState_T(T, S); __VA_ARGS__
+#define CPUState_def(T, S, ...)                                     \
+    CPUState_T(T, S);                                               \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);        \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res); \
+    __VA_ARGS__
 
-#define CPUState_fn_def(T)
+#define CPUState_fn_def(T)                                           \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {        \
+        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));              \
+        cpu->pc = Val_alloc(8);                                      \
+        return cpu;                                                  \
+    }                                                                \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) { \
+        sprintf(res, "PC: %s", Val_hex(cpu->pc));                    \
+    }
 
-
+#define CPUState_init(T, S)  CPUState_OP(T, init)(S)
+#define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
 
 // ==================================================================================== //
 //                                    evo: Task
@@ -563,7 +585,7 @@ u64 Val_get_u64(Val v, size_t i);
     TaskCtx_def(T, S);                                         \
     Task_T(T);                                                 \
     __VA_ARGS__                                                \
-    Task(T) * Task_OP_def(T, init)(const char* name, Val* val);      \
+    Task(T) * Task_OP_def(T, init)(const char* name, Val* val);\
     void Task_OP_def(T, run)(Task(T) * t);                     \
     void TaskCtx_OP_def(T, init)(TaskCtx(T) * ctx, Val * val); \
     void TaskCtx_OP_def(T, run)(TaskCtx(T) * ctx);
