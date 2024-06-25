@@ -376,17 +376,19 @@ extern "C" {
 //                                    sob: log (LOG)
 // ==================================================================================== //
 
+typedef enum {
+    LOGLEVEL_TRAC, 
+    LOGLEVEL_SYSC, 
+    LOGLEVEL_DEBU,  
+    LOGLEVEL_INFO,  
+    LOGLEVEL_WARN,  
+    LOGLEVEL_ERRO,  
+    LOGLEVEL_FATA,  
+    LOGLEVEL_ASST
+} LogLevel;
+
 typedef struct {
-    enum {
-        LOGLEVEL_TRAC, 
-        LOGLEVEL_SYSC, 
-        LOGLEVEL_DEBU,  
-        LOGLEVEL_INFO,  
-        LOGLEVEL_WARN,  
-        LOGLEVEL_ERRO,  
-        LOGLEVEL_FATA,  
-        LOGLEVEL_ASST
-    } level;
+    LogLevel level;
     const char* name;
     const char* color;
 } LogElem;
@@ -402,26 +404,28 @@ static LogElem sob_log_elem[] = {
     { LOGLEVEL_ASST, "ASST", ANSI_FG_MAGENTA        }
 };
 
+typedef enum {
+    ERROR_SOB_NONE,
+    ERROR_XA_ALLOC_FAIL,
+    ERROR_CS_ALLOC_FAIL,
+    ERROR_CS_ACCESS_FAIL,
+    ERROR_CS_CHANGE_FAIL,
+    ERROR_CS_OUT_BOUND,
+    ERROR_SYS_STAT_FAIL,
+    ERROR_SYS_EXEC_FAIL,
+    ERROR_AP_CMD_CONFLICT,
+    ERROR_AP_NO_SUBCMD,
+    ERROR_AP_LOST_ARG_VAL,
+    ERROR_AP_EXTRA_VAL,
+    ERROR_AP_NO_EXIST_ARG,
+    ERROR_AP_NO_EXIST_VAL,
+    ERROR_AP_LOST_ARG_FLAG,
+    ERROR_AP_OVER_SUBCMD,
+    ERROR_AP_NO_EXIST_SUBCMD
+} LogNo;
+
 typedef struct {
-    enum {
-        ERROR_SOB_NONE,
-        ERROR_XA_ALLOC_FAIL,
-        ERROR_CS_ALLOC_FAIL,
-        ERROR_CS_ACCESS_FAIL,
-        ERROR_CS_CHANGE_FAIL,
-        ERROR_CS_OUT_BOUND,
-        ERROR_SYS_STAT_FAIL,
-        ERROR_SYS_EXEC_FAIL,
-        ERROR_AP_CMD_CONFLICT,
-        ERROR_AP_NO_SUBCMD,
-        ERROR_AP_LOST_ARG_VAL,
-        ERROR_AP_EXTRA_VAL,
-        ERROR_AP_NO_EXIST_ARG,
-        ERROR_AP_NO_EXIST_VAL,
-        ERROR_AP_LOST_ARG_FLAG,
-        ERROR_AP_OVER_SUBCMD,
-        ERROR_AP_NO_EXIST_SUBCMD
-    } no;
+    LogNo no;
     const char* msg;
 } LogError;
 
