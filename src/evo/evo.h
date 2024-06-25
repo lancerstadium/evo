@@ -298,11 +298,12 @@ typedef struct Ty {
     char* sym;
     BitMap* map;
     size_t  len;
+    u32 flag;
     struct Ty* or;
 } Ty;
 
-#define Ty_new(K, V, ...)           { .or = NULL   , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
-#define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_new(K, V, ...)           { .or = NULL   , .flag = (V) , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
+#define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .flag = (V) , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
 #define Ty_I(V, ...)                Ty_new(I, V, __VA_ARGS__)
 #define Ty_r(V, ...)                Ty_new(r, V, __VA_ARGS__)
 #define Ty_i(V, ...)                Ty_new(i, V, __VA_ARGS__)
@@ -439,6 +440,7 @@ u64 Val_get_u64(Val v, size_t i);
     typedef struct {      \
         InsnID(T) id;     \
         const char* name; \
+        u32 flag;         \
         Val bc;           \
         Tys tc;           \
         Tys tr;           \
@@ -471,18 +473,31 @@ u64 Val_get_u64(Val v, size_t i);
 #define Insn_T(T, S)  \
     typedef struct {  \
         InsnID(T) id; \
-        Val       bc; \
-        Val*    oprs; \
-        size_t   len; \
+        Val bc;       \
+        Val* oprs;    \
+        size_t len;   \
+        u32 flag;     \
         S             \
     } Insn(T)
 
 #define Insn_def(T, S, ...) \
     Insn_T(T, S); \
+    Insn(T) Insn_OP_def(T, new) (size_t id); \
     __VA_ARGS__
 
+#define Insn_fn_def(T)                              \
+    Insn(T) Insn_OP_def(T, new)(size_t id) {        \
+        Insn(T) res;                                \
+        res.id = id;                                \
+        res.bc = InsnTbl(T)[id].bc;                 \
+        res.len = InsnTbl(T)[id].tr.len;            \
+        res.oprs = malloc(res.len * sizeof(Val));   \
+        memset(res.oprs, 0, res.len * sizeof(Val)); \
+        res.flag = InsnTbl(T)[id].flag;             \
+        return res;                                 \
+    }
 
-#define Insn_fn_def(T)
+#define Insn_new(T, id) Insn_OP(T, new)(id)
 
 // ==================================================================================== //
 //                                    evo: Block

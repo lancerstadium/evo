@@ -36,13 +36,13 @@ Task_def(Decode,
 #endif
 ,
 #if defined(CFG_SISA)
-    Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val insn);
+    Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 #if defined(CFG_IISA)
-    Insn(CFG_IISA) TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val insn);
+    Insn(CFG_IISA) TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 #if defined(CFG_TISA)
-    Insn(CFG_TISA) TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val insn);
+    Insn(CFG_TISA) TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 );
 

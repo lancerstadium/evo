@@ -16,6 +16,7 @@ RegDef_fn_def(RV);
 
 InsnDef_fn_def(RV);
 
+Insn_fn_def(RV);
 
 // ==================================================================================== //
 //                                    rv: CPUState                                      
@@ -29,6 +30,6 @@ InsnDef_fn_def(RV);
 // ==================================================================================== //
 
 
-Insn(RV) TaskCtx_OP_ISA_def(Decode, run, RV) (TaskCtx(Decode) *ctx, Val insn) {
+Insn(RV) TaskCtx_OP_ISA_def(Decode, run, RV) (TaskCtx(Decode) *ctx, Val bc) {
 
 }
