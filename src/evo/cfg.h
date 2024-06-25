@@ -51,7 +51,7 @@ typedef void*       ptr;
 #define CFG_IISA_BIT    64
 #define CFG_IISA_EIR
 
-#define CFG_TISA        X86
+#define CFG_TISA        ARM
 #define CFG_TISA_BIT    64
 #define CFG_TISA_X86
 #if !defined(CFG_MODE_EMU) && !defined(CFG_TISA)
