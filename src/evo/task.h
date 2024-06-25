@@ -36,13 +36,13 @@ Task_def(Decode,
 #endif
 ,
 #if defined(CFG_SISA)
-    Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val bc);
+    Insn(CFG_SISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 #if defined(CFG_IISA)
-    Insn(CFG_IISA) TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val bc);
+    Insn(CFG_IISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 #if defined(CFG_TISA)
-    Insn(CFG_TISA) TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val bc);
+    Insn(CFG_TISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val bc);
 #endif
 );
 
@@ -62,14 +62,13 @@ Task_def(Trans,
 // ==================================================================================== //
 
 Task_def(Dump,
+    char* path;             /* path : Output File Path      */
     ELFDump *elf;           /* elf  : Elf Dump Context      */
 #if defined(CFG_PERF_DUMP)
 
 #endif
 ,
-    void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx);
     void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name);
-    void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx);
     void TaskCtx_OP_def(Dump, clear) (TaskCtx(Dump) *ctx);
 );
 

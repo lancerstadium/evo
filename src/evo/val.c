@@ -2,6 +2,19 @@
 #include <evo/evo.h>
 
 
+
+Val* Val_str(char* str) {
+    size_t len = strlen(str);
+    Val* v = malloc(sizeof(Val));
+    v->b = malloc(len * sizeof(u8));
+    v->len = len;
+    for(size_t i = 0; i < len; i++) {
+        v->b[i] = str[i];
+    }
+    return v;
+}
+
+
 char* Val_hex(Val v) {
     char* tmp = malloc((3 + v.len * 4)* sizeof(char));
     snprintf(tmp, 3, "0x");
@@ -60,6 +73,16 @@ u64 Val_as_u64(Val v) {
         return Val_get_u64(v, 0);
     }
 }
+
+char* Val_as_str(Val* v) {
+    char* tmp = malloc((v->len + 1) * sizeof(char));
+    for(size_t i = 0; i < v->len; i++) {
+        tmp[i] = v->b[i];
+    }
+    tmp[v->len] = '\0';
+    return tmp;
+}
+
 
 u8 Val_get_u8(Val v, size_t i) {
     Log_ast(v.len > i, "Val_get_u8: index %lu out of bounds %lu", i, v.len);

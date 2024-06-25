@@ -3,15 +3,24 @@
 #include <evo/task.h>
 
 UnitTest_fn_def(test_dump_elf){
-    Task(Dump)* d = Task_create(Dump, "dp-01");
+    char* path = "wuhu.elf";
+    Val* elf = Val_str(path);
+    Task(Dump)* d = Task_init(Dump, "dp-elf", elf);
     Task_run(Dump, d);
-    UnitTest_ast(IS_FILE("out.elf"), "Not found out.elf");
+    UnitTest_ast(IS_FILE(path), "Not found elf file");
+    return NULL;
+}
+
+UnitTest_fn_def(test_dec_rv) {
+    Task(Decode)* d = Task_init(Decode, "dec-rv", NULL);
+    Task_run(Decode, d);
     return NULL;
 }
 
 
 UnitTest_fn_def(all_tests) {
     UnitTest_add(test_dump_elf);
+    UnitTest_add(test_dec_rv);
     return NULL;
 }
 

@@ -362,7 +362,9 @@ typedef struct {
         (u8)((V) >> 54), \
         }, len = 8}
 
+Val* Val_str(char* str);
 char* Val_hex(Val v);
+char* Val_as_str(Val* v);
 u8 Val_get_u8(Val v, size_t i);
 u16 Val_get_u16(Val v, size_t i);
 u32 Val_get_u32(Val v, size_t i);
@@ -452,16 +454,16 @@ u64 Val_get_u64(Val v, size_t i);
     void InsnDef_OP_def(T, displayone)(char* res, size_t i);         \
     void InsnDef_OP_def(T, display)(char* res);
 
-#define InsnDef_fn_def(T) \
-    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                        \
-        if (i < InsnMax(T)) {                                                        \
+#define InsnDef_fn_def(T)                                                                                          \
+    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                                                      \
+        if (i < InsnMax(T)) {                                                                                      \
             sprintf(res, "%-14s %s %s", Val_hex(InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tr)); \
-        }                                                                            \
-    }                                                                                \
-    void InsnDef_OP_def(T, display)(char* res) {                                     \
-        for (size_t i = 0; i < InsnMax(T); i++) {                                    \
-            sprintf(res, "%s\n", InsnTbl(T)[i].name);                                \
-        }                                                                            \
+        }                                                                                                          \
+    }                                                                                                              \
+    void InsnDef_OP_def(T, display)(char* res) {                                                                   \
+        for (size_t i = 0; i < InsnMax(T); i++) {                                                                  \
+            sprintf(res, "%s\n", InsnTbl(T)[i].name);                                                              \
+        }                                                                                                          \
     }
 
 #define InsnDef_display(T, res) InsnDef_OP(T, display)(res)
@@ -480,21 +482,26 @@ u64 Val_get_u64(Val v, size_t i);
         S             \
     } Insn(T)
 
-#define Insn_def(T, S, ...) \
-    Insn_T(T, S); \
-    Insn(T) Insn_OP_def(T, new) (size_t id); \
+#define Insn_def(T, S, ...)                                  \
+    Insn_T(T, S);                                            \
+    void Insn_OP_def(T, display)(Insn(T) * insn, char* res); \
+    Insn(T) * Insn_OP_def(T, new)(size_t id);                \
     __VA_ARGS__
 
-#define Insn_fn_def(T)                              \
-    Insn(T) Insn_OP_def(T, new)(size_t id) {        \
-        Insn(T) res;                                \
-        res.id = id;                                \
-        res.bc = InsnTbl(T)[id].bc;                 \
-        res.len = InsnTbl(T)[id].tr.len;            \
-        res.oprs = malloc(res.len * sizeof(Val));   \
-        memset(res.oprs, 0, res.len * sizeof(Val)); \
-        res.flag = InsnTbl(T)[id].flag;             \
-        return res;                                 \
+#define Insn_fn_def(T)                                                            \
+    void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                     \
+        sprintf(res, "o %-14s %s", Val_hex(insn->bc), InsnTbl(T)[insn->id].name); \
+    }                                                                             \
+    Insn(T) * Insn_OP_def(T, new)(size_t id) {                                    \
+        Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);              \
+        Insn(T) * res = malloc(sizeof(Insn(T)));                                  \
+        res->id = id;                                                             \
+        res->bc = InsnTbl(T)[id].bc;                                              \
+        res->len = InsnTbl(T)[id].tr.len;                                         \
+        res->oprs = malloc(res->len * sizeof(Val));                               \
+        memset(res->oprs, 0, res->len * sizeof(Val));                             \
+        res->flag = InsnTbl(T)[id].flag;                                          \
+        return res;                                                               \
     }
 
 #define Insn_new(T, id) Insn_OP(T, new)(id)
@@ -552,22 +559,24 @@ u64 Val_get_u64(Val v, size_t i);
         TaskCtx(T) ctx;      \
     } Task(T)
 
-#define Task_def(T, S, ...)                        \
-    TaskCtx_def(T, S);                             \
-    Task_T(T);                                     \
-    __VA_ARGS__                                    \
-    Task(T) * Task_OP_def(T, create)(char* name);  \
-    void Task_OP_def(T, run)(Task(T) * t);
+#define Task_def(T, S, ...)                                    \
+    TaskCtx_def(T, S);                                         \
+    Task_T(T);                                                 \
+    __VA_ARGS__                                                \
+    Task(T) * Task_OP_def(T, init)(const char* name, Val* val);      \
+    void Task_OP_def(T, run)(Task(T) * t);                     \
+    void TaskCtx_OP_def(T, init)(TaskCtx(T) * ctx, Val * val); \
+    void TaskCtx_OP_def(T, run)(TaskCtx(T) * ctx);
 
-#define Task_fn_def(T) \
-    Task(T) * Task_OP_def(T, create)(char* name) { \
-        Task(T)* t = malloc(sizeof(Task(T)));      \
-        t->name = name;                            \
-        TaskCtx_OP(T, init)(&t->ctx);              \
-        return t;                                  \
-    }                                              \
-    void Task_OP_def(T, run)(Task(T) * t) {        \
-        TaskCtx_OP(T, run)(&t->ctx);               \
+#define Task_fn_def(T)                                     \
+    Task(T) * Task_OP_def(T, init)(const char* name, Val* val) { \
+        Task(T)* t = malloc(sizeof(Task(T)));              \
+        t->name = name;                                    \
+        TaskCtx_OP(T, init)(&t->ctx, val);                 \
+        return t;                                          \
+    }                                                      \
+    void Task_OP_def(T, run)(Task(T) * t) {                \
+        TaskCtx_OP(T, run)(&t->ctx);                       \
     }
 
 #define Task_dbg(T, ...)  Log_dbg(_MAGENTA("[" #T "] ") __VA_ARGS__)
@@ -575,7 +584,7 @@ u64 Val_get_u64(Val v, size_t i);
 #define Task_warn(T, ...) Log_warn(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_info(T, ...) Log_info(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_str(T) STR(T)
-#define Task_create(T, name) Task_OP(T, create)(name)
+#define Task_init(T, name, ...) Task_OP(T, init)(name, __VA_ARGS__)
 #define Task_run(T, t) Task_OP(T, run)(t)
 
 
