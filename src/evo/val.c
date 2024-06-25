@@ -232,8 +232,6 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     Log_ast(hi < v->len * 8, "Val_set_bit: hi < v->len");
     Log_ast(lo < v->len * 8, "Val_set_bit: lo < v->len");
 
-    size_t scl = hi - lo + 1;
-
     // clear bits
     u64 tmp = Val_as_u64(v);
     u64 mask = ~BITS(0xFFFFFFFFFFFFFFFF, hi, lo);
