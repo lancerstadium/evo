@@ -335,7 +335,7 @@ typedef struct {
 char* Tys_sym(Tys v);
 
 // ==================================================================================== //
-//                                    evo: Byte Map
+//                                    evo: Val
 // ==================================================================================== //
 
 typedef struct {
@@ -378,7 +378,10 @@ typedef struct {
         }, len = 8}
 
 char* Val_hex(Val v);
-
+u8 Val_get_u8(Val v, size_t i);
+u16 Val_get_u16(Val v, size_t i);
+u32 Val_get_u32(Val v, size_t i);
+u64 Val_get_u64(Val v, size_t i);
 
 // ==================================================================================== //
 //                                    evo: Reg
@@ -484,12 +487,17 @@ char* Val_hex(Val v);
     typedef struct {  \
         InsnID(T) id; \
         Val       bc; \
+        Val*    args; \
+        size_t   len; \
         S             \
     } Insn(T)
 
 #define Insn_def(T, S, ...) \
     Insn_T(T, S); \
     __VA_ARGS__
+
+
+#define Insn_fn_def(T)
 
 // ==================================================================================== //
 //                                    evo: Block
