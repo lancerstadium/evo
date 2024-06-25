@@ -8,10 +8,25 @@
  * 
  */
 
+
+#ifndef _ISA_EIR_DEF_H_
+#define _ISA_EIR_DEF_H_
+
 #include <evo/evo.h>
 
 
 #define EIR_EL(I)    EIR_##I
+
+
+RegID_def(EIR,
+    REP8(EIR_EL, R0, R1, R2, R3, R4, R5, R6, R7),
+);
+
+
+RegDef_def(EIR,
+
+);
+
 
 InsnID_def(EIR, 
     REP1(EIR_EL, NOP),
@@ -22,3 +37,14 @@ InsnDef_def(EIR,
     [EIR_NOP]       = { .id = EIR_NOP       , .name = "nop"     , .bc = Val_u32(0x00) },
     [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = Val_u32(0x01) , .tv = Tys_new() },
 );
+
+
+Insn_def(EIR
+
+,
+
+);
+
+
+
+#endif

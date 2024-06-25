@@ -484,8 +484,35 @@ char* Val_hex(Val v);
 #define Insn_T(T, S)  \
     typedef struct {  \
         InsnID(T) id; \
+        Byte      bc; \
         S             \
     } Insn(T)
+
+#define Insn_def(T, S, ...) \
+    Insn_T(T, S); \
+    __VA_ARGS__
+
+// ==================================================================================== //
+//                                    evo: Block
+// ==================================================================================== //
+
+
+
+
+// ==================================================================================== //
+//                                    evo: CPU
+// ==================================================================================== //
+
+#define CPUState(T)             CONCAT(CPUState_, T)
+#define CPUState_T(T, S)      \
+    typedef struct {          \
+        S                     \
+    } CPUState(T)
+
+#define CPUState_def(T, S, ...) \
+    CPUState_T(T, S); __VA_ARGS__
+
+#define CPUState_fn_def(T)
 
 // ==================================================================================== //
 //                                    evo: Task
@@ -495,6 +522,8 @@ char* Val_hex(Val v);
 #define TaskCtx(T) CONCAT(TaskCtx_, T)
 #define TaskCtx_OP(T, OP) CONCAT3(TaskCtx_, T##_, OP)
 #define TaskCtx_OP_def(T, OP) UNUSED TaskCtx_OP(T, OP)
+#define TaskCtx_OP_ISA(T, OP, I) CONCAT4(TaskCtx_, T##_, OP##_, I)
+#define TaskCtx_OP_ISA_def(T, OP, I) UNUSED TaskCtx_OP_ISA(T, OP, I)
 #define TaskCtx_T(T, S) \
     typedef struct {    \
         S               \
@@ -506,6 +535,8 @@ char* Val_hex(Val v);
 #define Task(T) CONCAT(Task_, T)
 #define Task_OP(T, OP) CONCAT3(Task_, T##_, OP)
 #define Task_OP_def(T, OP) UNUSED Task_OP(T, OP)
+#define Task_OP_ISA(T, OP, I) CONCAT4(Task_, T##_, OP##_, I)
+#define Task_OP_ISA_def(T, OP, I) UNUSED Task_OP_ISA(T, OP, I)
 #define Task_T(T)            \
     typedef struct Task(T) { \
         const char* name;    \
@@ -545,37 +576,31 @@ Task_def(Load,
 );
 
 
-Task_def(Dec,
+// Task_def(Decode,
+//     Val pc;                 /* pc   : Program Counter       */
+//     Val snpc;               /* snpc : Static Next PC        */
+//     Val dnpc;               /* dnpc : Dynamic Next PC       */
+// #if defined(CFG_PERF_DECODE)
 
-,
-
-);
+// #endif
+// ,
+    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val insn);
+    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val insn);
+    // Insn(CFG_SISA) TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val insn);
+// );
 
 Task_def(Dump,
-    ElfCtx *elf;
+    ElfCtx *elf;            /* elf  : Elf Dump Context      */
+#if defined(CFG_PERF_DUMP)
+
+#endif
 ,
     void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx);
     void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name);
     void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx);
-    void TaskCtx_OP_def(Dump, clean) (TaskCtx(Dump) *ctx);
+    void TaskCtx_OP_def(Dump, clear) (TaskCtx(Dump) *ctx);
 );
 
-
-// ==================================================================================== //
-//                                    evo: CPU
-// ==================================================================================== //
-
-#define CPUState(T)             CONCAT(CPUState_, T)
-#define CPUState_T(T, S)      \
-    typedef struct {          \
-        S                     \
-        Task(Dump) task_dump; \
-    } CPUState(T)
-
-#define CPUState_def(T, S, ...) \
-    CPUState_T(T, S); __VA_ARGS__
-
-#define CPUState_fn_def(T)
 
 // ==================================================================================== //
 //                                    evo: ISA (Must In Last)
