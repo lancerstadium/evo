@@ -584,7 +584,7 @@ u64 Val_get_u64(Val v, size_t i);
 #define Task_warn(T, ...) Log_warn(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_info(T, ...) Log_info(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_str(T) STR(T)
-#define Task_init(T, name, ...) Task_OP(T, init)(name, __VA_ARGS__)
+#define Task_init(T, name, V) Task_OP(T, init)(name, V)
 #define Task_run(T, t) Task_OP(T, run)(t)
 
 
