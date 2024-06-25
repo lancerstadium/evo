@@ -154,12 +154,12 @@ RegDef_def(ARM,
 
 
 InsnID_def(ARM,
-    REP1(ARM_EL, NOP),
+    REP1(ARM_EL, UDF),
 );
 
 
 InsnDef_def(ARM,
-    [ARM_NOP]       = { .id = ARM_NOP    , .name = "nop"     , .bc = Val_u32(0x00) },
+    [ARM_UDF]       = { .id = ARM_UDF    , .name = "udf"     , .bc = Val_u32(0x00) },
 );
 
 Insn_def(ARM,

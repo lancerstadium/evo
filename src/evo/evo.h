@@ -234,6 +234,8 @@ typedef struct {
  * 
  * ``` txt
  * 
+ * ----------------------------------------------------------------------------------------
+ * 
  * Pattern (Ctrl)
  *  - Insn      :   $name
  *  - Insn Sep  :   ;
@@ -247,35 +249,61 @@ typedef struct {
  *  - Mem       :   m(scl)(<flag>)([hi:lo|...])
  *  - Lab       :   l([hi:lo|...])
  * 
+ * ----------------------------------------------------------------------------------------
  * 
  * Pattern (RV)
- *  - Opcode    :   rvop = I[ 6: 0]
- *  - Funct3    :   rvf3 = I[14:12]
- *  - Funct7    :   rvf7 = I[31:25]
- *  - Reg Dest  :   rvrd = r[11: 7]
- *  - Reg Src1  :   rvr1 = r[19:15]
- *  - Reg Src2  :   rvr2 = r[24:20]
- *  - Reg Csr1  :   rvrt = r[ 6: 2]                 - Csr (16-bits Insn)
- *  - Reg Csr2  :   rvru = r[ 9: 7]                 - Csr (16-bits Insn)
- *  - Reg Csr3  :   rvrv = r[ 4: 2]                 - Csr (16-bits Insn)
- *  - Imm I     :   rvii = i[31:20]                 - (12-bits)
- *  - Imm S     :   rvis = i[11:7|31:25]            - (12-bits)
- *  - Imm B     :   rvib = i[11:8|30:25|7|31]       - (12-bits)
- *  - Imm U     :   rviu = i[31:12]                 - (20-bits)
- *  - Imm J     :   rvij = i[30:21|20|19:12|31]     - (20-bits)
- *  - Imm K     :   rvik = i[12|6:2]                - Csr (16-bits Insn) (6-bits)
+ *  - Opcode    :   rvop    = I[ 6: 0]
+ *  - Funct3    :   rvf3    = I[14:12]
+ *  - Funct7    :   rvf7    = I[31:25]
+ *  - Reg Dest  :   rvrd    = r[11: 7]
+ *  - Reg Src1  :   rvr1    = r[19:15]
+ *  - Reg Src2  :   rvr2    = r[24:20]
+ *  - Imm I     :   rvii    = i[31:20]                  - (12-bits)
+ *  - Imm S     :   rvis    = i[11:7|31:25]             - (12-bits)
+ *  - Imm B     :   rvib    = i[11:8|30:25|7|31]        - (12-bits)
+ *  - Imm U     :   rviu    = i[31:12]                  - (20-bits)
+ *  - Imm J     :   rvij    = i[30:21|20|19:12|31]      - (20-bits)
  * 
- * Pattern (ARM)
+ * Pattern (RV-CSR)
+ *  - Reg Csr1  :   rvrt    = r[ 6: 2]                  - Csr (16-bits Insn)
+ *  - Reg Csr2  :   rvru    = r[ 9: 7]                  - Csr (16-bits Insn)
+ *  - Reg Csr3  :   rvrv    = r[ 4: 2]                  - Csr (16-bits Insn)
+ *  - Imm K     :   rvik    = i[12|6:2]                 - Csr (16-bits Insn) (6-bits)
  * 
+ * ----------------------------------------------------------------------------------------
+ * 
+ * Pattern (ARM64)
+ *  - Opcode    :
+ *  - Reg Dest  :   a64rd   = r[ 4: 0]
+ *  - Reg Src1  :   a64rn   = r[ 9: 5]
+ *  - Reg Src2  :   a64rm   = r[20:16]
+ *  - Reg Src3  :   a64ra   = r[14:10]
+ *  - Imm 26b   :   a64i26  = i[24: 0]
+ *  - Imm 5b    :   a64i5   = i[20:16]
+ *  - Imm 16b   :   a64i16  = i[20: 5]
+ *  - Imm 19b   :   a64i19  = i[23: 5]
+ *  - Imm 9b    :   a64i9   = i[20:12]
+ *  - Imm 12b   :   a64i12  = i[21:10]
+ *  - Imm s     :   a64is   = i[15:10]
+ *  - Imm r     :   a64ir   = i[21:16]
+ *  - Imm 7b    :   a64i7   = i[21:15]
+ * 
+ * Pattern (ARM64-SME)
+ *  - Imm 6b    :   a64i6   = i[10: 5]
+ * 
+ * ----------------------------------------------------------------------------------------
  * 
  * Note:
- *  - num       :   [0-9A-F]+                       - Include Hex/Dec/Bin
- *  - dec       :   [0-9]+                          - Dec Integer Number
- *  - hex       :   0x[0-9A-F]+                     - Hex Number
- *  - bin       :   0b[01]+                         - Bin Number
- *  - idx       :   [0..32/64]                      - (Dec) Reg ID Index
- *  - scl       :   [0..3]                          - (Dec) Scale 1 / 2 / 4 / 8 Byte
- *  - flag      :   [...|mm|c|f|s]                  - (Bin) U8 Flag: Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
+ *  - num       :   [0-9A-F]+                           - Include Hex/Dec/Bin
+ *  - dec       :   [0-9]+                              - Dec Integer Number
+ *  - hex       :   0x[0-9A-F]+                         - Hex Number
+ *  - bin       :   0b[01]+                             - Bin Number
+ *  - idx       :   [0..32/64]                          - (Dec) Reg ID Index
+ *  - scl       :   [0..3]                              - (Dec) Scale 1 / 2 / 4 / 8 Byte
+ *  - flag      :   [...|mm|c|f|s]                      - (Bin) U8 Flag: Signed, Float, Compressed, Reg/Imm Addr Mode and so on ...
+ * 
+ * ----------------------------------------------------------------------------------------
+ * 
  * ```
  */
 typedef enum {
