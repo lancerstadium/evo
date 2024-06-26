@@ -11,6 +11,46 @@ Val* Val_alloc(size_t len) {
     return v;
 }
 
+void Val_free(Val* v) {
+    Log_ast(v != NULL, "Val_free: v is null");
+    free(v->b);
+    free(v);
+    v = NULL;
+}
+
+void Val_set(Val* v, size_t idx, u8 val) {
+    Log_ast(v != NULL, "Val_set: v is null");
+    Log_ast(idx < v->len, "Val_set: idx is out of bounds");
+    v->b[idx] = val;
+}
+
+u8 Val_get(Val* v, size_t idx) {
+    Log_ast(v != NULL, "Val_get: v is null");
+    Log_ast(idx < v->len, "Val_get: idx is out of bounds");
+    return v->b[idx];
+}
+
+void Val_concat(Val* v, Val* other) {
+    Log_ast(v != NULL, "Val_concat: v is null");
+    Log_ast(other != NULL, "Val_concat: other is null");
+    v->b = realloc(v->b, (v->len + other->len) * sizeof(u8));
+    memcpy(v->b + v->len, other->b, other->len * sizeof(u8));
+    v->len += other->len;
+}
+
+void Val_push(Val* v, u8 val) {
+    Log_ast(v != NULL, "Val_push: v is null");
+    // malloc
+    v->b = realloc(v->b, (v->len + 1) * sizeof(u8));
+    v->b[v->len] = val;
+    v->len++;
+}
+
+u8 Val_pop(Val* v) {
+    Log_ast(v != NULL, "Val_pop: v is null");
+    v->len--;
+    return v->b[v->len];
+}
 
 Val* Val_str(char* str) {
     size_t len = strlen(str);
@@ -83,47 +123,47 @@ char* Val_as_hex(Val *v) {
     return tmp;
 }
 
-u8 Val_as_u8(Val *v) {
-    if(v->len < 1) {
+u8 Val_as_u8(Val *v, size_t i) {
+    if(v->len < 1 + i) {
         return 0;
     } else {
-        return v->b[0];
+        return v->b[i];
     }
 }
 
-u16 Val_as_u16(Val *v) {
-    if(v->len < 2) {
+u16 Val_as_u16(Val *v, size_t i) {
+    if(v->len < 2 + i) {
         u16 tmp = 0;
-        for(size_t i = 0; i < v->len; i++) {
-            tmp |= v->b[i] << (i * 8);
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= v->b[j+i] << (j * 8);
         }
         return tmp;
     } else {
-        return Val_get_u16(v, 0);
+        return Val_get_u16(v, i);
     }
 }
 
-u32 Val_as_u32(Val *v) {
-    if(v->len < 4) {
+u32 Val_as_u32(Val *v, size_t i) {
+    if(v->len < 4 + i) {
         u32 tmp = 0;
-        for(size_t i = 0; i < v->len; i++) {
-            tmp |= v->b[i] << (i * 8);
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= v->b[j+i] << (j * 8);
         }
         return tmp;
     } else {
-        return Val_get_u32(v, 0);
+        return Val_get_u32(v, i);
     }
 }
 
-u64 Val_as_u64(Val *v) {
-    if(v->len < 8) {
+u64 Val_as_u64(Val *v, size_t i) {
+    if(v->len < 8 + i) {
         u64 tmp = 0;
-        for(size_t i = 0; i < v->len; i++) {
-            tmp |= (u64)v->b[i] << (i * 8);
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= (u64)v->b[j+i] << (j * 8);
         }
         return tmp;
     } else {
-        return Val_get_u64(v, 0);
+        return Val_get_u64(v, i);
     }
 }
 
@@ -216,8 +256,11 @@ Val* Val_get_bit(Val *v, size_t hi, size_t lo) {
     size_t len = scl / 8;
     if(scl % 8) len++;
     Val* tmp = Val_alloc(len);
-    u64 val = Val_as_u64(v);
-    u64 res = BITS(val, hi, lo);
+    size_t start = lo / 8;
+    size_t lo_ = lo - start * 8;
+    size_t hi_ = hi - start * 8;
+    u64 val = Val_as_u64(v, start);
+    u64 res = BITS(val, hi_, lo_);
     for(size_t i = 0; i < len; i++) {
         tmp->b[i] = (res >> (i * 8)) & 0xFF;
     }
@@ -232,18 +275,57 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     Log_ast(hi < v->len * 8, "Val_set_bit: hi < v->len");
     Log_ast(lo < v->len * 8, "Val_set_bit: lo < v->len");
 
+    size_t start = lo / 8;
+    size_t lo_ = lo - start * 8;
+    size_t hi_ = hi - start * 8;
+
     // clear bits
-    u64 tmp = Val_as_u64(v);
-    u64 mask = ~BITS(0xFFFFFFFFFFFFFFFF, hi, lo);
+    u64 tmp = Val_as_u64(v, start);
+    u64 mask = ~BITS(0xFFFFFFFFFFFFFFFF, hi_, lo_);
     tmp &= mask;
 
     // set bits
-    u64 val_u64 = Val_as_u64(val);
-    tmp |= ((val_u64 << lo) & BITS(0xFFFFFFFFFFFFFFFF, hi, lo));
+    u64 val_u64 = Val_as_u64(val, start);
+    tmp |= ((val_u64 << lo_) & BITS(0xFFFFFFFFFFFFFFFF, hi_, lo_));
 
     // set val to v
     for(size_t i = 0; i < v->len; i++) {
-        v->b[i] = (tmp >> (i * 8)) & 0xFF;
+        v->b[i+start] = (tmp >> (i * 8)) & 0xFF;
+    }
+    return v;
+}
+
+
+u64 Val_get_map(Val *v, BitMap* map, size_t len) {
+    Log_ast(v, "Val_get_map: v is null");
+    Log_ast(map, "Val_get_map: map is null");
+    u64 res = 0;
+    size_t offset = 0;
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            size_t scl = map[i].h - map[i].l + 1;
+            Val* tmp = Val_get_bit(v, map[i].h, map[i].l);
+            res |= Val_as_u64(tmp, 0) << offset;
+            offset += scl;
+            Val_free(tmp);
+        }
+    }
+    return res;
+}
+
+
+Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val) {
+    Log_ast(v, "Val_set_map: v is null");
+    Log_ast(map, "Val_set_map: map is null");
+    u64 val_ = val; 
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            size_t scl = map[i].h - map[i].l + 1;
+            u64 tmp = val_ & BITMASK(scl);
+            UnitTest_msg("tmp: 0x%lx", tmp);
+            Val_set_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
+            val_ >>= scl;
+        }
     }
     return v;
 }

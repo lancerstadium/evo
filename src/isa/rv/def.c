@@ -30,7 +30,9 @@ CPUState_fn_def(RV);
 // ==================================================================================== //
 
 
-Insn(RV) * TaskCtx_OP_ISA_def(Decode, run, RV) (TaskCtx(Decode) *ctx, Val bc) {
+Insn(RV) * TaskCtx_OP_ISA_def(Decode, run, RV) (TaskCtx(Decode) *ctx, Val* bc) {
+    u32 code = Val_get_u32(bc, 0);
+    // Match 
     Insn(RV) * insn = Insn_new(RV, 0);
     return insn;
 }

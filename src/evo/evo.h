@@ -326,6 +326,10 @@ typedef struct {
     size_t l;
 } BitMap;
 
+#define BitMap_new(H, L)        { .h = (H), .l = (L) }
+#define BitMap_arr(...)         (BitMap[]){ __VA_ARGS__ }
+#define BitMap_chk(M, I)        (((M) != NULL) && ((M) + (I)) != NULL)
+
 typedef struct Ty {
     TyKd k;
     char* sym;
@@ -413,6 +417,8 @@ void Val_set_u64(Val *v, size_t i, u64 val);
 Val* Val_alloc(size_t len);
 Val* Val_get_bit(Val *v, size_t hi, size_t lo);
 Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val);
+u64 Val_get_map(Val *v, BitMap* map, size_t len);
+Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val);
 
 // ==================================================================================== //
 //                                    evo: Reg
@@ -428,13 +434,14 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val);
 #define RegID_def(T, ...) \
     RegID_T(T, __VA_ARGS__)
 
-#define RegMax(T)              T##_REGID_SIZE
-#define RegTbl(T)              T##_reg_tbl
-#define RegName(T, ID)         RegTbl(T)[ID].name
-#define RegAlias(T, ID)        RegTbl(T)[ID].alias
-#define RegDef(T)              CONCAT(RegDef_, T)
-#define RegDef_OP(T, OP)       CONCAT3(RegDef_, T ## _, OP)
-#define RegDef_OP_def(T, OP)   UNUSED RegDef_OP(T, OP)
+#define RegMax(T)               T##_REGID_SIZE
+#define RegTbl(T)               T##_reg_tbl
+#define Reg(T, ID)              RegTbl(T)[ID]
+#define RegName(T, ID)          RegTbl(T)[ID].name
+#define RegAlias(T, ID)         RegTbl(T)[ID].alias
+#define RegDef(T)               CONCAT(RegDef_, T)
+#define RegDef_OP(T, OP)        CONCAT3(RegDef_, T ## _, OP)
+#define RegDef_OP_def(T, OP)    UNUSED RegDef_OP(T, OP)
 #define RegDef_T(T)        \
     typedef struct {       \
         RegID(T) id;       \
@@ -532,22 +539,28 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val);
     Insn_T(T, S);                                            \
     void Insn_OP_def(T, display)(Insn(T) * insn, char* res); \
     Insn(T) * Insn_OP_def(T, new)(size_t id);                \
+    Insn(T) * Insn_OP_def(T, match)(Val* bc);                \
     __VA_ARGS__
 
-#define Insn_fn_def(T)                                                            \
-    void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                     \
+#define Insn_fn_def(T)                                                                \
+    void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                         \
         sprintf(res, "o %-14s %s", Val_as_hex(&insn->bc), InsnTbl(T)[insn->id].name); \
-    }                                                                             \
-    Insn(T) * Insn_OP_def(T, new)(size_t id) {                                    \
-        Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);              \
-        Insn(T) * res = malloc(sizeof(Insn(T)));                                  \
-        res->id = id;                                                             \
-        res->bc = InsnTbl(T)[id].bc;                                              \
-        res->len = InsnTbl(T)[id].tr.len;                                         \
-        res->oprs = malloc(res->len * sizeof(Val));                               \
-        memset(res->oprs, 0, res->len * sizeof(Val));                             \
-        res->flag = InsnTbl(T)[id].flag;                                          \
-        return res;                                                               \
+    }                                                                                 \
+    Insn(T) * Insn_OP_def(T, new)(size_t id) {                                        \
+        Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);                  \
+        Insn(T)* res = malloc(sizeof(Insn(T)));                                       \
+        res->id = id;                                                                 \
+        res->bc = InsnTbl(T)[id].bc;                                                  \
+        res->len = InsnTbl(T)[id].tr.len;                                             \
+        res->oprs = malloc(res->len * sizeof(Val));                                   \
+        memset(res->oprs, 0, res->len * sizeof(Val));                                 \
+        res->flag = InsnTbl(T)[id].flag;                                              \
+        return res;                                                                   \
+    }                                                                                 \
+    Insn(T) * Insn_OP_def(T, match)(Val * bc) {                                       \
+        for (size_t i = 0; i < InsnMax(T); i++) {                                     \
+        }                                                                             \
+        return NULL;                                                                  \
     }
 
 #define Insn_new(T, id) Insn_OP(T, new)(id)
