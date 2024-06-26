@@ -1,64 +1,175 @@
-[16:47:07] [36mDEBU[0m[30m test/val_tests.c:39: [0m
+[21:33:24] [36mDEBU[0m[30m test/val_tests.c:42: [0m
 
 ───── Run: [34m./test/val_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/val_tests.c:34: [0m
+[21:33:24] [36mDEBU[0m[30m test/val_tests.c:37: [0m
 ───── Sub: [34mtest_val_bit[0m
-[16:47:07] [36mDEBU[0m[30m test/val_tests.c:34: [0mtotal exec 0.033 ms
-[16:47:07] [36mDEBU[0m[30m test/val_tests.c:35: [0m
+[21:33:24] [36mDEBU[0m[30m test/val_tests.c:37: [0mtotal exec 0.026 ms
+[21:33:24] [36mDEBU[0m[30m test/val_tests.c:38: [0m
 ───── Sub: [34mtest_val_bitmap[0m
-[16:47:07] [36mDEBU[0m[30m test/val_tests.c:35: [0mtotal exec 0.069 ms
-[16:47:07] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
+[21:33:24] [36mDEBU[0m[30m test/val_tests.c:38: [0mtotal exec 0.033 ms
+[21:33:24] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
 
 ───── Run: [34m./test/temp_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
+[21:33:24] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
 ───── Sub: [34mtest_hello[0m
-[16:47:07] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
-[16:47:07] [36mDEBU[0m[30m test/armdef_tests.c:32: [0m
+[21:33:24] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
+[21:33:24] [36mDEBU[0m[30m test/armdef_tests.c:32: [0m
 
 ───── Run: [34m./test/armdef_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/armdef_tests.c:27: [0m
+[21:33:24] [36mDEBU[0m[30m test/armdef_tests.c:27: [0m
 ───── Sub: [34mtest_insn_display[0m
-[16:47:07] [36mDEBU[0m[30m test/armdef_tests.c:27: [0mtotal exec 0.026 ms
-[16:47:07] [36mDEBU[0m[30m test/armdef_tests.c:28: [0m
+[21:33:24] [36mDEBU[0m[30m test/armdef_tests.c:27: [0mtotal exec 0.022 ms
+[21:33:24] [36mDEBU[0m[30m test/armdef_tests.c:28: [0m
 ───── Sub: [34mtest_reg_display[0m
-[16:47:07] [36mDEBU[0m[30m test/armdef_tests.c:28: [0mtotal exec 0.576 ms
-[16:47:07] [36mDEBU[0m[30m test/rvdec_tests.c:80: [0m
+[21:33:24] [36mDEBU[0m[30m test/armdef_tests.c:28: [0mtotal exec 0.191 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdec_tests.c:80: [0m
 
 ───── Run: [34m./test/rvdec_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/task_tests.c:27: [0m
+[21:33:24] [36mDEBU[0m[30m test/task_tests.c:27: [0m
 
 ───── Run: [34m./test/task_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/task_tests.c:22: [0m
+[21:33:24] [36mDEBU[0m[30m test/task_tests.c:22: [0m
 ───── Sub: [34mtest_dump_elf[0m
-[16:47:07] [92mINFO[0m[30m src/evo/task.c:48: [0m[35m[Dump] [0m[32m[1m+[0m wuhu.elf
-[16:47:07] [36mDEBU[0m[30m test/task_tests.c:22: [0mtotal exec 0.182 ms
-[16:47:07] [36mDEBU[0m[30m test/task_tests.c:23: [0m
+[21:33:24] [92mINFO[0m[30m src/evo/task.c:48: [0m[35m[Dump] [0m[32m[1m+[0m wuhu.elf
+[21:33:24] [36mDEBU[0m[30m test/task_tests.c:22: [0mtotal exec 0.060 ms
+[21:33:24] [36mDEBU[0m[30m test/task_tests.c:23: [0m
 ───── Sub: [34mtest_dec_rv[0m
-[16:47:07] [36mDEBU[0m[30m test/task_tests.c:23: [0mtotal exec 0.000 ms
-[16:47:07] [36mDEBU[0m[30m test/cpu_tests.c:22: [0m
+[21:33:24] [36mDEBU[0m[30m test/task_tests.c:23: [0mtotal exec 0.000 ms
+[21:33:24] [36mDEBU[0m[30m test/cpu_tests.c:22: [0m
 
 ───── Run: [34m./test/cpu_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/cpu_tests.c:18: [0m
+[21:33:24] [36mDEBU[0m[30m test/cpu_tests.c:18: [0m
 ───── Sub: [34mtest_cpu_display[0m
-[16:47:07] [36mDEBU[0m[30m test/cpu_tests.c:18: [0mtotal exec 0.187 ms
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:40: [0m
+[21:33:24] [36mDEBU[0m[30m test/cpu_tests.c:18: [0mtotal exec 0.060 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:75: [0m
 
 ───── Run: [34m./test/rvdef_tests[0m
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:34: [0m
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:68: [0m
 ───── Sub: [34mtest_reg_display[0m
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:34: [0mtotal exec 0.139 ms
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:35: [0m
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:68: [0mtotal exec 0.023 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:69: [0m
 ───── Sub: [34mtest_insn_display[0m
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:35: [0mtotal exec 0.231 ms
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:36: [0m
-───── Sub: [34mtest_insn_match[0m
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn add[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn sub[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn xor[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn or[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn and[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn sll[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn srl[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn sra[14:12]
-[16:47:07] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 30 00 00  mismatch insn slt[14:12]
-[16:47:07] [36mDEBU[0m[30m test/rvdef_tests.c:36: [0mtotal exec 0.164 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:69: [0mtotal exec 0.054 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:70: [0m
+───── Sub: [34mtest_insn_decode[0m
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn add[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn sub[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn xor[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn or[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn and[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn sll[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn srl[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn sra[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x33 31 00 00 mismatch insn slt[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn add[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn sub[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn xor[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn or[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn and[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn sll[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn srl[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn sra[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn slt[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn sltu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn addi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn xori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn ori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn andi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn slli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn srli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn srai[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn slti[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn sltiu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x97 02 00 00 mismatch insn lui[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn add[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn sub[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn xor[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn or[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn and[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn sll[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn srl[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn sra[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn slt[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn sltu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn addi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn xori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn ori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn andi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn slli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn srli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn srai[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn slti[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn sltiu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lui[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn auipc[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lb[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lh[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lw[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lbu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x23 88 02 00 mismatch insn lhu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn add[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn sub[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn xor[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn or[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn and[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn sll[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn srl[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn sra[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn slt[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn sltu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn addi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn xori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn ori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn andi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn slli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn srli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn srai[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn slti[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn sltiu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn lui[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn auipc[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn lb[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn lh[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x03 c5 02 01 mismatch insn lw[14:12]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn add[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sub[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn xor[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn or[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn and[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sll[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn srl[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sra[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn slt[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sltu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn addi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn xori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn ori[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn andi[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn slli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn srli[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn srai[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn slti[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sltiu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lui[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn auipc[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lb[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lh[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lw[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lbu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn lhu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sb[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sh[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn sw[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn beq[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn bne[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn blt[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn bge[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn bltu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn bgeu[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn jalr[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn jal[6:0]
+[21:33:24] [93mWARN[0m[30m src/isa/rv/def.c:17: [0mInsnDef: bc 0x73 00 10 00 mismatch insn ecall[31:20]
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:70: [0mtotal exec 0.715 ms
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:71: [0m
+───── Sub: [34mtest_insn_encode[0m
+[21:33:24] [36mDEBU[0m[30m test/rvdef_tests.c:71: [0mtotal exec 0.019 ms
