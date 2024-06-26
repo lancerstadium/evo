@@ -1,52 +1,52 @@
-[14:25:37] [36mDEBU[0m[30m test/val_tests.c:35: [0m
+[14:58:36] [36mDEBU[0m[30m test/val_tests.c:37: [0m
 
 ───── Run: [34m./test/val_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/val_tests.c:30: [0m
+[14:58:36] [36mDEBU[0m[30m test/val_tests.c:32: [0m
 ───── Sub: [34mtest_val_bit[0m
-[14:25:37] [36mDEBU[0m[30m test/val_tests.c:30: [0mtotal exec 0.039 ms
-[14:25:37] [36mDEBU[0m[30m test/val_tests.c:31: [0m
+[14:58:36] [36mDEBU[0m[30m test/val_tests.c:32: [0mtotal exec 0.018 ms
+[14:58:36] [36mDEBU[0m[30m test/val_tests.c:33: [0m
 ───── Sub: [34mtest_val_bitmap[0m
-[14:25:37] [36mDEBU[0m[30m test/val_tests.c:31: [0mtotal exec 0.013 ms
-[14:25:37] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
+[14:58:36] [36mDEBU[0m[30m test/val_tests.c:33: [0mtotal exec 0.014 ms
+[14:58:36] [36mDEBU[0m[30m test/temp_tests.c:15: [0m
 
 ───── Run: [34m./test/temp_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
+[14:58:36] [36mDEBU[0m[30m test/temp_tests.c:11: [0m
 ───── Sub: [34mtest_hello[0m
-[14:25:37] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
-[14:25:37] [36mDEBU[0m[30m test/armdef_tests.c:32: [0m
+[14:58:36] [36mDEBU[0m[30m test/temp_tests.c:11: [0mtotal exec 0.000 ms
+[14:58:36] [36mDEBU[0m[30m test/armdef_tests.c:32: [0m
 
 ───── Run: [34m./test/armdef_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/armdef_tests.c:27: [0m
+[14:58:36] [36mDEBU[0m[30m test/armdef_tests.c:27: [0m
 ───── Sub: [34mtest_insn_display[0m
-[14:25:37] [36mDEBU[0m[30m test/armdef_tests.c:27: [0mtotal exec 0.002 ms
-[14:25:37] [36mDEBU[0m[30m test/armdef_tests.c:28: [0m
+[14:58:36] [36mDEBU[0m[30m test/armdef_tests.c:27: [0mtotal exec 0.012 ms
+[14:58:36] [36mDEBU[0m[30m test/armdef_tests.c:28: [0m
 ───── Sub: [34mtest_reg_display[0m
-[14:25:37] [36mDEBU[0m[30m test/armdef_tests.c:28: [0mtotal exec 0.074 ms
-[14:25:37] [36mDEBU[0m[30m test/rvdec_tests.c:80: [0m
+[14:58:36] [36mDEBU[0m[30m test/armdef_tests.c:28: [0mtotal exec 0.335 ms
+[14:58:36] [36mDEBU[0m[30m test/rvdec_tests.c:80: [0m
 
 ───── Run: [34m./test/rvdec_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/task_tests.c:27: [0m
+[14:58:36] [36mDEBU[0m[30m test/task_tests.c:27: [0m
 
 ───── Run: [34m./test/task_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/task_tests.c:22: [0m
+[14:58:36] [36mDEBU[0m[30m test/task_tests.c:22: [0m
 ───── Sub: [34mtest_dump_elf[0m
-[14:25:37] [92mINFO[0m[30m src/evo/task.c:48: [0m[35m[Dump] [0m[32m[1m+[0m wuhu.elf
-[14:25:37] [36mDEBU[0m[30m test/task_tests.c:22: [0mtotal exec 0.058 ms
-[14:25:37] [36mDEBU[0m[30m test/task_tests.c:23: [0m
+[14:58:36] [92mINFO[0m[30m src/evo/task.c:48: [0m[35m[Dump] [0m[32m[1m+[0m wuhu.elf
+[14:58:36] [36mDEBU[0m[30m test/task_tests.c:22: [0mtotal exec 0.058 ms
+[14:58:36] [36mDEBU[0m[30m test/task_tests.c:23: [0m
 ───── Sub: [34mtest_dec_rv[0m
-[14:25:37] [36mDEBU[0m[30m test/task_tests.c:23: [0mtotal exec 0.000 ms
-[14:25:37] [36mDEBU[0m[30m test/cpu_tests.c:22: [0m
+[14:58:36] [36mDEBU[0m[30m test/task_tests.c:23: [0mtotal exec 0.000 ms
+[14:58:36] [36mDEBU[0m[30m test/cpu_tests.c:22: [0m
 
 ───── Run: [34m./test/cpu_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/cpu_tests.c:18: [0m
+[14:58:36] [36mDEBU[0m[30m test/cpu_tests.c:18: [0m
 ───── Sub: [34mtest_cpu_display[0m
-[14:25:37] [36mDEBU[0m[30m test/cpu_tests.c:18: [0mtotal exec 0.072 ms
-[14:25:37] [36mDEBU[0m[30m test/rvdef_tests.c:32: [0m
+[14:58:36] [36mDEBU[0m[30m test/cpu_tests.c:18: [0mtotal exec 0.220 ms
+[14:58:36] [36mDEBU[0m[30m test/rvdef_tests.c:32: [0m
 
 ───── Run: [34m./test/rvdef_tests[0m
-[14:25:37] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0m
+[14:58:36] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0m
 ───── Sub: [34mtest_insn_display[0m
-[14:25:37] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0mtotal exec 0.245 ms
-[14:25:37] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0m
+[14:58:36] [36mDEBU[0m[30m test/rvdef_tests.c:27: [0mtotal exec 0.057 ms
+[14:58:36] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0m
 ───── Sub: [34mtest_reg_display[0m
-[14:25:37] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0mtotal exec 0.089 ms
+[14:58:36] [36mDEBU[0m[30m test/rvdef_tests.c:28: [0mtotal exec 0.022 ms

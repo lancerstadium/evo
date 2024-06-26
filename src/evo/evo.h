@@ -405,6 +405,7 @@ Val* Val_new_u16(u16 val);
 Val* Val_new_u32(u32 val);
 Val* Val_new_u64(u64 val);
 char* Val_as_hex(Val* v);
+char* Val_as_bin(Val* v);
 char* Val_as_str(Val* v);
 u8 Val_get_u8(Val *v, size_t i);
 u16 Val_get_u16(Val *v, size_t i);

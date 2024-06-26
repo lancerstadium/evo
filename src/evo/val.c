@@ -124,7 +124,25 @@ char* Val_as_hex(Val *v) {
 }
 
 char* Val_as_bin(Val* v) {
-
+    Log_ast(v != NULL, "Val_as_bin: v is null");
+    char* tmp = malloc((3 + v->len * 10)* sizeof(char));
+    snprintf(tmp, 3, "0b");
+    for(size_t i = 0; i < v->len; i++) {
+        char bin[10];
+        if(v->b[i]) {
+            size_t cnt = 8;
+            while(cnt-- > 0) {
+                snprintf(bin, 2, "%1d", (v->b[i] >> cnt) & 0x1);
+                strcat(tmp, bin);
+            }
+            // snprintf(bin, 10, "%08b ", v->b[i]);
+        } else {
+            snprintf(bin, 10, "00000000 ");
+            strcat(tmp, bin);
+        }
+        strcat(tmp, " ");
+    }
+    return tmp;
 }
 
 u8 Val_as_u8(Val *v, size_t i) {
