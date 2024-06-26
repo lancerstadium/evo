@@ -554,14 +554,14 @@ bool Val_cmp_map(Val *v, BitMap* map, size_t len, Val *val);
 #define Insn(T) CONCAT(Insn_, T)
 #define Insn_OP(T, OP) CONCAT3(Insn_, T##_, OP)
 #define Insn_OP_def(T, OP) UNUSED Insn_OP(T, OP)
-#define Insn_T(T, S)  \
-    typedef struct {  \
-        InsnID(T) id; \
-        Val bc;       \
-        Val* oprs;    \
-        size_t len;   \
-        u32 flag;     \
-        S             \
+#define Insn_T(T, S)      \
+    typedef struct {      \
+        InsnID(T) id;     \
+        Val bc;           \
+        Val* oprs;        \
+        size_t len;       \
+        u32 flag;         \
+        S                 \
     } Insn(T)
 
 #define Insn_def(T, S, ...)                                  \
