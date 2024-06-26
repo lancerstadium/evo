@@ -15,13 +15,14 @@ UnitTest_fn_def(test_val_bit){
 }
 
 UnitTest_fn_def(test_val_bitmap){
-    Val* val = Val_new_u16(0x4321);
+    Val* val = Val_new_u16(0x4351);
     UnitTest_msg("%s", Val_as_hex(val));
     u64 uu = Val_get_map(val, (BitMap[]){{3, 0}, {11, 8}}, 2);
     UnitTest_msg("0x%lx", uu);
     UnitTest_ast(uu == 0x31, "Val get bitmap fail");
-    Val_set_map(val, (BitMap[]){{3, 0}, {11, 8}}, 2, 0xab);
+    Val_set_map(val, (BitMap[]){{4, 0}, {12, 8}}, 2, 0b1111100000);
     UnitTest_msg("%s", Val_as_hex(val));
+    UnitTest_ast(Val_get_u16(val, 0) == 0x5f40, "Val set bitmap fail");
     return NULL;
 }
 

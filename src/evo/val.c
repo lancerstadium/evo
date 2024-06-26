@@ -123,6 +123,10 @@ char* Val_as_hex(Val *v) {
     return tmp;
 }
 
+char* Val_as_bin(Val* v) {
+
+}
+
 u8 Val_as_u8(Val *v, size_t i) {
     if(v->len < 1 + i) {
         return 0;
@@ -285,7 +289,7 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     tmp &= mask;
 
     // set bits
-    u64 val_u64 = Val_as_u64(val, start);
+    u64 val_u64 = Val_as_u64(val, 0);
     tmp |= ((val_u64 << lo_) & BITS(0xFFFFFFFFFFFFFFFF, hi_, lo_));
 
     // set val to v
@@ -322,7 +326,6 @@ Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val) {
         if(BitMap_chk(map, i)) {
             size_t scl = map[i].h - map[i].l + 1;
             u64 tmp = val_ & BITMASK(scl);
-            UnitTest_msg("tmp: 0x%lx", tmp);
             Val_set_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
             val_ >>= scl;
         }
