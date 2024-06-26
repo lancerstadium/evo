@@ -29,12 +29,10 @@ RegDef_def(EIR,
 
 
 InsnID_def(EIR, 
-    REP1(EIR_EL, NOP),
     REP1(EIR_EL, ADD_I32),
 );
 
 InsnDef_def(EIR,
-    [EIR_NOP]       = { .id = EIR_NOP       , .name = "nop"     , .bc = Val_u32(0x00) },
     [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = Val_u32(0x01) , .tr = Tys_new() },
 );
 

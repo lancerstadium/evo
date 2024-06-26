@@ -317,6 +317,31 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     return v;
 }
 
+bool Val_eq_bit(Val *v, size_t hi, size_t lo, Val *val) {
+    Log_ast(v, "Val_eq_bit: v is null");
+    Log_ast(val, "Val_eq_bit: val is null");
+    Log_ast(hi > lo, "Val_eq_bit: hi > lo");
+    Log_ast(hi < v->len * 8, "Val_eq_bit: hi < v->len");
+    Log_ast(lo < v->len * 8, "Val_eq_bit: lo < v->len");
+    
+    size_t scl = hi - lo + 1;
+    bool is_eq = false;
+
+    // Get bits
+    Val* tmp = Val_get_bit(v, hi, lo);
+    u64 tmp_u64 = Val_as_u64(tmp, 0);
+    Val* val_ext = Val_get_bit(val, scl - 1, 0);
+    u64 val_u64 = Val_as_u64(val_ext, 0);
+
+    // Compare bits
+    if(tmp_u64 == val_u64) is_eq = true;
+
+    // Free
+    Val_free(tmp);
+    Val_free(val_ext);
+    return is_eq;
+}
+
 
 u64 Val_get_map(Val *v, BitMap* map, size_t len) {
     Log_ast(v, "Val_get_map: v is null");
@@ -339,6 +364,7 @@ u64 Val_get_map(Val *v, BitMap* map, size_t len) {
 Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val) {
     Log_ast(v, "Val_set_map: v is null");
     Log_ast(map, "Val_set_map: map is null");
+    Log_ast(val, "Val_set_map: val is null");
     u64 val_ = val; 
     for(size_t i = 0; i < len; i++) {
         if(BitMap_chk(map, i)) {
@@ -349,4 +375,30 @@ Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val) {
         }
     }
     return v;
+}
+
+// compare map <-> val (no position)
+bool Val_eq_map(Val *v, BitMap* map, size_t len, Val *val) {
+    Log_ast(v, "Val_eq_map: v is null");
+    Log_ast(map, "Val_eq_map: map is null");
+    Log_ast(val, "Val_eq_map: val is null");
+    
+    u64 v_ = Val_get_map(v, map, len);
+    u64 val_ = Val_as_u64(val, 0);
+
+    if(v_ == val_) return true;
+    return false;
+}
+
+// compare map <-> map (yes position)
+bool Val_cmp_map(Val *v, BitMap* map, size_t len, Val *val) {
+    Log_ast(v, "Val_in_map: v is null");
+    Log_ast(map, "Val_in_map: map is null");
+    Log_ast(val, "Val_in_map: val is null");
+    
+    u64 v_ = Val_get_map(v, map, len);
+    u64 val_ = Val_get_map(val, map, len);
+
+    if(v_ == val_) return true;
+    return false;
 }

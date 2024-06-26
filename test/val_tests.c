@@ -25,6 +25,8 @@ UnitTest_fn_def(test_val_bitmap){
     UnitTest_ast(Val_get_u8(val, 0)  == 0b01000000, "Val set bitmap fail");
     UnitTest_msg("%s", Val_as_hex(val));
     UnitTest_ast(Val_get_u16(val, 0) == 0x5f40, "Val set bitmap fail");
+    bool res = Val_eq_map(val, (BitMap[]){{6, 0}, {12, 8}}, 2, Val_new_u16(0b111111000000));
+    UnitTest_ast(res, "Val eq bitmap fail");
     return NULL;
 }
 

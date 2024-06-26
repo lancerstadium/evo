@@ -128,7 +128,6 @@ RegDef_def(RV,
 // ==================================================================================== //
 
 InsnID_def(RV, 
-    REP1(RV_EL, NOP),
 #ifdef CFG_SISA_RVI
     /* RV32I: R-Type Arithmetic */
     REP5(RV_EL, ADD, SUB, XOR, OR , AND),
@@ -224,7 +223,6 @@ InsnID_def(RV,
 #define Tys_rv_ri()     Tys_new(Ty_or(Ty_or(Ty_rvib(), r, , {22, 1}), r, , {21, 3}))
 
 InsnDef_def(RV,
-    [RV_NOP]    = { .id = RV_NOP    , .name = "nop"     , .bc = Val_u32(0x00) },
     /* RV32I: R-Type Arithmetic */
     [RV_ADD]    = { .id = RV_ADD    , .name = "add"     , .bc = Val_u32(0b0110011 + (0b000 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
     [RV_SUB]    = { .id = RV_SUB    , .name = "sub"     , .bc = Val_u32(0b0110011 + (0b000 << 12) + (0x20 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
