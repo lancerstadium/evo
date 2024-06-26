@@ -1,5 +1,9 @@
 build/
 
+# elf
+*.elf
+*.out
+
 # Vscode
 .vscode/
 
@@ -8,5 +12,11 @@ build/
 
 # MacOS Cache
 .DS_Store
+
+# test
+test/*_tests
+
+# test log
+test/tests.log
 
 
