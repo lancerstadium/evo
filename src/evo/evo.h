@@ -273,12 +273,12 @@ typedef struct {
  * ----------------------------------------------------------------------------------------
  * 
  * Pattern (ARM64)
- *  - Opcode    :
+ *  - Opcode    :   a64op   = I[31:21]
  *  - Reg Dest  :   a64rd   = r[ 4: 0]
  *  - Reg Src1  :   a64rn   = r[ 9: 5]
  *  - Reg Src2  :   a64rm   = r[20:16]
  *  - Reg Src3  :   a64ra   = r[14:10]
- *  - Imm 26b   :   a64i26  = i[24: 0]
+ *  - Imm 26b   :   a64i26  = i[25: 0]
  *  - Imm 5b    :   a64i5   = i[20:16]
  *  - Imm 16b   :   a64i16  = i[20: 5]
  *  - Imm 19b   :   a64i19  = i[23: 5]

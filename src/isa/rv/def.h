@@ -198,6 +198,7 @@ InsnID_def(RV,
 #endif
 );
 
+// RVI Pattern
 #define Ty_rvop(V)      Ty_I(V, { 6,  0})
 #define Ty_rvf3(V)      Ty_I(V, {14, 12})
 #define Ty_rvf7(V)      Ty_I(V, {31, 25})
