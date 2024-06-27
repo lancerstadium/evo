@@ -6,6 +6,7 @@
 UnitTest_fn_def(test_cpu_display){
     CPUState(RV) * cpu = CPUState_init(RV, 56);
     char res_buf[32];
+    CPUState_set_reg(RV, cpu, RV_R3, Val_new_u64(0x123456789abcdef));
     for(size_t i = 0; i < RegMax(RV); i++) {
         CPUState_displayone(RV, cpu, res_buf, i);
         UnitTest_msg("%s", res_buf);

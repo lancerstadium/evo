@@ -699,6 +699,10 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define CPUState_def(T, S, ...)                                                   \
     CPUState_T(T, S);                                                             \
     CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                      \
+    void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                            \
+    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);    \
+    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val);   \
     void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id); \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
     __VA_ARGS__
@@ -713,6 +717,28 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         cpu->mem = Val_alloc(mem_size / 8);                                        \
         return cpu;                                                                \
     }                                                                              \
+    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {    \
+        RegDef(T)* df = REG(T, id);                                                \
+        if (df) {                                                                  \
+            size_t idx = df->id;                                                   \
+            Val_wrt_map(cpu->reg[idx], &df->map, 1, val);                          \
+        }                                                                          \
+    }                                                                              \
+    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id) {               \
+        RegDef(T)* df = REG(T, id);                                                \
+        if (df) {                                                                  \
+            size_t idx = df->id;                                                   \
+            return Val_ext_map(cpu->reg[idx], &df->map, 1);                        \
+        }                                                                          \
+        return NULL;                                                               \
+    }                                                                              \
+    void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                            \
+        cpu->pc = Val_alloc(8);                                                    \
+        for (size_t i = 0; i < RegMax(T); i++) {                                   \
+            cpu->reg[i] = Val_alloc(8);                                            \
+        }                                                                          \
+        cpu->mem = Val_alloc(cpu->mem->len);                                       \
+    }                                                                              \
     void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id) { \
         sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[id]));             \
     }                                                                              \
@@ -725,6 +751,9 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     }
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
+#define CPUState_reset(T, C)   CPUState_OP(T, reset)(C)
+#define CPUState_set_reg(T, C, ID, V) CPUState_OP(T, set_reg)(C, ID, V)
+#define CPUState_get_reg(T, C, ID)  CPUState_OP(T, get_reg)(C, ID)
 #define CPUState_displayone(T, C, S, ID) CPUState_OP(T, displayone)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
 

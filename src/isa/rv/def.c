@@ -30,11 +30,11 @@ CPUState_fn_def(RV);
 // ==================================================================================== //
 
 
-Insn(RV) * TaskCtx_OP_ISA_def(Decode, run, RV) (TaskCtx(Decode) *ctx, Val* bc) {
+Insn(RV) * TaskCtx_OP_ISA_def(Decode, run, RV) (UNUSED TaskCtx(Decode) *ctx, UNUSED Val* bc) {
     // Match 
     Insn(RV) * insn = Insn_match(RV, bc);
     if(insn != NULL) {
-        InsnDef(RV) * def = INSN(RV, insn->id);
+        UNUSED InsnDef(RV) * def = INSN(RV, insn->id);
         
     }
     return insn;

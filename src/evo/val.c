@@ -108,9 +108,9 @@ Val* Val_new_u64(u64 val) {
     v->b[2] = (val & 0xFF0000) >> 16;
     v->b[3] = (val & 0xFF000000) >> 24;
     v->b[4] = (val & 0xFF00000000) >> 32;
-    v->b[5] = (val & 0xFF000000000) >> 40;
-    v->b[6] = (val & 0xFF0000000000) >> 48;
-    v->b[7] = (val & 0xFF00000000000) >> 56;
+    v->b[5] = (val & 0xFF0000000000) >> 40;
+    v->b[6] = (val & 0xFF000000000000) >> 48;
+    v->b[7] = (val & 0xFF00000000000000) >> 56;
     return v;
 }
 
@@ -245,7 +245,7 @@ u64 Val_get_u64(Val *v, size_t i) {
     tmp |= v->b[i];
     tmp |= v->b[i + 1] << 8;
     tmp |= v->b[i + 2] << 16;
-    tmp |= v->b[i + 3] << 24;
+    tmp |= (u64)v->b[i + 3] << 24;
     tmp |= (u64)v->b[i + 4] << 32;
     tmp |= (u64)v->b[i + 5] << 40;
     tmp |= (u64)v->b[i + 6] << 48;
@@ -322,6 +322,10 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     // clear bits
     u64 tmp = Val_as_u64(v, start);
     u64 mask = BITMASK(scl) << lo_;
+    if (scl >= 64) {
+        mask = ~0;
+        scl = 64;
+    }
     tmp &= ~mask;
 
     // set bits
@@ -329,7 +333,7 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     tmp |= ((val_u64 << lo_) & mask);
 
     // set val to v
-    for(size_t i = 0; i < v->len; i++) {
+    for(size_t i = 0; (i < v->len) && (i < 8); i++) {
         v->b[i+start] = (tmp >> (i * 8)) & 0xFF;
     }
     return v;
@@ -428,10 +432,15 @@ Val* Val_wrt_map(Val *v, BitMap* map, size_t len, Val *val) {
     for(size_t i = 0; i < len; i++) {
         if(BitMap_chk(map, i)) {
             size_t scl = map[i].h - map[i].l + 1;
-            u64 tmp = val_ & BITMASK(scl);
-            UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex(v, 0), map[i].h, map[i].l, tmp, scl);
+            u64 mask = BITMASK(scl);
+            if (scl >= 64) {
+                mask = ~0;
+                scl = 64;
+            }
+            u64 tmp = val_ & mask;
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex(v, 0), map[i].h, map[i].l, tmp, scl);
             Val_set_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
-            UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex(v, 0), map[i].h, map[i].l, tmp, scl);
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex(v, 0), map[i].h, map[i].l, tmp, scl);
             val_ >>= scl;
         }
     }
