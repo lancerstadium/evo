@@ -240,6 +240,7 @@ typedef struct {
  *  - Insn      :   $name
  *  - Insn Sep  :   ;
  *  - Insn Bit  :   I(scl)(<numb>)([hi:lo|...])
+ *  - 
  * 
  * Pattern (Oprs)
  *  - Off       :   x
@@ -248,6 +249,10 @@ typedef struct {
  *  - Imm       :   i(scl)(<numb>)([hi:lo|...])
  *  - Mem       :   m(scl)(<flag>)([hi:lo|...])
  *  - Lab       :   l([hi:lo|...])
+ *  - Cond      :
+ *  - Extend    : 
+ *  - Shift     :   s()
+ *  - Option    :   t(000: UXTB, 001: UXTH, 010: UXTW(LSL 32-bits), 011: UXTX(LSL 64-bits), 100: SXTB, 101: SXTH, 110: SXTW, 111: SXTX)
  * 
  * ----------------------------------------------------------------------------------------
  * 
@@ -308,17 +313,21 @@ typedef struct {
  */
 typedef enum {
     /* ctrl */
-    TY_ctrl = 0,
-    TY_I = TY_ctrl,
-    TY_S,
+    TY_I    =   1 << 0,
+    TY_S    =   1 << 1,
+    TY_N    =   1 << 2,
+    TY_ctrl =   TY_I | TY_S | TY_N,
     /* oprs */
-    TY_oprs,
-    TY_x,
-    TY_o,
-    TY_r,
-    TY_i,
-    TY_m,
-    TY_l                          
+    TY_x    =   1 << 3,
+    TY_o    =   1 << 4,
+    TY_r    =   1 << 5,
+    TY_i    =   1 << 6,
+    TY_m    =   1 << 7,
+    TY_l    =   1 << 8,
+    TY_c    =   1 << 9,
+    TY_e    =   1 << 10,
+    TY_t    =   1 << 11,
+    TY_oprs =   TY_x | TY_o | TY_r | TY_i | TY_m | TY_l | TY_c | TY_e | TY_t ,                     
 } TyKd;
 
 typedef struct {
@@ -342,10 +351,17 @@ typedef struct Ty {
 #define Ty_new(K, V, ...)           { .or = NULL   , .flag = (V) , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
 #define Ty_or(T, K, V, ...)         { .or = &(Ty)T , .flag = (V) , .k = CONCAT(TY_,K), .map = (BitMap[]){__VA_ARGS__}, .len = (sizeof((BitMap[]){__VA_ARGS__}) / sizeof(BitMap)), .sym = STR(K) }
 #define Ty_I(V, ...)                Ty_new(I, V, __VA_ARGS__)
+#define Ty_S(V, ...)                Ty_new(S, V, __VA_ARGS__)
+#define Ty_N(V, ...)                Ty_new(N, V, __VA_ARGS__)
+#define Ty_x(V, ...)                Ty_new(x, V, __VA_ARGS__)
+#define Ty_o(V, ...)                Ty_new(o, V, __VA_ARGS__)
 #define Ty_r(V, ...)                Ty_new(r, V, __VA_ARGS__)
 #define Ty_i(V, ...)                Ty_new(i, V, __VA_ARGS__)
 #define Ty_m(V, ...)                Ty_new(m, V, __VA_ARGS__)
 #define Ty_l(V, ...)                Ty_new(l, V, __VA_ARGS__)
+#define Ty_c(V, ...)                Ty_new(c, V, __VA_ARGS__)
+#define Ty_e(V, ...)                Ty_new(e, V, __VA_ARGS__)
+#define Ty_t(V, ...)                Ty_new(t, V, __VA_ARGS__)
 char* Ty_sym(Ty t);
 
 typedef struct {

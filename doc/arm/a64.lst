@@ -52,7 +52,7 @@ A64 Opcodes Table
 | 01 | x 0 0 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.001 ADC Wd, Wn, Wm
 | 02 | x 0 1 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.002 ADCS
 | 03 | x 0 0 0 1 0 1 1 0 0 1 | Rm        | o | o o | im3 | Rn        | Rd        | % C6.2.003 ADD Wd|WSP, Wn|WSP, Wm{, extend #amount}
-| 04 | x 0 0 1 0 0 0 1 0 s | imm12                       | Rn        | Rd        | % C6.2.004 ADD Ws|WSP, Wn|WSP, #imm{, shift}
+| 04 | x 0 0 1 0 0 0 1 s s | imm12                       | Rn        | Rd        | % C6.2.004 ADD Wd|WSP, Wn|WSP, #imm{, shift}
 | 05 | x 0 0 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.005 ADD Wd, Wn{, shift #amount}
 | 06 | x 0 1 0 1 0 1 1 0 0 | uimm6       | 0 | 0 | uimm4 | Xn        | Xd        | % C6.2.006 ADDG Xd|SP, Xn|SP, #uimm6, #uimm4 (MTE)
 | 07 | x 0 1 0 1 0 1 1 0 0 1 | Rm        | o | o o | im3 | Rn        | Rd        | % C6.2.007 ADDS Wd, Wm|WSP{, extend #amount} %C6.2.059

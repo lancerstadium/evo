@@ -245,12 +245,16 @@ RegDef_def(ARM,
 
 InsnID_def(ARM,
     REP1(ARM_EL, UDF),
+    /* 1. A64 Opcodes                           */
+    REP2(ARM_EL, ADC, ADCS),
+    REP3(ARM_EL, ADD_R, ADD_I, ADD_S),
     /* 5. 3-way Register Ops                    */
     REP3(ARM_EL, STXRB, STLXRB, STLXRH),
 );
 
 #define Ty_a64op(V)         Ty_I(V, {31, 21})
-#define Ty_a64top3(V)       Ty_I(V, {31, 29})
+#define Ty_a64op2(V)        Ty_I(V, {30, 21})
+#define Ty_a64op3(V)        Ty_I(V, {30, 24})
 #define Ty_a64rd(V)         Ty_r(V, { 4,  0})
 #define Ty_a64rt(V)         Ty_r(V, { 4,  0})
 #define Ty_a64rn(V)         Ty_r(V, { 9,  5})
@@ -268,16 +272,17 @@ InsnID_def(ARM,
 #define Ty_a64xn(V)         Ty_a64rn(V)
 #define Ty_a64xm(V)         Ty_a64rm(V)
 #define Ty_a64f(V)          Ty_i(V, {15, 15})
-#define Ty_a64i26(V)        Ty_I(V, {25,  0})
+#define Ty_a64i26(V)        Ty_i(V, {25,  0})
 #define Ty_a64i4(V)         Ty_i(V, {11,  8})
-#define Ty_a64i5(V)         Ty_I(V, {20, 16})
-#define Ty_a64i16(V)        Ty_I(V, {20,  5})
-#define Ty_a64i19(V)        Ty_I(V, {23,  5})
-#define Ty_a64i9(V)         Ty_I(V, {20, 12})
-#define Ty_a64i12(V)        Ty_I(V, {21, 10})
-#define Ty_a64is(V)         Ty_I(V, {15, 10})
-#define Ty_a64ir(V)         Ty_I(V, {21, 16})
-#define Ty_a64i7(V)         Ty_I(V, {21, 15})
+#define Ty_a64i5(V)         Ty_i(V, {20, 16})
+#define Ty_a64i16(V)        Ty_i(V, {20,  5})
+#define Ty_a64i19(V)        Ty_i(V, {23,  5})
+#define Ty_a64i9(V)         Ty_i(V, {20, 12})
+#define Ty_a64i12(V)        Ty_i(V, {21, 10})
+#define Ty_a64amt(V)        Ty_i(V, {15, 13})
+#define Ty_a64is(V)         Ty_i(V, {15, 10})
+#define Ty_a64ir(V)         Ty_i(V, {21, 16})
+#define Ty_a64i7(V)         Ty_i(V, {21, 15})
 
 /* 1. 0-way Pure Bits                       */
 #define Tys_a64all0()       Tys_new(Ty_I(0, {31,  0}))
@@ -290,8 +295,16 @@ InsnID_def(ARM,
 /* 4. 2-way Register Ops with Left options  */
 #define Tys_a64w2rl0()
 /* 5. 3-way Register Ops                    */
-#define Tys_a64w3r0()       Tys_new(Ty_a64op(0), Ty_a64is(0))
-#define Tys_a64w3R0()       Tys_new(Ty_a64ws(0), Ty_a64wt(0), Ty_a64xn(0))
+#define Tys_a64w3r0()       Tys_new(Ty_a64op(0) , Ty_a64is(0))
+#define Tys_a64w3R0()       Tys_new(Ty_a64ws(0) , Ty_a64wt(0), Ty_a64xn(0))
+#define Tys_a64w3r1()       Tys_new(Ty_a64op2(0), Ty_a64is(0))
+#define Tys_a64w3R1()       Tys_new(Ty_a64rd(0) , Ty_a64rn(0), Ty_a64rm(0))
+#define Tys_a64w3r2()       Tys_new(Ty_a64op2(0))
+#define Tys_a64w3R2()       Tys_new(Ty_a64rd(0) , Ty_a64rn(0), Ty_a64rm(0) , Ty_or(Ty_x(0), i, 0, {12, 10}))
+#define Tys_a64w3r3()       Tys_new(Ty_a64op3(0))
+#define Tys_a64w3R3()       Tys_new(Ty_a64rd(0) , Ty_a64rn(0), Ty_a64i12(0), Ty_or(Ty_x(0), i, 0, {23, 22}))
+#define Tys_a64w3r4()       Tys_new(Ty_a64op3(0), Ty_I(0, {21, 21}))
+#define Tys_a64w3R4()       Tys_new(Ty_a64rd(0) , Ty_a64rn(0), Ty_a64rm(0) , Ty_or(Ty_x(0), i, 0, {15, 10}))
 /* 6. 4-way Register Ops                    */
 #define Tys_a64w4r0()
 
@@ -299,6 +312,12 @@ InsnID_def(ARM,
 
 InsnDef_def(ARM,
     [ARM_UDF]       = { .id = ARM_UDF       , .mnem = "udf"     , .bc = Val_u32(0x00)                                           , .tc = Tys_new(Ty_I(0, {31, 16}))  , .tr = Tys_new(Ty_i(0, {15, 0}))},
+    /* 1. A64 Opcodes                           */
+    [ARM_ADC]       = { .id = ARM_ADC       , .mnem = "adc"     , .bc = Val_u32(( 0b0011010000 << 21) + (0b000000 << 10))       , .tc = Tys_a64w3r1()               , .tr = Tys_a64w3R1()   },
+    [ARM_ADCS]      = { .id = ARM_ADCS      , .mnem = "adcs"    , .bc = Val_u32(( 0b0111010000 << 21) + (0b000000 << 10))       , .tc = Tys_a64w3r1()               , .tr = Tys_a64w3R1()   },
+    [ARM_ADD_R]     = { .id = ARM_ADD_R     , .mnem = "add"     , .bc = Val_u32(( 0b0001011001 << 21))                          , .tc = Tys_a64w3r2()               , .tr = Tys_a64w3R2()   },
+    [ARM_ADD_I]     = { .id = ARM_ADD_I     , .mnem = "add"     , .bc = Val_u32((    0b0010001 << 24))                          , .tc = Tys_a64w3r3()               , .tr = Tys_a64w3R3()   },
+    [ARM_ADD_S]     = { .id = ARM_ADD_S     , .mnem = "add"     , .bc = Val_u32((    0b0001011 << 24) + (     0b0 << 21))       , .tc = Tys_a64w3r4()               , .tr = Tys_a64w3R4()   },
     /* 1. 0-way Pure Bits                       */
     
     /* 2. 1-way Register Ops                    */
