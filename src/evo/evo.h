@@ -506,7 +506,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define InsnMax(T)              T##_INSNID_SIZE
 #define InsnTbl(T)              T##_insn_tbl
 #define INSN(T, ID)             ((ID < InsnMax(T)) ? &InsnTbl(T)[ID] : NULL)
-#define InsnName(T, ID)         INSN(T, ID)->mnem
+#define InsnMnem(T, ID)         INSN(T, ID)->mnem
 #define InsnFlag(T, ID)         INSN(T, ID)->flag
 #define InsnBC(T, ID)           INSN(T, ID)->bc
 #define InsnTC(T, ID)           INSN(T, ID)->tc
