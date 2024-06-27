@@ -31,21 +31,38 @@ Val* CPUState_OP_def(RV, fetch)(CPUState(RV) * cpu) {
 }
 
 Insn(RV) * CPUState_OP_def(RV, decode)(CPUState(RV) * cpu, Val * val) {
-    cpu->dnpc = cpu->snpc;
+    Val_copy(cpu->dnpc, cpu->snpc);
     Insn(RV) * insn = Insn_decode(RV, val);
     return insn;
 }
 
+#define RV_EXEC_R(...)                             \
+    do {                                           \
+        u8 rd = Val_as_u8(insn->oprs[0], 0);       \
+        u8 r1 = Val_as_u8(insn->oprs[1], 0);       \
+        u8 r2 = Val_as_u8(insn->oprs[2], 0);       \
+        Val* r1_v = CPUState_get_reg(RV, cpu, r1); \
+        Val* r2_v = CPUState_get_reg(RV, cpu, r2); \
+        Val* res = Val_new_u64(__VA_ARGS__);       \
+        CPUState_set_reg(RV, cpu, rd, res);        \
+        Val_free(r1_v);                            \
+        Val_free(r2_v);                            \
+        Val_free(res);                             \
+    } while (0)
 
-#define RV_EXEC_U(...) \
-    u8  rd   = Val_as_u8(insn->oprs[0], 0);  \
-    u64 immu = Val_as_u64(insn->oprs[1], 0); \
-    Val* res = Val_new_u64(__VA_ARGS__); \
-    CPUState_set_reg(RV, cpu, rd, res); \
+#define RV_EXEC_U(...)                           \
+    do {                                         \
+        u8 rd = Val_as_u8(insn->oprs[0], 0);     \
+        u64 immu = Val_as_u64(insn->oprs[1], 0); \
+        Val* res = Val_new_u64(__VA_ARGS__);     \
+        CPUState_set_reg(RV, cpu, rd, res);      \
+        Val_free(res);                           \
+    } while (0)
 
 void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
     switch(insn->id) {
-        case RV_AUIPC: RV_EXEC_U(Val_as_u64(cpu->pc, 0) + immu); break;
+        case RV_ADD     : RV_EXEC_R(Val_as_u64(r1_v, 0) + Val_as_u64(r2_v, 0)); break;
+        case RV_AUIPC   : RV_EXEC_U(Val_as_u64(cpu->pc, 0) + immu);             break;
         default: break;
     }
 }

@@ -21,7 +21,9 @@ UnitTest_fn_def(test_exec_rv) {
     Val* img = Val_from_u32((u32[]){
         0x00000297,
         0x00028823,
-    }, 8);
+        0x0102c503,
+        0x00100073,
+    }, 16);
 
     Task(Exec)* t = Task_init(Exec, "exec-rv", img);
     Task_run(Exec, t);

@@ -42,7 +42,7 @@ Val* Val_from_u32(u32* val, size_t len) {
     Val* v = malloc(sizeof(Val));
     v->len = len;
     v->b = malloc((v->len) * sizeof(u8));
-    for(size_t i = 0; i< v->len; i++) {
+    for(size_t i = 0; i < v->len; i++) {
         v->b[i] = (u8)(*((u8*)(val) + i));
     }
     return v;
@@ -51,6 +51,7 @@ Val* Val_from_u32(u32* val, size_t len) {
 void Val_copy(Val* v, Val* other) {
     Log_ast(v != NULL, "Val_copy: v is null");
     Log_ast(other != NULL, "Val_copy: other is null");
+    if (v == other) return;
     v->len = other->len;
     v->b = malloc(v->len * sizeof(u8));
     memcpy(v->b, other->b, v->len * sizeof(u8));

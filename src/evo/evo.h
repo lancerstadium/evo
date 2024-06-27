@@ -417,6 +417,7 @@ typedef struct {
 
 Val* Val_str(char* str);
 void Val_copy(Val* v, Val* other);
+void Val_free(Val* v);
 Val* Val_from(Val* val);
 Val* Val_inc(Val* v, size_t l);
 Val* Val_from_u32(u32* val, size_t len);
