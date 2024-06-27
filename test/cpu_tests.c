@@ -17,6 +17,17 @@ UnitTest_fn_def(test_cpu_reg){
     return NULL;
 }
 
+UnitTest_fn_def(test_cpu_mem){
+    CPUState(RV) * cpu = CPUState_init(RV, 56);
+    Val* addr1 = Val_new_u32(0);
+    Val* addr2 = Val_new_u32(2);
+    CPUState_set_mem(RV, cpu, addr1, Val_new_u64(0x123456));
+    Val* val = CPUState_get_mem(RV, cpu, addr2, 4);
+    UnitTest_ast(Val_as_u32(val, 0) == 0x12, "Mem[2] should be 0x12");
+    UnitTest_msg("%s", ValHex(val));
+    return NULL;
+}
+
 UnitTest_fn_def(test_cpu_display){
     CPUState(RV) * cpu = CPUState_init(RV, 56);
     char res_buf[48];
@@ -29,6 +40,7 @@ UnitTest_fn_def(test_cpu_display){
 UnitTest_fn_def(all_tests) {
     UnitTest_add(test_cpu_reg);
     UnitTest_add(test_cpu_display);
+    UnitTest_add(test_cpu_mem);
     return NULL;
 }
 

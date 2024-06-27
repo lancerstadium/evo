@@ -436,6 +436,10 @@ void Val_set_u8(Val *v, size_t i, u8 val);
 void Val_set_u16(Val *v, size_t i, u16 val);
 void Val_set_u32(Val *v, size_t i, u32 val);
 void Val_set_u64(Val *v, size_t i, u64 val);
+Val* Val_set_val(Val* v, size_t idx, Val* val);
+u8* Val_get_ref(Val* v, size_t idx);
+void Val_set_ref(Val* v, size_t idx, u8* val, size_t len);
+Val* Val_as_val(Val* v, size_t i, size_t len);
 Val* Val_alloc(size_t len);
 Val* Val_get_bit(Val *v, size_t hi, size_t lo);
 Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val);
@@ -723,10 +727,10 @@ UNUSED static char* cpustatus_tbl2 [] = {
     CPUState_T(T, S);                                                             \
     CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                      \
     void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                            \
-    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                            \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val);   \
+    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len);  \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);    \
     Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
-    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val);   \
     void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id); \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
     __VA_ARGS__
@@ -742,9 +746,12 @@ UNUSED static char* cpustatus_tbl2 [] = {
         cpu->mem = Val_alloc(mem_size / 8);                                        \
         return cpu;                                                                \
     }                                                                              \
-    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu) {                            \
-        Val* pc = cpu->pc;                                                         \
-        return NULL; \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val) {   \
+        Val_set_val(cpu->mem, Val_as_u64(addr, 0), val);                           \
+    }                                                                              \
+    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len) {  \
+        Val* val = Val_as_val(cpu->mem, Val_as_u64(addr, 0), len);                 \
+        return val;                                                                \
     }                                                                              \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {    \
         RegDef(T)* df = REG(T, id);                                                \
@@ -782,6 +789,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
 #define CPUState_reset(T, C)   CPUState_OP(T, reset)(C)
+#define CPUState_set_mem(T, C, A, V) CPUState_OP(T, set_mem)(C, A, V)
+#define CPUState_get_mem(T, C, A, L) CPUState_OP(T, get_mem)(C, A, L)
 #define CPUState_set_reg(T, C, ID, V) CPUState_OP(T, set_reg)(C, ID, V)
 #define CPUState_get_reg(T, C, ID)  CPUState_OP(T, get_reg)(C, ID)
 #define CPUState_displayreg(T, C, S, ID) CPUState_OP(T, displayreg)(C, S, ID)

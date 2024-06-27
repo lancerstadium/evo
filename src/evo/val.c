@@ -38,8 +38,26 @@ u8 Val_get(Val* v, size_t idx) {
     return v->b[idx];
 }
 
-void Val_get_addr(Val* v, size_t idx) {
-    
+u8* Val_get_ref(Val* v, size_t idx) {
+    Log_ast(v != NULL, "Val_get: v is null");
+    Log_ast(idx < v->len, "Val_get: idx is out of bounds");
+    return &v->b[idx];
+}
+
+void Val_set_ref(Val* v, size_t idx, u8* val, size_t len) {
+    Log_ast(v != NULL, "Val_set: v is null");
+    Log_ast(idx < v->len, "Val_set: idx is out of bounds");
+    for(size_t i = 0; (i < len) && (i + idx < v->len); i++) {
+        v->b[i+idx] = val[i]; 
+    }
+}
+
+Val* Val_set_val(Val* v, size_t idx, Val* val) {
+    Log_ast(v != NULL, "Val_set: v is null");
+    Log_ast(val != NULL, "Val_set: val is null");
+    Log_ast(idx < v->len, "Val_set: idx is out of bounds");
+    Val_set_ref(v, idx, val->b, val->len);
+    return v;
 }
 
 void Val_concat(Val* v, Val* other) {
@@ -164,6 +182,15 @@ char* Val_as_bin(Val* v) {
         }
     }
     return tmp;
+}
+
+
+Val* Val_as_val(Val* v, size_t i, size_t len) {
+    Val* res= Val_alloc(len);
+    for(size_t j = 0; (j < len) && (i + j < v->len); j++) {
+        res->b[j] = v->b[i+j];
+    }
+    return res;
 }
 
 u8 Val_as_u8(Val *v, size_t i) {
