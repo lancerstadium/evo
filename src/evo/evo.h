@@ -381,8 +381,8 @@ typedef struct {
     size_t len;
 } Val;
 
-#define Val_new(...)  { .b = (u8[]){__VA_ARGS__}, .len = (sizeof((u8[]){__VA_ARGS__}) / sizeof(Byte)) }
-#define Val_zero(N)   { .b = {0}, .len = (N) }
+#define Val_new(...)  { .b = (u8[]){__VA_ARGS__}, .len = (sizeof((u8[]){__VA_ARGS__}) / sizeof(u8)) }
+#define Val_zero(N)   { .b = (u8[]){0}, .len = (N) }
 
 #define Val_u8(V) \
     {   .b = (u8[]){   \
@@ -418,6 +418,7 @@ typedef struct {
 Val* Val_str(char* str);
 void Val_copy(Val* v, Val* other);
 Val* Val_from(Val* val);
+Val* Val_from_u32(u32* val, size_t len);
 Val* Val_new_u8(u8 val);
 Val* Val_new_u16(u16 val);
 Val* Val_new_u32(u32 val);
@@ -851,6 +852,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define Task_err(T, ...)  Log_err(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_warn(T, ...) Log_warn(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_info(T, ...) Log_info(_MAGENTA("[" #T "] ") __VA_ARGS__)
+#define Task_ast(T, expr, ...)  Log_ast(expr, _MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_str(T) STR(T)
 #define Task_init(T, name, V) Task_OP(T, init)(name, V)
 #define Task_run(T, t) Task_OP(T, run)(t)
