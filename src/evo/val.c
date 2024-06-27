@@ -168,6 +168,91 @@ Val* Val_new_u64(u64 val) {
     return v;
 }
 
+Val* Val_new_i8(i8 val) {
+    Val* v = malloc(sizeof(Val));
+    v->len = 1;
+    v->b = malloc(1 * sizeof(u8));
+    v->b[0] = val;
+    return v;
+}
+
+
+
+Val* Val_to_i8(Val* v) {
+    Log_ast(v != NULL, "Val_to_i8: v is null");
+    return Val_new_i8(Val_as_i8(v, 0));
+}
+
+Val* Val_to_i16(Val* v) {
+    Log_ast(v != NULL, "Val_to_i16: v is null");
+    return Val_new_i16(Val_as_i16(v, 0));
+}
+
+Val* Val_to_i32(Val* v) {
+    Log_ast(v != NULL, "Val_to_i32: v is null");
+    return Val_new_i32(Val_as_i32(v, 0));
+}
+
+Val* Val_to_i64(Val* v) {
+    Log_ast(v != NULL, "Val_to_i64: v is null");
+    return Val_new_i64(Val_as_i64(v, 0));
+}
+
+Val* Val_to_u8(Val* v) {
+    Log_ast(v != NULL, "Val_to_u8: v is null");
+    return Val_new_u8(Val_as_u8(v, 0));
+}
+
+Val* Val_to_u16(Val* v) {
+    Log_ast(v != NULL, "Val_to_u16: v is null");
+    return Val_new_u16(Val_as_u16(v, 0));
+}
+
+Val* Val_to_u32(Val* v) {
+    Log_ast(v != NULL, "Val_to_u32: v is null");
+    return Val_new_u32(Val_as_u32(v, 0));
+}
+
+Val* Val_to_u64(Val* v) {
+    Log_ast(v != NULL, "Val_to_u64: v is null");
+    return Val_new_u64(Val_as_u64(v, 0));
+}
+
+
+Val* Val_new_i16(i16 val) {
+    Val* v = malloc(sizeof(Val));
+    v->len = 2;
+    v->b = malloc(2 * sizeof(u8));
+    v->b[0] = val & 0xFF;
+    v->b[1] = (val & 0xFF00) >> 8;
+    return v;
+}
+
+Val* Val_new_i32(i32 val) {
+    Val* v = malloc(sizeof(Val));
+    v->len = 4;
+    v->b = malloc(4 * sizeof(u8));
+    v->b[0] = val & 0xFF;
+    v->b[1] = (val & 0xFF00) >> 8;
+    v->b[2] = (val & 0xFF0000) >> 16;
+    v->b[3] = (val & 0xFF000000) >> 24;
+    return v;
+}
+
+Val* Val_new_i64(i64 val) {
+    Val* v = malloc(sizeof(Val));
+    v->len = 8;
+    v->b = malloc(8 * sizeof(u8));
+    v->b[0] = val & 0xFF;
+    v->b[1] = (val & 0xFF00) >> 8;
+    v->b[2] = (val & 0xFF0000) >> 16;
+    v->b[3] = (val & 0xFF000000) >> 24;
+    v->b[4] = (val & 0xFF00000000) >> 32;
+    v->b[5] = (val & 0xFF0000000000) >> 40;
+    v->b[6] = (val & 0xFF00000000000) >> 48;
+    v->b[7] = (val & 0xFF000000000000) >> 56;
+    return v;
+}
 
 char* Val_as_hex(Val *v, bool with_tag) {
     Log_ast(v != NULL, "Val_as_hex: v is null");
