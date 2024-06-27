@@ -1,0 +1,494 @@
+A64 Hacking Guide. Part 1
+=========================
+(c) Groupoid Infinity
+
+A64:  R0-R30     -- general purpose registers (63..0: Xn, 31..0: Wn)
+      R31        -- zero register (63..0)
+      SP         -- stack pointer (63..0)
+      PC         -- program counter (63..0)
+
+NEON: V0-V31     -- FPU/SIMD registers (127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      FPCR,FPSR  -- FPU/SIMD status registers (63..0)
+
+SVE:  Z0-Z31     -- SVE registers (2047..0, ..., 127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      P0-P15     -- SVE predicate registers (255..0, ..., 15..0)
+      FFR        -- SVE first fault register (63..0)
+
+Extensions:
+
+  NEON, PMULL, FP, FP16, SVE, CRC, LSE, LSE2, RDM, RCPC, RCPC2, DOTPROD, TME, FHM, DIT, FLAGM, FLAGM2, SPE, LOR,
+  SSBS, SB, PACA, PACG, DPB, DPB2, SVE2, SVE2-AES, SVE2-SM4, SVE2-SHA3, SVE2-BITPERM, FRINTTS, I8MM, F32MM, F64MM,
+  BF16, RAND, BTI, MTE, JSCONV, FCMA, AES, SHA2, SHA3, SM4, SME, ASM, BRBE, SPECRES, RAS, LS64, LRCPC, LRCPC2, TRF
+
+A64 Instruction Format
+----------------------
+
+ +---------------------= 32/64-bit
+ |
+ |     0 0 0 0 --------= SME
+ |     0 0 1 0 --------= SVE
+ |     1 0 0 x --------= Data Processing Immediate
+ |     1 0 1 x --------= Branching, System, Exceptions
+ |     x 1 x 0 --------= Loads and Stores
+ |     x 1 0 1 --------= Data Processing Register
+ |     1 1 1 1 --------= NEON Scalar
+ |     0 1 1 1 --------= NEON Vector
+ |     | | | |
+ |     | | | |
+ 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0
+ +-------------+ +-------------+ +-------------+ +-------------+
+ |     MSB     | |             | |             | |     LSB     |
+ +-------------+ +-------------+ +-------------+ +-------------+
+
+A64 Instruction Format
+----------------------
+
+| No |                31-21  | 20-16: Rm | F | 14-10: Ra | 9-5: Rn   | 4-0: Rd   | Description
+
+
+A64 Opcodes Table
+-----------------
+
+| 01 | x 0 0 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.001 ADC Wd, Wn, Wm
+| 02 | x 0 1 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.002 ADCS
+| 03 | x 0 0 0 1 0 1 1 0 0 1 | Rm        | o | o o | im3 | Rn        | Rd        | % C6.2.003 ADD Wd|WSP, Wn|WSP, Wm{, extend #amount}
+| 04 | x 0 0 1 0 0 0 1 0 s | imm12                       | Rn        | Rd        | % C6.2.004 ADD Ws|WSP, Wn|WSP, #imm{, shift}
+| 05 | x 0 0 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.005 ADD Wd, Wn{, shift #amount}
+| 06 | x 0 1 0 1 0 1 1 0 0 | uimm6       | 0 | 0 | uimm4 | Xn        | Xd        | % C6.2.006 ADDG Xd|SP, Xn|SP, #uimm6, #uimm4 (MTE)
+| 07 | x 0 1 0 1 0 1 1 0 0 1 | Rm        | o | o o | im3 | Rn        | Rd        | % C6.2.007 ADDS Wd, Wm|WSP{, extend #amount} %C6.2.059
+| 08 | x 0 1 1 0 0 0 1 0 s | imm12                       | Rn        | Rd        | % C6.2.008 ADDS Wd, Wn|WSP, #imm{, shift}
+| 09 | x 0 1 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.009 ADR Wd, Wm, Wm{, shift #amount}
+| 0A | 0 l o 1 0 0 0 0 | immhi19                                     | Rd        | % C6.2.010 ADR Xd, #imm
+| 0B | 1 l o 1 0 0 0 0 | immhi19                                     | Rd        | % C6.2.011 ADRP Xd, #imm
+| 0C | x 0 0 1 0 0 1 0 0 n | immr8       | imms6         | Rn        | Rd        | % C6.2.012 AND Wd|WSP, Wn, #imm
+| 0D | x 0 0 0 1 0 1 0 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.013 AND Wd, Wn, Wm{, shift #amount}
+| 0E | x 1 1 0 1 0 1 0 0 n | immr8       | imms6         | Rn        | Rd        | % C6.2.014 ANDS Wd, Wn, Wm, #imm
+| 0F | x 1 1 0 1 0 1 0 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.015 ANDS Wd, Wn, Wm{, shift #amount}
+| 10 | x 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 1 0 | Rn        | Rd        | % C6.2.016 ASR Wd, Wn, Wm
+| 11 | x 0 0 1 0 0 1 1 0 N | immr8       | x | 1 1 1 1 1 | Rn        | Rd        | % C6.2.017 ASR Wd, Wn, #shift
+| 12 | x 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 1 0 | Rn        | Rd        | % C6.2.018 ASRV Wd, Wn, Wm
+| 13 | 1 1 0 1 0 1 0 1 1 0 0 | 0 1 | op1 | 0 | 1 1 1 1 0 | 0 x | op2 | Rt        | % C6.2.019 AT op, Xt
+| 14 | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 1 1 0 | Rn        | Rd        | % C6.2.020 AUTDA Xd, Xn|SP, AUTDZA Xd
+| 15 | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 1 1 1 | Rn        | Rd        | % C6.2.021 AUTDB Xd, Xn|SP, AUTDZB Xd
+| 16 | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 1 0 0 | Rn        | Rd        | % C6.2.022 AUTIA Xd, Xn|SP, AUTIZA Xd
+| 16 | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | x 1 1 0 x | 1 1 1 1 1 | % C6.2.022 AUTIA1716/AUTIASP/AUTIAZ
+| 17 | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 1 0 1 | Rn        | Rd      1 | % C6.2.023 AUTIB Xd, Xn|SP, AUTIZB Xd
+| 17 | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | x 1 1 1 x | 1 1 1 1 1 | % C6.2.023 AUTIB1716/AUTIBSP/AUTIBZ
+| 18 | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 0 0 | 0 | 1 0 0 0 0 | 0 0 0 1 0 | 1 1 1 1 1 | % C6.2.024 AXFLAG (FLAGM2)
+| 19 | 0 0 0 1 0 1 | imm26                                                       | % C6.2.025 B #imm
+| 1A | 0 1 0 1 0 1 0 0 | imm19                                       | 0 | cond  | % C6.2.026 B.cond #imm
+| 1B | 0 1 0 1 0 1 0 0 | imm19                                       | 1 | cond  | % C6.2.027 BC.cond #imm (HBC)
+| 1C | x 0 1 1 0 0 1 1 0 n | immr8       | imms6         | 1 1 1 1 1 | Rd        | % C6.2.028 BFC Wd, #lsb, #width (ASM)
+| 1D | x 0 1 1 0 0 1 1 0 n | immr8       | imms6         | Rn        | Rd        | % C6.2.029 BFI Wd, Wn, #lsb, #width
+| 1E | x 0 1 1 0 0 1 1 0 n | immr8       | imms6         | Rn        | Rd        | % C6.2.030 BFM Wd, Wm, #immr8, #imms6
+| 1F | x 0 1 1 0 0 1 1 0 n | immr8       | imms6         | Rn        | Rd        | % C6.2.031 BFXIL Wd, Wm, #immr8, #imms6
+| 20 | x 0 0 0 1 0 1 0 s s 1 | Rm        | imm6          | Rn        | Rd        | % C6.2.032 BIC Wd, Wn, Wm{, shift #amount}
+| 21 | x 1 1 0 1 0 1 0 s s 1 | Rm        | imm6          | Rn        | Rd        | % C6.2.033 BICS Wd, Wn, Wm{, shift #amount}
+| 22 | 1 0 0 1 0 1 | imm26                                                       | % C6.2.034 BL #imm
+| 23 | 1 1 0 1 0 1 1 0 0 0 1 | 1 1 1 1 1 | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.035 BLR Xn
+| 24 | 1 1 0 1 0 1 1 Z 0 0 1 | 1 1 1 1 1 | 0 | 0 0 0 1 M | Rn        | Rm        | % C6.2.036 BLRAAZ/BLRABZ Xn, BLRAA/BLRAB Xn, Xm|SP (PACA)
+| 25 | 1 1 0 1 0 1 1 0 0 0 0 | 1 1 1 1 1 | 0 | 0 0 0 0 0 | Rn        | 0 0 0 0 0 | % C6.2.037 BR Xn
+| 26 | 1 1 0 1 0 1 1 Z 0 0 0 | 1 1 1 1 1 | 0 | 0 0 0 1 M | Rn        | Rm        | % C6.2.038 BRAAZ/BRABZ Xn, BRAA/BRAB Xn, Xm|SP
+| 27 | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 0 0 1 | 0 | 1 1 1 0 0 | 1 0 | op2 | Rt      1 | % C6.2.039 BRB #op{, Xt} (BRBE)
+| 28 | 1 1 0 1 0 1 0 0 0 0 1 | imm16                                 | 0 0 0 0 0 | % C6.2.040 BRK #imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 1 | 0 0 x x 0 | 1 1 1 1 1 | % C6.2.041 BTI {targets}
+|    | 0 0 0 0 1 0 0 0 1 L 1 | Rs        | o | 1 1 1 1 1 | Rn        | Rd        | % C6.2.042 CASAB/CASALB/CASB/CASLB Ws, Wt, [Xn|SP{, #0}] (LSE)
+|    | 0 1 0 0 1 0 0 0 1 L 1 | Rs        | o | 1 1 1 1 1 | Rn        | Rd        | % C6.2.043 CASAH/CASALH/CASH/CASLH Ws, Wt, [Xn|SP{, #0}] (LSE)
+|    | 0 x 0 0 1 0 0 0 0 L 1 | Rs        | o | 1 1 1 1 1 | Rn        | Rd        | % C6.2.044 CASP/CASPA/CASPAL/CASPL Ws, Ws+1, Wt, [Xn|SP{, #0}] (LSE)
+|    | 1 x 0 0 1 0 0 0 1 L 1 | Rs        | o | 1 1 1 1 1 | Rn        | Rd        | % C6.2.045 CAS/CASA/CASAL/CASL Ws, Wt, [Xn|SP{, #0}] (LSE)
+|    | x 0 1 1 0 1 0 1 | imm19                                       | Rt        | % C6.2.046 CNBZ Xt, #imm
+|    | x 0 1 1 0 1 0 0 | imm19                                       | Rt        | % C6.2.047 CBZ Xt, #imm
+|    | x 0 1 1 1 0 1 0 0 1 0 | imm5      | c | c c c 1 0 | Rn        | 0 n z c v | % C6.2.048 CCMN Wn, #imm, #nzcv, cond
+|    | x 0 1 1 1 0 1 0 0 1 0 | Rm        | c | c c c 0 0 | Rn        | 0 n z c v | % C6.2.049 CCMN Wn, Wm, #nzcv, cond
+|    | x 1 1 1 1 0 1 0 0 1 0 | imm5      | c | c c c 1 0 | Rn        | 0 n z c v | % C6.2.050 CCMP Wn, #imm, #nzcv, cond
+|    | x 1 1 1 1 0 1 0 0 1 0 | Rm        | c | c c c 0 0 | Rn        | 0 n z c v | % C6.2.051 CCMP Wn, Wm, #nzcv, cond
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 0 0 | 0 | 1 0 0 0 0 | 0 0 0 0 0 | 1 1 1 1 1 | % C6.2.052 CFINV (FLAGM)
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 0 1 1 | 0 | 1 1 1 0 0 | 1 1 1 0 0 | Rt        | % C6.2.053 CFP RCTX, Xt (SPECRES)
+|    | x 0 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 1 | Rn        | Rd        | % C6.2.054 CINC Wd, Wn, cond
+|    | x 1 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 0 | Rn        | Rd        | % C6.2.055 CINV Wd, Wn, cond
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 i i | i i 0 1 0 | 1 1 1 1 1 | % C6.2.056 CLREX {#imm}
+|    | x 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 1 0 1 | Rn        | Rd        | % C6.2.057 CLS Wd, Wn
+|    | x 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 1 0 | Rn        | Rd        | % C6.2.058 CLZ Wd, Wn
+|    | x 0 1 0 1 0 1 1 0 0 1 | Rm        | o | o o i i i | Rn        | 1 1 1 1 1 | % C6.2.059 CMN Wn|WSP, Wm{, extend #amount}
+|    | x 0 1 1 0 0 0 1 0 s | imm12                       | Rn        | 1 1 1 1 1 | % C6.2.060 CMN Wn|WSP, #imm{, shift #amount}
+|    | x 0 1 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | 1 1 1 1 1 | % C6.2.061 CMN Wn|WSP, Wm{, shift #amount}
+|    | x 1 1 0 1 0 1 1 0 0 1 | Rm        | o | o o i i i | Rn        | 1 1 1 1 1 | % C6.2.062 CMP Wn|WSP, Wm{, extend #amount}
+|    | x 1 1 1 0 0 0 1 0 s | imm12                       | Rn        | 1 1 1 1 1 | % C6.2.063 CMP Wn|WSP, #imm{, shift #amount}
+|    | x 1 1 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | 1 1 1 1 1 | % C6.2.064 CMP Wn|WSP, Wm{, shift #amount}
+|    | 1 0 1 1 1 0 1 0 1 1 0 | Xm        | 0 | 0 0 0 0 0 | Xn        | 1 1 1 1 1 | % C6.2.065 CMPP Xn|SP, Xm|SP
+|    | x 1 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 1 | Rn        | Rd        | % C6.2.066 CNEG Wd, Wn, cond
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 0 1 1 | 0 | 1 1 1 0 0 | 1 1 1 1 1 | Rt        | % C6.2.067 CPP RCTX, Xt (SPECRES)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 0 0 0 0 1 | Rn        | Rd        | % C6.2.068 CPYFE/CPYFM/CPYFP [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 1 0 0 0 1 | Rn        | Rd        | % C6.2.069 CPYFEN/CPYFMN/CPYFPN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 0 0 0 0 1 | Rn        | Rd        | % C6.2.070 CPYFERN/CPYFMRN/CPYFPRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.071 CPYFERT/CPYFMRT/CPYFPRT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 1 1 0 0 1 | Rn        | Rd        | % C6.2.072 CPYFERTN/CPYFMRTN/CPYFPRTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.073 CPYFERTRN/CPYFMRTRN/CPYFPRTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 1 1 0 0 1 | Rn        | Rd        | % C6.2.074 CPYFERTWN/CPYFMRTWN/CPYFPRTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 0 1 1 0 1 | Rn        | Rd        | % C6.2.075 CPYFET/CPYFMT/CPYFPT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 1 1 1 0 1 | Rn        | Rd        | % C6.2.076 CPYFETN/CPYFMTN/CPYFMTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 0 1 1 0 1 | Rn        | Rd        | % C6.2.077 CPYFETRN/CPYFMTRN/CPYFPTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 1 1 1 0 1 | Rn        | Rd        | % C6.2.078 CPYFETWN/CPYFMTWN/CPYFPTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 1 0 0 0 1 | Rn        | Rd        | % C6.2.079 CPYFEWN/CPYFMWN/CPYFPWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 0 0 1 0 1 | Rn        | Rd        | % C6.2.080 CPYFEWT/CPYFMWT/CPYFPWT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 1 0 1 0 1 | Rn        | Rd        | % C6.2.081 CPYFEWTN/CPYFMWTN/CPYFPWTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 1 | 0 0 1 0 1 | Rn        | Rd        | % C6.2.082 CPYFEWTRN/CPYFMWTRN/CPYFPWTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 0 0 1 o o 0 | Rs        | 0 | 1 0 1 0 1 | Rn        | Rd        | % C6.2.083 CPYFEWTWN/CPYFMWTWN/CPYFPWTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 0 0 0 0 1 | Rn        | Rd        | % C6.2.084 CPYE/CPYM/CPYP [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 1 0 0 0 1 | Rn        | Rd        | % C6.2.085 CPYEN/CPYMN/CPYPN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 0 0 0 0 1 | Rn        | Rd        | % C6.2.086 CPYERN/CPYMRN/CPYPRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.087 CPYERT/CPYMRT/CPYPRT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 1 1 0 0 1 | Rn        | Rd        | % C6.2.088 CPYERTN/CPYMRTN/CPYPRTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.089 CPYERTRN/CPYMRTRN/CPYPRTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 1 1 0 0 1 | Rn        | Rd        | % C6.2.090 CPYERTWN/CPYMRTWN/CPYPRTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 0 1 1 0 1 | Rn        | Rd        | % C6.2.091 CPYET/CPYMT/CPYPT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 1 1 1 0 1 | Rn        | Rd        | % C6.2.092 CPYETN/CPYMTN/CPYPTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 0 1 1 0 1 | Rn        | Rd        | % C6.2.093 CPYETRN/CPYMTRN/CPYPTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 1 1 1 0 1 | Rn        | Rd        | % C6.2.094 CPYETWN/CPYMTWN/CPYPTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 1 0 0 0 1 | Rn        | Rd        | % C6.2.095 CPYEWN/CPYMWN/CPYPWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 0 0 1 0 1 | Rn        | Rd        | % C6.2.096 CPYEWT/CPYMWT/CPYPWT [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 1 0 1 0 1 | Rn        | Rd        | % C6.2.097 CPYEWTN/CPYMWTN/CPYPWTN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 1 | 0 0 1 0 1 | Rn        | Rd        | % C6.2.098 CPYEWTRN/CPYMWTRN/CPYPWTRN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | s z 0 1 1 1 0 1 o o 0 | Rs        | 0 | 1 0 1 0 1 | Rn        | Rd        | % C6.2.099 CPYEWTWN/CPYMWTWN/CPYPWTWN [Xd]!, [Xs]!, Xn! (MOPS)
+|    | x 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 1 0 0 s z | Rn        | Rd        | % C6.2.100 CRC32B/CRC32H/CRC32W/CRC32X Wd, Wn, Wm
+|    | x 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 1 0 1 s z | Rn        | Rd        | % C6.2.101 CRC32CB/CRC32CH/CRC32CW/CRC32CX Wd, Wn, Wm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 1 0 0 | 1 1 1 1 1 | % C6.2.102 CSDB
+|    | x 0 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 0 | Rn        | Rd        | % C6.2.103 CSEL Wd, Wn, Wm, cond
+|    | x 0 0 1 1 0 1 0 1 0 0 | 1 1 1 1 1 | c | c c c 0 1 | 1 1 1 1 1 | Rd        | % C6.2.104 CSET Wd, cond
+|    | x 1 0 1 1 0 1 0 1 0 0 | 1 1 1 1 1 | c | c c c 0 0 | 1 1 1 1 1 | Rd        | % C6.2.105 CSETM Wd, cond
+|    | x 0 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 1 | Rn        | Rd        | % C6.2.106 CSINC Wd, Wn, Wm, cond
+|    | x 1 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 0 | Rn        | Rd        | % C6.2.107 CSINV Wd, Wn, Wm, cond
+|    | x 1 0 1 1 0 1 0 1 0 0 | Rm        | c | c c c 0 1 | Rn        | Rd        | % C6.2.108 CSNEG Wd, Wn, Wm, cond
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 o o o | 0 | 1 1 1 m m | m m o o o | Rd        | % C6.2.109 DC op, Xd
+|    | 1 1 0 1 0 1 0 0 1 0 1 | imm16                                 | 0 0 0 0 1 | % C6.2.110 DCSP1 #imm
+|    | 1 1 0 1 0 1 0 0 1 0 1 | imm16                                 | 0 0 0 1 0 | % C6.2.111 DCSP2 #imm
+|    | 1 1 0 1 0 1 0 0 1 0 1 | imm16                                 | 0 0 0 1 1 | % C6.2.112 DCSP3 #imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 1 1 0 | 1 1 1 1 1 | % C6.2.113 DGH
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 m m | m m 1 0 1 | 1 1 1 1 1 | % C6.2.114 DMB
+|    | 1 1 0 1 0 1 0 1 1 0 1 | 1 1 1 1 1 | 0 | 0 0 0 0 0 | 1 1 1 1 1 | 0 0 0 0 0 | % C6.2.115 DRPS
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 m m | m m 1 0 0 | 1 1 1 1 1 | % C6.2.116 DSB option|#imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 0 1 1 | 0 | 1 1 1 0 0 | 1 1 1 0 1 | Rd        | % C6.2.117 DVP RCTX, Xd (SPECRES)
+|    | x 1 0 0 1 0 1 0 s s 1 | Rm        | imm6          | Rn        | Rd        | % C6.2.118 EON Wd, Wn, Wm{, shift #amount}
+|    | x 1 0 1 0 0 1 0 0 N | immr        | imms          | Rn        | Rd        | % C6.2.119 EOR Wd|ESP, Wn, #imm
+|    | x 1 0 0 1 0 1 0 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.120 EOR Wd, Wn, Wm{, shift #amount}
+|    | 1 1 0 1 0 1 1 0 1 0 0 | 1 1 1 1 1 | 0 | 0 0 0 0 0 | 1 1 1 1 1 | 0 0 0 0 0 | % C6.2.121 ERET
+|    | 1 1 0 1 0 1 1 0 1 0 0 | 1 1 1 1 1 | 0 | 0 0 0 1 M | 1 1 1 1 1 | 1 1 1 1 1 | % C6.2.122 ERETAA/ERETBB (PACA)
+|    | 1 1 0 1 0 1 0 1 1 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 1 0 0 0 0 | 1 1 1 1 1 | % C6.2.123 ESB (RAS)
+|    | x 0 0 1 0 0 1 1 1 N 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.124 EXTR Wd, Wn, Wm, #lsb
+|    | 1 0 0 1 1 0 1 0 1 1 0 | Xm        | 0 | 0 0 1 0 1 | Xn        | Xd        | % C6.2.125 GMI Xd, Xn|SP, Xm (MTE)
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 m m | m m o o o | 1 1 1 1 1 | % C6.2.126 HINT #imm
+|    | 1 1 0 1 0 1 0 0 0 1 0 | imm16                                 | 0 0 0 0 0 | % C6.2.127 HLT #imm
+|    | 1 1 0 1 0 1 0 0 0 0 0 | imm16                                 | 0 0 0 1 0 | % C6.2.128 HVC #imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 o o o | 0 | 1 1 1 m m | m m o o o | Rd        | % C6.2.129 IC op{, Xd}
+|    | 1 0 0 1 1 0 1 0 1 1 0 | Xm        | 0 | 0 0 1 0 0 | Xn        | Xd        | % C6.2.130 IRG Xd|SP, Xn|SP{, Xm} (MTE)
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 m m | m m 1 1 0 | 1 1 1 1 1 | % C6.2.131 ISB {option|#imm}
+|    | 1 1 1 1 1 0 0 0 0 0 1 | 1 1 1 1 1 | 1 | 1 0 1 0 0 | Rn        | Rd        | % C6.2.132 LD64B Xd, [Xn|SP {, #0}] (LS64)
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.133 LDADDAB/LDADDALB/LDADDB/LDADDLB Ws, Wd, [Xn|SP] (LSE)
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.134 LDADDAH/LDADDALH/LDADDH/LDADDLH Ws, Wd, [Xn|SP] (LSE)
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.135 LDADD/LDADDA/LDADDAL/LDADDL Ws, Wd, [Xn|SP] (LSE)
+|    | 1 x 1 1 1 0 0 0 1 0 1 | 1 1 1 1 1 | 1 | 1 0 0 0 0 | Rn        | Rd        | % C6.2.136 LDAPR Wd, [Xn|SP {, #0}] (LRCPC)
+|    | 0 0 1 1 1 0 0 0 1 0 1 | 1 1 1 1 1 | 1 | 1 0 0 0 0 | Rn        | Rd        | % C6.2.137 LDAPRB Wd, [Xn|SP {, #0}] (LRCPC)
+|    | 0 1 1 1 1 0 0 0 1 0 1 | 1 1 1 1 1 | 1 | 1 0 0 0 0 | Rn        | Rd        | % C6.2.138 LDAPRH Wd, [Xn|SP {, #0}] (LRCPC)
+|    | 1 x 0 1 1 0 0 1 0 1 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.139 LDAPUR Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 0 0 0 1 1 0 0 1 0 1 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.140 LDAPURB Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 0 1 0 1 1 0 0 1 0 1 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.141 LDAPURH Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 0 1 0 1 1 0 0 1 1 x 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.142 LDAPURSB Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 0 1 0 1 1 0 0 1 1 x 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.143 LDAPURSH Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 1 0 0 1 1 0 0 1 1 0 0 | imm9                | 0 0 | Rn        | Rd        | % C6.2.144 LDAPURSW Wd, [Xn|SP {, #imm}] (LRCPC2)
+|    | 1 x 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.145 LDAR Wd, [Xn|SP {, #0}]
+|    | 0 0 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.146 LDARB Wd, [Xn|SP {, #0}]
+|    | 0 1 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.147 LDARH Wd, [Xn|SP {, #0}]
+|    | 0 x 0 0 1 0 0 0 0 1 1 | 1 1 1 1 1 | 1 | Rt        | Rn        | Rd        | % C6.2.148 LDAXP Wd, Wt, [Xn|SP {, #0}]
+|    | 1 x 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 1 | Rt        | Rn        | Rd        | % C6.2.149 LDAXR Wd, Wt, [Xn|SP {, #0}]
+|    | 0 0 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.150 LDAXRB Wd, [Xn|SP {, #0}]
+|    | 0 1 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.151 LDAXRH Wd, [Xn|SP {, #0}]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.152 LDCLRB/LDCLRAB/LDCLRALB/LDCLRLB Ws, Wd, [Xn|SP] (LSE)
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.153 LDCLRH/LDCLRAH/LDCLRALH/LDCLRLH Ws, Wd, [Xn|SP] (LSE)
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.154 LDCLR/LDCLRA/LDCLRAL/LDCLRL Ws, Wd, [Xn|SP] (LSE)
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.155 LDEORB/LDEORAB/LDEORALB/LDEORLB Ws, Wd, [Xn|SP] (LSE)
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.156 LDEORH/LDEORAH/LDEORALH/LDEORLH Ws, Wd, [Xn|SP] (LSE)
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | Rd        | % C6.2.157 LDEOR/LDEORA/LDEORAL/LDEORL Ws, Wd, [Xn|SP] (LSE)
+|    | 1 1 0 1 1 0 0 1 0 1 1 | imm9                | 0 0 | Xn        | Xd        | % C6.2.158 LDG Xd, [Xn|SP {, #imm}] (MTE)
+|    | 1 1 0 1 1 0 0 1 1 1 1 | 0 0 0 0 0 0 0 0 0 0 | 0 0 | Xn        | Xd        | % C6.2.159 LDGM Xd, [Xn|SP] (MTE2)
+|    | 0 0 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.160 LDLARB Wd, [Xn|SP {,#0}] (LOR)
+|    | 0 1 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.161 LDLARH Wd, [Xn|SP {,#0}] (LOR)
+|    | 1 x 0 0 1 0 0 0 1 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.162 LDLAR Wd, [Xn|SP {,#0}] (LOR)
+|    | x 0 1 0 1 0 0 0 0 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.163 LDNP Wt1, Wt2, [Xn|SP{, #imm}]
+|    | x 0 1 0 1 0 0 0 1 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.164 LDP Wt1, Wt2, [Xn|SP], #imm
+|    | x 0 1 0 1 0 0 1 1 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.164 LDP Wt1, Wt2, [Xn|SP, #imm]!
+|    | x 0 1 0 1 0 0 1 0 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.164 LDP Wt1, Wt2, [Xn|SP{, #imm}]
+|    | 0 1 1 0 1 0 0 0 1 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.165 LDPSW Xt1, Xt2, [Xn|SP], #imm
+|    | 0 1 1 0 1 0 0 1 1 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.165 LDPSW Xt1, Xt2, [Xn|SP, #imm]!
+|    | 0 1 1 0 1 0 0 1 0 1 | imm7        | Rt2           | Rn        | Rt        | % C6.2.165 LDPSW Xt1, Xt2, [Xn|SP{, #imm}]
+|    | 1 x 1 1 1 0 0 0 0 1 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.166 LDR Wt, [Xn|SP], #imm
+|    | 1 x 1 1 1 0 0 0 0 1 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.166 LDR Wt, [Xn|SP, #imm]!
+|    | 1 x 1 1 1 0 0 1 0 1 | imm12                       | Rn        | Rt        | % C6.2.166 LDR Wt, [Xn|SP{, #imm}]
+|    | 0 x 0 1 1 0 0 0 | imm19                                       | Rt        | % C6.2.167 LDR Wt, label
+|    | 1 x 1 1 1 0 0 0 0 1 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.168 LDR Wt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 1 1 1 1 1 0 0 0 M S 1 | imm9                | W 1 | Rn        | Rt        | % C6.2.169 LDRAA/LDRAB Xt, [Xn|SP{, #simm}]{!}
+|    | 0 0 1 1 1 0 0 0 0 1 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.170 LDRB Wt, [Xn|SP], #simm
+|    | 0 0 1 1 1 0 0 0 0 1 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.170 LDRB Wt, [Xn|SP, #simm]!
+|    | 0 0 1 1 1 0 0 1 0 1 | imm12                       | Rn        | Rt        | % C6.2.170 LDRB Wt, [Xn|SP{, #pimm}]
+|    | 0 0 1 1 1 0 0 0 0 1 1 | Rm        | 0 | 1 1 S 1 0 | Rn        | Rt        | % C6.2.171 LDRB Wt, [Xn|SP, Xm{, LSL #amount}
+|    | 0 0 1 1 1 0 0 0 0 1 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.171 LDRB Wt, [Xn|SP, (Wm|Xm), extend {#amount}]
+|    | 0 1 1 1 1 0 0 0 0 1 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.172 LDRH Wt, [Xn|SP], #simm
+|    | 0 1 1 1 1 0 0 0 0 1 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.172 LDRH Wt, [Xn|SP, #simm]!
+|    | 0 1 1 1 1 0 0 1 0 1 | imm12                       | Rn        | Rt        | % C6.2.172 LDRH Wt, [Xn|SP{, #pimm}]
+|    | 0 1 1 1 1 0 0 0 0 1 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.173 LDRH Wt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 0 0 1 1 1 0 0 0 1 x 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.174 LDRSB Wt, [Xn|SP], #simm
+|    | 0 0 1 1 1 0 0 0 1 x 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.174 LDRSB Wt, [Xn|SP, #simm]!
+|    | 0 0 1 1 1 0 0 1 1 x | imm12                       | Rn        | Rt        | % C6.2.174 LDRSB Wt, [Xn|SP{, #pimm}]
+|    | 0 0 1 1 1 0 0 0 1 x 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.175 LDRSB Wt, [Xn|SP, (Wm|Xm), extend {#amount}]
+|    | 0 0 1 1 1 0 0 0 1 x 1 | Rm        | 0 | 1 1 S 1 0 | Rn        | Rt        | % C6.2.175 LDRSB Wt, [Xn|SP, Xm{, LSL #amount}]
+|    | 0 1 1 1 1 0 0 0 1 x 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.176 LDRSH Wt, [Xn|SP], #imm
+|    | 0 1 1 1 1 0 0 0 1 x 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.176 LDRSH Wt, [Xn|SP, #imm]!
+|    | 0 1 1 1 1 0 0 1 1 x | imm12                       | Rn        | Rt        | % C6.2.176 LDRSH Wt, [Xn|SP{, #imm}]
+|    | 0 1 1 1 1 0 0 0 1 x 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.177 LDRSH Wt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 1 0 1 1 1 0 0 0 1 0 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.178 LDRSW Xt, [Xn|SP], #imm
+|    | 1 0 1 1 1 0 0 0 1 0 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.178 LDRSW Xt, [Xn|SP, #imm]!
+|    | 1 0 1 1 1 0 0 1 1 0 | imm12                       | Rn        | Rt        | % C6.2.178 LDRSW Xt, [Xn|SP{, #imm}]
+|    | 1 0 0 1 1 0 0 0 | imm19                                       | Rt        | % C6.2.179 LDRSW Xt, label
+|    | 1 0 1 1 1 0 0 0 1 0 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.180 LDRSW Xt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | Rt        | % C6.2.181 LDSETAB/LDSETALB/LDSETB/LDSETLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | Rt        | % C6.2.182 LDSETAH/LDSETALH/LDSETH/LDSETLH Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | Rt        | % C6.2.183 LDSET/LDSETA/LDSETAL/LDSETL/ Ws, Wt, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | Rt        | % C6.2.184 LDSMAXAB/LDSMAXALB/LDSMAXB/LDSMAXLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | Rt        | % C6.2.185 LDSMAXAH/LDSMAXALH/LDSMAXH/LDSMAXLH Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | Rt        | % C6.2.186 LDSMAX/LDSMAXA/LDSMAXAL/LDSMAXL Ws, Wt, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | Rt        | % C6.2.187 LDSMINAB/LDSMINALB/LDSMINB/LDSMINLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | Rt        | % C6.2.188 LDSMINAH/LDSMINALH/LDSMINH/LDSMINLH Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | Rt        | % C6.2.189 LDSMIN/LDSMINA/LDSMINAL/LDSMINL Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 1 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.190 LDTR Wt, [Xn|SP{, #imm}]
+|    | 0 0 1 1 1 0 0 0 0 1 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.191 LDTRB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 0 1 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.192 LDTRH Wt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 1 x 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.193 LDTRSB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 1 x 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.194 LDTRSH Wt, [Xn|SP{, #simm}]
+|    | 1 0 1 1 1 0 0 0 1 0 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.195 LDTRSW Xt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | Rt        | % C6.2.196 LDUMAXAB/LDUMAXALB/LDUMAXB/LDUMAXLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | Rt        | % C6.2.197 LDUMAXAH/LDUMAXALH/LDUMAXH/LDUMAXLH Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | Rt        | % C6.2.198 LDUMAX/LDUMAXA/LDUMAXAL/LDUMAXL Ws, Wt, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | Rt        | % C6.2.199 LDUMINAB/LDUMINALB/LDUMINB/LDUMINLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | Rt        | % C6.2.200 LDUMINAH/LDUMINALH/LDUMINH/LDUMINLH Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | Rt        | % C6.2.201 LDUMIN/LDUMINA/LDUMINAL/LDUMINL Ws, Wt, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 1 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.202 LDUR Wt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 0 1 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.203 LDURB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 0 1 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.204 LDURH Wt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 1 x 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.205 LDURSB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 1 x 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.206 LDURSH Wt, [Xn|SP{, #simm}]
+|    | 1 0 1 1 1 0 0 0 1 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.207 LDURSW Xt, [Xn|SP{, #simm}]
+|    | 1 s 0 0 1 0 0 0 0 1 1 | 1 1 1 1 1 | 0 | Rt2       | Rn        | Rt        | % C6.2.208 LDXP Wt1, Wt2, [Xn|SP{,#0}]
+|    | 1 x 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.209 LDXR Wt, [Xn|SP{,#0}]
+|    | 0 0 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.210 LDXRB Wt, [Xn|SP{,#0}]
+|    | 0 1 0 0 1 0 0 0 0 1 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.211 LDXRH Wt, [Xn|SP{,#0}]
+|    | s 1 0 1 0 0 1 1 0 N | immr        | != x11111     | Rn        | Rd        | % C6.2.212 LSL Wd, Wn, #shift ; UBFM Wd, Wn, #(-shift MOD 32), #(31-shift)
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 0 0 | Rn        | Rd        | % C6.2.213 LSL Wd, Wn, Wm ; LSLV Wd, Wn, Wm
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 0 0 | Rn        | Rd        | % C6.2.214 LSLV Wd, Wn, Wm ; LSLV Xd, Xn, Xm
+|    | s 1 0 1 0 0 1 1 0 N | immr        | x | 1 1 1 1 1 | Rn        | Rd        | % C6.2.215 LSR Wd, Wn, #shift ; UBFM Wd, Wn, #shift, #31
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.216 LSR Wd, Wn, Wm ; LSRV Wd, Wn, Wm
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 0 1 | Rn        | Rd        | % C6.2.217 LSRV Wd, Wn, Wm ; LSRV Xd, Xn, Xm
+|    | s 0 0 1 1 0 1 1 0 0 0 | Rm        | 0 | Ra        | Rn        | Rd        | % C6.2.218 MADD Wd, Wn, Wm, Wa ; MADD Xd, Xn, Xm, Xa
+|    | s 0 0 1 1 0 1 1 0 0 0 | Rm        | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.219 MNEG Wd, Wn, Wm ; MSUB Wd, Wn, Wm, WZR
+|    | s 0 0 1 0 0 0 1 0 0 0 | 0 0 0 0 0 | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.220 MOV Wd|WSP, Wn|WSP ; ADD Wd|WSP, Wn|WSP, #0
+|    | s 0 0 1 0 0 1 0 1 h w | imm16                                 | Rd        | % C6.2.221 MOV Wd, #imm ; MOVN Wd, #imm16, LSL #shift
+|    | s 1 0 1 0 0 1 0 1 h w | imm16                                 | Rd        | % C6.2.222 MOV Wd, #imm ; MOVZ Wd, #imm16, LSL #shift
+|    | s 0 1 1 0 0 1 0 0 N | immr        | imms          | 1 1 1 1 1 | Rd        | % C6.2.223 MOV Wd|WSP, #imm ; ORR Wd|WSP, WZR, #imm
+|    | s 0 1 0 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | 1 1 1 1 1 | Rd        | % C6.2.224 MOV Wd, Wm ; ORR Wd, WZR, Wm
+|    | s 1 1 1 0 0 1 0 1 h w | imm16                                 | Rd        | % C6.2.225 MOVK Wd, #imm{, LSL #shift}
+|    | s 0 0 1 0 0 1 0 1 h w | imm16                                 | Rd        | % C6.2.226 MOVN Wd, #imm{, LSL #shift}
+|    | s 1 0 1 0 0 1 0 1 h w | imm16                                 | Rd        | % C6.2.227 MOVZ Wd, #imm{, LSL #shift}
+|    | 1 1 0 1 0 1 0 1 0 0 1 | 1 x c c c | n | n n n m m | m m c c c | Rt        | % C6.2.228 MRS Xt, (systemreg|Sop0_op1_Cn_Cm_op2)
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 o o o | 0 | 1 0 0 m m | m m c c c | 1 1 1 1 1 | % C6.2.229 MSR pstatefield, #imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 1 x c c c | n | n n n m m | m m c c c | Rt        | % C6.2.230 MSR (systemreg|Sop0_op1_Cn_Cm_op2), Xt
+|    | s 0 0 1 1 0 1 1 0 0 0 | Rm        | 1 | Ra        | Rn        | Rd        | % C6.2.231 MSUB Wd, Wn, Wm, Wa ; MSUB Xd, Xn, Xm, Xa
+|    | s 0 0 1 1 0 1 1 0 0 0 | Rm        | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.232 MUL Wd, Wn, Wm ; MADD Wd, Wn, Wm, WZR
+|    | s 0 1 0 1 0 1 0 s s 1 | Rm        | imm6          | 1 1 1 1 1 | Rd        | % C6.2.233 MVN Wd, Wm{, shift #amount} ; ORN Wd, WZR, Wm{, shift #amount}
+|    | s 1 0 0 1 0 1 1 s s 0 | Rm        | imm6          | 1 1 1 1 1 | Rd        | % C6.2.234 NEG Wd, Wm{, shift #amount} ; SUB Wd, WZR, Wm {, shift #amount}
+|    | s 1 1 0 1 0 1 1 s s 0 | Rm        | imm6          | 1 1 1 1 1 | !=11111   | % C6.2.235 NEGS Wd, Wm{, shift #amount} ; SUBS Wd, WZR, Wm {, shift #amount}
+|    | s 1 0 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | 1 1 1 1 1 | Rd        | % C6.2.236 NGC Wd, Wm ; SBC Wd, WZR, Wm
+|    | s 1 1 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | 1 1 1 1 1 | Rd        | % C6.2.237 NGCS Wd, Wm ; SBCS Wd, WZR, Wm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 0 0 0 | 1 1 1 1 1 | % C6.2.238 NOP
+|    | s 0 1 0 1 0 1 0 s s 1 | Rm        | imm6          | Rn        | Rd        | % C6.2.239 ORN Wd, Wn, Wm{, shift #amount}
+|    | s 0 1 1 0 0 1 0 0 N | immr        | imms          | Rn        | Rd        | % C6.2.240 ORR Wd|WSP, Wn, #imm ; ORR Xd|SP, Xn, #imm
+|    | s 0 1 0 1 0 1 0 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.241 ORR Wd, Wn, Wm{, shift #amount}
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 0 1 0 | Rn        | Rd        | % C6.2.242 PACDA Xd, Xn|SP ; PACDZA Xd
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 0 1 1 | Rn        | Rd        | % C6.2.243 PACDB Xd, Xn|SP ; PACDZB Xd
+|    | 1 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 1 0 0 | Rn        | Rd        | % C6.2.244 PACGA Xd, Xn, Xm|SP
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 0 0 0 | Rn        | Rd        | % C6.2.245 PACIA Xd, Xn|SP ; PACIZA Xd
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | x 1 0 0 x | 1 1 1 1 1 | % C6.2.246 PACIA1716/PACIASP/PACIAZ
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 0 Z 0 0 1 | Rn        | Rd        | % C6.2.247 PACIB Xd, Xn|SP ; PACIZB Xd
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | x 1 0 1 x | 1 1 1 1 1 | % C6.2.248 PACIB1716/PACIBSP/PACIBZ
+|    | 1 1 1 1 1 0 0 1 1 0 | imm12                       | Rn        | Rt        | % C6.2.249 PRFM (prfop|#imm5), [Xn|SP{, #pimm}]
+|    | 1 1 0 1 1 0 0 0 | imm19                                       | Rt        | % C6.2.249 PRFM (prfop|#imm5), label
+|    | 1 1 1 1 1 0 0 0 1 0 1 | Rm        | o | o o s 1 0 | Rn        | Rt        | % C6.2.249 PRFM (prfop|#imm5), [Xn|SP, (Wm|Xm){, extend {amount}}]
+|    | 1 1 1 1 1 0 0 0 1 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.250 PRFUM (prfop|#imm5), [Xn|SP{, #simm}]
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 1 0 0 0 1 | 1 1 1 1 1 | % C6.2.251 PSB CSYNC (SPE)
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 0 1 | 0 0 1 0 0 | 1 1 1 1 1 | % C6.2.252 PSSBB
+|    | s 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.253 RBIT Wd, Wn
+|    | 1 1 0 1 0 1 1 0 0 1 0 | 1 1 1 1 1 | 0 | 0 0 0 0 0 | Rn        | 0 0 0 0 0 | % C6.2.254 RET {Xn}
+|    | 1 1 0 1 0 1 1 0 0 1 0 | 1 1 1 1 1 | 0 | 0 0 0 1 M | 1 1 1 1 1 | 1 1 1 1 1 | % C6.2.255 RETAA/RETAB
+|    | s 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 1 x | Rn        | Rd        | % C6.2.256 REV Wd, Wn ; REV Xd, Xn
+|    | s 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 0 1 | Rn        | Rd        | % C6.2.257 REV16 Wd, Wn ; REV16 Xd, Xn
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 1 0 | Rn        | Rd        | % C6.2.258 REV32 Xd, Xn
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 0 | 0 | 0 0 0 1 1 | Rn        | Rd        | % C6.2.259 REV64 Xd, Xn ; REV Xd, Xn
+|    | 1 0 1 1 1 0 1 0 0 0 0 | imm6          | 0 0 0 0 1 | Rn        | 0 | mask  | % C6.2.260 RMIF Xn, #shift, #mask
+|    | s 0 0 1 0 0 1 1 1 N 0 | Rm        | imms          | Rn        | Rd        | % C6.2.261 ROR Wd, Ws, #shift ; EXTR Wd, Ws, Ws, #shift
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 1 1 | Rn        | Rd        | % C6.2.262 ROR Wd, Wn, Wm ; RORV Wd, Wn, Wm
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 1 0 1 1 | Rn        | Rd        | % C6.2.263 RORV Wd, Wn, Wm ; RORV Xd, Xn, Xm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 0 0 | 0 0 1 1 1 | 1 1 1 1 1 | % C6.2.264 SB
+|    | s 1 0 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.265 SBC Wd, Wn, Wm
+|    | s 1 1 1 1 0 1 0 0 0 0 | Rm        | 0 | 0 0 0 0 0 | Rn        | Rd        | % C6.2.266 SBCS Wd, Wn, Wm
+|    | s 0 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.267 SBFIZ Wd, Wn, #lsb, #width ; SBFM Wd, Wn, #lsb32, #width
+|    | s 0 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.268 SBFM Wd, Wn, #immr, #imms
+|    | s 0 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.269 SBFX Wd, Wn, #lsb, #width ; SBFM Wd, Wn, #lsb, #lsbwidth
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 0 0 1 1 | Rn        | Rd        | % C6.2.270 SDIV Wd, Wn, Wm
+|    | 0 0 1 1 1 0 1 0 0 0 0 | 0 0 0 0 0 | 0 | s 0 0 1 0 | Rn        | 0 1 1 0 1 | % C6.2.271 SETF8/SETF16 Wn
+|    | s z 0 1 1 1 0 1 1 1 0 | Rs        | x | x 0 0 0 1 | Rn        | Rd        | % C6.2.272 SETGE/SETGM/SETGP [Xd]!, Xn!, Xs
+|    | s z 0 1 1 1 0 1 1 1 0 | Rs        | x | x 1 0 0 1 | Rn        | Rd        | % C6.2.273 SETGEN/SETGMN/SETGPN [Xd]!, Xn!, Xs
+|    | s z 0 1 1 1 0 1 1 1 0 | Rs        | x | x 0 1 0 1 | Rn        | Rd        | % C6.2.274 SETGET/SETGMT/SETGPT [Xd]!, Xn!, Xs
+|    | s z 0 1 1 1 0 1 1 1 0 | Rs        | x | x 1 1 0 1 | Rn        | Rd        | % C6.2.275 SETGETN/SETGMTN/SETGPTN [Xd]!, Xn!, Xs
+|    | s z 0 1 1 0 0 1 1 1 0 | Rs        | x | x 0 0 0 1 | Rn        | Rd        | % C6.2.276 SETE/SETM/SETP [Xd]!, Xn!, Xs
+|    | s z 0 1 1 0 0 1 1 1 0 | Rs        | x | x 1 0 0 1 | Rn        | Rd        | % C6.2.277 SETEN/SETMN/SETPN [Xd]!, Xn!, Xs
+|    | s z 0 1 1 0 0 1 1 1 0 | Rs        | x | x 0 1 0 1 | Rn        | Rd        | % C6.2.278 SETET/SETMT/SETPT [Xd]!, Xn!, Xs
+|    | s z 0 1 1 0 0 1 1 1 0 | Rs        | x | x 1 1 0 1 | Rn        | Rd        | % C6.2.279 SETETN/SETMTN/SETPTN [Xd]!, Xn!, Xs
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 1 0 0 | 1 1 1 1 1 | % C6.2.280 SEV
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 1 0 1 | 1 1 1 1 1 | % C6.2.281 SEVL
+|    | 1 0 0 1 1 0 1 1 0 0 1 | Rm        | 0 | Ra        | Rn        | Rd        | % C6.2.282 SMADDL Xd, Wn, Wm, Xa
+|    | 1 1 0 1 0 1 0 0 0 0 0 | imm16                                 | 0 0 0 1 1 | % C6.2.283 SMC #imm
+|    | 1 0 0 1 1 0 1 1 0 0 1 | Rm        | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.284 SMNEGL Xd, Wn, Wm ; SMSUBL Xd, Wn, Wm, XZR
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 1 0 0 0 x | x 1 0 1 1 | 1 1 1 1 1 | % C6.2.285 SMSTART {option} ; MSR pstatefield, #1
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 1 0 0 0 x | x 0 0 1 1 | 1 1 1 1 1 | % C6.2.286 SMSTOP {option} ; MSR pstatefield, #0
+|    | 1 0 0 1 1 0 1 1 0 0 1 | Rm        | 1 | Ra        | Rn        | Rd        | % C6.2.287 SMSUBL Xd, Wn, Wm, Xa
+|    | 1 0 0 1 1 0 1 1 0 1 0 | Rm        | 0 | 1 1       | Rn        | Rd        | % C6.2.288 SMULH Xd, Xn, Xm
+|    | 1 0 0 1 1 0 1 1 0 0 1 | Rm        | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.289 SMULL Xd, Wn, Wm ; SMADDL Xd, Wn, Wm, XZR
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 0 0 | 0 0 1 0 0 | 1 1 1 1 1 | % C6.2.290 SSBB ; DSB #0
+|    | 1 1 0 1 1 0 0 1 1 0 1 | imm9                | 0 1 | Xn        | Xt        | % C6.2.291 ST2G Xt|SP, [Xn|SP], #simm (MTE)
+|    | 1 1 0 1 1 0 0 1 1 0 | imm9                  | 1 1 | Xn        | Xt        | % C6.2.291 ST2G Xt|SP, [Xn|SP, #simm]! (MTE)
+|    | 1 1 0 1 1 0 0 1 1 0 1 | imm9                | 1 0 | Xn        | Xt        | % C6.2.291 ST2G Xt|SP, [Xn|SP{, #simm}] (MTE)
+|    | 1 1 1 1 1 0 0 0 0 0 1 | 1 1 1 1 1 | 1 | 0 0 1 0 0 | Rn        | Rt        | % C6.2.292 ST64B Xt, [Xn|SP {,#0}] (LS64)
+|    | 1 1 1 1 1 0 0 0 0 0 1 | Rs        | 1 | 0 1 1 0 0 | Rn        | Rt        | % C6.2.293 ST64BV Xs, Xt, [Xn|SP]  (LS64)
+|    | 1 1 1 1 1 0 0 0 0 0 1 | Rs        | 1 | 0 1 0 0 0 | Rn        | Rt        | % C6.2.294 ST64BV0 Xs, Xt, [Xn|SP] (LS64)
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.295 STADDB Ws, [Xn|SP] ; LDADDB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.296 STADDH Ws, [Xn|SP] ; LDADDH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.297 STADD Ws, [Xn|SP] ; LDADD Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.298 STCLRB Ws, [Xn|SP] ; LDCLRB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.299 STCLRH Ws, [Xn|SP] ; LDCLRH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.300 STCLR Ws, [Xn|SP] ; LDCLR Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.301 STEORB Ws, [Xn|SP] ; LDEORB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.302 STEORH Ws, [Xn|SP] ; LDEORH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.303 STEOR Ws, [Xn|SP] ; LDEOR Ws, WZR, [Xn|SP]
+|    | 1 1 0 1 1 0 0 1 0 0 1 | imm9                | 0 1 | Xn        | Xd        | % C6.2.304 STG Xd|SP, [Xn|SP] , #imm} (MTE)
+|    | 1 1 0 1 1 0 0 1 0 0 1 | imm9                | 1 1 | Xn        | Xt        | % C6.2.304 STG Xt|SP, [Xn|SP, #imm]!
+|    | 1 1 0 1 1 0 0 1 0 0 1 | imm9                | 1 0 | Xn        | Xt        | % C6.2.304 STG Xt|SP, [Xn|SP{, #imm}]
+|    | 1 1 0 1 1 0 0 1 1 0 1 | 0 0 0 0 0 | 0 | 0 0 0 0 0 | Xn        | Xt        | % C6.2.305 STGM Xt, [Xn|SP]
+|    | 0 1 1 0 1 0 0 0 1 0 | simm7           | Xt2       | Xn        | Xt        | % C6.2.306 STGP Xt1, Xt2, [Xn|SP], #imm
+|    | 0 1 1 0 1 0 0 1 1 0 | simm7           | Xt2       | Xn        | Xt        | % C6.2.306 STGP Xt1, Xt2, [Xn|SP, #imm]!
+|    | 0 1 1 0 1 0 0 1 0 0 | simm7           | Xt2       | Xn        | Xt        | % C6.2.306 STGP Xt1, Xt2, [Xn|SP{, #imm}]
+|    | 0 0 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.307 STLLRB Wt, [Xn|SP{,#0}]
+|    | 0 1 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.308 STLLRH Wt, [Xn|SP{,#0}]
+|    | 1 x 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.309 STLLR Wt, [Xn|SP{,#0}] ; STLLR Xt, [Xn|SP{,#0}]
+|    | 1 x 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.310 STLR Wt, [Xn|SP{,#0}] ; STLR Xt, [Xn|SP{,#0}]
+|    | 0 0 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.311 STLRB Wt, [Xn|SP{,#0}]
+|    | 0 1 0 0 1 0 0 0 1 0 0 | 1 1 1 1 1 | 1 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.312 STLRH Wt, [Xn|SP{,#0}]
+|    | 1 x 0 1 1 0 0 1 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.313 STLUR Wt, [Xn|SP{, #simm}] ; STLUR Xt, [Xn|SP{, #simm}]
+|    | 0 0 0 1 1 0 0 1 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.314 STLURB Wt, [Xn|SP{, #simm}]
+|    | 0 1 0 1 1 0 0 1 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.315 STLURH Wt, [Xn|SP{, #simm}]
+|    | 1 s 0 0 1 0 0 0 0 0 1 | Rs        | 1 | Rt2       | Rn        | Rt        | % C6.2.316 STLXP Ws,Wt1,Wt2,[Xn|SP{,#0}] ; STLXP Ws,Xt1,Xt2,[Xn|SP{,#0}]
+|    | 1 x 0 0 1 0 0 0 0 0 0 | Rs        | 1 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.317 STLXR Ws, Wt, [Xn|SP{,#0}] ; STLXR Ws, Xt, [Xn|SP{,#0}]
+|    | 0 0 0 0 1 0 0 0 0 0 0 | Rs        | 1 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.318 STLXRB Ws, Wt, [Xn|SP{,#0}]
+|    | 0 1 0 0 1 0 0 0 0 0 0 | Rs        | 1 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.319 STLXRH Ws, Wt, [Xn|SP{,#0}]
+|    | x 0 1 0 1 0 0 0 0 0 | imm7            | Rt2       | Rn        | Rt        | % C6.2.320 STNP Wt1, Wt2, [Xn|SP{, #imm}]
+|    | x 0 1 0 1 0 0 0 1 0 | imm7            | Rt2       | Rn        | Rt        | % C6.2.321 STP Wt1, Wt2, [Xn|SP], #imm
+|    | x 0 1 0 1 0 0 1 1 0 | imm7            | Rt2       | Rn        | Rt        | % C6.2.321 STP Wt1, Wt2, [Xn|SP, #imm]!
+|    | x 0 1 0 1 0 0 1 0 0 | imm7            | Rt2       | Rn        | Rt        | % C6.2.321 STP Wt1, Wt2, [Xn|SP{, #imm}]
+|    | 1 x 1 1 1 0 0 0 0 0 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.322 STR Wt, [Xn|SP], #simm
+|    | 1 x 1 1 1 0 0 0 0 0 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.322 STR Wt, [Xn|SP, #simm]!
+|    | 1 x 1 1 1 0 0 1 0 0 | imm12                       | Rn        | Rt        | % C6.2.322 STR Wt, [Xn|SP{, #pimm}]
+|    | 1 x 1 1 1 0 0 0 0 0 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.323 STR Wt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 0 0 1 1 1 0 0 0 0 0 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.324 STRB Wt, [Xn|SP], #simm
+|    | 0 0 1 1 1 0 0 0 0 0 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.324 STRB Wt, [Xn|SP, #simm]!
+|    | 0 0 1 1 1 0 0 1 0 0 | imm12                       | Rn        | Rt        | % C6.2.324 STRB Wt, [Xn|SP{, #pimm}]
+|    | 0 0 1 1 1 0 0 0 0 0 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.325 STRB Wt,[Xn|SP,(Wm|Xm),extend {#am}] ; STRB Wt,[Xn|SP,Xm{,LSL #am}]
+|    | 0 1 1 1 1 0 0 0 0 0 0 | imm9                | 0 1 | Rn        | Rt        | % C6.2.326 STRH Wt, [Xn|SP], #imm
+|    | 0 1 1 1 1 0 0 0 0 0 0 | imm9                | 1 1 | Rn        | Rt        | % C6.2.326 STRH Wt, [Xn|SP, #imm]!
+|    | 0 1 1 1 1 0 0 1 0 0 | imm12                       | Rn        | Rt        | % C6.2.326 STRH Wt, [Xn|SP{, #imm}]
+|    | 0 1 1 1 1 0 0 0 0 0 1 | Rm        | o | o o S 1 0 | Rn        | Rt        | % C6.2.327 STRH Wt, [Xn|SP, (Wm|Xm){, extend {#amount}}]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.328 STSETB/STSETLB Ws, [Xn|SP] ; LDSETB/LDSETB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.329 STSETH/STSETLH Ws, [Xn|SP] ; LDSETH/LDSETLH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 0 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.330 STSET/STSETL Ws, [Xn|SP] ; LDSET/LDSETL Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.331 STSMAXB/STSMAXLB Ws, [Xn|SP] ; LDSMAXB/LDSMAXLB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.332 STSMAXH/STSMAXLH Ws, [Xn|SP] ; LDSMAXH/LDSMAXLH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.333 STSMAX/STSMAXL Ws, [Xn|SP] ; LDSMAX/LDSMAXL Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.334 STSMINB/STSMINLB Ws, [Xn|SP] ; LDSMINB/LDSMINLB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.335 STSMINH/STSMINLH Ws, [Xn|SP] ; LDSMINH/LDSMINLH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 0 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.336 STSMIN/STSMINL Ws, [Xn|SP] ; LDSMIN/LDSMINL Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 0 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.337 STTR Wt, [Xn|SP{, #simm}] ; STTR Xt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 0 0 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.338 STTRB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 0 0 0 | imm9                | 1 0 | Rn        | Rt        | % C6.2.339 STTRH Wt, [Xn|SP{, #simm}]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.340 STUMAX/STUMAXL Ws, [Xn|SP] ; LDUMAX/LDUMAXL Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.341 STUMAXB/STUMAXLB Ws, [Xn|SP] ; LDUMAXB/LDUMAXLB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 0 0 0 | Rn        | 1 1 1 1 1 | % C6.2.342 STUMAXH/STUMAXLH Ws, [Xn|SP] ; LDUMAXH/LDUMAXLH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.343 STUMIN/STUMINL Ws, [Xn|SP] ; LDUMIN/LDUMINL Ws, WZR, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.344 STUMINB/STUMINLB Ws, [Xn|SP] ; LDUMINB/LDUMINLB Ws, WZR, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 0 R 1 | Rs        | 0 | 1 1 1 0 0 | Rn        | 1 1 1 1 1 | % C6.2.345 STUMINH/STUMINLH Ws, [Xn|SP] ; LDUMINH/LDUMINLH Ws, WZR, [Xn|SP]
+|    | 1 x 1 1 1 0 0 0 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.346 STUR Wt, [Xn|SP{, #simm}] ; STUR Xt, [Xn|SP{, #simm}]
+|    | 0 0 1 1 1 0 0 0 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.347 STURB Wt, [Xn|SP{, #simm}]
+|    | 0 1 1 1 1 0 0 0 0 0 0 | imm9                | 0 0 | Rn        | Rt        | % C6.2.348 STURH Wt, [Xn|SP{, #simm}]
+|    | 1 s 0 0 1 0 0 0 0 0 1 | Rs        | 0 | Rt2       | Rn        | Rt        | % C6.2.349 STXP Ws, Wt1, Wt2, [Xn|SP{,#0}]
+|    | 1 x 0 0 1 0 0 0 0 0 0 | Rs        | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.350 STXR Ws, Wt, [Xn|SP{,#0}]
+|    | 0 0 0 0 1 0 0 0 0 0 0 | Rs        | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.351 STXRB Ws, Wt, [Xn|SP{,#0}]
+|    | 0 1 0 0 1 0 0 0 0 0 0 | Rs        | 0 | 1 1 1 1 1 | Rn        | Rt        | % C6.2.352 STXRH Ws, Wt, [Xn|SP{,#0}]
+|    | 1 1 0 1 1 0 0 1 1 1 1 | imm9                | 0 1 | Xn        | Xt        | % C6.2.353 STZ2G Xt|SP, [Xn|SP], #simm
+|    | 1 1 0 1 1 0 0 1 1 1 1 | imm9                | 1 1 | Xn        | Xt        | % C6.2.353 STZ2G Xt|SP, [Xn|SP, #simm]!
+|    | 1 1 0 1 1 0 0 1 1 1 1 | imm9                | 1 0 | Xn        | Xt        | % C6.2.353 STZ2G Xt|SP, [Xn|SP{, #simm}]
+|    | 1 1 0 1 1 0 0 1 0 1 1 | imm9                | 0 1 | Xn        | Xt        | % C6.2.354 STZG Xt|SP, [Xn|SP], #simm
+|    | 1 1 0 1 1 0 0 1 0 1 1 | imm9                | 1 1 | Xn        | Xt        | % C6.2.354 STZG Xt|SP, [Xn|SP, #simm]!
+|    | 1 1 0 1 1 0 0 1 0 1 1 | imm9                | 1 0 | Xn        | Xt        | % C6.2.354 STZG Xt|SP, [Xn|SP{, #simm}]
+|    | 1 1 0 1 1 0 0 1 0 0 1 | 0 0 0 0 0 | 0 | 0 0 0 0 0 | Xn        | Xt        | % C6.2.355 STZGM Xt, [Xn|SP]
+|    | s 1 0 0 1 0 1 1 0 0 1 | Rm        | o | o o i i i | Rn        | Rd        | % C6.2.356 SUB Wd|WSP, Wn|WSP, Wm{, extend {#amount}}
+|    | s 1 0 1 0 0 0 1 0 s | imm12                       | Rn        | Rd        | % C6.2.357 SUB Wd|WSP, Wn|WSP, #imm{, shift}
+|    | s 1 0 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.358 SUB Wd, Wn, Wm{, shift #amount}
+|    | 1 1 0 1 0 0 0 1 1 0 | imm6        | 0 | 0 | uimm4 | Xn        | Xd        | % C6.2.359 SUBG Xd|SP, Xn|SP, #uimm6, #uimm4
+|    | 1 0 0 1 1 0 1 0 1 1 0 | Xm        | 0 | 0 0 0 0 0 | Xn        | Xd        | % C6.2.360 SUBP Xd, Xn|SP, Xm|SP
+|    | 1 0 1 1 1 0 1 0 1 1 0 | Xm        | 0 | 0 0 0 0 0 | Xn        | Xd        | % C6.2.361 SUBPS Xd, Xn|SP, Xm|SP
+|    | s 1 1 0 1 0 1 1 0 0 1 | Rm        | o | o o i i i | Rn        | Rd        | % C6.2.362 SUBS Wd, Wn|WSP, Wm{, extend {#amount}}
+|    | s 1 1 1 0 0 0 1 0 s | imm12                       | Rn        | Rd        | % C6.2.363 SUBS Wd, Wn|WSP, #imm{, shift}
+|    | s 1 1 0 1 0 1 1 s s 0 | Rm        | imm6          | Rn        | Rd        | % C6.2.364 SUBS Wd, Wn, Wm{, shift #amount}
+|    | 1 1 0 1 0 1 0 0 0 0 0 | imm16                                 | 0 0 0 0 1 | % C6.2.365 SVC #imm
+|    | 1 x 1 1 1 0 0 0 A R 1 | Rs        | 1 | 0 0 0 0 0 | Rn        | Rt        | % C6.2.366 SWP/SWPAL/SWPA/SWPL Ws, Wt, [Xn|SP]
+|    | 0 0 1 1 1 0 0 0 A R 1 | Rs        | 1 | 0 0 0 0 0 | Rn        | Rt        | % C6.2.367 SWPAB/SWPALB/SWPB/SWPLB Ws, Wt, [Xn|SP]
+|    | 0 1 1 1 1 0 0 0 A R 1 | Rs        | 1 | 0 0 0 0 0 | Rn        | Rt        | % C6.2.368 SWPAH/SWPALH/SWPH/SWPLH Ws, Wt, [Xn|SP]
+|    | s 0 0 1 0 0 1 1 0 N 0 | 0 0 0 0 0 | 0 | 0 0 1 1 1 | Rn        | Rd        | % C6.2.369 SXTB Wd, Wn ; SBFM Wd, Wn, #0, #7
+|    | s 0 0 1 0 0 1 1 0 N 0 | 0 0 0 0 0 | 0 | 0 1 1 1 1 | Rn        | Rd        | % C6.2.370 SXTH Wd, Wn ; SBFM Wd, Wn, #0, #15
+|    | 1 0 0 1 0 0 1 1 0 1 0 | 0 0 0 0 0 | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.371 SXTW Xd, Wn ; SBFM Xd, Xn, #0, #31
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 | op1 | n | n n n m m | m m | op2 | Rd        | % C6.2.372 SYS #op1, Cn, Cm, #op2{, Xd}
+|    | 1 1 0 1 0 1 0 1 0 0 1 | 0 1 | op1 | n | n n n m m | m m | op2 | Rd        | % C6.2.373 SYSL #op1, Cn, Cm, #op2{, Xd}
+|    | b 0 1 1 0 1 1 1 | b40       | imm14                           | Rt        | % C6.2.374 TBNZ Rt, #imm, label
+|    | b 0 1 1 0 1 1 0 | b40       | imm14                           | Rt        | % C6.2.375 TBZ Rt, #imm, label
+|    | 1 1 0 1 0 1 0 0 0 1 1 | imm16                                 | 0 0 0 0 0 | % C6.2.376 TCANCEL #imm
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 1 0 0 | 0 0 0 1 1 | 1 1 1 1 1 | % C6.2.377 TCOMMIT
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 1 | op1 | 1 | 0 0 0 m m | m m | op2 | Rt        | % C6.2.378 TLBI tlbi_op{, Xt} ; SYS #op1, C8, Cm, #op2{, Xt}
+|    | 1 1 0 1 0 1 0 1 0 0 1 | 0 0 0 1 1 | 0 | 0 1 1 0 0 | 0 0 0 1 1 | Rt        | % C6.2.379 TSTART Xt
+|    | 1 1 0 1 0 1 0 1 0 0 1 | 0 0 0 1 1 | 0 | 0 1 1 0 0 | 0 1 0 1 1 | Rt        | % C6.2.380 TTEST Xt
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 1 0 0 1 0 | 1 1 1 1 1 | % C6.2.381 TSB CSYNC (TRF)
+|    | s 1 1 1 0 0 1 0 0 N | immr        | imms          | Rn        | 1 1 1 1 1 | % C6.2.382 TST Wn, #imm ; ANDS WZR, Wn, #imm
+|    | s 1 1 0 1 0 1 0 s s 0 | Rm        | imm6          | Rn        | 1 1 1 1 1 | % C6.2.383 TST Wn, Wm{, shift #amount} ; ANDS WZR, Wn, Wm{, shift #amount}
+|    | s 1 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.384 UBFIZ Wd, Wn, #lsb, #width ; UBFM Wd, Wn, #lsb32, #width
+|    | s 1 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.385 UBFM Wd, Wn, #immr, #imms ; UBFM Xd, Xn, #immr, #imms
+|    | s 1 0 1 0 0 1 1 0 N | immr        | imms          | Rn        | Rd        | % C6.2.386 UBFX Wd, Wn, #lsb, #width ; UBFM Wd, Wn, #lsb, #lsbwidth
+|    | 0 0 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 | imm16                                 | % C6.2.387 UDF #imm
+|    | s 0 0 1 1 0 1 0 1 1 0 | Rm        | 0 | 0 0 0 1 0 | Rn        | Rd        | % C6.2.388 UDIV Wd, Wn, Wm
+|    | 1 0 0 1 1 0 1 1 1 0 1 | Rm        | 0 | Ra        | Rn        | Rd        | % C6.2.389 UMADDL Xd, Wn, Wm, Xa
+|    | 1 0 0 1 1 0 1 1 1 0 1 | Rm        | 1 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.390 UMNEGL Xd, Wn, Wm ; UMSUBL Xd, Wn, Wm, XZR
+|    | 1 0 0 1 1 0 1 1 1 0 1 | Rm        | 1 | Ra        | Rn        | Rd        | % C6.2.391 UMSUBL Xd, Wn, Wm, Xa
+|    | 1 0 0 1 1 0 1 1 1 1 0 | Rm        | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.392 UMULH Xd, Xn, Xm
+|    | 1 0 0 1 1 0 1 1 1 0 1 | Rm        | 0 | 1 1 1 1 1 | Rn        | Rd        | % C6.2.393 UMULL Xd, Wn, Wm ; UMADDL Xd, Wn, Wm, XZR
+|    | 0 1 0 1 0 0 1 1 0 0 0 | 0 0 0 0 0 | 0 | 0 0 1 1 1 | Rn        | Rd        | % C6.2.394 UXTB Wd, Wn ; UBFM Wd, Wn, #0, #7
+|    | 0 1 0 1 0 0 1 1 0 0 0 | 0 0 0 0 0 | 0 | 0 1 1 1 1 | Rn        | Rd        | % C6.2.395 UXTH Wd, Wn ; UBFM Wd, Wn, #0, #15
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 0 1 0 | 1 1 1 1 1 | % C6.2.396 WFE
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 0 1 0 0 | 0 0 0 0 0 | Rd        | % C6.2.397 WFET Xt
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 0 1 1 | 1 1 1 1 1 | % C6.2.398 WFI
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 0 1 0 0 | 0 0 0 0 1 | Rd        | % C6.2.399 WFIT Xt
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 0 0 | 0 | 1 0 0 0 0 | 0 1 1 1 1 | 1 1 1 1 1 | % C6.2.400 XAFLAG
+|    | 1 1 0 1 1 0 1 0 1 1 0 | 0 0 0 0 1 | 0 | 1 0 0 0 D | 1 1 1 1 1 | Rd        | % C6.2.401 XPACD/XPACI Xd ; XPACLRI
+|    | 1 1 0 1 0 1 0 1 0 0 0 | 0 0 0 1 1 | 0 | 0 1 0 0 0 | 0 0 0 0 1 | 1 1 1 1 1 | % C6.2.402 YIELD
+

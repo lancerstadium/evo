@@ -1,0 +1,76 @@
+A64 Hacking Guide. Part 4
+=========================
+(c) Groupoid Infinity
+
+A64:  R0-R30     -- general purpose registers (63..0: Xn, 31..0: Wn)
+      R31        -- zero register (63..0)
+      SP         -- stack pointer (63..0)
+      PC         -- program counter (63..0)
+
+NEON: V0-V31     -- FPU/SIMD registers (127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      FPCR,FPSR  -- FPU/SIMD status registers (63..0)
+
+SVE:  Z0-Z31     -- SVE registers (2047..0, ..., 127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      P0-P15     -- SVE predicate registers (255..0, ..., 15..0)
+      FFR        -- SVE first fault register (63..0)
+
+SME Instruction Format
+----------------------
+
+| No |                31-21  | 20-16: Rm | F | 14-10: Ra | 9-5: Rn   | 4-0: Rd   | Description
++----+-----------------------+-----------+---+-----------+-----------+-----------+-------------------
+| 01 | s q x t t t t z a r w | x x x x x | x | y y z z z | a b c d e | f g h i j | % 0-Way PURE:
+| 02 | s q x t t t t z a r w | x x x x x | x | y y z z z | Zn        | a b c d e | % 1-Way REG LEFT:
+| 03 | s q x t t t t z a r w | x x x x x | x | y y z z z | a b c d e | Zd        | % 1-Way REG RIGHT:
+| 04 | s q x t t t t z a r w | Zm        | x | y y z z z | Zn        | a b c d e | % 2-Way REG:
+| 05 | s q x t t t t z a r w | Rn        | x | y y z z | imm6        | Rd        | % 2-Way REG IMM:
+
+SME Opcodes Table
+-----------------
+
+| 01 | 1 1 0 0 0 0 0 0 1 0 0 | 1 0 0 0 0 | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.001 ADDHA ZAt.S, #Pn, #Pm, Zn.S
+| 02 | 1 1 0 0 0 0 0 0 1 1 0 | 1 0 0 0 0 | m | m m n n n | Zn        | 0 0 a a a | % C9.2.001 ADDHA ZAt.D, #Pn, #Pm, Zn.D
+| 03 | 0 0 0 0 0 1 0 0 0 1 1 | Rn        | 0 | 1 0 1 1 | imm6        | Rd        | % C9.2.002 ADDSPL Xd|SP, Xn|SP, #imm
+| 04 | 0 0 0 0 0 1 0 0 0 0 1 | Rn        | 0 | 1 0 1 1 | imm6        | Rd        | % C9.2.003 ADDSVL Xd|SP, Xn|SP, #imm
+| 05 | 1 1 0 0 0 0 0 0 1 0 0 | 1 0 0 0 1 | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.004 ADDVA ZAt.S, #Pn, #Pm, Zm.S
+| 05 | 1 1 0 0 0 0 0 0 1 1 0 | 1 0 0 0 1 | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.004 ADDVA ZAt.D, #Pn, #Pm, Zm.D
+| 06 | 1 0 0 0 0 0 0 1 1 0 0 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.005 BFMOPA ZAt.S, #Pn, #Pm, Zn.H, Zm.H
+| 07 | 1 0 0 0 0 0 0 1 1 0 0 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.006 BFMOPS ZAt.S, #Pn, #Pm, Zn.H, Zm.H
+| 08 | 1 0 0 0 0 0 0 0 1 0 0 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.007 FMOPA ZAt.S, #Pn, #Pm, Zn.S, Zm.S
+| 09 | 1 0 0 0 0 0 0 1 1 0 1 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.008 FMOPA ZAt.S, #Pn, #Pm, Zn.H, Zm.H
+| 0A | 1 0 0 0 0 0 0 0 1 0 0 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.009 FMOPS ZAt.S, #Pn, #Pm, Zn.S, Zm.S
+| 0B | 1 0 0 0 0 0 0 1 1 0 1 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.010 FMOPS ZAt.S, #Pn, #Pm, Zn.H, Zm.H
+| 0C | 1 1 1 0 0 0 0 0 0 0 0 | Rm        | V | s s g g g | Rn        | 0 i i i i | % C9.2.011 LD1B ZA0.H|V.B [Ws, #imm], #Pg/Z, [Xn|SP{, Xm}]
+| 0D | 1 1 1 0 0 0 0 0 1 1 0 | Rm        | V | s s g g g | Rn        | 0 a a a i | % C9.2.012 LD1D ZAt.H|V.D [Ws, #imm], #Pg/Z, [Xn|SP{, Xm, LSL #3}]
+| 0E | 1 1 1 0 0 0 0 0 0 1 0 | Rm        | V | s s g g g | Rn        | 0 a i i i | % C9.2.013 LD1H ZAt.H|V.H [Ws, #imm], #Pg/Z, [Xn|SP{, Xm, LSL #1}]
+| 0F | 1 1 1 0 0 0 0 1 1 1 0 | Rm        | V | s s g g g | Rn        | 0 a a a a | % C9.2.014 LD1Q ZAt.H|V.Q [Ws, #imm], #Pg/Z, [Xn|SP{, Xm, LSL #4}]
+| 10 | 1 1 1 0 0 0 0 0 1 0 0 | Rm        | V | s s g g g | Rn        | 0 a a i i | % C9.2.015 LD1W ZAt.H|V.W [Ws, #imm], #Pg/Z, [Xn|SP{, Xm, LSL #2}]
+| 11 | 1 1 1 0 0 0 0 0 1 0 0 | 0 0 0 0 0 | 0 | v v 0 0 0 | Rn        | 0 i i i i | % C9.2.016 LDR ZA[Wv, #imm], [Xn|SP{, #imm, MUL VL}]
+| 12 | 1 1 0 0 0 0 0 0 0 0 0 | 0 0 0 1 0 | V | s s g g g | 0 i i i i | Zd        | % C9.2.017 MOVA Zd.B, #Pg/M, ZA0.H|V.B [Ws, #imm]
+| 13 | 1 1 0 0 0 0 0 0 0 1 0 | 0 0 0 1 0 | V | s s g g g | 0 n i i i | Zd        | % C9.2.017 MOVA Zd.H, #Pg/M, ZAn.H|V.H [Ws, #imm]
+| 14 | 1 1 0 0 0 0 0 0 1 0 0 | 0 0 0 1 0 | V | s s g g g | 0 n n i i | Zd        | % C9.2.017 MOVA Zd.S, #Pg/M, ZAn.H|V.S [Ws, #imm]
+| 15 | 1 1 0 0 0 0 0 0 1 1 0 | 0 0 0 1 0 | V | s s g g g | 0 n n n i | Zd        | % C9.2.017 MOVA Zd.D, #Pg/M, ZAn.H|V.D [Ws, #imm]
+| 16 | 1 1 0 0 0 0 0 0 1 1 0 | 0 0 0 1 1 | V | s s g g g | 0 n n n n | Zd        | % C9.2.017 MOVA Zd.Q, #Pg/M, ZAn.H|V.Q [Ws, #imm]
+| 17 | 1 1 0 0 0 0 0 0 0 0 0 | 0 0 0 0 0 | V | s s g g g | 0 i i i i | Zd        | % C9.2.018 MOVA ZA0.B|V.B [Ws, #imm], #Pg/M, Zd.B
+| 18 | 1 1 0 0 0 0 0 0 0 1 0 | 0 0 0 0 0 | V | s s g g g | 0 n i i i | Zd        | % C9.2.018 MOVA ZAn.H|V.H [Ws, #imm], #Pg/M, Zd.H
+| 19 | 1 1 0 0 0 0 0 0 1 0 0 | 0 0 0 0 0 | V | s s g g g | 0 n n i i | Zd        | % C9.2.018 MOVA ZAn.S|V.S [Ws, #imm], #Pg/M, Zd.S
+| 1A | 1 1 0 0 0 0 0 0 1 1 0 | 0 0 0 0 0 | V | s s g g g | 0 n n n i | Zd        | % C9.2.018 MOVA ZAn.D|V.D [Ws, #imm], #Pg/M, Zd.D
+| 1B | 1 1 0 0 0 0 0 0 1 1 0 | 0 0 0 0 1 | V | s s g g g | 0 n n n n | Zd        | % C9.2.018 MOVA ZAn.Q|V.Q [Ws, #imm], #Pg/M, Zd.Q
+| 1C | 0 0 0 0 0 1 0 0 1 0 1 | 1 1 1 1 1 | 0 | 1 0 1 1 | imm6        | Rd        | % C9.2.021 RDSVL Xd, #imm
+| 1D | 1 0 1 0 0 0 0 0 1 0 0 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.022 SMOPA ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 1E | 1 0 1 0 0 0 0 0 1 1 0 | Zm        | m | m m n n n | Zn        | 0 0 a a a | % C9.2.022 SMOPA ZAd.D, #Pn/M, #Pm/M, Zn.H, Zm.H
+| 1F | 1 0 1 0 0 0 0 0 1 0 0 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.023 SMOPS ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 20 | 1 0 1 0 0 0 0 0 1 1 0 | Zm        | m | m m n n n | Zn        | 1 0 a a a | % C9.2.023 SMOPS ZAd.D, #Pn/M, #Pm/M, Zn.H, Zm.H
+| 21 | 1 1 1 0 0 0 0 0 0 0 1 | Rm        | V | s s g g g | Rn        | 0 i i i i | % C9.2.024 ST1B ZA0.H|V.B [Ws, #imm], #Pg, [Xn|SP{, Xm}]
+| 22 | 1 1 1 0 0 0 0 0 1 1 1 | Rm        | V | s s g g g | Rn        | 0 a a a i | % C9.2.025 ST1D ZAt.H|V.D [Ws, #imm], #Pg, [Xn|SP{, Xm, LSL #3}]
+| 23 | 1 1 1 0 0 0 0 0 0 1 1 | Rm        | V | s s g g g | Rn        | 0 a i i i | % C9.2.026 ST1H ZAt.H|V.H [Ws, #imm], #Pg, [Xn|SP{, Xm, LSL #1}]
+| 24 | 1 1 1 0 0 0 0 1 1 1 1 | Rm        | V | s s g g g | Rn        | 0 a a a a | % C9.2.027 ST1Q ZAt.H|V.Q [Ws, #imm], #Pg, [Xn|SP{, Xm, LSL #4}]
+| 25 | 1 1 1 0 0 0 0 0 1 0 1 | Rm        | V | s s g g g | Rn        | 0 a a i i | % C9.2.028 ST1W ZAt.H|V.W [Ws, #imm], #Pg, [Xn|SP{, Xm, LSL #2}]
+| 26 | 1 1 1 0 0 0 0 1 0 0 1 | 0 0 0 0 0 | 0 | v v 0 0 0 | Rn        | 0 i i i i | % C9.2.029 STR ZA[Wv, #imm], [Xn|SP{, #imm, MUL VL}]
+| 27 | 1 0 1 0 0 0 0 0 1 0 1 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.030 SUMOPA ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 28 | 1 0 1 0 0 0 0 0 1 0 1 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.031 SUMOPS ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 29 | 1 0 1 0 0 0 0 1 1 0 1 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.032 UMOPA ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 2A | 1 0 1 0 0 0 0 1 1 0 1 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.033 UMOPS ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 2B | 1 0 1 0 0 0 0 1 1 0 0 | Zm        | m | m m n n n | Zn        | 0 0 0 a a | % C9.2.034 USMOPA ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 2C | 1 0 1 0 0 0 0 1 1 0 0 | Zm        | m | m m n n n | Zn        | 1 0 0 a a | % C9.2.035 USMOPS ZAd.S, #Pn/M, #Pm/M, Zn.B, Zm.B
+| 2D | 1 1 0 0 0 0 0 0 0 0 0 | 0 1 0 0 0 | 0 | 0 0 0 0 0 | 0 0 i i i | i i i i i | % C9.2.036 ZERO {mask}

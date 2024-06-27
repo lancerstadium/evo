@@ -1,0 +1,30 @@
+A64 Hacking Guide. Part 3
+=========================
+(c) Groupoid Infinity
+
+A64:  R0-R30     -- general purpose registers (63..0: Xn, 31..0: Wn)
+      R31        -- zero register (63..0)
+      SP         -- stack pointer (63..0)
+      PC         -- program counter (63..0)
+
+NEON: V0-V31     -- FPU/SIMD registers (127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      FPCR,FPSR  -- FPU/SIMD status registers (63..0)
+
+SVE:  Z0-Z31     -- SVE registers (2047..0, ..., 127..0: Qn, 63..0: Dn, 31..0: Sn, 15..0: Hn, 7..0: Bn)
+      P0-P15     -- SVE predicate registers (255..0, ..., 15..0)
+      FFR        -- SVE first fault register (63..0)
+
+SVE Instruction Format
+----------------------
+
+| No |                31-21  | 20-16: Zm | F | 14-10     | 9-5: Zn   | 4-0: Zd   | Description
+
+SVE Opcodes Table
+-----------------
+
+| 01 | 0 0 0 0 0 1 0 0 s s 0 | 1 0 1 1 0 | 1 | 0 1 p r d | Zn        | Zd        | % C8.2.001 ABS Zd.T, #prd, Zn.T
+| 02 | 0 1 0 0 0 1 0 1 0 s 0 | Zm        | 1 | 1 0 1 0 0 | Zn        | Zd        | % C8.2.002 ADCLB Zd.T, Zn.T, Zm.T
+| 03 | 0 1 0 0 0 1 0 1 0 s 0 | Zm        | 1 | 1 0 1 0 1 | Zn        | Zd        | % C8.2.003 ADCLT Zd.T, Zn.T, Zm.T
+| 04 | 0 0 1 0 0 1 0 1 s s 1 | 0 0 0 0 0 | 1 | 1 h | imm8            | Zd        | % C8.2.004 ADD Zd.T, Zd.T, #imm8
+| 05 | 0 0 0 0 0 1 0 0 s s 0 | 0 0 0 0 0 | 0 | 0 0 p r d | Zm        | Zd        | % C8.2.005 ADD Zd.T, #prd, Zd.T, Zm.T
+
