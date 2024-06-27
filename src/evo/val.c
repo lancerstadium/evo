@@ -18,6 +18,18 @@ void Val_free(Val* v) {
     v = NULL;
 }
 
+
+Val* Val_from(Val* val) {
+    Log_ast(val != NULL, "Val_from: val is null");
+    Val* v = malloc(sizeof(Val));
+    v->len = val->len;
+    v->b = malloc(v->len * sizeof(u8));
+    for(size_t i=0; i< v->len; i++) {
+        v->b[i] = val->b[i];
+    }
+    return v;
+}
+
 void Val_copy(Val* v, Val* other) {
     Log_ast(v != NULL, "Val_copy: v is null");
     Log_ast(other != NULL, "Val_copy: other is null");
