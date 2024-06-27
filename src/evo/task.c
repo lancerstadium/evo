@@ -16,27 +16,31 @@
 //                                    task: Exec                                      
 // ==================================================================================== //
 
+#define CPU(ctx) ((CPUState(ISE)*)(ctx->cpu))
+
 Task_fn_def(Exec);
 
-void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, UNUSED Val* val) {
+void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     if(ctx == NULL) {
         ctx = malloc(sizeof(TaskCtx(Exec)));
     }
     ctx->cpu = CPUState_init(ISE, 1024);
-    ctx->snpc = Val_from(((CPUState(ISE)*)(ctx->cpu))->pc);
-    Task_info(Exec, "CPU Init pc : %s", ValHex(((CPUState(ISE)*)(ctx->cpu))->pc));
-    Task_info(Exec, "CPU Mem size: %lu Byte", ((CPUState(ISE)*)(ctx->cpu))->mem->len);
-    Task_info(Exec, "CPU Status  : %s" , cpustatus_tbl2[((CPUState(ISE)*)(ctx->cpu))->status]);
+    Task_info(Exec, "CPU Init pc : %s", ValHex(CPU(ctx)->pc));
+    Task_info(Exec, "CPU Mem size: %lu Byte", CPU(ctx)->mem->len);
+    Task_info(Exec, "CPU Status  : %s" , cpustatus_tbl2[CPU(ctx)->status]);
     if(val && val->len > 0) {
         CPUState_set_mem(ISE, ctx->cpu, Val_new_u32(0), val);
-        Task_info(Exec, "CPU Img Load: %s ..", ValHex(CPUState_get_mem(ISE, ctx->cpu, Val_new_u32(0), 8)));
+        Task_info(Exec, "CPU Img Load: %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u32(0), 8)));
     }
 }
-void TaskCtx_OP_def(Exec, run) (UNUSED TaskCtx(Exec) *ctx) {
+void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
     Task_ast(Exec, ctx != NULL, "Exec ctx is null");
-
+    Val* bc = CPUState_fetch(ISE, CPU(ctx));
+    UnitTest_msg("%s", ValHex(bc));
+    UnitTest_msg("%s", ValHex(CPU(ctx)->snpc));
 }
 
+#undef CPU
 
 // ==================================================================================== //
 //                                    task: Dump                                      

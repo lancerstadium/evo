@@ -22,7 +22,6 @@ Task_def(Load,
 
 Task_def(Exec,
     void* cpu;                  /* cpu  : CPU State of Arch     */
-    Val* snpc;                  /* snpc : Static Next PC        */
     Val* dnpc;                  /* dnpc : Dynamic Next PC       */
 ,
 

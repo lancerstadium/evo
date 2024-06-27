@@ -418,6 +418,7 @@ typedef struct {
 Val* Val_str(char* str);
 void Val_copy(Val* v, Val* other);
 Val* Val_from(Val* val);
+Val* Val_inc(Val* v, size_t l);
 Val* Val_from_u32(u32* val, size_t len);
 Val* Val_new_u8(u8 val);
 Val* Val_new_u16(u16 val);
@@ -720,6 +721,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     typedef struct {          \
         CPUStatus status;     \
         Val* pc;              \
+        Val* snpc;            \
         Val* reg[RegMax(T)];  \
         Val* mem;             \
         S                     \
@@ -736,6 +738,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
     void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id); \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
     Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                            \
+    Insn(T) * CPUState_OP_def(T, decode)(CPUState(T) * cpu, Val * val);           \
+    void CPUState_OP_def(T, execute)(CPUState(T) * cpu, Insn(T) * insn);          \
     __VA_ARGS__
 
 #define CPUState_fn_def(T)                                                         \
@@ -743,6 +747,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
         CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                            \
         cpu->status = CPU_IDLE;                                                    \
         cpu->pc = Val_alloc(8);                                                    \
+        cpu->snpc = Val_alloc(8);                                                  \
         for (size_t i = 0; i < RegMax(T); i++) {                                   \
             cpu->reg[i] = Val_alloc(8);                                            \
         }                                                                          \
@@ -798,6 +803,10 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define CPUState_get_reg(T, C, ID)  CPUState_OP(T, get_reg)(C, ID)
 #define CPUState_displayreg(T, C, S, ID) CPUState_OP(T, displayreg)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
+// Need to Impl
+#define CPUState_fetch(T, C) CPUState_OP(T, fetch)(C)
+#define CPUState_decode(T, C, V) CPUState_OP(T, decode)(C, V)
+#define CPUState_execute(T, C, I) CPUState_OP(T, execute)(C, I)
 
 // ==================================================================================== //
 //                                    evo: Task

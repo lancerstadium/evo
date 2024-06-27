@@ -25,7 +25,9 @@ Insn_fn_def(RV);
 CPUState_fn_def(RV);
 
 Val* CPUState_OP_def(RV, fetch)(CPUState(RV) * cpu) {
-    return CPUState_get_mem(RV, cpu, cpu->pc, 4);
+    Val* res = CPUState_get_mem(RV, cpu, cpu->snpc, 4);
+    Val_inc(cpu->snpc, res->len);
+    return res;
 }
 
 // ==================================================================================== //

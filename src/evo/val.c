@@ -18,6 +18,13 @@ void Val_free(Val* v) {
     v = NULL;
 }
 
+Val* Val_inc(Val* v, size_t l) {
+    u64 c = Val_as_u64(v, 0);
+    c = c + (u64)l;
+    Val_set_u64(v, 0, c);
+    return v;
+}
+
 
 Val* Val_from(Val* val) {
     Log_ast(val != NULL, "Val_from: val is null");
