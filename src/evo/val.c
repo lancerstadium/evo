@@ -77,9 +77,10 @@ u8* Val_get_ref(Val* v, size_t idx) {
 void Val_set_ref(Val* v, size_t idx, u8* val, size_t len) {
     Log_ast(v != NULL, "Val_set: v is null");
     Log_ast(idx < v->len, "Val_set: idx is out of bounds");
-    for(size_t i = 0; (i < len) && (i + idx < v->len); i++) {
-        v->b[i+idx] = val[i]; 
-    }
+    memcpy(v->b + idx, val, MIN(len, v->len - idx));
+    // for(size_t i = 0; (i < len) && (i + idx < v->len); i++) {
+    //     v->b[i+idx] = val[i]; 
+    // }
 }
 
 Val* Val_set_val(Val* v, size_t idx, Val* val) {

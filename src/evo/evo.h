@@ -722,6 +722,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
         CPUStatus status;     \
         Val* pc;              \
         Val* snpc;            \
+        Val* dnpc;            \
         Val* reg[RegMax(T)];  \
         Val* mem;             \
         S                     \
@@ -748,6 +749,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
         cpu->status = CPU_IDLE;                                                    \
         cpu->pc = Val_alloc(8);                                                    \
         cpu->snpc = Val_alloc(8);                                                  \
+        cpu->dnpc = Val_alloc(8);                                                  \
         for (size_t i = 0; i < RegMax(T); i++) {                                   \
             cpu->reg[i] = Val_alloc(8);                                            \
         }                                                                          \

@@ -30,6 +30,26 @@ Val* CPUState_OP_def(RV, fetch)(CPUState(RV) * cpu) {
     return res;
 }
 
+Insn(RV) * CPUState_OP_def(RV, decode)(CPUState(RV) * cpu, Val * val) {
+    cpu->dnpc = cpu->snpc;
+    Insn(RV) * insn = Insn_decode(RV, val);
+    return insn;
+}
+
+
+#define RV_EXEC_U(...) \
+    u8  rd   = Val_as_u8(insn->oprs[0], 0);  \
+    u64 immu = Val_as_u64(insn->oprs[1], 0); \
+    Val* res = Val_new_u64(__VA_ARGS__); \
+    CPUState_set_reg(RV, cpu, rd, res); \
+
+void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
+    switch(insn->id) {
+        case RV_AUIPC: RV_EXEC_U(Val_as_u64(cpu->pc, 0) + immu); break;
+        default: break;
+    }
+}
+
 // ==================================================================================== //
 //                                    rv: Task                                     
 // ==================================================================================== //

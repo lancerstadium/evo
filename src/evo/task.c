@@ -34,10 +34,21 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     }
 }
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
+    TaskCtx_OP(Exec, execone)(ctx, CPU(ctx)->pc);
+}
+
+void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
     Task_ast(Exec, ctx != NULL, "Exec ctx is null");
+    Val_copy(CPU(ctx)->pc, pc);
+    Val_copy(CPU(ctx)->snpc, pc);
     Val* bc = CPUState_fetch(ISE, CPU(ctx));
-    UnitTest_msg("%s", ValHex(bc));
-    UnitTest_msg("%s", ValHex(CPU(ctx)->snpc));
+    Insn(ISE) * insn = CPUState_decode(ISE, CPU(ctx), bc);
+    CPUState_execute(ISE, CPU(ctx), insn);
+    Val_copy(CPU(ctx)->pc, CPU(ctx)->dnpc);
+
+    char insn_buf[48];
+    Insn_display(RV, insn, insn_buf);
+    UnitTest_msg("%s", insn_buf);
 }
 
 #undef CPU
