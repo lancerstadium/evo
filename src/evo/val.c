@@ -269,6 +269,51 @@ u64 Val_as_u64(Val *v, size_t i) {
     }
 }
 
+i8 Val_as_i8(Val *v, size_t i) {
+    if(v->len < 1 + i) {
+        return 0;
+    } else {
+        return (i8)v->b[i];
+    }
+}
+
+i16 Val_as_i16(Val *v, size_t i) {
+    if(v->len < 2 + i) {
+        i16 tmp = 0;
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= (i16)v->b[j+i] << (j * 8);
+        }
+        return tmp;
+    } else {
+        return (i16)Val_get_u16(v, i);
+    }
+}
+
+i32 Val_as_i32(Val *v, size_t i) {
+    if(v->len < 4 + i) {
+        i32 tmp = 0;
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= (i32)v->b[j+i] << (j * 8);
+        }
+        return tmp;
+    } else {
+        return (i32)Val_get_u32(v, i);
+    }
+}
+
+i64 Val_as_i64(Val *v, size_t i) {
+    if(v->len < 8 + i) {
+        i64 tmp = 0;
+        for(size_t j = 0; j < v->len; j++) {
+            tmp |= (i64)v->b[j+i] << (j * 8);
+        }
+        return tmp;
+    } else {
+        return (i64)Val_get_u64(v, i);
+    }
+}
+
+
 char* Val_as_str(Val* v) {
     char* tmp = malloc((v->len + 1) * sizeof(char));
     for(size_t i = 0; i < v->len; i++) {

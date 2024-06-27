@@ -47,8 +47,7 @@ void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
     Val* bc = CPUState_fetch(ISE, CPU(ctx));
     Insn(ISE) * insn = CPUState_decode(ISE, CPU(ctx), bc);
     CPUState_execute(ISE, CPU(ctx), insn);
-    Val_copy(CPU(ctx)->pc, CPU(ctx)->dnpc);
-
+    
     char insn_buf[48];
     Insn_display(RV, insn, insn_buf);
     UnitTest_msg("%s", insn_buf);
