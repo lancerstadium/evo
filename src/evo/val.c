@@ -297,9 +297,13 @@ Val* Val_get_bit(Val *v, size_t hi, size_t lo) {
     Val* tmp = Val_alloc(len);
     size_t start = lo / 8;
     size_t lo_ = lo - start * 8;
-    size_t hi_ = hi - start * 8;
     u64 val = Val_as_u64(v, start);
-    u64 res = BITS(val, hi_, lo_);
+    u64 mask = BITMASK(scl) << lo_;
+    if (scl >= 64) {
+        mask = ~0;
+        scl = 64;
+    }
+    u64 res = (val & mask) >> lo_;
     for(size_t i = 0; i < len; i++) {
         tmp->b[i] = (res >> (i * 8)) & 0xFF;
     }
