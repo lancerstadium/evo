@@ -11,16 +11,16 @@ UnitTest_fn_def(test_dump_elf){
     return NULL;
 }
 
-UnitTest_fn_def(test_dec_rv) {
-    Task(Decode)* d = Task_init(Decode, "dec-rv", NULL);
-    Task_run(Decode, d);
+UnitTest_fn_def(test_exec_rv) {
+    Task(Exec)* d = Task_init(Exec, "exec-rv", NULL);
+    Task_run(Exec, d);
     return NULL;
 }
 
 
 UnitTest_fn_def(all_tests) {
     UnitTest_add(test_dump_elf);
-    UnitTest_add(test_dec_rv);
+    UnitTest_add(test_exec_rv);
     return NULL;
 }
 

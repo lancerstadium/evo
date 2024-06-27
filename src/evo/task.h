@@ -14,38 +14,6 @@ Task_def(Load,
 
 );
 
-// ==================================================================================== //
-//                                    task: Encode                                      
-// ==================================================================================== //
-
-Task_def(Encode,
-
-,
-
-);
-
-// ==================================================================================== //
-//                                    task: Decode                                      
-// ==================================================================================== //
-
-Task_def(Decode,
-    Val pc;                 /* pc   : Program Counter       */
-    Val snpc;               /* snpc : Static Next PC        */
-    Val dnpc;               /* dnpc : Dynamic Next PC       */
-#if defined(CFG_PERF_DECODE)
-#endif
-,
-#if defined(CFG_SISA)
-    Insn(CFG_SISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_SISA) (TaskCtx(Decode) *ctx, Val* bc);
-#endif
-#if defined(CFG_IISA)
-    Insn(CFG_IISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_IISA) (TaskCtx(Decode) *ctx, Val* bc);
-#endif
-#if defined(CFG_TISA)
-    Insn(CFG_TISA) * TaskCtx_OP_ISA_def(Decode, run, CFG_TISA) (TaskCtx(Decode) *ctx, Val* bc);
-#endif
-);
-
 
 // ==================================================================================== //
 //                                    task: Exec                                      
@@ -53,7 +21,9 @@ Task_def(Decode,
 
 
 Task_def(Exec,
-
+    Val pc;                 /* pc   : Program Counter       */
+    Val snpc;               /* snpc : Static Next PC        */
+    Val dnpc;               /* dnpc : Dynamic Next PC       */
 ,
 
 );

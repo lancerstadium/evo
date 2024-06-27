@@ -10,19 +10,6 @@ typedef CONCAT(CPUState_, CFG_SISA) CPUState;
 #endif
 
 
-// ==================================================================================== //
-//                                    task: Decode                                     
-// ==================================================================================== //
-
-Task_fn_def(Decode);
-
-void TaskCtx_OP_def(Decode, init) (UNUSED TaskCtx(Decode) *ctx, UNUSED Val* val) {
-    
-}
-void TaskCtx_OP_def(Decode, run) (UNUSED TaskCtx(Decode) *ctx) {
-
-}
-
 
 // ==================================================================================== //
 //                                    task: Exec                                      

@@ -733,6 +733,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
     void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id); \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
+    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                            \
     __VA_ARGS__
 
 #define CPUState_fn_def(T)                                                         \

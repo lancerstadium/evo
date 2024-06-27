@@ -24,13 +24,16 @@ Insn_fn_def(RV);
 
 CPUState_fn_def(RV);
 
+Val* CPUState_OP_def(RV, fetch)(CPUState(RV) * cpu) {
+    return CPUState_get_mem(RV, cpu, cpu->pc, 4);
+}
 
 // ==================================================================================== //
 //                                    rv: Task                                     
 // ==================================================================================== //
 
 
-Insn(RV) * TaskCtx_OP_ISA_def(Decode, run, RV) (UNUSED TaskCtx(Decode) *ctx, UNUSED Val* bc) {
+Insn(RV) * TaskCtx_OP_ISA_def(Exec, run, RV) (UNUSED TaskCtx(Exec) *ctx, UNUSED Val* bc) {
     // Match 
     Insn(RV) * insn = Insn_match(RV, bc);
     if(insn != NULL) {
