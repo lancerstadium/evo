@@ -11,15 +11,24 @@ UnitTest_fn_def(test_cpu_reg){
     UnitTest_msg(" R3= %s", ValHex(r));
     UnitTest_ast(Val_get_u64(r, 0) == 0x123456789abcdef, "R3 should be 0x123456789abcdef");
     for(size_t i = 0; i < RegMax(RV); i++) {
-        CPUState_displayone(RV, cpu, res_buf, i);
+        CPUState_displayreg(RV, cpu, res_buf, i);
         UnitTest_msg("%s", res_buf);
     }
+    return NULL;
+}
+
+UnitTest_fn_def(test_cpu_display){
+    CPUState(RV) * cpu = CPUState_init(RV, 56);
+    char res_buf[48];
+    CPUState_display(RV, cpu, res_buf);
+    UnitTest_msg("%s", res_buf);
     return NULL;
 }
 
 
 UnitTest_fn_def(all_tests) {
     UnitTest_add(test_cpu_reg);
+    UnitTest_add(test_cpu_display);
     return NULL;
 }
 

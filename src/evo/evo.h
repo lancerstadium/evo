@@ -685,11 +685,34 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 //                                    evo: CPU
 // ==================================================================================== //
 
-#define CPUState(T)             CONCAT(CPUState_, T)
+typedef enum {
+    CPU_IDLE,                   /* CPU During Init/Reset Status */
+    CPU_RUN,                    /* CPU Fetch/Decode/Execute Status */
+    CPU_STOP,                   /* CPU Stop Running Status */
+    CPU_ABORT,                  /* CPU Abort and deal with cause Status */
+    CPU_QUIT,                   /* CPU Quit Running Status */
+} CPUStatus;
+UNUSED static char* cpustatus_tbl1 [] = {
+    "IDLE",
+    "RUNN",
+    "STOP",
+    "ABOT",
+    "QUIT",
+};
+UNUSED static char* cpustatus_tbl2 [] = {
+    _BLUE("IDLE"),
+    _GREEN("RUNN"),
+    _YELLOW("STOP"),
+    _RED("ABOT"),
+    _MAGENTA("QUIT"),
+};
+
+#define CPUState(T)              CONCAT(CPUState_, T)
 #define CPUState_OP(T, OP)       CONCAT3(CPUState_, T##_, OP)
 #define CPUState_OP_def(T, OP)   UNUSED CPUState_OP(T, OP)
 #define CPUState_T(T, S)      \
     typedef struct {          \
+        CPUStatus status;     \
         Val* pc;              \
         Val* reg[RegMax(T)];  \
         Val* mem;             \
@@ -703,13 +726,14 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);    \
     Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
     void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val);   \
-    void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id); \
+    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id); \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
     __VA_ARGS__
 
 #define CPUState_fn_def(T)                                                         \
     CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {                      \
         CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                            \
+        cpu->status = CPU_IDLE;                                                    \
         cpu->pc = Val_alloc(8);                                                    \
         for (size_t i = 0; i < RegMax(T); i++) {                                   \
             cpu->reg[i] = Val_alloc(8);                                            \
@@ -733,28 +757,29 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         return NULL;                                                               \
     }                                                                              \
     void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                            \
+        cpu->status = CPU_IDLE;                                                    \
         cpu->pc = Val_alloc(8);                                                    \
         for (size_t i = 0; i < RegMax(T); i++) {                                   \
             cpu->reg[i] = Val_alloc(8);                                            \
         }                                                                          \
         cpu->mem = Val_alloc(cpu->mem->len);                                       \
     }                                                                              \
-    void CPUState_OP_def(T, displayone)(CPUState(T) * cpu, char* res, size_t id) { \
-        sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[id]));             \
+    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id) { \
+        RegDef(T)* df = REG(T, id);                                                \
+        if (df) {                                                                  \
+            size_t idx = df->id;                                                   \
+            sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[idx]));        \
+        }                                                                          \
     }                                                                              \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {               \
-        sprintf(res, "Arch: %s, PC: %s", #T, ValHex(cpu->pc));                     \
-        for (size_t i = 0; i < RegMax(T); i++) {                                   \
-            CPUState_OP(T, displayone)(cpu, res, i);                               \
-            strcat(res, "\n");                                                     \
-        }                                                                          \
+        sprintf(res, "CPU<%s>: %4s", #T, cpustatus_tbl1[cpu->status]);             \
     }
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
 #define CPUState_reset(T, C)   CPUState_OP(T, reset)(C)
 #define CPUState_set_reg(T, C, ID, V) CPUState_OP(T, set_reg)(C, ID, V)
 #define CPUState_get_reg(T, C, ID)  CPUState_OP(T, get_reg)(C, ID)
-#define CPUState_displayone(T, C, S, ID) CPUState_OP(T, displayone)(C, S, ID)
+#define CPUState_displayreg(T, C, S, ID) CPUState_OP(T, displayreg)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
 
 // ==================================================================================== //
