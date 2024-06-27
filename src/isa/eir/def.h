@@ -33,7 +33,7 @@ InsnID_def(EIR,
 );
 
 InsnDef_def(EIR,
-    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .name = "add_i32" , .bc = Val_u32(0x01) , .tr = Tys_new() },
+    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u32(0x01) , .tr = Tys_new() },
 );
 
 

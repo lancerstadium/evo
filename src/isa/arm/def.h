@@ -296,7 +296,7 @@ InsnID_def(ARM,
 
 
 InsnDef_def(ARM,
-    [ARM_UDF]       = { .id = ARM_UDF       , .name = "udf"     , .bc = Val_u32(0x00)                                           , .tc = Tys_new(Ty_I(0, {31, 16}))  , .tr = Tys_new(Ty_i(0, {15, 0}))},
+    [ARM_UDF]       = { .id = ARM_UDF       , .mnem = "udf"     , .bc = Val_u32(0x00)                                           , .tc = Tys_new(Ty_I(0, {31, 16}))  , .tr = Tys_new(Ty_i(0, {15, 0}))},
     /* 1. 0-way Pure Bits                       */
     
     /* 2. 1-way Register Ops                    */
@@ -306,9 +306,9 @@ InsnDef_def(ARM,
     /* 4. 2-way Register Ops with Left options  */
 
     /* 5. 3-way Register Ops                    */
-    [ARM_STXRB]     = { .id = ARM_STXRB     , .name = "stxrb"   , .bc = Val_u32((0b00001000000 << 21) + (0b011111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
-    [ARM_STLXRB]    = { .id = ARM_STLXRB    , .name = "stlxrb"  , .bc = Val_u32((0b00001000000 << 21) + (0b111111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
-    [ARM_STLXRH]    = { .id = ARM_STLXRH    , .name = "stlxrh"  , .bc = Val_u32((0b01001000000 << 21) + (0b111111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
+    [ARM_STXRB]     = { .id = ARM_STXRB     , .mnem = "stxrb"   , .bc = Val_u32((0b00001000000 << 21) + (0b011111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
+    [ARM_STLXRB]    = { .id = ARM_STLXRB    , .mnem = "stlxrb"  , .bc = Val_u32((0b00001000000 << 21) + (0b111111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
+    [ARM_STLXRH]    = { .id = ARM_STLXRH    , .mnem = "stlxrh"  , .bc = Val_u32((0b01001000000 << 21) + (0b111111 << 10))       , .tc = Tys_a64w3r0()               , .tr = Tys_a64w3R0()  },
     /* 6. 4-way Register Ops                    */
 );
 

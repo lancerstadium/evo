@@ -506,7 +506,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define InsnMax(T)              T##_INSNID_SIZE
 #define InsnTbl(T)              T##_insn_tbl
 #define INSN(T, ID)             ((ID < InsnMax(T)) ? &InsnTbl(T)[ID] : NULL)
-#define InsnName(T, ID)         INSN(T, ID)->name
+#define InsnName(T, ID)         INSN(T, ID)->mnem
 #define InsnFlag(T, ID)         INSN(T, ID)->flag
 #define InsnBC(T, ID)           INSN(T, ID)->bc
 #define InsnTC(T, ID)           INSN(T, ID)->tc
@@ -516,7 +516,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define InsnDef_T(T)      \
     typedef struct {      \
         InsnID(T) id;     \
-        const char* name; \
+        const char* mnem; \
         u32 flag;         \
         Val bc;           \
         Tys tc;           \
@@ -525,7 +525,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 
 #define InsnDef_def(T, ...)                                          \
     InsnDef_T(T);                                                    \
-    UNUSED static InsnDef(T) InsnTbl(T)[InsnMax(T)] = { [T##_NOP]    = { .id = T##_NOP    , .name = "nop"     , .bc = Val_u32(0x00) }, __VA_ARGS__}; \
+    UNUSED static InsnDef(T) InsnTbl(T)[InsnMax(T)] = { [T##_NOP]    = { .id = T##_NOP    , .mnem = "nop"     , .bc = Val_u32(0x00) }, __VA_ARGS__}; \
     bool InsnDef_OP_def(T, match)(Val * bc, size_t i);               \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i);         \
     void InsnDef_OP_def(T, display)(char* res);
@@ -541,7 +541,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
             size_t bml = (insn->tc.t[j]).len;                                                                      \
             is_match = Val_cmp_map(v, bm, bml, bc);                                                                \
             if (!is_match) {                                                                                       \
-                Log_warn("InsnDef: bc %s mismatch insn %s[%lu:%lu]", ValHex(bc), insn->name, bm->h, bm->l);        \
+                Log_warn("InsnDef: bc %s mismatch insn %s[%lu:%lu]", ValHex(bc), insn->mnem, bm->h, bm->l);        \
                 break;                                                                                             \
             }                                                                                                      \
         }                                                                                                          \
@@ -549,12 +549,12 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     }                                                                                                              \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                                                      \
         if (i < InsnMax(T)) {                                                                                      \
-            sprintf(res, "%-14s %s %s", ValHex(&InsnTbl(T)[i].bc), InsnTbl(T)[i].name, Tys_sym(InsnTbl(T)[i].tr)); \
+            sprintf(res, "%-14s %s %s", ValHex(&InsnTbl(T)[i].bc), InsnTbl(T)[i].mnem, Tys_sym(InsnTbl(T)[i].tr)); \
         }                                                                                                          \
     }                                                                                                              \
     void InsnDef_OP_def(T, display)(char* res) {                                                                   \
         for (size_t i = 0; i < InsnMax(T); i++) {                                                                  \
-            sprintf(res, "%s\n", InsnTbl(T)[i].name);                                                              \
+            sprintf(res, "%s\n", InsnTbl(T)[i].mnem);                                                              \
         }                                                                                                          \
     }
 
@@ -588,7 +588,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                                                         \
         char res_buf[32];                                                                                             \
         res[0] = '\0';                                                                                                \
-        sprintf(res_buf, "%-14s %s ", ValHex(&insn->bc), InsnTbl(T)[insn->id].name);                                  \
+        sprintf(res_buf, "%-14s %s ", ValHex(&insn->bc), InsnTbl(T)[insn->id].mnem);                                  \
         strcat(res, res_buf);                                                                                         \
         for (size_t i = 0; i < insn->len; i++) {                                                                      \
             if (insn->oprs[i] != NULL) {                                                                              \
