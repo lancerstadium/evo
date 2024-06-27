@@ -723,6 +723,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     CPUState_T(T, S);                                                             \
     CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                      \
     void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                            \
+    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                            \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);    \
     Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
     void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val);   \
@@ -740,6 +741,10 @@ UNUSED static char* cpustatus_tbl2 [] = {
         }                                                                          \
         cpu->mem = Val_alloc(mem_size / 8);                                        \
         return cpu;                                                                \
+    }                                                                              \
+    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu) {                            \
+        Val* pc = cpu->pc;                                                         \
+        return NULL; \
     }                                                                              \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {    \
         RegDef(T)* df = REG(T, id);                                                \

@@ -38,6 +38,10 @@ u8 Val_get(Val* v, size_t idx) {
     return v->b[idx];
 }
 
+void Val_get_addr(Val* v, size_t idx) {
+    
+}
+
 void Val_concat(Val* v, Val* other) {
     Log_ast(v != NULL, "Val_concat: v is null");
     Log_ast(other != NULL, "Val_concat: other is null");
