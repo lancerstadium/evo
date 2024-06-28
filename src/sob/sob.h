@@ -1395,6 +1395,7 @@ typedef struct {
 
     int   n_cmd;
     int   cur_cmd;
+    int   cur_arg;
     ArgParserCmd cmds[SOB_AP_MSCMD];
 
     bool  has_global;
@@ -1409,6 +1410,7 @@ UNUSED static ArgParser sob_ap = {
 
     .n_cmd = 0,
     .cur_cmd = 0,
+    .cur_arg = -1,
 
     .has_global = false,
     .has_subcmd = false,
@@ -1424,6 +1426,7 @@ UNUSED static ArgParser sob_ap = {
 #define ArgParser_arg_INPUT             { .sarg = "i", .larg = "input", .init.s = "", .help = "set input file" }
 #define ArgParser_arg_OUTPUT            { .sarg = "o", .larg = "output", .init.s = "", .help = "set output file" }
 #define ArgParser_cur_cmd               (&sob_ap.cmds[sob_ap.cur_cmd])
+#define ArgParser_cur_arg               ((sob_ap.cur_arg == -1) ? NULL : (&((ArgParser_cur_cmd)->args[sob_ap.cur_arg])))
 #define ArgParser_max_cmd               (sob_ap.cmds[sob_ap.n_cmd])
 #define ArgParser_init(Prog_desc, Print_fn)       \
     do {                                          \
@@ -1462,6 +1465,24 @@ UNUSED static ArgParser sob_ap = {
         }                                                                                 \
         ArgParser_max_cmd.n_args = n_args;                                                \
         sob_ap.n_cmd++;                                                                   \
+    } while (0)
+
+
+#define ArgParser_eq(ARG, NAME)  ((strcmp(NAME, (ARG).sarg) == 0) || (strcmp(NAME, (ARG).larg) == 0))
+
+#define ArgParser_get(NAME)                               \
+    do {                                                  \
+        if ((ArgParser_cur_cmd) != NULL) {                \
+            int n_args = ArgParser_cur_cmd->n_args;       \
+            ArgParserArg* args = ArgParser_cur_cmd->args; \
+            sob_ap.cur_arg = -1;                          \
+            for (int i = 0; i < n_args; i++) {            \
+                if (ArgParser_eq(args[i], NAME)) {        \
+                    sob_ap.cur_arg = i;                   \
+                    break;                                \
+                }                                         \
+            }                                             \
+        }                                                 \
     } while (0)
 
 #define ArgParser_sys_CMD(SA)                                                                \
@@ -1541,95 +1562,95 @@ UNUSED static ArgParser sob_ap = {
         sob_ap.print_fn(ArgParser_cur_cmd);              \
     }
 
-#define _ArgParser_cmd(Argc, Argv)                                                                      \
-    do {                                                                                                \
-        if (Argc > 0) {                                                                                 \
-            if (strcmp(Argv[0], "-h") == 0 || strcmp(Argv[0], "--help") == 0) {                         \
-                ArgParser_print_command();                                                              \
-                exit(ERROR_SOB_NONE);                                                                   \
-            }                                                                                           \
-        }                                                                                               \
-        bool is_arg_name = true;                                                                        \
-        int count = 0;                                                                                  \
-        int sflag_len = strlen(SOB_AP_SFLAG);                                                           \
-        int lflag_len = strlen(SOB_AP_LFLAG);                                                           \
-        ArgParserArg* arg = NULL;                                                                       \
-        char* arg_name = NULL;                                                                          \
-        while (count < Argc) {                                                                          \
-            char* need_parse = Argv[count];                                                             \
-            int need_parse_len = strlen(need_parse);                                                    \
-            bool is_short = (strncmp(need_parse, SOB_AP_SFLAG, MIN(sflag_len, need_parse_len)) == 0);   \
-            bool is_long = (strncmp(need_parse, SOB_AP_LFLAG, MIN(lflag_len, need_parse_len)) == 0);    \
-            bool is_file = false;                                                                       \
-            FILE* fp = fopen(need_parse, "r");                                                          \
-            if (fp) {                                                                                   \
-                is_file = true;                                                                         \
-                fclose(fp);                                                                             \
-            }                                                                                           \
-            if (is_short || is_long) {                                                                  \
-                is_arg_name = true;                                                                     \
-                const char* prefix;                                                                     \
-                if (is_short) {                                                                         \
-                    prefix = SOB_AP_SFLAG;                                                              \
-                } else {                                                                                \
-                    prefix = SOB_AP_LFLAG;                                                              \
-                }                                                                                       \
-                arg_name = need_parse + strlen(prefix);                                                 \
-                bool exist = false;                                                                     \
-                for (int i = 0; i < ArgParser_cur_cmd->n_args; i++) {                                   \
-                    arg = &(ArgParser_cur_cmd->args[i]);                                                \
-                    bool short_exist = strcmp(arg->sarg, arg_name) == 0;                                \
-                    bool long_exist = strcmp(arg->larg, arg_name) == 0;                                 \
-                    if (short_exist || long_exist) {                                                    \
-                        exist = true;                                                                   \
-                        break;                                                                          \
-                    }                                                                                   \
-                }                                                                                       \
-                if (!exist) {                                                                           \
-                    ArgParser_err_no(ERROR_AP_NO_EXIST_ARG);                                            \
-                    exit(ERROR_AP_NO_EXIST_ARG);                                                        \
-                }                                                                                       \
-            } else {                                                                                    \
-                is_arg_name = false;                                                                    \
-            }                                                                                           \
-            if (arg == NULL) {                                                                          \
-                if (is_file) {                                                                          \
-                    bool exist = false;                                                                 \
-                    for (int i = 0; i < ArgParser_cur_cmd->n_args; i++) {                               \
-                        arg = &(ArgParser_cur_cmd->args[i]);                                            \
-                        bool short_exist = strcmp("i", need_parse) == 0;                                \
-                        bool long_exist = strcmp("input", need_parse) == 0;                             \
-                        if (short_exist || long_exist) {                                                \
-                            exist = true;                                                               \
-                            break;                                                                      \
-                        }                                                                               \
-                    }                                                                                   \
-                    if (!exist) {                                                                       \
-                        ArgParser_err_no(ERROR_AP_NO_EXIST_ARG);                                        \
-                        exit(ERROR_AP_NO_EXIST_ARG);                                                    \
-                    }                                                                                   \
-                } else {                                                                                \
-                    ArgParser_err_no(ERROR_AP_LOST_ARG_FLAG, "`" _YELLOW_BD("%s") "`", need_parse);     \
-                    exit(ERROR_AP_LOST_ARG_FLAG);                                                       \
-                }                                                                                       \
-            }                                                                                           \
-            if (!is_arg_name && arg->no_val) {                                                          \
-                ArgParser_err_no(ERROR_AP_EXTRA_VAL);                                                   \
-                exit(ERROR_AP_EXTRA_VAL);                                                               \
-            }                                                                                           \
-            if (!is_arg_name && !arg->no_val) {                                                         \
-                arg->literal = need_parse;                                                              \
-                arg = NULL;                                                                             \
-            }                                                                                           \
-            if (is_arg_name && arg->no_val) {                                                           \
-                arg->init.b = true;                                                                     \
-            }                                                                                           \
-            count++;                                                                                    \
-        }                                                                                               \
-        if (arg && !arg->no_val) {                                                                      \
-            ArgParser_err_no(ERROR_AP_LOST_ARG_VAL, "`" _YELLOW_BD(SOB_AP_SFLAG "%s") "`", arg->sarg);  \
-            exit(ERROR_AP_LOST_ARG_VAL);                                                                \
-        }                                                                                               \
+#define _ArgParser_cmd(Argc, Argv)                                                                                  \
+    do {                                                                                                            \
+        if (Argc > 0) {                                                                                             \
+            if (strcmp(Argv[0], "-h") == 0 || strcmp(Argv[0], "--help") == 0) {                                     \
+                ArgParser_print_command();                                                                          \
+                exit(ERROR_SOB_NONE);                                                                               \
+            }                                                                                                       \
+        }                                                                                                           \
+        bool is_arg_name = true;                                                                                    \
+        int count = 0;                                                                                              \
+        int sflag_len = strlen(SOB_AP_SFLAG);                                                                       \
+        int lflag_len = strlen(SOB_AP_LFLAG);                                                                       \
+        ArgParserArg* arg = NULL;                                                                                   \
+        char* arg_name = NULL;                                                                                      \
+        while (count < Argc) {                                                                                      \
+            char* need_parse = Argv[count];                                                                         \
+            int need_parse_len = strlen(need_parse);                                                                \
+            bool is_long = (strncmp(need_parse, SOB_AP_LFLAG, MIN(lflag_len, need_parse_len)) == 0);                \
+            bool is_short = (!is_long) && (strncmp(need_parse, SOB_AP_SFLAG, MIN(sflag_len, need_parse_len)) == 0); \
+            bool is_file = false;                                                                                   \
+            FILE* fp = fopen(need_parse, "r");                                                                      \
+            if (fp) {                                                                                               \
+                is_file = true;                                                                                     \
+                fclose(fp);                                                                                         \
+            }                                                                                                       \
+            if (is_short || is_long) {                                                                              \
+                is_arg_name = true;                                                                                 \
+                const char* prefix;                                                                                 \
+                if (is_short) {                                                                                     \
+                    prefix = SOB_AP_SFLAG;                                                                          \
+                } else {                                                                                            \
+                    prefix = SOB_AP_LFLAG;                                                                          \
+                }                                                                                                   \
+                arg_name = need_parse + strlen(prefix);                                                             \
+                bool exist = false;                                                                                 \
+                for (int i = 0; i < ArgParser_cur_cmd->n_args; i++) {                                               \
+                    arg = &(ArgParser_cur_cmd->args[i]);                                                            \
+                    bool short_exist = strcmp(arg->sarg, arg_name) == 0;                                            \
+                    bool long_exist = strcmp(arg->larg, arg_name) == 0;                                             \
+                    if (short_exist || long_exist) {                                                                \
+                        exist = true;                                                                               \
+                        break;                                                                                      \
+                    }                                                                                               \
+                }                                                                                                   \
+                if (!exist) {                                                                                       \
+                    ArgParser_err_no(ERROR_AP_NO_EXIST_ARG, "`" _YELLOW_BD("%s") "`", arg_name);                    \
+                    exit(ERROR_AP_NO_EXIST_ARG);                                                                    \
+                }                                                                                                   \
+            } else {                                                                                                \
+                is_arg_name = false;                                                                                \
+            }                                                                                                       \
+            if (arg == NULL) {                                                                                      \
+                if (is_file) {                                                                                      \
+                    bool exist = false;                                                                             \
+                    for (int i = 0; i < ArgParser_cur_cmd->n_args; i++) {                                           \
+                        arg = &(ArgParser_cur_cmd->args[i]);                                                        \
+                        bool short_exist = strcmp("i", need_parse) == 0;                                            \
+                        bool long_exist = strcmp("input", need_parse) == 0;                                         \
+                        if (short_exist || long_exist) {                                                            \
+                            exist = true;                                                                           \
+                            break;                                                                                  \
+                        }                                                                                           \
+                    }                                                                                               \
+                    if (!exist) {                                                                                   \
+                        ArgParser_err_no(ERROR_AP_NO_EXIST_ARG, "`" _YELLOW_BD("%s") "`", need_parse);              \
+                        exit(ERROR_AP_NO_EXIST_ARG);                                                                \
+                    }                                                                                               \
+                } else {                                                                                            \
+                    ArgParser_err_no(ERROR_AP_LOST_ARG_FLAG, "`" _YELLOW_BD("%s") "`", need_parse);                 \
+                    exit(ERROR_AP_LOST_ARG_FLAG);                                                                   \
+                }                                                                                                   \
+            }                                                                                                       \
+            if (!is_arg_name && arg->no_val) {                                                                      \
+                ArgParser_err_no(ERROR_AP_EXTRA_VAL);                                                               \
+                exit(ERROR_AP_EXTRA_VAL);                                                                           \
+            }                                                                                                       \
+            if (!is_arg_name && !arg->no_val) {                                                                     \
+                arg->literal = need_parse;                                                                          \
+                arg = NULL;                                                                                         \
+            }                                                                                                       \
+            if (is_arg_name && arg->no_val) {                                                                       \
+                arg->init.b = true;                                                                                 \
+            }                                                                                                       \
+            count++;                                                                                                \
+        }                                                                                                           \
+        if (arg && !arg->no_val) {                                                                                  \
+            ArgParser_err_no(ERROR_AP_LOST_ARG_VAL, "`" _YELLOW_BD(SOB_AP_SFLAG "%s") "`", arg->sarg);              \
+            exit(ERROR_AP_LOST_ARG_VAL);                                                                            \
+        }                                                                                                           \
     } while (0)
 
 #define ArgParser_run(Argc, Argv, Envp)                                                                                         \

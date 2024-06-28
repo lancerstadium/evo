@@ -63,33 +63,69 @@ ArgParser_def_fn(sys) {
 }
 
 ArgParser_def_fn(test) {
-    ECHO(_WHITE_BD_UL("Running Unit Tests:") "\n");
     FILE *fp;
     char buffer[1024];
     char cmd_buf[1024+128];
 
-    EXEF(fp, "r", "find test -type f -name '*_tests'");
-    for (size_t i = 0; fgets(buffer, sizeof(buffer), fp) != NULL; i++) {
-        Str_trim(buffer);
-        if(IS_FILE(buffer)) {
-            STR_FMTN(cmd_buf, sizeof(cmd_buf), "./%s 2>> test/tests.log", buffer);
-            // STR_FMT(cmd_buf, "./%s 2>> test/tests.log | sed 's/\x1B\[[0-9;]*[JKmsu]//g' > test/tests.report", buffer);
+    ArgParser_get("unit");
+
+    if(ArgParser_cur_arg && ArgParser_cur_arg->literal) {
+        ECHO(_WHITE_BD_UL("Running Unit Tests:") "\n");
+        ArgParserArg* test_arg = ArgParser_cur_arg;
+        Str_trim(test_arg->literal);
+        char test_buf[32] = "./test/";
+        strcat(test_buf, test_arg->literal);
+        if(IS_FILE(strcat(test_buf, "_tests"))) {
+            STR_FMT(cmd_buf, "%s 2>> test/tests.log", test_buf);
             int n;
             EXES(n, cmd_buf);
             if(n == 0) {
-                ECHO(_GREEN("[Test %lu Passed]") "\n", i);
+                ECHO(_GREEN("[Test %s Passed]") "\n", test_arg->literal);
             } else {
-                ECHO(_RED("[Test %lu Failed]") "\n", i);
+                ECHO(_RED("[Test %s Failed]") "\n", test_arg->literal);
                 ECHO(_CYAN("[LOG]") "\n");
                 logs(argc, argv, envp);
-                break;
             }
         } else {
-            ECHO(_RED("[Test %lu not Found]") "\n", i);
-            break;
+            ECHO(_RED("[Test %s not Found]") "\n", test_arg->literal);
         }
+    } else {
+        EXEF(fp, "r", "find test -type f -name '*_tests'");
+        ArgParser_get("list");
+        if(ArgParser_cur_arg && ArgParser_cur_arg->init.b) {
+            ECHO(_WHITE_BD_UL("Unit Tests List:") "\n");
+            for (size_t i = 0; fgets(buffer, sizeof(buffer), fp) != NULL; i++) {
+                Str_trim(buffer);
+                if(IS_FILE(buffer)) {
+                    ECHO(_MAGENTA("%2lu") ": " _BLUE("%s") "\n", i, buffer);
+                }
+            }
+        } else {
+            ECHO(_WHITE_BD_UL("Running Unit Tests:") "\n");
+            for (size_t i = 0; fgets(buffer, sizeof(buffer), fp) != NULL; i++) {
+                Str_trim(buffer);
+                if(IS_FILE(buffer)) {
+                    STR_FMTN(cmd_buf, sizeof(cmd_buf), "./%s 2>> test/tests.log", buffer);
+                    // STR_FMT(cmd_buf, "./%s 2>> test/tests.log | sed 's/\x1B\[[0-9;]*[JKmsu]//g' > test/tests.report", buffer);
+                    int n;
+                    EXES(n, cmd_buf);
+                    if(n == 0) {
+                        ECHO(_GREEN("[Test %lu Passed]") "\n", i);
+                    } else {
+                        ECHO(_RED("[Test %lu Failed]") "\n", i);
+                        ECHO(_CYAN("[LOG]") "\n");
+                        logs(argc, argv, envp);
+                        break;
+                    }
+                } else {
+                    ECHO(_RED("[Test %s not Found]") "\n", buffer);
+                    break;
+                }
+            }
+        }
+        EXNF(fp);
     }
-    EXNF(fp);
+    
 }
 
 ArgParser_def_fn(clean) {
@@ -107,14 +143,20 @@ ArgParser_def_args(default_args) = {
     ArgParser_arg_END
 };
 
+ArgParser_def_args(test_args) = {
+    { .sarg = "u", .larg = "unit", .help = "set unit test name"},
+    { .sarg = "l", .larg = "list", .no_val = true, .help = "list all unit test"},
+    ArgParser_arg_END
+};
+
 int main(int argc, char *argv[], char *envp[]) {
 
     ArgParser_init("Sob - Super Nobuild Toolkit with only .h file", NULL);
-    ArgParser_use_cmd(NULL  , "run all"   , "This is usage", all  , default_args);
-    ArgParser_use_cmd(NULL  , "run sys"   , "This is usage", sys, default_args);
-    ArgParser_use_cmd(NULL  , "run test"  , "This is usage", test , default_args);
-    ArgParser_use_cmd("log" , "run log"   , "This is usage", logs , default_args);
-    ArgParser_use_cmd(NULL  , "run clean" , "This is usage", clean , default_args);
+    ArgParser_use_cmd(NULL  , "run all"   , "This is usage", all    , default_args);
+    ArgParser_use_cmd(NULL  , "run sys"   , "This is usage", sys    , default_args);
+    ArgParser_use_cmd(NULL  , "run test"  , "This is usage", test   , test_args);
+    ArgParser_use_cmd("log" , "run log"   , "This is usage", logs   , default_args);
+    ArgParser_use_cmd(NULL  , "run clean" , "This is usage", clean  , default_args);
     
     ArgParser_sys_cmd("uname -a");
     ArgParser_sys_cmd("perf record -e cycles -F 999 ls -l");
