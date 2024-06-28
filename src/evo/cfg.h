@@ -85,6 +85,10 @@ typedef void*       ptr;
 #define CFG_STACK_CAP       1024
 #define CFG_GEN_ELF         "out.elf"      
 
+
+// 1e3: us, 1e6: ms, 1e9: s
+#define CFG_PERF_TIMES      1e6 
+
 #if CFG_WORD_SIZE == 64
 typedef u64  PAddr;
 #define PFMT "0x%016lx"

@@ -8,14 +8,17 @@
 //                                    edb: Defined                                    
 // ==================================================================================== //
 
+#define CPU0(t)     ((CPUState(ISE) *)((t)->ctx.cpu))
+#define NR_CMD      ARRLEN(cmd_table)
+#define NR_WP       32
+#define NR_REGEX    ARRLEN(rules)
+#define TOKEN_MAX_LEN 1024
 
-#define CPU0(t)  ((CPUState(ISE) *)((t)->ctx.cpu))
-#define NR_CMD  ARRLEN(cmd_table)
-#define NR_REGEX ARRLEN(rules)
 // ==================================================================================== //
 //                                    edb: Static                                     
 // ==================================================================================== //
 
+// EDB
 typedef struct {
     char* log_file;
     char* img_file;
@@ -23,8 +26,6 @@ typedef struct {
     int   difftest_port;
     bool  is_batch_mode;
     Task(Exec)* task;
-    u64 halt_pc;
-    u32 halt_ret;
 } EDBGlobal;
 
 UNUSED static EDBGlobal edb_global = {
@@ -34,6 +35,68 @@ UNUSED static EDBGlobal edb_global = {
     .difftest_port = 1234,
     .task = NULL
 };
+
+// Regex
+enum {
+    TK_NOTYPE = 256, 
+    TK_EQ, TK_NE,
+    TK_AND,
+    TK_DEC,
+    TK_HEX,
+    TK_REG,
+    /* TODO: Add more token types */
+};
+
+typedef struct {
+    const char *regex;
+    int token_type;
+} EDBRule;
+
+UNUSED static EDBRule rules[] = {
+    {" +"           , TK_NOTYPE },      // spaces
+    {"\\+"          , '+'       },      // plus
+    {"\\-"          , '-'       },      // minus
+    {"\\*"          , '*'       },      // asterisk
+    {"\\/"          , '/'       },      // slash
+    {"\\("          , '('       },      // lparen
+    {"\\)"          , ')'       },      // rparen
+    
+    {"=="           , TK_EQ     },      // equal
+    {"!="           , TK_NE     },      // not equal
+    {"&&"           , TK_AND    },      // and
+
+    {"\\$[0-9a-z]+" , TK_REG    },      // register
+    {"0x[0-9a-f]+"  , TK_HEX    },      // hex
+    {"[0-9]+(u)?"   , TK_DEC    },      // decimal
+};
+
+static regex_t re[NR_REGEX] = {};
+
+typedef struct {
+    int type;
+    char str[32];
+} EDBToken;
+
+static EDBToken tokens[TOKEN_MAX_LEN] __attribute__((used)) = {};
+static int nr_token __attribute__((used))  = 0;
+
+// Watch Point
+typedef struct EDBWp {
+    int NO;
+    struct EDBWp *next;
+
+    /* TODO: Add more members if necessary */
+    char* e;
+    u64 res;
+} EDBWp;
+
+static EDBWp wp_pool[NR_WP] = {};
+static EDBWp *head = NULL, *free_ = NULL;
+
+// ==================================================================================== //
+//                                    edb: Func                                     
+// ==================================================================================== //
+
 
 // ==================================================================================== //
 //                                    edb: Img                                    
@@ -58,7 +121,6 @@ static size_t EDBImg_init() {
 //                                    edb: ISA                                    
 // ==================================================================================== //
 
-
 void isa_reg_display() {
     for (size_t i = 0; i < RegMax(ISE); ++i) {
         char reg_buf[48];
@@ -70,59 +132,24 @@ void isa_reg_display() {
     }
 }
 
-u64 isa_reg_str2val(const char *s, bool *success) {
-//   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); ++i) {
-//     if (strcmp(s, regs[i]) == 0) {
-//       *success = true;
-//       return cpu.gpr[i];
-//     }
-//   }
-//   if (strcmp(s, "pc") == 0) {
-//     *success = true;
-//     return cpu.pc;
-//   }
-  *success = false;
-  return 0;
+u64 isa_reg_str2val(char *s, bool *success) {
+    if (strcmp(s, "pc") == 0) {
+        *success = true;
+        return Val_as_u64(CPU0(edb_global.task)->pc, 0);
+    }
+    Val* v = CPUState_get_regn(ISE, CPU0(edb_global.task), s);
+    if (v) {
+        *success = true;
+        return Val_as_u64(v, 0);
+    } else {
+        *success = false;
+        return 0;
+    }
 }
 
 // ==================================================================================== //
 //                                    edb: Regex                                     
 // ==================================================================================== //
-
-enum {
-    TK_NOTYPE = 256, 
-    TK_EQ, TK_NE,
-    TK_AND,
-    TK_DEC,
-    TK_HEX,
-    TK_REG,
-    /* TODO: Add more token types */
-};
-
-typedef struct {
-    const char *regex;
-    int token_type;
-} Rule;
-
-UNUSED static Rule rules[] = {
-    {" +"           , TK_NOTYPE },      // spaces
-    {"\\+"          , '+'       },      // plus
-    {"\\-"          , '-'       },      // minus
-    {"\\*"          , '*'       },      // asterisk
-    {"\\/"          , '/'       },      // slash
-    {"\\("          , '('       },      // lparen
-    {"\\)"          , ')'       },      // rparen
-    
-    {"=="           , TK_EQ     },      // equal
-    {"!="           , TK_NE     },      // not equal
-    {"&&"           , TK_AND    },      // and
-
-    {"\\$[0-9a-z]+" , TK_REG    },      // register
-    {"0x[0-9a-f]+"  , TK_HEX    },      // hex
-    {"[0-9]+(u)?"   , TK_DEC    },      // decimal
-};
-
-static regex_t re[NR_REGEX] = {};
 
 /* Rules are used for many times.
  * Therefore we compile them only once before any usage. */
@@ -139,18 +166,9 @@ void EDBRegex_init(){
     }
 }
 
-typedef struct token {
-    int type;
-    char str[32];
-} Token;
-
-#define TOKEN_MAX_LEN 1024
-static Token tokens[TOKEN_MAX_LEN] __attribute__((used)) = {};
-static int nr_token __attribute__((used))  = 0;
-
 static bool Token_make(char *e) {
     int position = 0;
-    int i;
+    size_t i;
     regmatch_t pmatch;
     nr_token = 0;
 
@@ -167,7 +185,7 @@ static bool Token_make(char *e) {
                 * of tokens, some extra actions should be performed.
                 */
 
-                Token *t = &tokens[nr_token ++];
+                EDBToken *t = &tokens[nr_token ++];
                 t->type = rules[i].token_type;
                 strncpy(t->str, substr_start, substr_len);
 
@@ -242,6 +260,7 @@ static int find_op(int p, int q, bool* success) {
                     res = i;
                     res_level = 3;
                 }
+                break;
             case '*':
                 if (depth == 0 && res_level > 4) {
                     *success = true;
@@ -329,17 +348,137 @@ u64 expr(char *e, bool *success) {
 }
 
 
-
-
-
 // ==================================================================================== //
 //                                    edb: WatchPoint                    
 // ==================================================================================== //
 
 
-void EDBWp_init() {
-
+void EDBWp_pool_init() {
+    int i;
+    for (i = 0; i < NR_WP; i ++) {
+        wp_pool[i].NO = i;
+        wp_pool[i].next = (i == NR_WP - 1 ? NULL : &wp_pool[i + 1]);
+    }
+    head = NULL;
+    free_ = wp_pool;
 }
+
+int EDBWp_new(char* e) {
+    if (free_ == NULL) {
+        printf("No extra free wp\n");
+        return -1;
+    }
+    EDBWp* wp = free_;
+    free_ = free_->next;
+
+    // deal with expr
+    bool success;
+    u64 res = expr(e, &success);
+    if(success) {
+        wp->e = malloc(strlen(e) + 1);
+        strcpy(wp->e, e);
+        wp->res = res;
+    } else {
+        printf("Set wp expr fail: %s\n", e);
+        return -1;
+    }
+
+    // find final head
+    EDBWp* tmp = head;
+    if (tmp == NULL) {
+        head = wp;
+    } else {
+        while (tmp->next != NULL) {
+        tmp = tmp->next;
+        }
+        tmp->next = wp;
+    }
+    wp->next = NULL;
+    printf("Set wp (expr: %s) at NO.%d\n", wp->e, wp->NO);
+    return wp->NO;
+}
+
+void EDBWp_free(int n) {
+    if(n < 0 || n >= NR_WP) {
+        printf("Invalid wp idx: %d\n", n);
+        return;
+    }
+    EDBWp *wp = &wp_pool[n];
+
+    // find in head
+    EDBWp* tmp = head;
+    if(tmp == NULL) {
+        printf("No wp to free: %d\n", n);
+        return;
+    } else if (tmp == wp) {
+        head = wp->next;
+    } else {
+        while (tmp->next != NULL) {
+        if (tmp->next == wp) {
+            tmp->next = wp->next;
+            break;
+        }
+        tmp = tmp->next;
+        }
+    }
+    // find final free_
+    tmp = free_;
+    if (tmp == NULL) {
+        free_ = wp;
+    } else {
+        while (tmp->next != NULL) {
+            tmp = tmp->next;
+        }
+        tmp->next = wp;
+    }
+    wp->next = NULL;
+    printf("Free wp (expr: %s) at NO.%d\n", wp->e, wp->NO);
+    free(wp->e);
+    wp->e = NULL;
+    wp->res = 0;
+}
+
+void EDBWp_info(int n) {
+    if(n >= 0 && n < NR_WP) {
+        EDBWp *wp = &wp_pool[n];
+        printf("- [%2d] expr: %s, res: %lu\n", wp->NO, wp->e, wp->res);
+    } else {
+        EDBWp* tmp = head;
+        printf("[Busy wp]: \n");
+        while (tmp != NULL) {
+            printf("- [%2d] expr: %s, res: %lu\n", tmp->NO, tmp->e, tmp->res);
+            tmp = tmp->next;
+        }
+    }
+    return;
+}
+
+int EDBWp_scan(bool *change) {
+    EDBWp* tmp = head;
+    *change = false;
+    int n = -1;
+    while (tmp != NULL) {
+        // deal with expr
+        bool success;
+        char* e = malloc(strlen(tmp->e) + 1);
+        strcpy(e, tmp->e);
+        u64 res = expr(e, &success);
+        if(success) {
+            if (tmp->res != res)  {
+                printf("Scan wp (%s) change: %lu -> %lu\n", tmp->e, tmp->res, res);
+                tmp->res = res;
+                *change = true;
+                n = tmp->NO;
+                break;
+            }
+        } else {
+            printf("Scan wp expr fail: %s\n", e);
+        }
+        tmp = tmp->next;
+    }
+    return n;
+}
+
 
 // ==================================================================================== //
 //                                    edb: FrameWork    
@@ -406,7 +545,7 @@ void EDB_init(int argc, char *argv[]) {
     EDBRand_init();
     EDBRegex_init();
     EDBImg_init();
-    EDBWp_init();
+    EDBWp_pool_init();
     EDB_welcome();
 }
 
@@ -467,7 +606,7 @@ static int cmd_info(char *args) {
         if (strcmp(sub, "r") == 0) {
             isa_reg_display();
         } else if (strcmp(sub, "w") == 0) {
-            // info_wp(-1);
+            EDBWp_info(-1);
         } else {
             printf("Usage: info [r|w]\n");
         }
@@ -490,9 +629,9 @@ static int cmd_p(char *args) {
     if (sub == NULL) {
         printf("Usage: p [expr]\n");
     } else {
-        // bool success;
-        // unsigned res = expr(sub, &success);
-        // if (success) printf("%s = %u\n", sub, res);
+        bool success;
+        unsigned res = expr(sub, &success);
+        if (success) printf("%s = %u\n", sub, res);
     }
     return 0;
 }
@@ -507,25 +646,25 @@ static int cmd_tsp(char *args) {
             printf("Open file %s failed.\n", sub);
             return 0;
         }
-        // // 2. 读取每一行格式：`ref, exprisson` `int char*`
-        // char line[1024];
-        // while (fgets(line, 1024, fp) != NULL) {
-        //     char *p = line;
-        //     unsigned ref = atoi(strtok(p, " "));
-        //     char *exprisson = strtok(NULL, " ");
-        //     // 删除换行符
-        //     if (exprisson[strlen(exprisson) - 1] == '\n') {
-        //         exprisson[strlen(exprisson) - 1] = '\0';
-        //     }
-
-        //     bool success;
-        //     unsigned res = expr(exprisson, &success);
-        //     if (success && res == ref) {
-        //         printf("\033[0;32msucc:\033[0m %u == %u = %s\n",  res, ref, exprisson);
-        //     } else if (success && res != ref) {
-        //         printf("\033[0;31mfail:\033[0m %u != %u = %s\n",  res, ref, exprisson);
-        //     }
-        // }
+        // 2. 读取每一行格式：`ref, exprisson` `int char*`
+        char line[1024];
+        while (fgets(line, 1024, fp) != NULL) {
+            char *p = line;
+            u64 ref = atoi(strtok(p, " "));
+            char *exprisson = strtok(NULL, " ");
+            // 删除换行符
+            if (exprisson[strlen(exprisson) - 1] == '\n') {
+                exprisson[strlen(exprisson) - 1] = '\0';
+            }
+            // 判断是否正确
+            bool success;
+            u64 res = expr(exprisson, &success);
+            if (success && res == ref) {
+                printf("\033[0;32mPASS\033[0m %lu == %lu = %s\n",  res, ref, exprisson);
+            } else if (success && res != ref) {
+                printf("\033[0;31mFAIL\033[0m %lu != %lu = %s\n",  res, ref, exprisson);
+            }
+        }
     }
     return 0;
 }
@@ -535,7 +674,7 @@ static int cmd_w(char *args) {
     if (sub == NULL) {
         printf("Usage: w [expr]\n");
     } else {
-        // new_wp(sub);
+        EDBWp_new(sub);
     }
     return 0;
 }
@@ -544,7 +683,7 @@ static int cmd_d(char *args) {
     char *sub = strtok(args, " ");
     if (sub != NULL) {
         UNUSED int n = atoi(sub);
-        // free_wp(n);
+        EDBWp_free(n);
     } else {
         printf("Usage: d [n]\n");
     }
@@ -563,12 +702,12 @@ static int cmd_help(UNUSED char *args){
     if (arg == NULL) {
         /* no argument given */
         for (i = 0; i < NR_CMD; i ++) {
-            printf("\t%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+            printf("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
         }
     } else {
         for (i = 0; i < NR_CMD; i ++) {
             if (strcmp(arg, cmd_table[i].name) == 0) {
-                printf("\t%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+                printf("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
                 return 0;
             }
         }
@@ -613,6 +752,7 @@ void EDB_loop() {
 #undef CPU0
 #undef NR_REGEX
 #undef NR_CMD
+#undef NR_WP
 
 // ==================================================================================== //
 //                                    edb: Prog Entry                                      

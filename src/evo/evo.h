@@ -592,7 +592,6 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
             size_t bml = (insn->tc.t[j]).len;                                                                      \
             is_match = Val_cmp_map(v, bm, bml, bc);                                                                \
             if (!is_match) {                                                                                       \
-                Log_warn("InsnDef: bc %s mismatch insn %s[%lu:%lu]", ValHex(bc), insn->mnem, bm->h, bm->l);        \
                 break;                                                                                             \
             }                                                                                                      \
         }                                                                                                          \
@@ -723,22 +722,25 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 typedef enum {
     CPU_IDLE,                   /* CPU During Init/Reset Status */
     CPU_RUN,                    /* CPU Fetch/Decode/Execute Status */
+    CPU_END,                    /* CPU Reach End Position Status */
     CPU_STOP,                   /* CPU Stop Running Status */
     CPU_ABORT,                  /* CPU Abort and deal with cause Status */
     CPU_QUIT,                   /* CPU Quit Running Status */
 } CPUStatus;
 UNUSED static char* cpustatus_tbl1 [] = {
     "IDLE",
-    "RUNN",
+    "RUN",
+    "END",
     "STOP",
-    "ABOT",
+    "ABORT",
     "QUIT",
 };
 UNUSED static char* cpustatus_tbl2 [] = {
     _BLUE("IDLE"),
-    _GREEN("RUNN"),
+    _GREEN("RUN"),
+    _CYAN("END"),
     _YELLOW("STOP"),
-    _RED("ABOT"),
+    _RED("ABORT"),
     _MAGENTA("QUIT"),
 };
 
@@ -753,6 +755,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
         Val* dnpc;            \
         Val* reg[RegMax(T)];  \
         Val* mem;             \
+        u64 halt_ret;         \
+        Val* halt_pc;         \
         S                     \
     } CPUState(T)
 
@@ -787,6 +791,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
             cpu->reg[i] = Val_alloc(8);                                                      \
         }                                                                                    \
         cpu->mem = Val_alloc(mem_size / 8);                                                  \
+        cpu->halt_ret = 0;                                                                   \
+        cpu->halt_pc = NULL;                                                                 \
         return cpu;                                                                          \
     }                                                                                        \
     void CPUState_OP_def(T, stop)(CPUState(T) * cpu) {                                       \

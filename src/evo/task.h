@@ -33,10 +33,20 @@ Task_def(Load,
 
 Task_def(Exec,
     void* cpu;                  /* cpu  : CPU State of Arch     */
+    void* cur_insn;             /* current insn address         */
+    
+    /* Performence: Exec */
+    size_t cnt_insn;                    /* exec insn count */
+    const char* e_sc;                   /* exec time scale */
+    struct timespec e_s;                /* exec start time */
+    struct timespec e_e;                /* exec end time */
+    double e_tak;                       /* exec time taken */
+    double e_tot;                       /* total exec time taken */
 ,
     void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status);
     void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc);
     void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step);
+    void TaskCtx_OP_def(Exec, execinfo) (TaskCtx(Exec) *ctx, char* res);
 );
 
 
