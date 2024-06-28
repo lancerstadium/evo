@@ -35,9 +35,7 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
 }
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
     size_t len = 4;
-    for(size_t i = 0; i < len; i++){
-        TaskCtx_OP(Exec, execone)(ctx, CPU(ctx)->pc);
-    }
+    TaskCtx_OP(Exec, execute) (ctx, len);
 }
 
 void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
@@ -51,9 +49,12 @@ void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
     char insn_buf[48];
     Insn_display(RV, insn, insn_buf);
     UnitTest_msg("%s", insn_buf);
-    // UnitTest_msg("pc  : %s", ValHex(CPU(ctx)->pc));
-    // UnitTest_msg("snpc: %s", ValHex(CPU(ctx)->snpc));
-    // UnitTest_msg("dnpc: %s", ValHex(CPU(ctx)->dnpc));
+}
+
+void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
+    for(size_t i = 0; i < step; i++){
+        TaskCtx_OP(Exec, execone)(ctx, CPU(ctx)->pc);
+    }
 }
 
 #undef CPU

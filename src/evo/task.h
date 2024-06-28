@@ -24,6 +24,7 @@ Task_def(Exec,
     void* cpu;                  /* cpu  : CPU State of Arch     */
 ,
     void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc);
+    void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step);
 );
 
 
