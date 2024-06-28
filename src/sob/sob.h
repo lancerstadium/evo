@@ -1519,9 +1519,21 @@ UNUSED static ArgParser sob_ap = {
         fprintf(stderr, "\n");                                                                                               \
     } while (0)
 
-#define ArgParser_print_help_command(Cmd)                                                                       \
+#define ArgParser_print_help_command(Cmd)                                                \
+    if ((Cmd)->type == AP_CMD_USER) {                                                    \
+        fprintf(stderr, _GREEN_BD(" %8s") _GREY_IT("  %s\n"), (Cmd)->name, (Cmd)->desc); \
+    } else if ((Cmd)->type == AP_CMD_SYS) {                                              \
+        fprintf(stderr, _CYAN_BD(" %8s") "  ", (Cmd)->sys_line[0]);                      \
+        CStr* cur_line = (Cmd)->sys_line + 1;                                            \
+        while (*cur_line) {                                                              \
+            fprintf(stderr, "%s ", *cur_line);                                           \
+            cur_line++;                                                                  \
+        }                                                                                \
+        fprintf(stderr, "\n");                                                           \
+    }
+
+#define ArgParser_print_options(Cmd)                                                                            \
     if ((Cmd)->type == AP_CMD_USER) {                                                                           \
-        fprintf(stderr, _GREEN_BD(" %8s") _GREY_IT("  %s\n"), (Cmd)->name, (Cmd)->desc);                        \
         for (int i = 0; i < (Cmd)->n_args; i++) {                                                               \
             if (i >= SOB_AP_NFLAG) {                                                                            \
                 fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY_IT("%s\n"),                            \
@@ -1531,15 +1543,6 @@ UNUSED static ArgParser sob_ap = {
             fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY_IT("%s\n"),                                \
                     SOB_AP_SFLAG, (Cmd)->args[i].sarg, SOB_AP_LFLAG, (Cmd)->args[i].larg, (Cmd)->args[i].help); \
         }                                                                                                       \
-        fprintf(stderr, "\n");                                                                                  \
-    } else if ((Cmd)->type == AP_CMD_SYS) {                                                                     \
-        fprintf(stderr, _CYAN_BD(" %8s") "  ", (Cmd)->sys_line[0]);                                             \
-        CStr* cur_line = (Cmd)->sys_line + 1;                                                                   \
-        while (*cur_line) {                                                                                     \
-            fprintf(stderr, "%s ", *cur_line);                                                                  \
-            cur_line++;                                                                                         \
-        }                                                                                                       \
-        fprintf(stderr, "\n\n");                                                                                \
     }
 
 #define ArgParser_print_parser()                                                                  \

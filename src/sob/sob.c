@@ -144,6 +144,8 @@ ArgParser_def_args(default_args) = {
 };
 
 ArgParser_def_args(test_args) = {
+    ArgParser_arg_INPUT,
+    ArgParser_arg_OUTPUT,
     { .sarg = "u", .larg = "unit", .help = "set unit test name"},
     { .sarg = "l", .larg = "list", .no_val = true, .help = "list all unit test"},
     ArgParser_arg_END
