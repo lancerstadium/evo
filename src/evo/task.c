@@ -29,7 +29,7 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     Task_info(Exec, "CPU Mem size: %lu Byte", CPU(ctx)->mem->len);
     Task_info(Exec, "CPU Status  : %s" , cpustatus_tbl2[CPU(ctx)->status]);
     if(val && val->len > 0) {
-        CPUState_set_mem(ISE, ctx->cpu, Val_new_u32(0), val);
+        CPUState_set_mem(ISE, ctx->cpu, Val_new_u32(0), val, val->len);
         Task_info(Exec, "CPU Img Load: %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u32(0), 8)));
     }
 }

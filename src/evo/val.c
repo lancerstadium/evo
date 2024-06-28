@@ -84,11 +84,11 @@ void Val_set_ref(Val* v, size_t idx, u8* val, size_t len) {
     // }
 }
 
-Val* Val_set_val(Val* v, size_t idx, Val* val) {
+Val* Val_set_val(Val* v, size_t idx, Val* val, size_t len) {
     Log_ast(v != NULL, "Val_set: v is null");
     Log_ast(val != NULL, "Val_set: val is null");
     Log_ast(idx < v->len, "Val_set: idx is out of bounds");
-    Val_set_ref(v, idx, val->b, val->len);
+    Val_set_ref(v, idx, val->b, len);
     return v;
 }
 
