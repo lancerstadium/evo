@@ -9,7 +9,11 @@ UnitTest_fn_def(test_cpu_reg){
     CPUState_set_reg(RV, cpu, RV_R3, Val_new_u64(0x123456789abcdef));
     Val* r = CPUState_get_reg(RV, cpu, RV_R3);
     UnitTest_msg(" R3= %s", ValHex(r));
-    UnitTest_ast(Val_get_u64(r, 0) == 0x123456789abcdef, "R3 should be 0x123456789abcdef");
+#if CFG_SISA_BIT == 64
+    UnitTest_ast(Val_as_u64(r, 0) == 0x123456789abcdef, "R3 should be 0x123456789abcdef");
+#elif CFG_SISA_BIT == 32
+    UnitTest_ast(Val_as_u32(r, 0) == 0x89abcdef, "R3 should be 0x89abcdef");
+#endif
     for(size_t i = 0; i < RegMax(RV); i++) {
         CPUState_displayreg(RV, cpu, res_buf, i);
         UnitTest_msg("%s", res_buf);

@@ -490,8 +490,8 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define RegID_def(T, ...) \
     RegID_T(T, __VA_ARGS__)
 
-#define RegMax(T)               T##_REGID_SIZE
-#define RegTbl(T)               T##_reg_tbl
+#define RegMax(T)               CONCAT(T, _REGID_SIZE)
+#define RegTbl(T)               CONCAT(T, _reg_tbl)
 #define REG(T, ID)              (((ID) < RegMax(T)) ? &RegTbl(T)[ID] : NULL)
 #define RegName(T, ID)          REG(T, ID)->name
 #define RegAlias(T, ID)         REG(T, ID)->alias

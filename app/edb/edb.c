@@ -60,12 +60,14 @@ static size_t EDBImg_init() {
 
 
 void isa_reg_display() {
-//   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); ++i) {
-//     printf("%3s: 0x%x\t", regs[i], cpu.gpr[i]);
-//     if(i % 4 == 3) {
-//       printf("\n");
-//     }
-//   }
+    for (size_t i = 0; i < RegMax(ISE); ++i) {
+        char reg_buf[48];
+        CPUState_displayreg(ISE, CPU0(edb_global.task), reg_buf, i);
+        printf("%s ", reg_buf);
+        if(i % 4 == 3) {
+            printf("\n");
+        }
+    }
 }
 
 u64 isa_reg_str2val(const char *s, bool *success) {
@@ -463,7 +465,7 @@ static int cmd_info(char *args) {
         printf("Usage: info [r|w]\n");
     } else {
         if (strcmp(sub, "r") == 0) {
-            // isa_reg_display();
+            isa_reg_display();
         } else if (strcmp(sub, "w") == 0) {
             // info_wp(-1);
         } else {
@@ -541,7 +543,7 @@ static int cmd_w(char *args) {
 static int cmd_d(char *args) {
     char *sub = strtok(args, " ");
     if (sub != NULL) {
-        int n = atoi(sub);
+        UNUSED int n = atoi(sub);
         // free_wp(n);
     } else {
         printf("Usage: d [n]\n");
