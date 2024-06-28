@@ -2,6 +2,7 @@ CC = gcc
 APP = evo
 INCDIR = src
 SRCDIR = src
+APPDIR = app
 BINDIR = bin
 OBJDIR = obj
 SOBDIR = src/sob
@@ -25,13 +26,15 @@ TARGET=build/lib$(APP).a
 SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
 SOB_TARGET=./sob
 BIN_TARGET=bin/$(APP)
+EDB_SRC=$(wildcard $(APPDIR)/edb/*.c)
+EDB_TARGET=bin/edb
 
 # Config
 CFG_REPORT=0
 CFG_TEST=
 
 # The Target Build
-all: $(SOB_TARGET) $(TARGET) tests
+all: $(SOB_TARGET) $(TARGET) $(EDB_TARGET) tests
 
 dev: CFLAGS=-g -Wall $(INCFLAGS) -Wall -Wextra $(OPTFLAGS)
 dev: all
@@ -50,6 +53,10 @@ $(SOB_TARGET):
 # $(BIN_TARGET): build $(OBJS)
 # 	$(CC) -o $@ $(OBJS)
 
+$(EDB_TARGET): LDLIBS += $(TARGET)
+$(EDB_TARGET): $(EDB_SRC)
+	$(CC) $(CFLAGS)    $(EDB_SRC) $(LDLIBS) -o $@
+
 build:
 	@mkdir -p build
 	@mkdir -p bin
@@ -65,9 +72,6 @@ else
 	@$(SOB_TARGET) test
 endif
 
-test:
-	@$(VALGRIND) ./test/$(SECOND_GOAL)_tests 2>> test/tests.log
-
 valgrind:
 	@echo "valgrind log: ./test/valgrind.log"
 	VALGRIND="valgrind --log-file=./test/valgrind.log" $(MAKE)
@@ -77,7 +81,7 @@ log:
 
 # The Cleaner
 clean:
-	rm -f $(SOB_TARGET)
+	rm -f $(SOB_TARGET) $(EDB_TARGET)
 	rm -rf build $(OBJS) $(TESTS)
 	rm -f test/tests.log test/valgrind.log
 	rm -f *.out *.elf

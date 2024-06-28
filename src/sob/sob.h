@@ -377,6 +377,7 @@ extern "C" {
 // ==================================================================================== //
 
 typedef enum {
+    LOGLEVEL_PURE,
     LOGLEVEL_TRAC, 
     LOGLEVEL_SYSC, 
     LOGLEVEL_DEBU,  
@@ -394,6 +395,7 @@ typedef struct {
 } LogElem;
 
 static LogElem sob_log_elem[] = {
+    { LOGLEVEL_PURE, "PURE", ANSI_FG_WHITE          },
     { LOGLEVEL_TRAC, "TRAC", ANSI_FGB_BLUE          },
     { LOGLEVEL_SYSC, "SYSC", ANSI_BG_BLUE ANSI_BOLD },
     { LOGLEVEL_DEBU, "DEBU", ANSI_FG_CYAN           },
@@ -489,6 +491,7 @@ UNUSED static Logger sob_logger = {
         sob_logger.no = ERROR_SOB_NONE;                                            \
     } while (0)
 
+#define Log(...)                    Log_msg(LOGLEVEL_PURE, ##__VA_ARGS__)
 #define Log_trace(...)              Log_msg(LOGLEVEL_TRAC, ##__VA_ARGS__)
 #ifdef SOB_LOG_DBG_OFF
 #define Log_sysc(...)               Log_msg(LOGLEVEL_SYSC, ##__VA_ARGS__)

@@ -4,6 +4,17 @@
 #include <evo/evo.h>
 #include <gen/gen.h>
 
+#if defined(CFG_MODE_ITP) || defined(CFG_MODE_AOT) || defined(CFG_MODE_JIT) || defined(CFG_MODE_HYB)
+// typedef CONCAT(CPUState_, CFG_IISA) CPUState;
+#define ISE CFG_IISA
+#elif defined(CFG_MODE_EMU)
+// typedef CONCAT(CPUState_, CFG_SISA) CPUState;
+#define ISE CFG_SISA
+#else
+#error Unsupport EVO_MODE, Config options: EMU / ITP / AOT / JIT / HYB 
+#endif
+
+
 // ==================================================================================== //
 //                                    task: Load                                      
 // ==================================================================================== //
@@ -23,6 +34,7 @@ Task_def(Load,
 Task_def(Exec,
     void* cpu;                  /* cpu  : CPU State of Arch     */
 ,
+    void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status);
     void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc);
     void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step);
 );

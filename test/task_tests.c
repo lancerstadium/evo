@@ -26,7 +26,9 @@ UnitTest_fn_def(test_exec_rv) {
     }, 16);
 
     Task(Exec)* t = Task_init(Exec, "exec-rv", img);
-    Task_run(Exec, t);
+    // Task_run(Exec, t);
+    Task_rundbg(Exec, t, Val_new_u32(3));
+    TaskCtx_OP(Exec, set_status)(&t->ctx, CPU_QUIT);
     return NULL;
 }
 

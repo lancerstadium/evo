@@ -37,6 +37,32 @@ Val* Val_from(Val* val) {
     return v;
 }
 
+
+Val* Val_from_file(char* path) {
+    if (path == NULL) {
+        Log_warn("Val_from_file: path is null");
+        return NULL;
+    }
+    FILE* f = fopen(path, "rb");
+    if(f == NULL) {
+        Log_warn("Val_from_file: file not found");
+        return NULL;
+    }
+    fseek(f, 0, SEEK_END);
+    size_t len = ftell(f);
+    Log_info("Val_from_file: %s (%lu)", path, len);
+    fseek(f, 0, SEEK_SET);
+    Val* v = Val_alloc(len);
+    int ret = fread(v->b, len, 1, f);
+    if(ret != 1) {
+        Log_warn("Val_from_file: read error");
+        return NULL;
+    }
+    fclose(f);
+    return v;
+}
+
+
 Val* Val_from_u32(u32* val, size_t len) {
     Log_ast(val != NULL, "Val_from: val is null");
     Val* v = malloc(sizeof(Val));

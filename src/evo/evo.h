@@ -419,6 +419,7 @@ Val* Val_str(char* str);
 void Val_copy(Val* v, Val* other);
 void Val_free(Val* v);
 Val* Val_from(Val* val);
+Val* Val_from_file(char* path);
 Val* Val_inc(Val* v, size_t l);
 Val* Val_from_u32(u32* val, size_t len);
 Val* Val_new_u8(u8 val);
@@ -745,76 +746,101 @@ UNUSED static char* cpustatus_tbl2 [] = {
         S                     \
     } CPUState(T)
 
-#define CPUState_def(T, S, ...)                                                   \
-    CPUState_T(T, S);                                                             \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                      \
-    void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                            \
-    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len);   \
-    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len);  \
-    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);    \
-    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);               \
-    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id); \
-    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);               \
-    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                            \
-    Insn(T) * CPUState_OP_def(T, decode)(CPUState(T) * cpu, Val * val);           \
-    void CPUState_OP_def(T, execute)(CPUState(T) * cpu, Insn(T) * insn);          \
+#define CPUState_def(T, S, ...)                                                             \
+    CPUState_T(T, S);                                                                       \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                                \
+    void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                                      \
+    void CPUState_OP_def(T, stop)(CPUState(T) * cpu);                                       \
+    void CPUState_OP_def(T, abort)(CPUState(T) * cpu);                                      \
+    void CPUState_OP_def(T, quit)(CPUState(T) * cpu);                                       \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len); \
+    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len);            \
+    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);              \
+    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);                         \
+    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id);           \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);                         \
+    Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                                      \
+    Insn(T) * CPUState_OP_def(T, decode)(CPUState(T) * cpu, Val * val);                     \
+    void CPUState_OP_def(T, execute)(CPUState(T) * cpu, Insn(T) * insn);                    \
     __VA_ARGS__
 
-#define CPUState_fn_def(T)                                                         \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {                      \
-        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                            \
-        cpu->status = CPU_IDLE;                                                    \
-        cpu->pc = Val_alloc(8);                                                    \
-        cpu->snpc = Val_alloc(8);                                                  \
-        cpu->dnpc = Val_alloc(8);                                                  \
-        for (size_t i = 0; i < RegMax(T); i++) {                                   \
-            cpu->reg[i] = Val_alloc(8);                                            \
-        }                                                                          \
-        cpu->mem = Val_alloc(mem_size / 8);                                        \
-        return cpu;                                                                \
-    }                                                                              \
-    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len) {   \
-        Val_set_val(cpu->mem, Val_as_u64(addr, 0), val, len);                           \
-    }                                                                              \
-    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len) {  \
-        Val* val = Val_as_val(cpu->mem, Val_as_u64(addr, 0), len);                 \
-        return val;                                                                \
-    }                                                                              \
-    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {    \
-        RegDef(T)* df = REG(T, id);                                                \
-        if (df) {                                                                  \
-            size_t idx = df->id;                                                   \
-            Val_wrt_map(cpu->reg[idx], &df->map, 1, val);                          \
-        }                                                                          \
-    }                                                                              \
-    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id) {               \
-        RegDef(T)* df = REG(T, id);                                                \
-        if (df) {                                                                  \
-            size_t idx = df->id;                                                   \
-            return Val_ext_map(cpu->reg[idx], &df->map, 1);                        \
-        }                                                                          \
-        return NULL;                                                               \
-    }                                                                              \
-    void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                            \
-        cpu->status = CPU_IDLE;                                                    \
-        cpu->pc = Val_alloc(8);                                                    \
-        for (size_t i = 0; i < RegMax(T); i++) {                                   \
-            cpu->reg[i] = Val_alloc(8);                                            \
-        }                                                                          \
-        cpu->mem = Val_alloc(cpu->mem->len);                                       \
-    }                                                                              \
-    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id) { \
-        RegDef(T)* df = REG(T, id);                                                \
-        if (df) {                                                                  \
-            size_t idx = df->id;                                                   \
-            sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[idx]));        \
-        }                                                                          \
-    }                                                                              \
-    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {               \
-        sprintf(res, "CPU<%s>: %4s", #T, cpustatus_tbl1[cpu->status]);             \
+#define CPUState_fn_def(T)                                                                   \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {                                \
+        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                                      \
+        cpu->status = CPU_IDLE;                                                              \
+        cpu->pc = Val_alloc(8);                                                              \
+        cpu->snpc = Val_alloc(8);                                                            \
+        cpu->dnpc = Val_alloc(8);                                                            \
+        for (size_t i = 0; i < RegMax(T); i++) {                                             \
+            cpu->reg[i] = Val_alloc(8);                                                      \
+        }                                                                                    \
+        cpu->mem = Val_alloc(mem_size / 8);                                                  \
+        return cpu;                                                                          \
+    }                                                                                        \
+    void CPUState_OP_def(T, stop)(CPUState(T) * cpu) {                                       \
+        Log_ast(cpu, "CPUState_stop: cpu is null");                                          \
+        cpu->status = CPU_STOP;                                                              \
+    }                                                                                        \
+    void CPUState_OP_def(T, abort)(CPUState(T) * cpu) {                                      \
+        Log_ast(cpu, "CPUState_abort: cpu is null");                                         \
+        cpu->status = CPU_ABORT;                                                             \
+    }                                                                                        \
+    void CPUState_OP_def(T, quit)(CPUState(T) * cpu) {                                       \
+        Log_ast(cpu, "CPUState_quit: cpu is null");                                          \
+        cpu->status = CPU_QUIT;                                                              \
+    }                                                                                        \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len) { \
+        Log_ast(cpu, "CPUState_set_mem: cpu is null");                                       \
+        Val_set_val(cpu->mem, Val_as_u64(addr, 0), val, len);                                \
+    }                                                                                        \
+    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len) {            \
+        Log_ast(cpu, "CPUState_get_mem: cpu is null");                                       \
+        Val* val = Val_as_val(cpu->mem, Val_as_u64(addr, 0), len);                           \
+        return val;                                                                          \
+    }                                                                                        \
+    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {              \
+        Log_ast(cpu, "CPUState_set_reg: cpu is null");                                       \
+        RegDef(T)* df = REG(T, id);                                                          \
+        if (df) {                                                                            \
+            size_t idx = df->id;                                                             \
+            Val_wrt_map(cpu->reg[idx], &df->map, 1, val);                                    \
+        }                                                                                    \
+    }                                                                                        \
+    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id) {                         \
+        Log_ast(cpu, "CPUState_get_reg: cpu is null");                                       \
+        RegDef(T)* df = REG(T, id);                                                          \
+        if (df) {                                                                            \
+            size_t idx = df->id;                                                             \
+            return Val_ext_map(cpu->reg[idx], &df->map, 1);                                  \
+        }                                                                                    \
+        return NULL;                                                                         \
+    }                                                                                        \
+    void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                                      \
+        Log_ast(cpu, "CPUState_reset: cpu is null");                                         \
+        cpu->status = CPU_IDLE;                                                              \
+        cpu->pc = Val_alloc(8);                                                              \
+        for (size_t i = 0; i < RegMax(T); i++) {                                             \
+            cpu->reg[i] = Val_alloc(8);                                                      \
+        }                                                                                    \
+        cpu->mem = Val_alloc(cpu->mem->len);                                                 \
+    }                                                                                        \
+    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id) {           \
+        Log_ast(cpu, "CPUState_displayreg: cpu is null");                                    \
+        RegDef(T)* df = REG(T, id);                                                          \
+        if (df) {                                                                            \
+            size_t idx = df->id;                                                             \
+            sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[idx]));                  \
+        }                                                                                    \
+    }                                                                                        \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {                         \
+        Log_ast(cpu, "CPUState_display: cpu is null");                                       \
+        sprintf(res, "CPU<%s>: %4s", #T, cpustatus_tbl1[cpu->status]);                       \
     }
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
+#define CPUState_stop(T, C)   CPUState_OP(T, stop)(C)
+#define CPUState_abort(T, C)  CPUState_OP(T, abort)(C)
+#define CPUState_quit(T, C)   CPUState_OP(T, quit)(C)
 #define CPUState_reset(T, C)   CPUState_OP(T, reset)(C)
 #define CPUState_set_mem(T, C, A, V, L) CPUState_OP(T, set_mem)(C, A, V, L)
 #define CPUState_get_mem(T, C, A, L) CPUState_OP(T, get_mem)(C, A, L)
@@ -850,40 +876,47 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define Task_OP_def(T, OP) UNUSED Task_OP(T, OP)
 #define Task_OP_ISA(T, OP, I) CONCAT4(Task_, T##_, OP##_, I)
 #define Task_OP_ISA_def(T, OP, I) UNUSED Task_OP_ISA(T, OP, I)
-#define Task_T(T)            \
-    typedef struct Task(T) { \
-        const char* name;    \
-        TaskCtx(T) ctx;      \
-    } Task(T)
-
-#define Task_def(T, S, ...)                                    \
-    TaskCtx_def(T, S);                                         \
-    Task_T(T);                                                 \
-    __VA_ARGS__                                                \
-    Task(T) * Task_OP_def(T, init)(const char* name, Val* val);\
-    void Task_OP_def(T, run)(Task(T) * t);                     \
-    void TaskCtx_OP_def(T, init)(TaskCtx(T) * ctx, Val * val); \
-    void TaskCtx_OP_def(T, run)(TaskCtx(T) * ctx);
-
-#define Task_fn_def(T)                                     \
-    Task(T) * Task_OP_def(T, init)(const char* name, Val* val) { \
-        Task(T)* t = malloc(sizeof(Task(T)));              \
-        t->name = name;                                    \
-        TaskCtx_OP(T, init)(&t->ctx, val);                 \
-        return t;                                          \
-    }                                                      \
-    void Task_OP_def(T, run)(Task(T) * t) {                \
-        TaskCtx_OP(T, run)(&t->ctx);                       \
-    }
-
 #define Task_dbg(T, ...)  Log_dbg(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_err(T, ...)  Log_err(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_warn(T, ...) Log_warn(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_info(T, ...) Log_info(_MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_ast(T, expr, ...)  Log_ast(expr, _MAGENTA("[" #T "] ") __VA_ARGS__)
 #define Task_str(T) STR(T)
+#define Task_T(T)            \
+    typedef struct Task(T) { \
+        const char* name;    \
+        TaskCtx(T) ctx;      \
+    } Task(T)
+
+#define Task_def(T, S, ...)                                     \
+    TaskCtx_def(T, S);                                          \
+    Task_T(T);                                                  \
+    __VA_ARGS__                                                 \
+    Task(T) * Task_OP_def(T, init)(const char* name, Val* val); \
+    void Task_OP_def(T, run)(Task(T) * t);                      \
+    void Task_OP_def(T, rundbg)(Task(T) * t, Val * val);        \
+    void TaskCtx_OP_def(T, init)(TaskCtx(T) * ctx, Val * val);  \
+    void TaskCtx_OP_def(T, run)(TaskCtx(T) * ctx);              \
+    void TaskCtx_OP_def(T, rundbg)(TaskCtx(T) * ctx, Val * val);
+
+#define Task_fn_def(T)                                           \
+    Task(T) * Task_OP_def(T, init)(const char* name, Val* val) { \
+        Task(T)* t = malloc(sizeof(Task(T)));                    \
+        t->name = name;                                          \
+        TaskCtx_OP(T, init)(&t->ctx, val);                       \
+        Task_info(T, "Task `"_YELLOW("%s") "` init", name);      \
+        return t;                                                \
+    }                                                            \
+    void Task_OP_def(T, run)(Task(T) * t) {                      \
+        TaskCtx_OP(T, run)(&t->ctx);                             \
+    }                                                            \
+    void Task_OP_def(T, rundbg)(Task(T) * t, Val * val) {        \
+        TaskCtx_OP(T, rundbg)(&t->ctx, val);                     \
+    }
+
 #define Task_init(T, name, V) Task_OP(T, init)(name, V)
 #define Task_run(T, t) Task_OP(T, run)(t)
+#define Task_rundbg(T, t, V) Task_OP(T, rundbg)(t, V)
 
 
 // ==================================================================================== //

@@ -1,24 +1,18 @@
 #include <evo/task.h>
 
 
-#if defined(CFG_MODE_ITP) || defined(CFG_MODE_AOT) || defined(CFG_MODE_JIT) || defined(CFG_MODE_HYB)
-// typedef CONCAT(CPUState_, CFG_IISA) CPUState;
-#define ISE CFG_IISA
-#elif defined(CFG_MODE_EMU)
-// typedef CONCAT(CPUState_, CFG_SISA) CPUState;
-#define ISE CFG_SISA
-#else
-#error Unsupport EVO_MODE, Config options: EMU / ITP / AOT / JIT / HYB 
-#endif
-
-
 // ==================================================================================== //
 //                                    task: Exec                                      
 // ==================================================================================== //
 
-#define CPU(ctx) ((CPUState(ISE)*)(ctx->cpu))
+#define CPU(ctx) ((CPUState(ISE)*)((ctx)->cpu))
 
 Task_fn_def(Exec);
+
+void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status) {
+    Task_info(Exec, "CPU Status: %s -> %s", cpustatus_tbl2[CPU(ctx)->status] , cpustatus_tbl2[status]);
+    CPU(ctx)->status = status;
+}
 
 void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     if(ctx == NULL) {
@@ -36,6 +30,11 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
     size_t len = 4;
     TaskCtx_OP(Exec, execute) (ctx, len);
+}
+
+void TaskCtx_OP_def(Exec, rundbg) (TaskCtx(Exec) *ctx, UNUSED Val* val) {
+    Task_ast(Exec, ctx != NULL, "Exec ctx is null");
+    TaskCtx_OP(Exec, execute) (ctx, Val_as_u64(val, 0));
 }
 
 void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
@@ -56,6 +55,7 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
         TaskCtx_OP(Exec, execone)(ctx, CPU(ctx)->pc);
     }
 }
+
 
 #undef CPU
 
@@ -81,6 +81,11 @@ void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx) {
     if (ctx->path && strcmp(ctx->path, "") != 0) {
         TaskCtx_OP(Dump, elf)(ctx, ctx->path);
     }
+}
+
+void TaskCtx_OP_def(Dump, rundbg) (TaskCtx(Dump) *ctx, UNUSED Val* val) {
+    Task_ast(Dump, ctx != NULL, "Dump ctx is null");
+    TaskCtx_OP(Dump, run)(ctx);
 }
 
 void TaskCtx_OP_def(Dump, elf) (TaskCtx(Dump) *ctx, char* name) {

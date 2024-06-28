@@ -6,6 +6,7 @@
 
 
 #include <util/slist.h>
+#include <util/linenoise.h>
 
 
 
