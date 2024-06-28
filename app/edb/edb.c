@@ -1,7 +1,17 @@
 #include <evo/evo.h>
 #include <evo/task.h>
 #include <getopt.h>
+#include <regex.h>
 
+
+// ==================================================================================== //
+//                                    edb: Defined                                    
+// ==================================================================================== //
+
+
+#define CPU0(t)  ((CPUState(ISE) *)((t)->ctx.cpu))
+#define NR_CMD  ARRLEN(cmd_table)
+#define NR_REGEX ARRLEN(rules)
 // ==================================================================================== //
 //                                    edb: Static                                     
 // ==================================================================================== //
@@ -44,14 +54,279 @@ static size_t EDBImg_init() {
 }
 
 
+// ==================================================================================== //
+//                                    edb: ISA                                    
+// ==================================================================================== //
+
+
+void isa_reg_display() {
+//   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); ++i) {
+//     printf("%3s: 0x%x\t", regs[i], cpu.gpr[i]);
+//     if(i % 4 == 3) {
+//       printf("\n");
+//     }
+//   }
+}
+
+u64 isa_reg_str2val(const char *s, bool *success) {
+//   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); ++i) {
+//     if (strcmp(s, regs[i]) == 0) {
+//       *success = true;
+//       return cpu.gpr[i];
+//     }
+//   }
+//   if (strcmp(s, "pc") == 0) {
+//     *success = true;
+//     return cpu.pc;
+//   }
+  *success = false;
+  return 0;
+}
 
 // ==================================================================================== //
 //                                    edb: Regex                                     
 // ==================================================================================== //
 
-void EDBRegex_init(){
+enum {
+    TK_NOTYPE = 256, 
+    TK_EQ, TK_NE,
+    TK_AND,
+    TK_DEC,
+    TK_HEX,
+    TK_REG,
+    /* TODO: Add more token types */
+};
 
+typedef struct {
+    const char *regex;
+    int token_type;
+} Rule;
+
+UNUSED static Rule rules[] = {
+    {" +"           , TK_NOTYPE },      // spaces
+    {"\\+"          , '+'       },      // plus
+    {"\\-"          , '-'       },      // minus
+    {"\\*"          , '*'       },      // asterisk
+    {"\\/"          , '/'       },      // slash
+    {"\\("          , '('       },      // lparen
+    {"\\)"          , ')'       },      // rparen
+    
+    {"=="           , TK_EQ     },      // equal
+    {"!="           , TK_NE     },      // not equal
+    {"&&"           , TK_AND    },      // and
+
+    {"\\$[0-9a-z]+" , TK_REG    },      // register
+    {"0x[0-9a-f]+"  , TK_HEX    },      // hex
+    {"[0-9]+(u)?"   , TK_DEC    },      // decimal
+};
+
+static regex_t re[NR_REGEX] = {};
+
+/* Rules are used for many times.
+ * Therefore we compile them only once before any usage. */
+void EDBRegex_init(){
+    char error_msg[128];
+    int ret;
+    for (size_t i = 0; i < NR_REGEX; i ++) {
+        ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
+        if (ret != 0) {
+            regerror(ret, &re[i], error_msg, 128);
+            Log_err("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
+            exit(1);
+        }
+    }
 }
+
+typedef struct token {
+    int type;
+    char str[32];
+} Token;
+
+#define TOKEN_MAX_LEN 1024
+static Token tokens[TOKEN_MAX_LEN] __attribute__((used)) = {};
+static int nr_token __attribute__((used))  = 0;
+
+static bool Token_make(char *e) {
+    int position = 0;
+    int i;
+    regmatch_t pmatch;
+    nr_token = 0;
+
+    while (e[position] != '\0') {
+        /* Try all rules one by one. */
+        for (i = 0; i < NR_REGEX; i ++) {
+            if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
+                char *substr_start = e + position;
+                int substr_len = pmatch.rm_eo;
+                position += substr_len;
+
+                /* TODO: Now a new token is recognized with rules[i]. Add codes
+                * to record the token in the array `tokens'. For certain types
+                * of tokens, some extra actions should be performed.
+                */
+
+                Token *t = &tokens[nr_token ++];
+                t->type = rules[i].token_type;
+                strncpy(t->str, substr_start, substr_len);
+
+                switch (rules[i].token_type) {
+                    case '+': break;
+                    case '-': break;
+                    case '*': break;
+                    case '/': break;
+                    case '(': break;
+                    case ')': break;
+                    case TK_EQ: break;
+                    case TK_NE: break;
+                    case TK_AND: break;
+                    case TK_DEC: break;
+                    case TK_HEX: break;
+                    case TK_REG: break;
+                    case TK_NOTYPE: break;
+                    default: TODO();
+                }
+                break;
+            }
+        }
+        if (i == NR_REGEX) {
+            Log_warn("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
+            return false;
+        }
+    }
+    return true;
+}
+
+static void Token_flush() {
+    nr_token = 0;
+    for (int i = 0; i < TOKEN_MAX_LEN; i ++) {
+        tokens[i].type = TK_NOTYPE;
+        tokens[i].str[0] = '\0';
+    }
+}
+
+static int find_op(int p, int q, bool* success) {
+    int depth = 0;
+    int res = p;
+    int res_level = 10;
+    *success = false;
+    for (int i = p; i <= q; i++) {
+        switch (tokens[i].type) {
+            case '(':
+                depth++;
+                break;
+            case ')':
+                depth--;
+                break;
+            case TK_EQ:
+            case TK_NE:
+            case TK_AND:
+                if (depth == 0 && res_level > 1) {
+                    *success = true;
+                    res = i;
+                    res_level = 1;
+                }
+                break;
+            case '+':
+            case '-':
+                if (depth == 0 && res_level > 2) {
+                    *success = true;
+                    res = i;
+                    res_level = 2;
+                }
+                break;
+            case '/':
+                if (depth == 0 && res_level > 3) {
+                    *success = true;
+                    res = i;
+                    res_level = 3;
+                }
+            case '*':
+                if (depth == 0 && res_level > 4) {
+                    *success = true;
+                    res = i;
+                    res_level = 4;
+                }
+                break;
+        }
+    }
+    return res;
+}
+
+static u64 eval(int p, int q) {
+    char* e_p = tokens[p].str;
+    int t_p = tokens[p].type;
+    char* e_q = tokens[q].str;
+    int t_q = tokens[q].type;
+    if (p > q) {
+        printf("Bad expr range: [%d, %d]\n", p, q);
+        return 0;
+    } else if (p == q) {
+        u64 res = 0;
+        if (t_p == TK_DEC)      { res = atoi(e_p);              }
+        else if (t_p == TK_HEX) { res = strtol(e_p, NULL, 16);  }
+        else if (t_p == TK_REG) {
+            bool success;
+            res = isa_reg_str2val(e_p + 1, &success);
+            if (!success) { printf("Bad register: %s\n", e_p);  }
+        }
+        return res;
+    } else if (t_p == '(' && t_q == ')') {
+        return eval(p + 1, q - 1);
+    } else if ((p < q) && (t_p == TK_NOTYPE)) {
+        return eval(p + 1, q);
+    } else if ((p < q) && (t_q == TK_NOTYPE)) {
+        return eval(p, q - 1);
+    } else {
+        bool success;
+        int op = find_op(p, q, &success);
+        if (!success) {
+            printf("Bad expr: (s: %s, e: %s)\n", e_p, e_q);
+            return 0;
+        }
+        if (op == p) {  // Unary: +a, -a, *a
+            u64 a = eval(op + 1, q);
+            switch (tokens[op].type) {
+                case '+': return a;
+                case '-': return -a;
+                case '*': return a;
+                default: TODO();
+            }
+        } else {        // Binary: 
+            u64 a = eval(p, op - 1);
+            u64 b = eval(op + 1, q);
+            switch (tokens[op].type) {
+                case '+': return (unsigned)a + (unsigned)b;
+                case '-': return (unsigned)a - (unsigned)b;
+                case '*': return (unsigned)a * (unsigned)b;
+                case '/': return (unsigned)a / (unsigned)b;
+                case TK_EQ: return a == b;
+                case TK_NE: return a != b;
+                case TK_AND: return a && b;
+                default: TODO();
+            }
+        }
+    }
+    printf("Expr eval fail: (s: %s, e: %s)\n", e_p, e_q);
+    return 0;
+}
+
+
+u64 expr(char *e, bool *success) {
+    if (!Token_make(e)) {
+        *success = false;
+        return 0;
+    }
+    /* TODO: Insert codes to evaluate the expression. */
+
+    *success = true;
+    int p = 0, q = nr_token - 1;
+
+    u64 res = eval(p, q);
+    Token_flush();
+    return res;
+}
+
+
 
 
 
@@ -137,8 +412,6 @@ void EDB_init(int argc, char *argv[]) {
 //                                    edb: Main Loop                                     
 // ==================================================================================== //
 
-#define CPU0(t)  ((CPUState(ISE) *)((t)->ctx.cpu))
-#define NR_CMD  ARRLEN(cmd_table)
 
 static int cmd_q(char* args);
 static int cmd_c(char* args);
@@ -165,7 +438,7 @@ static struct {
     { "w"   , "Set watchpoint [expr]"                             , cmd_w    },
     { "d"   , "Delete watchpoint [N]"                             , cmd_d    },
     { "c"   , "Continue the execution of the program"             , cmd_c    },
-    { "q"   , "Exit NEMU"                                         , cmd_q    },
+    { "q"   , "Exit EDB"                                          , cmd_q    },
     /* TODO: Add more commands */
 };
 
@@ -336,6 +609,7 @@ void EDB_loop() {
 }
 
 #undef CPU0
+#undef NR_REGEX
 #undef NR_CMD
 
 // ==================================================================================== //

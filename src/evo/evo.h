@@ -507,24 +507,34 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         BitMap  map;       \
     } RegDef(T)
 
-#define RegDef_def(T, ...)                                  \
-    RegDef_T(T);                                            \
-    UNUSED static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__};  \
-    void RegDef_OP_def(T, displayone)(char* res, size_t i); \
+#define RegDef_def(T, ...)                                        \
+    RegDef_T(T);                                                  \
+    UNUSED static RegDef(T) RegTbl(T)[RegMax(T)] = {__VA_ARGS__}; \
+    int RegDef_OP_def(T, find)(char* name); \
+    void RegDef_OP_def(T, displayone)(char* res, size_t i);       \
     void RegDef_OP_def(T, display)(char* res);
 
-#define RegDef_fn_def(T) \
-    void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                          \
-        if (i < RegMax(T)) {                                                                          \
-            sprintf(res, "%2d: %-3s   [%3lu:%3lu] (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].map.h , RegTbl(T)[i].map.l , RegTbl(T)[i].alias);   \
-        }                                                                                             \
-    }                                                                                                 \
-    void RegDef_OP_def(T, display)(char* res) {                                                       \
-        for (size_t i = 0; i < RegMax(T); i++) {                                                      \
-            sprintf(res, "%2d: %-3s (%s)\n", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias); \
-        }                                                                                             \
+#define RegDef_fn_def(T)                                                                                                                                  \
+    int RegDef_OP(T, find)(char* name) {                                                                                                                  \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                                                                          \
+            if (strcmp(RegTbl(T)[i].name, name) == 0) {                                                                                                   \
+                return i;                                                                                                                                 \
+            }                                                                                                                                             \
+        }                                                                                                                                                 \
+        return -1;                                                                                                                                        \
+    }                                                                                                                                                     \
+    void RegDef_OP_def(T, displayone)(char* res, size_t i) {                                                                                              \
+        if (i < RegMax(T)) {                                                                                                                              \
+            sprintf(res, "%2d: %-3s   [%3lu:%3lu] (%s)", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].map.h, RegTbl(T)[i].map.l, RegTbl(T)[i].alias); \
+        }                                                                                                                                                 \
+    }                                                                                                                                                     \
+    void RegDef_OP_def(T, display)(char* res) {                                                                                                           \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                                                                          \
+            sprintf(res, "%2d: %-3s (%s)\n", RegTbl(T)[i].id, RegTbl(T)[i].name, RegTbl(T)[i].alias);                                                     \
+        }                                                                                                                                                 \
     }
 
+#define RegDef_find(T, name) RegDef_OP(T, find)(name)
 #define RegDef_display(T, res)  RegDef_OP(T, display)(res)
 #define RegDef_displayone(T, res, i)  RegDef_OP(T, displayone)(res, i)
 
@@ -757,6 +767,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
     Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len);            \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);              \
     Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id);                         \
+    void CPUState_OP_def(T, set_regn)(CPUState(T) * cpu, char* name, Val* val);             \
+    Val* CPUState_OP_def(T, get_regn)(CPUState(T) * cpu, char* name);                       \
     void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id);           \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res);                         \
     Val* CPUState_OP_def(T, fetch)(CPUState(T) * cpu);                                      \
@@ -815,6 +827,22 @@ UNUSED static char* cpustatus_tbl2 [] = {
         }                                                                                    \
         return NULL;                                                                         \
     }                                                                                        \
+    void CPUState_OP_def(T, set_regn)(CPUState(T) * cpu, char* name, Val* val) {             \
+        Log_ast(cpu, "CPUState_set_regn: cpu is null");                                      \
+        int id = RegDef_find(T, name);                                                       \
+        if (id >= 0) {                                                                       \
+            CPUState_OP(T, set_reg)(cpu, id, val);                                           \
+        }                                                                                    \
+    }                                                                                        \
+    Val* CPUState_OP_def(T, get_regn)(CPUState(T) * cpu, char* name) {                       \
+        Log_ast(cpu, "CPUState_get_regn: cpu is null");                                      \
+        int id = RegDef_find(T, name);                                                       \
+        if (id >= 0) {                                                                       \
+            return CPUState_OP(T, get_reg)(cpu, id);                                         \
+        } else {                                                                             \
+            return NULL;                                                                     \
+        }                                                                                    \
+    }                                                                                        \
     void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                                      \
         Log_ast(cpu, "CPUState_reset: cpu is null");                                         \
         cpu->status = CPU_IDLE;                                                              \
@@ -846,6 +874,8 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define CPUState_get_mem(T, C, A, L) CPUState_OP(T, get_mem)(C, A, L)
 #define CPUState_set_reg(T, C, ID, V) CPUState_OP(T, set_reg)(C, ID, V)
 #define CPUState_get_reg(T, C, ID)  CPUState_OP(T, get_reg)(C, ID)
+#define CPUState_set_regn(T, C, N, V) CPUState_OP(T, set_regn)(C, N, V)
+#define CPUState_get_regn(T, C, N)  CPUState_OP(T, get_regn)(C, N)
 #define CPUState_displayreg(T, C, S, ID) CPUState_OP(T, displayreg)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
 // Need to Impl
