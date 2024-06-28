@@ -132,6 +132,7 @@ void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
         case RV_SH      : RV_EXEC_S_M(16);                                              break;
         case RV_SW      : RV_EXEC_S_M(32);                                              break;
         /* RV32I: Branch */
+
         default: break;
     }
     Val_copy(cpu->pc, cpu->dnpc);
