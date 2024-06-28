@@ -76,7 +76,7 @@ void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
     char insn_buf[48];
     Insn_display(RV, insn, insn_buf);
     // UnitTest_msg("%s", insn_buf);
-    Task_info(Exec, "%12.4f %2s  %s", ctx->e_tak, ctx->e_sc, insn_buf);
+    Task_info(Exec, "%-36s "_CYAN("%12.4f %2s"), insn_buf, ctx->e_tak, ctx->e_sc);
 }
 
 void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
@@ -84,7 +84,7 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
     switch (CPU(ctx)->status) {
         case CPU_END:
         case CPU_ABORT:
-            Task_info("Exec Task has ended, exit or run again");
+            Task_info(Exec, "Exec Task has ended, exit or run again");
             return;
         default: CPU(ctx)->status = CPU_RUN; break;
     }
@@ -97,10 +97,10 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
     switch (CPU(ctx)->status) {
         case CPU_END:
         case CPU_ABORT:
-            if(CPU(ctx)->halt_ret) {
-                Task_info(Exec, "CPU: %s PC: %s HIT: " _GREEN("GOOD TRAP"), ValHex(CPU(ctx)->pc), cpustatus_tbl2[CPU(ctx)->status]);
+            if(CPU(ctx)->halt_ret == 0) {
+                Task_info(Exec, "CPUState: %s  PC: %s  HIT: " _GREEN("GOOD TRAP"), cpustatus_tbl2[CPU(ctx)->status], ValHex(CPU(ctx)->pc));
             } else {
-                Task_info(Exec, "CPU: %s PC: %s HIT: " _RED("BAD TRAP"), ValHex(CPU(ctx)->pc), cpustatus_tbl2[CPU(ctx)->status]);
+                Task_info(Exec, "CPUState: %s  PC: %s  HIT: " _RED("BAD TRAP"), cpustatus_tbl2[CPU(ctx)->status], ValHex(CPU(ctx)->pc));
             }
             break;
         case CPU_QUIT: {

@@ -209,7 +209,7 @@ static bool Token_make(char *e) {
             }
         }
         if (i == NR_REGEX) {
-            Log_warn("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
+            Log_warn("no match at position %d\n%s\n%*.s^", position, e, position, "");
             return false;
         }
     }
@@ -711,7 +711,7 @@ static int cmd_help(UNUSED char *args){
                 return 0;
             }
         }
-        Log_warn("Unknown command '%s'\n", arg);
+        Log_warn("Unknown command '%s'", arg);
     }
     return 0;
 }
@@ -743,7 +743,7 @@ void EDB_loop() {
             }
         }
         if (i == NR_CMD) {
-            Log_warn("Unknown command '%s'\n", cmd);
+            Log_warn("Unknown command '%s'", cmd);
         }
         linenoiseFree(line);
     }

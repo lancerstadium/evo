@@ -96,7 +96,7 @@ Insn(RV) * CPUState_OP_def(RV, decode)(CPUState(RV) * cpu, Val * val) {
     } while (0)
 
 void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
-    switch(insn->id) {
+    switch((int)insn->id) {
         /* RV32I: R-Type Arithmetic */
         case RV_ADD     : RV_EXEC_R(Val_as_i64(r1_v, 0)  +  Val_as_i64(r2_v, 0));       break;
         case RV_SUB     : RV_EXEC_R(Val_as_i64(r1_v, 0)  -  Val_as_i64(r2_v, 0));       break;
@@ -134,7 +134,7 @@ void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
         /* RV32I: Branch */
 
         /* RV32I: Device & System */
-        case RV_ECALL   : break;
+        case RV_EBREAK  : CPUState_set_status(RV, cpu, CPU_END, cpu->pc, Val_as_u64(CPUState_get_reg(RV, cpu, 10), 0)); break;
         default: break;
     }
     Val_copy(cpu->pc, cpu->dnpc);
