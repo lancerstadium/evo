@@ -2,13 +2,22 @@
 
 
 // ==================================================================================== //
+//                                    task: Disam                                      
+// ==================================================================================== //
+
+
+
+
+
+// ==================================================================================== //
 //                                    task: Exec                                      
 // ==================================================================================== //
 
 #define CPU(ctx) ((CPUState(ISE)*)((ctx)->cpu))
 
-Task_fn_def(Exec);
 
+
+Task_fn_def(Exec);
 void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status) {
     Task_info(Exec, "CPU Status: %s -> %s", cpustatus_tbl2[CPU(ctx)->status] , cpustatus_tbl2[status]);
     CPU(ctx)->status = status;
@@ -26,12 +35,13 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     ctx->e_e  = (struct timespec){0};
     ctx->e_tak = 0.0;
     ctx->e_tot = 0.0;
-    Task_info(Exec, "CPU Init pc : %s", ValHex(CPU(ctx)->pc));
-    Task_info(Exec, "CPU Mem size: %lu Byte", CPU(ctx)->mem->len);
-    Task_info(Exec, "CPU Status  : %s" , cpustatus_tbl2[CPU(ctx)->status]);
+    Task_info(Exec, "CPU Init Isa : %s", STR(ISE));
+    Task_info(Exec, "CPU Init pc  : %s", ValHex(CPU(ctx)->pc));
+    Task_info(Exec, "CPU Mem size : %lu Byte", CPU(ctx)->mem->len);
+    Task_info(Exec, "CPU Status   : %s" , cpustatus_tbl2[CPU(ctx)->status]);
     if(val && val->len > 0) {
         CPUState_set_mem(ISE, ctx->cpu, Val_new_u32(0), val, val->len);
-        Task_info(Exec, "CPU Img Load: %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u32(0), 8)));
+        Task_info(Exec, "CPU Img Load : %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u32(0), 8)));
     }
 }
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
@@ -96,17 +106,21 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
     }
     switch (CPU(ctx)->status) {
         case CPU_END:
-        case CPU_ABORT:
+        case CPU_ABORT:{
             if(CPU(ctx)->halt_ret == 0) {
-                Task_info(Exec, "CPUState: %s  PC: %s  HIT: " _GREEN("GOOD TRAP"), cpustatus_tbl2[CPU(ctx)->status], ValHex(CPU(ctx)->pc));
+                Task_info(Exec, "CPUState: %s  PC: 0x%lx  HIT: " _GREEN("GOOD TRAP"), cpustatus_tbl2[CPU(ctx)->status], Val_as_u64(CPU(ctx)->pc,0));
             } else {
-                Task_info(Exec, "CPUState: %s  PC: %s  HIT: " _RED("BAD TRAP"), cpustatus_tbl2[CPU(ctx)->status], ValHex(CPU(ctx)->pc));
+                Task_info(Exec, "CPUState: %s  PC: 0x%lx  HIT: " _RED("BAD TRAP"), cpustatus_tbl2[CPU(ctx)->status], Val_as_u64(CPU(ctx)->pc,0));
             }
+            char* info = TaskCtx_OP(Exec, execinfo)(ctx);
+            Task_info(Exec, "\n%s", info);
+            free(info);
             break;
+        }
         case CPU_QUIT: {
-            char statistic_buf[160];
-            TaskCtx_OP(Exec, execinfo)(ctx, statistic_buf);
-            Task_info(Exec, "\n%s", statistic_buf);
+            char* info = TaskCtx_OP(Exec, execinfo)(ctx);
+            Task_info(Exec, "\n%s", info);
+            free(info);
             break;
         }
         case CPU_RUN:
@@ -114,15 +128,19 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
     }
 }
 
-void TaskCtx_OP_def(Exec, execinfo) (TaskCtx(Exec) *ctx, char* res) {
+char* TaskCtx_OP_def(Exec, execinfo) (TaskCtx(Exec) *ctx) {
+    char* res = malloc(512);
     Task_ast(Exec, ctx != NULL, "Exec ctx is null");
     Task_ast(Exec, res != NULL, "Res buffer is null");
     res[0] = '\0';
-    snprintf(res, 128, 
-        "- Total Exec Time  : %12.4f %2s\n"
-        "- Total Insn Count : %lu\n"
-        "- Emulate Frequency: %12.4f insn/s", 
-        ctx->e_tot, ctx->e_sc, ctx->cnt_insn, (double)(ctx->cnt_insn * CFG_PERF_TIMES) / ctx->e_tot);
+    snprintf(res, 512, 
+        "┌───────────────────────────────────────────┐\n"
+        "│ Total Insn Count  : %-12lu          │\n"
+        "│ Total Exec Time   : %-12.4f %2s       │\n"
+        "│ Emulate Frequency : %-12.4f insn/ms  │\n"
+        "└───────────────────────────────────────────┘" 
+        , ctx->cnt_insn, ctx->e_tot, ctx->e_sc, (double)(ctx->cnt_insn) / ctx->e_tot);
+    return res;
 }
 
 

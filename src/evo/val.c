@@ -303,6 +303,18 @@ char* Val_as_hex(Val *v, bool with_tag) {
     return tmp;
 }
 
+char* Val_as_addr(Val *v) {
+    Log_ast(v != NULL, "Val_as_hex_simple: v is null");
+    size_t len = v->len > 4 ? 16 : 8;
+    char* tmp = malloc((3 + len * 2)* sizeof(char));
+    if(v->len > 4) {
+        snprintf(tmp, 20, "0x%016lx", Val_as_u64(v, 0));
+    } else {
+        snprintf(tmp, 12, "0x%08x", Val_as_u32(v, 0));
+    }
+    return tmp;
+}
+
 char* Val_as_bin(Val* v) {
     Log_ast(v != NULL, "Val_as_bin: v is null");
     char* tmp = malloc((3 + v->len * 10)* sizeof(char));

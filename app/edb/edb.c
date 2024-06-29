@@ -711,7 +711,7 @@ static int cmd_help(UNUSED char *args){
                 return 0;
             }
         }
-        Log_warn("Unknown command '%s'", arg);
+        Log_warn("Unknown command `%s`", arg);
     }
     return 0;
 }
@@ -743,7 +743,7 @@ void EDB_loop() {
             }
         }
         if (i == NR_CMD) {
-            Log_warn("Unknown command '%s'", cmd);
+            Log_warn("Unknown command `%s`", cmd);
         }
         linenoiseFree(line);
     }

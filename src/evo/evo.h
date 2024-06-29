@@ -376,6 +376,10 @@ char* Tys_sym(Tys v);
 //                                    evo: Val
 // ==================================================================================== //
 
+#ifdef Val
+#undef Val
+#endif
+
 typedef struct {
     u8* b;
     size_t len;
@@ -439,6 +443,7 @@ Val* Val_to_u16(Val* v);
 Val* Val_to_u32(Val* v);
 Val* Val_to_u64(Val* v);
 char* Val_as_hex(Val *v, bool with_tag);
+char* Val_as_addr(Val *v);
 char* Val_as_bin(Val* v);
 char* Val_as_str(Val* v);
 u8 Val_as_u8(Val *v, size_t i);
@@ -475,6 +480,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 
 #define ValHex(V)    Val_as_hex(V, true)
 #define ValBin(V)    Val_as_bin(V)
+#define ValAddr(V)   Val_as_addr(V)
 
 // ==================================================================================== //
 //                                    evo: Reg
@@ -870,7 +876,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
         RegDef(T)* df = REG(T, id);                                                                  \
         if (df) {                                                                                    \
             size_t idx = df->id;                                                                     \
-            sprintf(res, "%3s: %s", RegName(T, id), ValHex(cpu->reg[idx]));                          \
+            sprintf(res, "%3s: %s", RegName(T, id), ValAddr(cpu->reg[idx]));                         \
         }                                                                                            \
     }                                                                                                \
     void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {                                 \
