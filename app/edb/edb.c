@@ -631,8 +631,8 @@ static int cmd_p(char *args) {
         printf("Usage: p [expr]\n");
     } else {
         bool success;
-        unsigned res = expr(sub, &success);
-        if (success) printf("%s = %u\n", sub, res);
+        u64 res = expr(sub, &success);
+        if (success) printf("%s = %lu\n", sub, res);
     }
     return 0;
 }
@@ -661,9 +661,9 @@ static int cmd_tsp(char *args) {
             bool success;
             u64 res = expr(exprisson, &success);
             if (success && res == ref) {
-                printf("\033[0;32mPASS\033[0m %lu == %lu = %s\n",  res, ref, exprisson);
+                printf(_GREEN("PASS")" %lu == %lu = %s\n",  res, ref, exprisson);
             } else if (success && res != ref) {
-                printf("\033[0;31mFAIL\033[0m %lu != %lu = %s\n",  res, ref, exprisson);
+                printf(_RED("FAIL")" %lu != %lu = %s\n",  res, ref, exprisson);
             }
         }
     }

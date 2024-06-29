@@ -28,13 +28,15 @@ SOB_TARGET=./sob
 BIN_TARGET=bin/$(APP)
 EDB_SRC=$(wildcard $(APPDIR)/edb/*.c)
 EDB_TARGET=bin/edb
+GENEXPR_SRC=$(wildcard $(APPDIR)/gen-expr/*.c)
+GENEXPR_TARGET=bin/gen-expr
 
 # Config
 CFG_REPORT=0
 CFG_TEST=
 
 # The Target Build
-all: $(SOB_TARGET) $(TARGET) $(EDB_TARGET) tests
+all: $(SOB_TARGET) $(TARGET) $(EDB_TARGET) $(GENEXPR_TARGET) tests
 
 dev: CFLAGS=-g -Wall $(INCFLAGS) -Wall -Wextra $(OPTFLAGS)
 dev: all
@@ -56,6 +58,9 @@ $(SOB_TARGET):
 $(EDB_TARGET): LDLIBS += $(TARGET)
 $(EDB_TARGET): $(EDB_SRC)
 	$(CC) $(CFLAGS)    $(EDB_SRC) $(LDLIBS) -o $@
+
+$(GENEXPR_TARGET): $(GENEXPR_SRC)
+	$(CC) $(GENEXPR_SRC) -o $@
 
 build:
 	@mkdir -p build
