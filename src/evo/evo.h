@@ -770,7 +770,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 
 #define CPUState_def(T, S, ...)                                                                     \
     CPUState_T(T, S);                                                                               \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size);                                        \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_cap);                                         \
     void CPUState_OP_def(T, reset)(CPUState(T) * cpu);                                              \
     void CPUState_OP_def(T, set_status)(CPUState(T) * cpu, int status, Val* halt_pc, u64 halt_ret); \
     void CPUState_OP_def(T, stop)(CPUState(T) * cpu);                                               \
@@ -790,7 +790,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     __VA_ARGS__
 
 #define CPUState_fn_def(T)                                                                           \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_size) {                                        \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_cap) {                                         \
         CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                                              \
         cpu->status = CPU_IDLE;                                                                      \
         cpu->pc = Val_alloc(8);                                                                      \
@@ -799,7 +799,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
         for (size_t i = 0; i < RegMax(T); i++) {                                                     \
             cpu->reg[i] = Val_alloc(8);                                                              \
         }                                                                                            \
-        cpu->mem = Val_alloc(mem_size / 8);                                                          \
+        cpu->mem = Val_alloc(MAX(mem_cap / 8, CFG_MEM_CAP));                                         \
         cpu->halt_ret = 0;                                                                           \
         cpu->halt_pc = Val_alloc(8);                                                                 \
         return cpu;                                                                                  \
