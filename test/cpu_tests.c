@@ -12,7 +12,7 @@ UnitTest_fn_def(test_cpu_reg){
 #if CFG_SISA_BIT == 64
     UnitTest_ast(Val_as_u64(r, 0) == 0x123456789abcdef, "R3 should be 0x123456789abcdef");
 #elif CFG_SISA_BIT == 32
-    UnitTest_ast(Val_as_u32(r, 0) == 0x89abcdef, "R3 should be 0x89abcdef");
+    UnitTest_ast(Val_as_u64(r, 0) == 0x89abcdef, "R3 should be 0x89abcdef");
 #endif
     for(size_t i = 0; i < RegMax(RV); i++) {
         CPUState_displayreg(RV, cpu, res_buf, i);

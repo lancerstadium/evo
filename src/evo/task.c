@@ -35,7 +35,7 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     ctx->e_e  = (struct timespec){0};
     ctx->e_tak = 0.0;
     ctx->e_tot = 0.0;
-    Task_info(Exec, "CPU Init Isa : %s", STR(ISE));
+    Task_info(Exec, "CPU Init ISA : %s", STR(ISE));
     Task_info(Exec, "CPU Init pc  : %s", ValHex(CPU(ctx)->pc));
     Task_info(Exec, "CPU Mem size : %lu Byte", CPU(ctx)->mem->len);
     Task_info(Exec, "CPU Status   : %s" , cpustatus_tbl2[CPU(ctx)->status]);

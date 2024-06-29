@@ -898,7 +898,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define CPUState_get_regn(T, C, N)  CPUState_OP(T, get_regn)(C, N)
 #define CPUState_displayreg(T, C, S, ID) CPUState_OP(T, displayreg)(C, S, ID)
 #define CPUState_display(T, C, S) CPUState_OP(T, display)(C, S)
-// Need to Impl
+// Need to Impl in isa/
 #define CPUState_fetch(T, C) CPUState_OP(T, fetch)(C)
 #define CPUState_decode(T, C, V) CPUState_OP(T, decode)(C, V)
 #define CPUState_execute(T, C, I) CPUState_OP(T, execute)(C, I)

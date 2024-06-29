@@ -122,11 +122,11 @@ void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
         case RV_LUI     : RV_EXEC_U(immu << 12);                                        break;
         case RV_AUIPC   : RV_EXEC_U(Val_as_u64(cpu->pc, 0) + immu);                     break;
         /* RV32I: Load I-Type */
-        case RV_LB      : RV_EXEC_I_M(u, Val_new_u64(Val_as_u64(r1_v, 0) + immi), 1);   break;
-        case RV_LH      : RV_EXEC_I_M(u, Val_new_u64(Val_as_u64(r1_v, 0) + immi), 2);   break;
-        case RV_LW      : RV_EXEC_I_M(u, Val_new_u64(Val_as_u64(r1_v, 0) + immi), 4);   break;
-        case RV_LBU     : RV_EXEC_I_M(i, Val_new_u64(Val_as_u64(r1_v, 0) + immi), 1);   break;
-        case RV_LHU     : RV_EXEC_I_M(i, Val_new_u64(Val_as_u64(r1_v, 0) + immi), 2);   break;
+        case RV_LB      : RV_EXEC_I_M(i, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 1);   break;
+        case RV_LH      : RV_EXEC_I_M(i, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 2);   break;
+        case RV_LW      : RV_EXEC_I_M(i, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 4);   break;
+        case RV_LBU     : RV_EXEC_I_M(u, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 1);   break;
+        case RV_LHU     : RV_EXEC_I_M(u, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 2);   break;
         /* RV32I: Store S-Type */
         case RV_SB      : RV_EXEC_S_M(8);                                               break;
         case RV_SH      : RV_EXEC_S_M(16);                                              break;
