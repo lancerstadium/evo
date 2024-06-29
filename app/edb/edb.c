@@ -366,7 +366,7 @@ void EDBWp_pool_init() {
 
 int EDBWp_new(char* e) {
     if (free_ == NULL) {
-        printf("No extra free wp\n");
+        Log_warn("No extra free wp\n");
         return -1;
     }
     EDBWp* wp = free_;
@@ -380,7 +380,7 @@ int EDBWp_new(char* e) {
         strcpy(wp->e, e);
         wp->res = res;
     } else {
-        printf("Set wp expr fail: %s\n", e);
+        Log_warn("Set wp expr fail: %s\n", e);
         return -1;
     }
 
@@ -395,13 +395,13 @@ int EDBWp_new(char* e) {
         tmp->next = wp;
     }
     wp->next = NULL;
-    printf("Set wp (expr: %s) at NO.%d\n", wp->e, wp->NO);
+    Log_info("Set wp (expr: %s) at NO.%d", wp->e, wp->NO);
     return wp->NO;
 }
 
 void EDBWp_free(int n) {
     if(n < 0 || n >= NR_WP) {
-        printf("Invalid wp idx: %d\n", n);
+        Log_info("Invalid wp idx: %d", n);
         return;
     }
     EDBWp *wp = &wp_pool[n];
@@ -409,7 +409,7 @@ void EDBWp_free(int n) {
     // find in head
     EDBWp* tmp = head;
     if(tmp == NULL) {
-        printf("No wp to free: %d\n", n);
+        Log_info("No wp to free: %d", n);
         return;
     } else if (tmp == wp) {
         head = wp->next;
@@ -433,7 +433,7 @@ void EDBWp_free(int n) {
         tmp->next = wp;
     }
     wp->next = NULL;
-    printf("Free wp (expr: %s) at NO.%d\n", wp->e, wp->NO);
+    Log_info("Free wp (expr: %s) at NO.%d", wp->e, wp->NO);
     free(wp->e);
     wp->e = NULL;
     wp->res = 0;
@@ -466,14 +466,14 @@ int EDBWp_scan(bool *change) {
         u64 res = expr(e, &success);
         if(success) {
             if (tmp->res != res)  {
-                printf("Scan wp (%s) change: %lu -> %lu\n", tmp->e, tmp->res, res);
+                Log_info("Scan wp (%s) change: %lu -> %lu", tmp->e, tmp->res, res);
                 tmp->res = res;
                 *change = true;
                 n = tmp->NO;
                 break;
             }
         } else {
-            printf("Scan wp expr fail: %s\n", e);
+            Log_warn("Scan wp expr fail: %s", e);
         }
         tmp = tmp->next;
     }
@@ -584,8 +584,24 @@ static struct {
     /* TODO: Add more commands */
 };
 
+
+static bool EDB_trace(Val* dnpc) {
+    bool change;
+    int n = EDBWp_scan(&change);
+    if (change) {
+        CPU0(edb_global.task)->status = CPU_STOP;
+        Log_trace(_MAGENTA("[Diff]") " NO.%d WP (PC: %s) -> %s", n, ValAddr(dnpc), cpustatus_tbl2[CPU0(edb_global.task)->status]);
+    }
+    return change;
+}
+
 static int cmd_c(UNUSED char *args) {
-    Task_run(Exec, edb_global.task);
+    while(1) {
+        Task_rundbg(Exec, edb_global.task, Val_new_u64(1));
+        if((CPU0(edb_global.task)->status == CPU_END) || EDB_trace(CPU0(edb_global.task)->pc) == true) {
+            break;
+        }
+    }
     return 0;
 }
 
@@ -596,6 +612,7 @@ static int cmd_si(char *args) {
         n = strtol(sub, NULL, 10);
     }
     Task_rundbg(Exec, edb_global.task, Val_new_u64(n));
+    EDB_trace(CPU0(edb_global.task)->pc);
     return 0;
 }
 
