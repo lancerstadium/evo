@@ -1,6 +1,5 @@
 
 #include <isa/rv/def.h>
-#include <evo/task.h>
 
 // ==================================================================================== //
 //                                    rv: Reg                                      
@@ -140,16 +139,6 @@ void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
     Val_copy(cpu->pc, cpu->dnpc);
 }
 
-// ==================================================================================== //
-//                                    rv: Task                                     
-// ==================================================================================== //
 
 
-Insn(RV) * TaskCtx_OP_ISA_def(Exec, run, RV) (UNUSED TaskCtx(Exec) *ctx, UNUSED Val* bc) {
-    // Match 
-    Insn(RV) * insn = Insn_match(RV, bc);
-    if(insn != NULL) {
-        UNUSED InsnDef(RV) * def = INSN(RV, insn->id);
-    }
-    return insn;
-}
+

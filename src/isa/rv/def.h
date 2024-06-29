@@ -293,4 +293,35 @@ CPUState_def(RV,
 );
 
 
+// ==================================================================================== //
+//                                    rv: Trans                                     
+// ==================================================================================== //
+
+
+#if defined(CFG_IISA_EIR) || defined(CFG_TISA_EIR)
+#include <isa/eir/def.h>
+
+
+
+
+
+Trans_def(RV, EIR,
+
+,
+
+    Trans_gen_def(RV, EIR, ADD)() {
+        
+    }
+
+
+
+);
+
+
+#endif
+
+
+
+
+
 #endif // _ISA_RV_DEF_H_

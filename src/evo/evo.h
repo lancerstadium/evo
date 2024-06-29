@@ -311,6 +311,25 @@ typedef struct {
  * 
  * ```
  */
+
+typedef enum {
+    /* non-signed */
+    TY_COND_NEVER  = 0 | 0 | 0 | 0,
+    TY_COND_ALWAYS = 0 | 0 | 0 | 1,
+    TY_COND_EQ     = 8 | 0 | 0 | 0,
+    TY_COND_NE     = 8 | 0 | 0 | 1,
+    /* signed */
+    TY_COND_LT     = 0 | 0 | 2 | 0,
+    TY_COND_GE     = 0 | 0 | 2 | 1,
+    TY_COND_LE     = 8 | 0 | 2 | 0,
+    TY_COND_GT     = 8 | 0 | 2 | 1,
+    /* unsigned */
+    TY_COND_LTU    = 0 | 4 | 0 | 0,
+    TY_COND_GEU    = 0 | 4 | 0 | 1,
+    TY_COND_LEU    = 8 | 4 | 0 | 0,
+    TY_COND_GTU    = 8 | 4 | 0 | 1,
+} TyCond;
+
 typedef enum {
     /* ctrl */
     TY_I    =   1 << 0,
@@ -631,13 +650,14 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         S                 \
     } Insn(T)
 
-#define Insn_def(T, S, ...)                                    \
-    Insn_T(T, S);                                              \
-    void Insn_OP_def(T, display)(Insn(T) * insn, char* res);   \
-    Insn(T) * Insn_OP_def(T, new)(size_t id);                  \
-    Insn(T) * Insn_OP_def(T, match)(Val * bc);                 \
-    void Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]); \
-    Insn(T) * Insn_OP_def(T, decode)(Val * bc);                \
+#define Insn_def(T, S, ...)                                         \
+    Insn_T(T, S);                                                   \
+    void Insn_OP_def(T, display)(Insn(T) * insn, char* res);        \
+    Insn(T) * Insn_OP_def(T, new)(size_t id);                       \
+    Insn(T) * Insn_OP_def(T, match)(Val * bc);                      \
+    Insn(T) * Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]); \
+    Insn(T) * Insn_OP_def(T, decode)(Val * bc);                     \
+    Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]);         \
     __VA_ARGS__
 
 #define Insn_fn_def(T)                                                                                                \
@@ -682,7 +702,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         }                                                                                                             \
         return Insn_OP(T, new)(0);                                                                                    \
     }                                                                                                                 \
-    void Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]) {                                                       \
+    Insn(T) * Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]) {                                                  \
         Log_ast(insn != NULL, "Insn: insn is null");                                                                  \
         Log_ast(args != NULL, "Insn: args are null");                                                                 \
         InsnDef(T)* df = INSN(T, insn->id);                                                                           \
@@ -694,6 +714,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
                 Val_wrt_map(&insn->bc, bm, bml, args[i]);                                                             \
             }                                                                                                         \
         }                                                                                                             \
+        return insn;                                                                                                  \
     }                                                                                                                 \
     Insn(T) * Insn_OP_def(T, decode)(Val * bc) {                                                                      \
         Insn(T)* insn = Insn_OP(T, match)(bc);                                                                        \
@@ -707,6 +728,11 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
             }                                                                                                         \
         }                                                                                                             \
         return insn;                                                                                                  \
+    }                                                                                                                 \
+    Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]) {                                                          \
+        Insn(T)* insn = Insn_OP(T, new)(id);                                                                          \
+        insn = Insn_OP(T, encode)(insn, args);                                                                        \
+        return insn;                                                                                                  \
     }
 
 #define Insn_display(T, insn, res)  Insn_OP(T, display)(insn, res)
@@ -715,6 +741,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define Insn_match(T, bc) Insn_OP(T, match)(bc)
 #define Insn_encode(T, insn, args) Insn_OP(T, encode)(insn, args)
 #define Insn_decode(T, bc) Insn_OP(T, decode)(bc)
+#define Insn_gen(T, id, args) Insn_OP(T, gen)(id, args)
 
 // ==================================================================================== //
 //                                    evo: Block
@@ -919,6 +946,34 @@ UNUSED static char* cpustatus_tbl2 [] = {
 //                                    evo: Trans
 // ==================================================================================== //
 
+
+#define Trans(S, T)                 CONCAT3(Trans_, S##_, T)
+#define Trans_OP(S, T, OP)          CONCAT4(Trans_, S##_, T##_, OP)
+#define Trans_OP_def(S, T, OP)      UNUSED Trans_OP(S, T, OP)
+#define Trans_gen(S, T, N)          CONCAT5(Trans_, CONCAT(S,_), CONCAT(T,_), gen_, N)
+#define Trans_gen_def(S, T, N)      static inline void UNUSED Trans_gen(S, T, N)
+#define Trans_T(S, T, C)  \
+    typedef struct {      \
+        size_t slen;      \
+        size_t tlen;      \
+        Insn(S) * *sinsn; \
+        Insn(S) * *tinsn; \
+        CPUState(S) * cs; \
+        C                 \
+    } Trans(S, T)
+
+#define Trans_def(S, T, C, ...) \
+    Trans_T(S, T, C);           \
+    Trans(S, T) * Trans_OP_def(S, T, init)(); \
+    __VA_ARGS__
+
+#define Trans_fn_def(S, T)                              \
+    Trans(S, T) * Trans_OP_def(S, T, init)() {          \
+        Trans(S, T)* res = malloc(sizeof(Trans(S, T))); \
+        res->slen = 0;                                  \
+        res->tlen = 0;                                  \
+        return res;                                     \
+    }
 
 
 

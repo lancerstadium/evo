@@ -146,6 +146,8 @@ extern "C" {
 #define CONCAT(a, b) _CONCAT(a, b)
 #define CONCAT3(a, b, c) CONCAT(CONCAT(a, b), c)
 #define CONCAT4(a, b, c, d) CONCAT(CONCAT3(a, b, c), d)
+#define CONCAT5(a, b, c, d, e) CONCAT(CONCAT4(a, b, c, d), e)
+#define CONCAT6(a, b, c, d, e, f) CONCAT(CONCAT5(a, b, c, d, e), f)
 #define STR_BOOL(b) ((b) ? "true" : "false")
 #define STR_FMT(SD, fmt, ...) sprintf(SD, fmt, __VA_ARGS__)
 #define STR_FMTN(SD, N, fmt, ...) snprintf(SD, (size_t)(N), fmt, __VA_ARGS__)
