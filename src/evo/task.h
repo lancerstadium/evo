@@ -45,7 +45,7 @@ Task_def(Exec,
 ,
     void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status);
     void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc);
-    void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step);
+    void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, int step);
     char* TaskCtx_OP_def(Exec, execinfo) (TaskCtx(Exec) *ctx);
 );
 

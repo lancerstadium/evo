@@ -45,13 +45,12 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     Task_info(Exec, "CPU Status   : %s" , cpustatus_tbl2[CPU(ctx)->status]);
 }
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
-    size_t len = 4;
-    TaskCtx_OP(Exec, execute) (ctx, len);
+    TaskCtx_OP(Exec, execute) (ctx, -1);
 }
 
 void TaskCtx_OP_def(Exec, rundbg) (TaskCtx(Exec) *ctx, UNUSED Val* val) {
     Task_ast(Exec, ctx != NULL, "Exec ctx is null");
-    TaskCtx_OP(Exec, execute) (ctx, Val_as_u64(val, 0));
+    TaskCtx_OP(Exec, execute) (ctx, Val_as_i64(val, 0));
 }
 
 void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
@@ -89,7 +88,7 @@ void TaskCtx_OP_def(Exec, execone) (TaskCtx(Exec) *ctx, Val* pc) {
     Task_info(Exec, "%-36s "_CYAN("%12.4f %2s"), insn_buf, ctx->e_tak, ctx->e_sc);
 }
 
-void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
+void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, int step) {
     Task_ast(Exec, ctx != NULL, "Exec ctx is null");
     switch (CPU(ctx)->status) {
         case CPU_END:
@@ -98,7 +97,7 @@ void TaskCtx_OP_def(Exec, execute) (TaskCtx(Exec) *ctx, size_t step) {
             return;
         default: CPU(ctx)->status = CPU_RUN; break;
     }
-    for(size_t i = 0; i < step; i++){
+    for(int i = 0; i < step || step < 0; i++){
         TaskCtx_OP(Exec, execone)(ctx, CPU(ctx)->pc);
         if(CPU(ctx)->status != CPU_RUN) {
             break;
