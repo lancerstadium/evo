@@ -35,6 +35,13 @@ GENEXPR_TARGET=bin/gen-expr
 CFG_REPORT=0
 CFG_TEST=
 
+mips-init:
+	apt-get install g++-mips-linux-gnu binutils-mips-linux-gnu
+
+rv-init:
+	sudo apt-get install libc6-dev-i386
+	sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
+
 # The Target Build
 all: $(SOB_TARGET) $(TARGET) $(EDB_TARGET) $(GENEXPR_TARGET) tests
 
