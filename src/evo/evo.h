@@ -776,6 +776,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     void CPUState_OP_def(T, stop)(CPUState(T) * cpu);                                               \
     void CPUState_OP_def(T, abort)(CPUState(T) * cpu);                                              \
     void CPUState_OP_def(T, quit)(CPUState(T) * cpu);                                               \
+    void CPUState_OP_def(T, check_mem)(CPUState(T) * cpu, Val * addr, size_t len);                  \
     void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len);         \
     Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len);                    \
     void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val);                      \
@@ -789,101 +790,107 @@ UNUSED static char* cpustatus_tbl2 [] = {
     void CPUState_OP_def(T, execute)(CPUState(T) * cpu, Insn(T) * insn);                            \
     __VA_ARGS__
 
-#define CPUState_fn_def(T)                                                                           \
-    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_cap) {                                         \
-        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                                              \
-        cpu->status = CPU_IDLE;                                                                      \
-        cpu->pc = Val_alloc(8);                                                                      \
-        cpu->snpc = Val_alloc(8);                                                                    \
-        cpu->dnpc = Val_alloc(8);                                                                    \
-        for (size_t i = 0; i < RegMax(T); i++) {                                                     \
-            cpu->reg[i] = Val_alloc(8);                                                              \
-        }                                                                                            \
-        cpu->mem = Val_alloc(MAX(mem_cap / 8, CFG_MEM_CAP));                                         \
-        cpu->halt_ret = 0;                                                                           \
-        cpu->halt_pc = Val_alloc(8);                                                                 \
-        return cpu;                                                                                  \
-    }                                                                                                \
-    void CPUState_OP_def(T, set_status)(CPUState(T) * cpu, int status, Val* halt_pc, u64 halt_ret) { \
-        Log_ast(cpu, "CPUState_stop: cpu is null");                                                  \
-        cpu->status = status;                                                                        \
-        Val_copy(cpu->halt_pc, halt_pc);                                                             \
-        cpu->halt_ret = halt_ret;                                                                    \
-    }                                                                                                \
-    void CPUState_OP_def(T, stop)(CPUState(T) * cpu) {                                               \
-        Log_ast(cpu, "CPUState_stop: cpu is null");                                                  \
-        cpu->status = CPU_STOP;                                                                      \
-    }                                                                                                \
-    void CPUState_OP_def(T, abort)(CPUState(T) * cpu) {                                              \
-        Log_ast(cpu, "CPUState_abort: cpu is null");                                                 \
-        cpu->status = CPU_ABORT;                                                                     \
-    }                                                                                                \
-    void CPUState_OP_def(T, quit)(CPUState(T) * cpu) {                                               \
-        Log_ast(cpu, "CPUState_quit: cpu is null");                                                  \
-        cpu->status = CPU_QUIT;                                                                      \
-    }                                                                                                \
-    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len) {         \
-        Log_ast(cpu, "CPUState_set_mem: cpu is null");                                               \
-        Val_set_val(cpu->mem, Val_as_u64(addr, 0), val, len);                                        \
-    }                                                                                                \
-    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len) {                    \
-        Log_ast(cpu, "CPUState_get_mem: cpu is null");                                               \
-        Val* val = Val_as_val(cpu->mem, Val_as_u64(addr, 0), len);                                   \
-        return val;                                                                                  \
-    }                                                                                                \
-    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {                      \
-        Log_ast(cpu, "CPUState_set_reg: cpu is null");                                               \
-        RegDef(T)* df = REG(T, id);                                                                  \
-        if (df) {                                                                                    \
-            size_t idx = df->id;                                                                     \
-            Val_wrt_map(cpu->reg[idx], &df->map, 1, val);                                            \
-        }                                                                                            \
-    }                                                                                                \
-    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id) {                                 \
-        Log_ast(cpu, "CPUState_get_reg: cpu is null");                                               \
-        RegDef(T)* df = REG(T, id);                                                                  \
-        if (df) {                                                                                    \
-            size_t idx = df->id;                                                                     \
-            return Val_ext_map(cpu->reg[idx], &df->map, 1);                                          \
-        }                                                                                            \
-        return NULL;                                                                                 \
-    }                                                                                                \
-    void CPUState_OP_def(T, set_regn)(CPUState(T) * cpu, char* name, Val* val) {                     \
-        Log_ast(cpu, "CPUState_set_regn: cpu is null");                                              \
-        int id = RegDef_find(T, name);                                                               \
-        if (id >= 0) {                                                                               \
-            CPUState_OP(T, set_reg)(cpu, id, val);                                                   \
-        }                                                                                            \
-    }                                                                                                \
-    Val* CPUState_OP_def(T, get_regn)(CPUState(T) * cpu, char* name) {                               \
-        Log_ast(cpu, "CPUState_get_regn: cpu is null");                                              \
-        int id = RegDef_find(T, name);                                                               \
-        if (id >= 0) {                                                                               \
-            return CPUState_OP(T, get_reg)(cpu, id);                                                 \
-        } else {                                                                                     \
-            return NULL;                                                                             \
-        }                                                                                            \
-    }                                                                                                \
-    void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                                              \
-        Log_ast(cpu, "CPUState_reset: cpu is null");                                                 \
-        cpu->status = CPU_IDLE;                                                                      \
-        cpu->pc = Val_alloc(8);                                                                      \
-        for (size_t i = 0; i < RegMax(T); i++) {                                                     \
-            cpu->reg[i] = Val_alloc(8);                                                              \
-        }                                                                                            \
-        cpu->mem = Val_alloc(cpu->mem->len);                                                         \
-    }                                                                                                \
-    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id) {                   \
-        Log_ast(cpu, "CPUState_displayreg: cpu is null");                                            \
-        RegDef(T)* df = REG(T, id);                                                                  \
-        if (df) {                                                                                    \
-            size_t idx = df->id;                                                                     \
-            sprintf(res, "%3s: %s", RegName(T, id), ValAddr(cpu->reg[idx]));                         \
-        }                                                                                            \
-    }                                                                                                \
-    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {                                 \
-        Log_ast(cpu, "CPUState_display: cpu is null");                                               \
-        sprintf(res, "CPU<%s>: %4s", #T, cpustatus_tbl1[cpu->status]);                               \
+#define CPUState_fn_def(T)                                                                                                                                                         \
+    CPUState(T) * CPUState_OP_def(T, init)(size_t mem_cap) {                                                                                                                       \
+        CPUState(T)* cpu = malloc(sizeof(CPUState(T)));                                                                                                                            \
+        cpu->status = CPU_IDLE;                                                                                                                                                    \
+        cpu->pc = Val_new_u64(CFG_MEM_BASE);                                                                                                                                       \
+        cpu->snpc = Val_new_u64(CFG_MEM_BASE);                                                                                                                                     \
+        cpu->dnpc = Val_new_u64(CFG_MEM_BASE);                                                                                                                                     \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                                                                                                   \
+            cpu->reg[i] = Val_alloc(8);                                                                                                                                            \
+        }                                                                                                                                                                          \
+        cpu->mem = Val_alloc(MAX(mem_cap / 8, CFG_MEM_CAP));                                                                                                                       \
+        cpu->halt_ret = 0;                                                                                                                                                         \
+        cpu->halt_pc = Val_new_u64(CFG_MEM_BASE);                                                                                                                                  \
+        return cpu;                                                                                                                                                                \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, set_status)(CPUState(T) * cpu, int status, Val* halt_pc, u64 halt_ret) {                                                                               \
+        Log_ast(cpu, "CPUState_stop: cpu is null");                                                                                                                                \
+        cpu->status = status;                                                                                                                                                      \
+        Val_copy(cpu->halt_pc, halt_pc);                                                                                                                                           \
+        cpu->halt_ret = halt_ret;                                                                                                                                                  \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, stop)(CPUState(T) * cpu) {                                                                                                                             \
+        Log_ast(cpu, "CPUState_stop: cpu is null");                                                                                                                                \
+        cpu->status = CPU_STOP;                                                                                                                                                    \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, abort)(CPUState(T) * cpu) {                                                                                                                            \
+        Log_ast(cpu, "CPUState_abort: cpu is null");                                                                                                                               \
+        cpu->status = CPU_ABORT;                                                                                                                                                   \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, quit)(CPUState(T) * cpu) {                                                                                                                             \
+        Log_ast(cpu, "CPUState_quit: cpu is null");                                                                                                                                \
+        cpu->status = CPU_QUIT;                                                                                                                                                    \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, check_mem)(CPUState(T) * cpu, Val * addr, size_t len) {                                                                                                \
+        Log_ast(cpu, "CPUState_check_mem: cpu is null");                                                                                                                           \
+        Log_ast(Val_as_u64(addr, 0) >= CFG_MEM_BASE && Val_as_u64(addr, 0) <= CFG_MEM_BASE + CFG_MEM_CAP, "CPUState_check_mem: addr(0x%lx) is out of range", Val_as_u64(addr, 0)); \
+        Log_ast(Val_as_u64(addr, 0) + len <= CFG_MEM_BASE + CFG_MEM_CAP, "CPUState_check_mem: addr(0x%lx) + len(%lu) is out of range", Val_as_u64(addr, 0), len);                  \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, set_mem)(CPUState(T) * cpu, Val * addr, Val * val, size_t len) {                                                                                       \
+        Log_ast(cpu, "CPUState_set_mem: cpu is null");                                                                                                                             \
+        CPUState_OP(T, check_mem)(cpu, addr, len);                                                                                                                                 \
+        Val_set_val(cpu->mem, Val_as_u64(addr, 0) - CFG_MEM_BASE, val, len);                                                                                                       \
+    }                                                                                                                                                                              \
+    Val* CPUState_OP_def(T, get_mem)(CPUState(T) * cpu, Val * addr, size_t len) {                                                                                                  \
+        CPUState_OP(T, check_mem)(cpu, addr, len);                                                                                                                                 \
+        Val* val = Val_as_val(cpu->mem, Val_as_u64(addr, 0) - CFG_MEM_BASE, len);                                                                                                  \
+        return val;                                                                                                                                                                \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, set_reg)(CPUState(T) * cpu, size_t id, Val * val) {                                                                                                    \
+        Log_ast(cpu, "CPUState_set_reg: cpu is null");                                                                                                                             \
+        RegDef(T)* df = REG(T, id);                                                                                                                                                \
+        if (df) {                                                                                                                                                                  \
+            size_t idx = df->id;                                                                                                                                                   \
+            Val_wrt_map(cpu->reg[idx], &df->map, 1, val);                                                                                                                          \
+        }                                                                                                                                                                          \
+    }                                                                                                                                                                              \
+    Val* CPUState_OP_def(T, get_reg)(CPUState(T) * cpu, size_t id) {                                                                                                               \
+        Log_ast(cpu, "CPUState_get_reg: cpu is null");                                                                                                                             \
+        RegDef(T)* df = REG(T, id);                                                                                                                                                \
+        if (df) {                                                                                                                                                                  \
+            size_t idx = df->id;                                                                                                                                                   \
+            return Val_ext_map(cpu->reg[idx], &df->map, 1);                                                                                                                        \
+        }                                                                                                                                                                          \
+        return NULL;                                                                                                                                                               \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, set_regn)(CPUState(T) * cpu, char* name, Val* val) {                                                                                                   \
+        Log_ast(cpu, "CPUState_set_regn: cpu is null");                                                                                                                            \
+        int id = RegDef_find(T, name);                                                                                                                                             \
+        if (id >= 0) {                                                                                                                                                             \
+            CPUState_OP(T, set_reg)(cpu, id, val);                                                                                                                                 \
+        }                                                                                                                                                                          \
+    }                                                                                                                                                                              \
+    Val* CPUState_OP_def(T, get_regn)(CPUState(T) * cpu, char* name) {                                                                                                             \
+        Log_ast(cpu, "CPUState_get_regn: cpu is null");                                                                                                                            \
+        int id = RegDef_find(T, name);                                                                                                                                             \
+        if (id >= 0) {                                                                                                                                                             \
+            return CPUState_OP(T, get_reg)(cpu, id);                                                                                                                               \
+        } else {                                                                                                                                                                   \
+            return NULL;                                                                                                                                                           \
+        }                                                                                                                                                                          \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, reset)(CPUState(T) * cpu) {                                                                                                                            \
+        Log_ast(cpu, "CPUState_reset: cpu is null");                                                                                                                               \
+        cpu->status = CPU_IDLE;                                                                                                                                                    \
+        cpu->pc = Val_alloc(8);                                                                                                                                                    \
+        for (size_t i = 0; i < RegMax(T); i++) {                                                                                                                                   \
+            cpu->reg[i] = Val_alloc(8);                                                                                                                                            \
+        }                                                                                                                                                                          \
+        cpu->mem = Val_alloc(cpu->mem->len);                                                                                                                                       \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, displayreg)(CPUState(T) * cpu, char* res, size_t id) {                                                                                                 \
+        Log_ast(cpu, "CPUState_displayreg: cpu is null");                                                                                                                          \
+        RegDef(T)* df = REG(T, id);                                                                                                                                                \
+        if (df) {                                                                                                                                                                  \
+            size_t idx = df->id;                                                                                                                                                   \
+            sprintf(res, "%3s: %s", RegName(T, id), ValAddr(CPUState_OP(T, get_reg)(cpu, idx)));                                                                                   \
+        }                                                                                                                                                                          \
+    }                                                                                                                                                                              \
+    void CPUState_OP_def(T, display)(CPUState(T) * cpu, char* res) {                                                                                                               \
+        Log_ast(cpu, "CPUState_display: cpu is null");                                                                                                                             \
+        sprintf(res, "CPU<%s>: %4s", #T, cpustatus_tbl1[cpu->status]);                                                                                                             \
     }
 
 #define CPUState_init(T, S)  CPUState_OP(T, init)(S)
@@ -892,6 +899,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define CPUState_quit(T, C)   CPUState_OP(T, quit)(C)
 #define CPUState_set_status(T, C, I, P, R) CPUState_OP(T, set_status)(C, I, P, R)
 #define CPUState_reset(T, C)   CPUState_OP(T, reset)(C)
+#define CPUState_check_mem(T, C, A, L) CPUState_OP(T, check_mem)(C, A, L)
 #define CPUState_set_mem(T, C, A, V, L) CPUState_OP(T, set_mem)(C, A, V, L)
 #define CPUState_get_mem(T, C, A, L) CPUState_OP(T, get_mem)(C, A, L)
 #define CPUState_set_reg(T, C, ID, V) CPUState_OP(T, set_reg)(C, ID, V)

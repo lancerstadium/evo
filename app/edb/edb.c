@@ -110,7 +110,8 @@ static size_t EDBImg_init() {
             0x00028823,
             0x0102c503,
             0x00100073,
-        }, 16);
+            0xdeadbeef,
+        }, 20);
     }
     edb_global.task = Task_init(Exec, "task-exec", img);
     return img->len;

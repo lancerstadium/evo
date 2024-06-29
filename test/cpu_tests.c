@@ -23,8 +23,8 @@ UnitTest_fn_def(test_cpu_reg){
 
 UnitTest_fn_def(test_cpu_mem){
     CPUState(RV) * cpu = CPUState_init(RV, 56);
-    Val* addr1 = Val_new_u32(0);
-    Val* addr2 = Val_new_u32(2);
+    Val* addr1 = Val_new_u32(0 + CFG_MEM_BASE);
+    Val* addr2 = Val_new_u32(2 + CFG_MEM_BASE);
     CPUState_set_mem(RV, cpu, addr1, Val_new_u64(0x123456), 8);
     Val* val = CPUState_get_mem(RV, cpu, addr2, 4);
     UnitTest_ast(Val_as_u32(val, 0) == 0x12, "Mem[2] should be 0x12");

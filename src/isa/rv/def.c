@@ -62,16 +62,17 @@ Insn(RV) * CPUState_OP_def(RV, decode)(CPUState(RV) * cpu, Val * val) {
         Val_free(res);                             \
     } while (0)
 
-#define RV_EXEC_I_M(S, A, L)                                        \
-    do {                                                            \
-        u8 rd = Val_as_u8(insn->oprs[0], 0);                        \
-        u8 r1 = Val_as_u8(insn->oprs[1], 0);                        \
-        i64 immi = Val_as_i64(insn->oprs[2], 0);                    \
-        Val* r1_v = CPUState_get_reg(RV, cpu, r1);                  \
-        Val* res = Val_to_##S##64(CPUState_get_mem(RV, cpu, A, L)); \
-        CPUState_set_reg(RV, cpu, rd, res);                         \
-        Val_free(r1_v);                                             \
-        Val_free(res);                                              \
+#define RV_EXEC_I_M(S, A, L)                                  \
+    do {                                                      \
+        u8 rd = Val_as_u8(insn->oprs[0], 0);                  \
+        u8 r1 = Val_as_u8(insn->oprs[1], 0);                  \
+        i64 immi = Val_as_i64(insn->oprs[2], 0);              \
+        Val* r1_v = CPUState_get_reg(RV, cpu, r1);            \
+        Val* res = CPUState_get_mem(RV, cpu, A, L);           \
+        Log_info("LOAD: %s <- %s", ValAddr(res), ValAddr(A)); \
+        CPUState_set_reg(RV, cpu, rd, res);                   \
+        Val_free(r1_v);                                       \
+        Val_free(res);                                        \
     } while (0)
 
 #define RV_EXEC_U(...)                           \

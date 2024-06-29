@@ -35,14 +35,14 @@ void TaskCtx_OP_def(Exec, init) (TaskCtx(Exec) *ctx, Val* val) {
     ctx->e_e  = (struct timespec){0};
     ctx->e_tak = 0.0;
     ctx->e_tot = 0.0;
+    if(val && val->len > 0) {
+        CPUState_set_mem(ISE, ctx->cpu, Val_new_u64(CFG_MEM_BASE), val, val->len);
+        Task_info(Exec, "CPU Img Load : %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u64(CFG_MEM_BASE), 4)));
+    }
     Task_info(Exec, "CPU Init ISA : %s", STR(ISE));
-    Task_info(Exec, "CPU Init pc  : %s", ValHex(CPU(ctx)->pc));
+    Task_info(Exec, "CPU Init pc  : %s", ValAddr(CPU(ctx)->pc));
     Task_info(Exec, "CPU Mem size : %lu Byte", CPU(ctx)->mem->len);
     Task_info(Exec, "CPU Status   : %s" , cpustatus_tbl2[CPU(ctx)->status]);
-    if(val && val->len > 0) {
-        CPUState_set_mem(ISE, ctx->cpu, Val_new_u32(0), val, val->len);
-        Task_info(Exec, "CPU Img Load : %s ..", ValHex(CPUState_get_mem(ISE, CPU(ctx), Val_new_u32(0), 8)));
-    }
 }
 void TaskCtx_OP_def(Exec, run) (TaskCtx(Exec) *ctx) {
     size_t len = 4;
