@@ -16,7 +16,6 @@
 #define CPU(ctx) ((CPUState(ISE)*)((ctx)->cpu))
 
 
-
 Task_fn_def(Exec);
 void TaskCtx_OP_def(Exec, set_status) (TaskCtx(Exec) *ctx, int status) {
     Task_info(Exec, "CPU Status: %s -> %s", cpustatus_tbl2[CPU(ctx)->status] , cpustatus_tbl2[status]);
@@ -145,12 +144,13 @@ char* TaskCtx_OP_def(Exec, execinfo) (TaskCtx(Exec) *ctx) {
 
 #undef CPU
 
+
+
 // ==================================================================================== //
 //                                    task: Dump                                      
 // ==================================================================================== //
 
 Task_fn_def(Dump);
-
 void TaskCtx_OP_def(Dump, init) (TaskCtx(Dump) *ctx, Val* val) {
     if(ctx == NULL) {
         ctx = malloc(sizeof(TaskCtx(Dump)));
@@ -168,7 +168,6 @@ void TaskCtx_OP_def(Dump, run) (TaskCtx(Dump) *ctx) {
         TaskCtx_OP(Dump, elf)(ctx, ctx->path);
     }
 }
-
 void TaskCtx_OP_def(Dump, rundbg) (TaskCtx(Dump) *ctx, UNUSED Val* val) {
     Task_ast(Dump, ctx != NULL, "Dump ctx is null");
     TaskCtx_OP(Dump, run)(ctx);

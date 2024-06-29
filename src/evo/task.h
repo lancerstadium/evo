@@ -32,8 +32,8 @@ Task_def(Load,
 
 
 Task_def(Exec,
-    void* cpu;                  /* cpu  : CPU State of Arch     */
-    void* cur_insn;             /* current insn address         */
+    void* cpu;                          /* cpu  : CPU State of Arch     */
+    void* cur_insn;                     /* current insn address         */
     
     /* Performence: Exec */
     size_t cnt_insn;                    /* exec insn count */
@@ -50,24 +50,14 @@ Task_def(Exec,
 );
 
 
-// ==================================================================================== //
-//                                    task: Trans                                      
-// ==================================================================================== //
-
-Task_def(Trans,
-
-,
-
-);
-
 
 // ==================================================================================== //
 //                                    task: Dump                                      
 // ==================================================================================== //
 
 Task_def(Dump,
-    char* path;             /* path : Output File Path      */
-    ELFDump *elf;           /* elf  : Elf Dump Context      */
+    char* path;                         /* path : Output File Path      */
+    ELFDump *elf;                       /* elf  : Elf Dump Context      */
 #if defined(CFG_PERF_DUMP)
 
 #endif
