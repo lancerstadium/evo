@@ -649,7 +649,9 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         for (size_t i = 0; i < insn->len; i++) {                                                                      \
             if (insn->oprs[i] != NULL) {                                                                              \
                 if (InsnTbl(T)[insn->id].tr.t[i].k == TY_r) {                                                         \
-                    sprintf(res_buf, "%s", RegName(RV, Val_as_u8(insn->oprs[i], 0)));                                 \
+                    sprintf(res_buf, "$%s", RegName(RV, Val_as_u8(insn->oprs[i], 0)));                                \
+                } else if (InsnTbl(T)[insn->id].tr.t[i].k == TY_i) {                                                  \
+                    sprintf(res_buf, "%ld", Val_as_i64(insn->oprs[i], 0));                                            \
                 } else {                                                                                              \
                     sprintf(res_buf, "%s%s", Val_as_hex(insn->oprs[i], false), Ty_sym(InsnTbl(T)[insn->id].tr.t[i])); \
                 }                                                                                                     \

@@ -83,16 +83,16 @@ Insn(RV) * CPUState_OP_def(RV, decode)(CPUState(RV) * cpu, Val * val) {
         Val_free(res);                           \
     } while (0)
 
-#define RV_EXEC_S_M(N)                                                               \
-    do {                                                                             \
-        u8 r1 = Val_as_u8(insn->oprs[0], 0);                                         \
-        u8 r2 = Val_as_u8(insn->oprs[1], 0);                                         \
-        i64 imms = Val_as_i64(insn->oprs[2], 0);                                     \
-        Val* r1_v = CPUState_get_reg(RV, cpu, r1);                                   \
-        Val* r2_v = CPUState_get_reg(RV, cpu, r2);                                   \
-        CPUState_set_mem(RV, cpu, Val_new_u64(Val_as_i64(r1_v, 0) + imms), r2_v, N); \
-        Val_free(r1_v);                                                              \
-        Val_free(r2_v);                                                              \
+#define RV_EXEC_S_M(A, N)                          \
+    do {                                           \
+        u8 r1 = Val_as_u8(insn->oprs[0], 0);       \
+        u8 r2 = Val_as_u8(insn->oprs[1], 0);       \
+        i64 imms = Val_as_i64(insn->oprs[2], 0);   \
+        Val* r1_v = CPUState_get_reg(RV, cpu, r1); \
+        Val* r2_v = CPUState_get_reg(RV, cpu, r2); \
+        CPUState_set_mem(RV, cpu, A, r2_v, N);     \
+        Val_free(r1_v);                            \
+        Val_free(r2_v);                            \
     } while (0)
 
 void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
@@ -128,9 +128,9 @@ void CPUState_OP_def(RV, execute)(CPUState(RV) * cpu, Insn(RV) * insn) {
         case RV_LBU     : RV_EXEC_I_M(u, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 1);   break;
         case RV_LHU     : RV_EXEC_I_M(u, Val_new_i64(Val_as_i64(r1_v, 0) + immi), 2);   break;
         /* RV32I: Store S-Type */
-        case RV_SB      : RV_EXEC_S_M(8);                                               break;
-        case RV_SH      : RV_EXEC_S_M(16);                                              break;
-        case RV_SW      : RV_EXEC_S_M(32);                                              break;
+        case RV_SB      : RV_EXEC_S_M(Val_new_i64(Val_as_i64(r1_v, 0) + imms), 1);      break;
+        case RV_SH      : RV_EXEC_S_M(Val_new_i64(Val_as_i64(r1_v, 0) + imms), 2);      break;
+        case RV_SW      : RV_EXEC_S_M(Val_new_i64(Val_as_i64(r1_v, 0) + imms), 4);      break;
         /* RV32I: Branch */
 
         /* RV32I: Device & System */
