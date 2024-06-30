@@ -352,21 +352,23 @@ typedef enum {
     /* oprs */
     TY_x    =   1 << 3,
     TY_o    =   1 << 4,
-    TY_r    =   1 << 5,
+    TY_r    =   1 << 5,             
     TY_i    =   1 << 6,
     TY_m    =   1 << 7,
     TY_l    =   1 << 8,
-    TY_c    =   1 << 9,
-    TY_e    =   1 << 10,
+    TY_c    =   1 << 9,             /* Type Condition */
+    TY_e    =   1 << 10,            
     TY_oprs =   TY_x | TY_o | TY_r | TY_i | TY_m | TY_l | TY_c | TY_e ,    
     /* trans oprs */
-    TY_t    =   1 << 11,
-    TY_s    =   1 << 12,
+    TY_t    =   1 << 11,            /* Type Transfer Operands */
+    TY_s    =   1 << 12,            /* Type Set Operands from Temp */
+    TY_sl   =   1 << 13,            /* Type Set Operands from Label */
     /* trans ctrl */
-    TY_gi   =   1 << 13,
-    TY_gr   =   1 << 14,
-    TY_gp   =   1 << 15,
-    TY_gnp  =   1 << 16,
+    TY_gi   =   1 << 13,            /* Type Get Temp from Imm */
+    TY_gr   =   1 << 14,            /* Type Get Temp from Reg */
+    TY_gp   =   1 << 15,            /* Type Get Temp from PC  */
+    TY_gnp  =   1 << 16,            /* Type Get Temp from Next PC */
+    TY_nl   =   1 << 17,            /* Type New Label */
 } TyKd;
 
 typedef struct {
@@ -402,7 +404,12 @@ typedef struct Ty {
 #define Ty_e(V, ...)                Ty_new(e, V, __VA_ARGS__)
 #define Ty_t(V, ...)                Ty_new(t, V, __VA_ARGS__)
 #define Ty_s(V, ...)                Ty_new(s, V, __VA_ARGS__)
+#define Ty_gi(V, ...)               Ty_new(gi, V, __VA_ARGS__)
+#define Ty_gr(V, ...)               Ty_new(gr, V, __VA_ARGS__)
+#define Ty_gp(V, ...)               Ty_new(gp, V, __VA_ARGS__)
 #define Ty_gnp(V, ...)              Ty_new(gnp, V, __VA_ARGS__)
+#define Ty_nl(V, ...)               Ty_new(nl, V, __VA_ARGS__)
+#define Ty_sl(V, ...)               Ty_new(sl, V, __VA_ARGS__)
 char* Ty_sym(Ty t);
 
 typedef struct {

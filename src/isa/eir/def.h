@@ -87,6 +87,11 @@ InsnID_def(EIR,
     REP4(EIR_EL, STB_I32, STB_I64, STH_I32, STH_I64),
     REP2(EIR_EL, STW_I32, STW_I64),
     /* ==== EIR: Compare ========= */
+    REP1(EIR_EL, CMP),
+    /* ==== EIR: Function ======== */
+    REP2(EIR_EL, CALL, RET),
+    /* ==== EIR: System ========= */
+    REP3(EIR_EL, TRAP, GOTO, EXIT),
 );
 
 
