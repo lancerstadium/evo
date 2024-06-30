@@ -995,58 +995,41 @@ UNUSED static char* cpustatus_tbl2 [] = {
 //                                    evo: Trans
 // ==================================================================================== //
 
-#define TransDef(S, T)                  CONCAT3(TransDef_, S##_, T)
+#define TransDef(S, T)                  CONCAT3(TransDef_, CONCAT(S,_), T)
 #define TransTbl(S, T)                  CONCAT3(S##_, T, _trans_tbl)
+#define TransMax(S, T)                  (sizeof(TransTbl(S, T))/sizeof(TransDef(S, T)))
 #define TransDef_OP(S, T, OP)           CONCAT4(TransDef_, S##_, T##_, OP)
 #define TransDef_OP_def(S, T, OP)       UNUSED TransDef_OP(S, T, OP)
 #define TransDef_T(S, T) \
     typedef struct {     \
         int* sid;        \
         size_t len;      \
-        Tys tys;         \
+        Tys tt;          \
     } TransDef(S, T)
 
 #define SID_new(...)   .sid = (int[]){__VA_ARGS__}, .len = sizeof((int[]){__VA_ARGS__})/sizeof(int)
 
-#define TransDef_def(S, T, ...) \
-    TransDef_T(S, T);           \
-    UNUSED static TransDef(S, T) TransTbl(S, T)[] = {__VA_ARGS__}
+#define TransDef_def(S, T)                                       \
+    TransDef_T(S, T);                                            \
+    extern TransDef(S, T) TransTbl(S, T)[CFG_TRANS_CAP];         \
+    void TransDef_OP_def(S, T, displayone)(char* res, size_t i); \
+    void TransDef_OP_def(S, T, display)(char* res);
 
-#define TransDef_fn_def(S, T)
-
-
-#define Trans(S, T)                     CONCAT3(Trans_, S##_, T)
-#define Trans_OP(S, T, OP)              CONCAT4(Trans_, S##_, T##_, OP)
-#define Trans_OP_def(S, T, OP)          UNUSED Trans_OP(S, T, OP)
-#define Trans_gen(S, T, N)              CONCAT5(Trans_, CONCAT(S,_), CONCAT(T,_), gen_, N)
-#define Trans_gen_def(S, T, N)          static inline void UNUSED Trans_gen(S, T, N)
-#define Trans_T(S, T, C)  \
-    typedef struct {      \
-        size_t slen;      \
-        size_t tlen;      \
-        Insn(S) * *sinsn; \
-        Insn(S) * *tinsn; \
-        CPUState(S) * cs; \
-        C                 \
-    } Trans(S, T)
-
-#define Trans_def(S, T, C, ...) \
-    Trans_T(S, T, C);           \
-    Trans(S, T) * Trans_OP_def(S, T, init)(); \
-    __VA_ARGS__
-
-#define Trans_fn_def(S, T)                              \
-    Trans(S, T) * Trans_OP_def(S, T, init)() {          \
-        Trans(S, T)* res = malloc(sizeof(Trans(S, T))); \
-        res->slen = 0;                                  \
-        res->tlen = 0;                                  \
-        return res;                                     \
+#define TransDef_fn_def(S, T, ...)                                                     \
+    TransDef(S, T) TransTbl(S, T)[] = {__VA_ARGS__};                                   \
+    void TransDef_OP_def(S, T, displayone)(char* res, size_t i) {                      \
+        if (i < TransMax(S, T) && TransTbl(S, T)[i].sid != NULL) {                     \
+            sprintf(res, "%s", Tys_sym(TransTbl(S, T)[i].tt));                         \
+        }                                                                              \
+    }                                                                                  \
+    void TransDef_OP_def(S, T, display)(char* res) {                                   \
+        for (size_t i = 0; i < TransMax(S, T) && TransTbl(S, T)[i].sid != NULL; i++) { \
+            sprintf(res, "%d\n", TransTbl(S, T)[i].sid[0]);                            \
+        }                                                                              \
     }
 
-
-
-
-
+#define TransDef_displayone(S, T, C, I) TransDef_OP(S, T, displayone)(C, I)
+#define TransDef_display(S, T, C)       TransDef_OP(S, T, display)(C)
 
 // ==================================================================================== //
 //                                    evo: Task

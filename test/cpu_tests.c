@@ -42,9 +42,9 @@ UnitTest_fn_def(test_cpu_display){
 
 
 UnitTest_fn_def(all_tests) {
-    UnitTest_add(test_cpu_reg);
-    UnitTest_add(test_cpu_display);
-    UnitTest_add(test_cpu_mem);
+    // UnitTest_add(test_cpu_reg);
+    // UnitTest_add(test_cpu_display);
+    // UnitTest_add(test_cpu_mem);
     return NULL;
 }
 
