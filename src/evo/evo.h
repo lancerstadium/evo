@@ -998,6 +998,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define TransDef(S, T)                  CONCAT3(TransDef_, CONCAT(S,_), T)
 #define TransTbl(S, T)                  CONCAT3(S##_, T, _trans_tbl)
 #define TransMax(S, T)                  (sizeof(TransTbl(S, T))/sizeof(TransDef(S, T)))
+#define TransIsEnd(S, T, I)               (((I) < TransMax(S, T)) && (TransTbl(S, T)[I].sid != NULL))
 #define TransDef_OP(S, T, OP)           CONCAT4(TransDef_, S##_, T##_, OP)
 #define TransDef_OP_def(S, T, OP)       UNUSED TransDef_OP(S, T, OP)
 #define TransDef_T(S, T) \

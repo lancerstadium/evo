@@ -6,7 +6,7 @@
 
 UnitTest_fn_def(test_tran_display){
     char buf[24];
-    for (size_t i = 0; i < 2; i++) {
+    for (size_t i = 0; TransIsEnd(RV, EIR, i) ; i++) {
         TransDef_displayone(RV, EIR, buf, i);
         UnitTest_msg("%s", buf);
     }
