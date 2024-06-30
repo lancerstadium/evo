@@ -7,8 +7,8 @@
 
 #define Tys_gen1op2(ID, OP1, OP2)               Tys_new(Ty_N(ID), Ty_t(OP1), Ty_t(OP2))
 #define Tys_gen1op3(ID, OP1, OP2, OP3)          Tys_new(Ty_N(ID), Ty_t(OP1), Ty_t(OP2), Ty_t(OP3))
-#define Tys_gencond(OP1, OP2, OP3, COND)        Tys_new(Ty_N(EIR_CMP), Ty_t(OP1), Ty_t(OP2), Ty_t(OP3), Ty_c(COND))
-#define Tys_genbrc(COND)                        Tys_new(Ty_nl(0), Ty_gr(1), Ty_gr(2), Ty_gnp(0), Ty_N(EIR_CMP), Ty_c(COND), Ty_s(0), Ty_s(1), Ty_sl(0), Ty_N(EIR_GOTO), Ty_i(1)) 
+#define Tys_gencond(OP1, OP2, OP3, COND)        Tys_new(Ty_N(EIR_CMP_I32), Ty_c(COND), Ty_t(OP1), Ty_t(OP2), Ty_t(OP3))
+#define Tys_genbrc(COND)                        Tys_new(Ty_nl(0), Ty_gr(1), Ty_gr(2), Ty_gnp(0), Ty_N(EIR_CMP_I32), Ty_c(COND), Ty_s(0), Ty_s(1), Ty_sl(0), Ty_N(EIR_GOTO), Ty_i(1)) 
 
 TransDef_fn_def(RV, EIR,
     /* RV32I: R-Type Arithmetic */
@@ -32,7 +32,7 @@ TransDef_fn_def(RV, EIR,
     {   SID_new(RV_SRAI)        , .tt = Tys_gen1op3(EIR_SAR_I32 , 0, 1, 2)      },
     /* RV32I: U-Type Arithmetic */
     {   SID_new(RV_LUI)         , .tt = Tys_gen1op2(EIR_MOV_I32 , 0, 1)         },
-    {   SID_new(RV_AUIPC)       , .tt = Tys_new(Ty_N(EIR_MOV_I32), Ty_t(0), Ty_gnp(0), Ty_s(0)) },
+    {   SID_new(RV_AUIPC)       , .tt = Tys_new(Ty_gnp(0), Ty_N(EIR_MOV_I32), Ty_t(0), Ty_s(0)) },
     /* RV32I: Load I-Type & Store S-Type */
     {   SID_new(RV_LB)          , .tt = Tys_gen1op3(EIR_LDB_I32 , 0, 1, 2)      },
     {   SID_new(RV_LH)          , .tt = Tys_gen1op3(EIR_LDH_I32 , 0, 1, 2)      },

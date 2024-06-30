@@ -74,12 +74,12 @@ InsnID_def(EIR,
     /* ==== EIR: Shift =========== */
     REP6(EIR_EL, SHL_I32, SHL_I64, SHR_I32, SHR_I64, SAR_I32, SAR_I64),
     REP4(EIR_EL, ROL_I32, ROL_I64, ROR_I32, ROR_I64),
-    /* ==== EIR: Move ============ */
-    REP2(EIR_EL, MOV_I32, MOV_I64),
     /* ==== EIR: Bitwise ========= */
     REP4(EIR_EL, EXTB_I32, EXTB_I64, EXTB_U32, EXTB_U64),
     REP4(EIR_EL, EXTH_I32, EXTH_I64, EXTH_U32, EXTH_U64),
     REP4(EIR_EL, EXTW_I32, EXTW_I64, EXTW_U32, EXTW_U64),
+    /* ==== EIR: Move ============ */
+    REP2(EIR_EL, MOV_I32, MOV_I64),
     /* ==== EIR: Load & Store ==== */
     REP4(EIR_EL, LDB_I32, LDB_I64, LDB_U32, LDB_U64),
     REP4(EIR_EL, LDH_I32, LDH_I64, LDH_U32, LDH_U64),
@@ -87,7 +87,7 @@ InsnID_def(EIR,
     REP4(EIR_EL, STB_I32, STB_I64, STH_I32, STH_I64),
     REP2(EIR_EL, STW_I32, STW_I64),
     /* ==== EIR: Compare ========= */
-    REP1(EIR_EL, CMP),
+    REP2(EIR_EL, CMP_I32, CMP_I64),
     /* ==== EIR: Function ======== */
     REP2(EIR_EL, CALL, RET),
     /* ==== EIR: System ========= */
@@ -110,18 +110,69 @@ InsnID_def(EIR,
 #define Ty_eirr2(V)         Ty_r(V, {31, 24})
 #define Ty_eiriw(V)         Ty_i(V, {63, 32})
 #define Ty_eiriw2(V)        Ty_i(V, {55, 24})
+#define Ty_eirid(V)         Ty_i(V, {95, 32})
+#define Ty_eirid2(V)        Ty_i(V, {87, 24})
 
-#define Tys_eirri()         Tys_new(Ty_eirop(0))
-#define Tys_eirRI()         Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eiriw(0), r, 0, {31, 24}))
-#define Tys_eirRI2()        Tys_new(Ty_eirrd(0), Ty_or(Ty_eiriw(0), r, 0, {23, 16}))
+#define Tys_eirop()         Tys_new(Ty_eirop(0))
+#define Tys_eirIw()         Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_eiriw(0))
+#define Tys_eirId()         Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_eirid(0))
+#define Tys_eirRIw()        Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eiriw(0), r, 0, {31, 24}))
+#define Tys_eirRIw2()       Tys_new(Ty_eirrd(0), Ty_or(Ty_eiriw(0), r, 0, {23, 16}))
+#define Tys_eirRIw4()       Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eiriw(0), r, 0, {31, 24}), Ty_c(0))
+#define Tys_eirRId()        Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eirid(0), r, 0, {31, 24}))
+#define Tys_eirRId2()       Tys_new(Ty_eirrd(0), Ty_or(Ty_eirid(0), r, 0, {23, 16}))
+#define Tys_eirRId4()       Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eirid(0), r, 0, {31, 24}), Ty_c(0))
 
 
 InsnDef_def(EIR,
-    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
-    [EIR_ADD_I64]   = { .id = EIR_ADD_I64   , .mnem = "add_i64" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
-    [EIR_SUB_I32]   = { .id = EIR_SUB_I32   , .mnem = "sub_i32" , .bc = Val_u8(0x02)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
-    [EIR_SUB_I64]   = { .id = EIR_SUB_I64   , .mnem = "sub_i64" , .bc = Val_u8(0x02)    , .tc = Tys_eirri()     , .tr = Tys_eirRI2() },
-    [EIR_NEG_I32]   = { .id = EIR_NEG_I32   , .mnem = "neg_i32" , .bc = Val_u8(0x03)    , .tc = Tys_eirri()     , .tr = Tys_eirRI2() },
+    /* ==== EIR: Arithmetic  ===== */
+    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u8(0x01)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_ADD_I64]   = { .id = EIR_ADD_I64   , .mnem = "add_i64" , .bc = Val_u8(0x01)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_SUB_I32]   = { .id = EIR_SUB_I32   , .mnem = "sub_i32" , .bc = Val_u8(0x02)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_SUB_I64]   = { .id = EIR_SUB_I64   , .mnem = "sub_i64" , .bc = Val_u8(0x02)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_NEG_I32]   = { .id = EIR_NEG_I32   , .mnem = "neg_i32" , .bc = Val_u8(0x03)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw2() },
+    [EIR_NEG_I64]   = { .id = EIR_NEG_I64   , .mnem = "neg_i64" , .bc = Val_u8(0x03)    , .tc = Tys_eirop()     , .tr = Tys_eirRId2() },
+    [EIR_MUL_I32]   = { .id = EIR_MUL_I32   , .mnem = "mul_i32" , .bc = Val_u8(0x04)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_MUL_I64]   = { .id = EIR_MUL_I64   , .mnem = "mul_i64" , .bc = Val_u8(0x04)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_DIV_I32]   = { .id = EIR_DIV_I32   , .mnem = "div_i32" , .bc = Val_u8(0x05)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_DIV_I64]   = { .id = EIR_DIV_I64   , .mnem = "div_i64" , .bc = Val_u8(0x05)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_REM_I32]   = { .id = EIR_REM_I32   , .mnem = "rem_i32" , .bc = Val_u8(0x06)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_REM_I64]   = { .id = EIR_REM_I64   , .mnem = "rem_i64" , .bc = Val_u8(0x06)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    /* ==== EIR: Logical ========= */
+    [EIR_AND_I32]   = { .id = EIR_AND_I32   , .mnem = "and_i32" , .bc = Val_u8(0x07)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_AND_I64]   = { .id = EIR_AND_I64   , .mnem = "and_i64" , .bc = Val_u8(0x07)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_OR_I32]    = { .id = EIR_OR_I32    , .mnem = "or_i32"  , .bc = Val_u8(0x08)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_OR_I64]    = { .id = EIR_OR_I64    , .mnem = "or_i64"  , .bc = Val_u8(0x08)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_XOR_I32]   = { .id = EIR_XOR_I32   , .mnem = "xor_i32" , .bc = Val_u8(0x09)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_XOR_I64]   = { .id = EIR_XOR_I64   , .mnem = "xor_i64" , .bc = Val_u8(0x09)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_NOT_I32]   = { .id = EIR_NOT_I32   , .mnem = "not_i32" , .bc = Val_u8(0x0A)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw2() },
+    [EIR_NOT_I64]   = { .id = EIR_NOT_I64   , .mnem = "not_i64" , .bc = Val_u8(0x0A)    , .tc = Tys_eirop()     , .tr = Tys_eirRId2() },
+    /* ==== EIR: Shift =========== */
+    [EIR_SHL_I32]   = { .id = EIR_SHL_I32   , .mnem = "shl_i32" , .bc = Val_u8(0x0B)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_SHL_I64]   = { .id = EIR_SHL_I64   , .mnem = "shl_i64" , .bc = Val_u8(0x0B)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_SHR_I32]   = { .id = EIR_SHR_I32   , .mnem = "shr_i32" , .bc = Val_u8(0x0C)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_SHR_I64]   = { .id = EIR_SHR_I64   , .mnem = "shr_i64" , .bc = Val_u8(0x0C)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    [EIR_SAR_I32]   = { .id = EIR_SAR_I32   , .mnem = "sar_i32" , .bc = Val_u8(0x0D)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw()  },
+    [EIR_SAR_I64]   = { .id = EIR_SAR_I64   , .mnem = "sar_i64" , .bc = Val_u8(0x0D)    , .tc = Tys_eirop()     , .tr = Tys_eirRId()  },
+    /* ==== EIR: Move ============ */
+    [EIR_MOV_I32]   = { .id = EIR_MOV_I32   , .mnem = "mov_i32" , .bc = Val_u8(0x0E)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw2() },
+    [EIR_MOV_I64]   = { .id = EIR_MOV_I64   , .mnem = "mov_i64" , .bc = Val_u8(0x0E)    , .tc = Tys_eirop()     , .tr = Tys_eirRId2() },
+    /* ==== EIR: Load & Store ==== */
+    [EIR_LDB_I32]   = { .id = EIR_LDB_I32   , .mnem = "ldb_i32" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_LDB_I64]   = { .id = EIR_LDB_I64   , .mnem = "ldb_i64" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    [EIR_LDH_I32]   = { .id = EIR_LDH_I32   , .mnem = "ldh_i32" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_LDH_I64]   = { .id = EIR_LDH_I64   , .mnem = "ldh_i64" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    [EIR_LDW_I32]   = { .id = EIR_LDW_I32   , .mnem = "ldw_i32" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_LDW_I64]   = { .id = EIR_LDW_I64   , .mnem = "ldw_i64" , .bc = Val_u8(0x0F)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    [EIR_STB_I32]   = { .id = EIR_STB_I32   , .mnem = "stb_i32" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_STB_I64]   = { .id = EIR_STB_I64   , .mnem = "stb_i64" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    [EIR_STH_I32]   = { .id = EIR_STH_I32   , .mnem = "sth_i32" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_STH_I64]   = { .id = EIR_STH_I64   , .mnem = "sth_i64" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    [EIR_STW_I32]   = { .id = EIR_STW_I32   , .mnem = "stw_i32" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirIw()   },
+    [EIR_STW_I64]   = { .id = EIR_STW_I64   , .mnem = "stw_i64" , .bc = Val_u8(0x10)    , .tc = Tys_eirop()     , .tr = Tys_eirId()   },
+    /* ==== EIR: Compare ========= */
+    [EIR_CMP_I32]   = { .id = EIR_CMP_I32   , .mnem = "cmp_i32" , .bc = Val_u8(0x11)    , .tc = Tys_eirop()     , .tr = Tys_eirRIw4() },
+    [EIR_CMP_I64]   = { .id = EIR_CMP_I64   , .mnem = "cmp_i64" , .bc = Val_u8(0x11)    , .tc = Tys_eirop()     , .tr = Tys_eirRId4()  },
 
 );
 
