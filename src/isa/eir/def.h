@@ -20,6 +20,7 @@
 
 RegID_def(EIR,
     REP8(EIR_EL, R0, R1, R2, R3, R4, R5, R6, R7),
+    
 );
 
 
@@ -34,6 +35,7 @@ InsnID_def(EIR,
 
 InsnDef_def(EIR,
     [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u32(0x01) , .tr = Tys_new() },
+
 );
 
 
