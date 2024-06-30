@@ -298,27 +298,6 @@ CPUState_def(RV,
 // ==================================================================================== //
 
 
-#if defined(CFG_IISA_EIR) || defined(CFG_TISA_EIR)
-#include <isa/eir/def.h>
-
-
-
-
-
-Trans_def(RV, EIR,
-
-,
-
-    Trans_gen_def(RV, EIR, ADD)() {
-        
-    }
-
-
-
-);
-
-
-#endif
 
 
 

@@ -309,6 +309,18 @@ typedef struct {
  * 
  * ----------------------------------------------------------------------------------------
  * 
+ * Flag:
+ * 
+ *  |  TY_  |                                                                       |
+ *  |-------|-----------------------------------------------------------------------|
+ *  |   N   |                         ISA_InsnID (0-2^32)                           |
+ *  |   t   |                                                           | x x x x x |
+ * 
+ * 
+ * 
+ * 
+ * 
+ * ----------------------------------------------------------------------------------------
  * ```
  */
 
@@ -345,8 +357,9 @@ typedef enum {
     TY_l    =   1 << 8,
     TY_c    =   1 << 9,
     TY_e    =   1 << 10,
+    TY_oprs =   TY_x | TY_o | TY_r | TY_i | TY_m | TY_l | TY_c | TY_e ,    
+    /* trans */
     TY_t    =   1 << 11,
-    TY_oprs =   TY_x | TY_o | TY_r | TY_i | TY_m | TY_l | TY_c | TY_e | TY_t ,                     
 } TyKd;
 
 typedef struct {
@@ -747,6 +760,29 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 //                                    evo: Block
 // ==================================================================================== //
 
+#define Block(T) CONCAT(Block_, T)
+#define Block_OP(T, OP) CONCAT3(Block_, T##_, OP)
+#define Block_OP_def(T, OP) UNUSED Block_OP(T, OP)
+#define Block_T(T)        \
+    typedef struct {      \
+        Insn(T) * *insns; \
+        size_t len;       \
+    } Block(T)
+
+#define Block_def(T) \
+    Block_T(T);      \
+    Block(T) * Block_OP(T, init)(int* sid, size_t len);
+
+#define Block_fn_def(T)                                  \
+    Block(T) * Block_OP(T, init)(int* sid, size_t len) { \
+        Log_ast(sid != NULL, "Block_init: sid is null"); \
+        Block(T)* block = malloc(sizeof(Block(T)));      \
+        block->insns = malloc(sizeof(Insn(T)*) * len);   \
+        block->len = len;                                \
+        for (size_t i = 0; i < len; i++) {               \
+            block->insns[i] = Insn_OP(T, new)(sid[i]);   \
+        }                                                \
+    }
 
 
 
@@ -946,12 +982,31 @@ UNUSED static char* cpustatus_tbl2 [] = {
 //                                    evo: Trans
 // ==================================================================================== //
 
+#define TransDef(S, T)                  CONCAT3(TransDef_, S##_, T)
+#define TransTbl(S, T)                  CONCAT3(S##_, T, _trans_tbl)
+#define TransDef_OP(S, T, OP)           CONCAT4(TransDef_, S##_, T##_, OP)
+#define TransDef_OP_def(S, T, OP)       UNUSED TransDef_OP(S, T, OP)
+#define TransDef_T(S, T) \
+    typedef struct {     \
+        int* sid;        \
+        size_t len;      \
+        Tys tys;         \
+    } TransDef(S, T)
 
-#define Trans(S, T)                 CONCAT3(Trans_, S##_, T)
-#define Trans_OP(S, T, OP)          CONCAT4(Trans_, S##_, T##_, OP)
-#define Trans_OP_def(S, T, OP)      UNUSED Trans_OP(S, T, OP)
-#define Trans_gen(S, T, N)          CONCAT5(Trans_, CONCAT(S,_), CONCAT(T,_), gen_, N)
-#define Trans_gen_def(S, T, N)      static inline void UNUSED Trans_gen(S, T, N)
+#define SID_new(...)   .sid = (int[]){__VA_ARGS__}, .len = sizeof((int[]){__VA_ARGS__})/sizeof(int)
+
+#define TransDef_def(S, T, ...) \
+    TransDef_T(S, T);           \
+    UNUSED static TransDef(S, T) TransTbl(S, T)[] = {__VA_ARGS__}
+
+#define TransDef_fn_def(S, T)
+
+
+#define Trans(S, T)                     CONCAT3(Trans_, S##_, T)
+#define Trans_OP(S, T, OP)              CONCAT4(Trans_, S##_, T##_, OP)
+#define Trans_OP_def(S, T, OP)          UNUSED Trans_OP(S, T, OP)
+#define Trans_gen(S, T, N)              CONCAT5(Trans_, CONCAT(S,_), CONCAT(T,_), gen_, N)
+#define Trans_gen_def(S, T, N)          static inline void UNUSED Trans_gen(S, T, N)
 #define Trans_T(S, T, C)  \
     typedef struct {      \
         size_t slen;      \
