@@ -574,6 +574,52 @@ Val* Val_set_bit(Val *v, size_t hi, size_t lo, Val *val) {
     return v;
 }
 
+// v[hi:lo] = val
+Val* Val_imp_bit(Val **v, size_t hi, size_t lo, Val *val) {
+    Log_ast(v, "Val_set_bit: v is null");
+    Log_ast(*v, "Val_set_bit: v is null");
+    Log_ast(val, "Val_set_bit: val is null");
+    Log_ast(hi > lo, "Val_set_bit: hi > lo");
+    // Log_ast(hi < v->len * 8, "Val_set_bit: hi < v->len");
+    // Log_ast(lo < v->len * 8, "Val_set_bit: lo < v->len");
+
+    size_t start = lo / 8;
+    size_t lo_ = lo - start * 8;
+    size_t hi_ = hi - start * 8;
+    size_t scl = hi_ - lo_ + 1;
+
+    // realloc bits
+    if (lo >= (*v)->len * 8 || hi >= (*v)->len * 8) {
+        size_t len = start + scl / 8;
+        if(scl % 8) len++;
+        Val* tmp_v = Val_alloc(len);
+        for(size_t i = 0; i < (*v)->len; i++) {
+            tmp_v->b[i] = (*v)->b[i];
+        }
+        Val_free((*v));
+        (*v) = tmp_v;
+    }
+
+    // clear bits
+    u64 tmp = Val_as_u64((*v), start);
+    u64 mask = BITMASK(scl) << lo_;
+    if (scl >= 64) {
+        mask = ~0;
+        scl = 64;
+    }
+    tmp &= ~mask;
+
+    // set bits
+    u64 val_u64 = Val_as_u64(val, 0);
+    tmp |= ((val_u64 << lo_) & mask);
+
+    // set val to v
+    for(size_t i = 0; (i < (*v)->len) && (i < 8); i++) {
+        (*v)->b[i+start] = (tmp >> (i * 8)) & 0xFF;
+    }
+    return (*v);
+}
+
 bool Val_eq_bit(Val *v, size_t hi, size_t lo, Val *val) {
     Log_ast(v, "Val_eq_bit: v is null");
     Log_ast(val, "Val_eq_bit: val is null");
@@ -680,6 +726,31 @@ Val* Val_wrt_map(Val *v, BitMap* map, size_t len, Val *val) {
         }
     }
     return v;
+}
+
+
+Val* Val_imp_map(Val **v, BitMap* map, size_t len, Val *val) {
+    Log_ast(v != NULL, "Val_wrt_map: v is null");
+    Log_ast(*v != NULL, "Val_wrt_map: v is null");
+    Log_ast(map != NULL, "Val_wrt_map: map is null");
+    Log_ast(val != NULL, "Val_wrt_map: val is null");
+    u64 val_ = Val_as_u64(val, 0);
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            size_t scl = map[i].h - map[i].l + 1;
+            u64 mask = BITMASK(scl);
+            if (scl >= 64) {
+                mask = ~0;
+                scl = 64;
+            }
+            u64 tmp = val_ & mask;
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
+            Val_imp_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
+            val_ >>= scl;
+        }
+    }
+    return (*v);
 }
 
 // compare map <-> val (no position)

@@ -506,6 +506,7 @@ u64 Val_get_map(Val *v, BitMap* map, size_t len);
 Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val);
 Val* Val_wrt_map(Val *v, BitMap* map, size_t len, Val *val);
+Val* Val_imp_map(Val **v, BitMap* map, size_t len, Val *val);
 bool Val_eq_map(Val *v, BitMap* map, size_t len, Val *val);
 bool Val_cmp_map(Val *v, BitMap* map, size_t len, Val *val);
 Val* Val_ext_map(Val *v, BitMap* map, size_t len);
@@ -614,7 +615,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 
 #define InsnDef_def(T, ...)                                          \
     InsnDef_T(T);                                                    \
-    UNUSED static InsnDef(T) InsnTbl(T)[InsnMax(T)] = { [T##_NOP]    = { .id = T##_NOP    , .mnem = "nop"     , .bc = Val_u32(0x00) }, __VA_ARGS__}; \
+    UNUSED static InsnDef(T) InsnTbl(T)[InsnMax(T)] = { [T##_NOP]    = { .id = T##_NOP    , .mnem = "nop"     , .bc = Val_u8(0x00) }, __VA_ARGS__}; \
     bool InsnDef_OP_def(T, match)(Val * bc, size_t i);               \
     void InsnDef_OP_def(T, displayone)(char* res, size_t i);         \
     void InsnDef_OP_def(T, display)(char* res);
@@ -656,7 +657,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define Insn_T(T, S)      \
     typedef struct {      \
         InsnID(T) id;     \
-        Val bc;           \
+        Val* bc;          \
         Val** oprs;       \
         size_t len;       \
         u32 flag;         \
@@ -677,7 +678,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                                                         \
         char res_buf[32];                                                                                             \
         res[0] = '\0';                                                                                                \
-        sprintf(res_buf, "%-14s %s ", ValHex(&insn->bc), InsnTbl(T)[insn->id].mnem);                                  \
+        sprintf(res_buf, "%-14s %s ", ValHex(insn->bc), InsnTbl(T)[insn->id].mnem);                                   \
         strcat(res, res_buf);                                                                                         \
         for (size_t i = 0; i < insn->len; i++) {                                                                      \
             if (insn->oprs[i] != NULL) {                                                                              \
@@ -699,7 +700,8 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);                                                  \
         Insn(T)* res = malloc(sizeof(Insn(T)));                                                                       \
         res->id = id;                                                                                                 \
-        res->bc = InsnTbl(T)[id].bc;                                                                                  \
+        res->bc = Val_alloc(InsnTbl(T)[id].bc.len);                                                                   \
+        Val_copy(res->bc, &InsnTbl(T)[id].bc);                                                                        \
         res->len = InsnTbl(T)[id].tr.len;                                                                             \
         res->oprs = malloc(res->len * sizeof(Val));                                                                   \
         memset(res->oprs, 0, res->len * sizeof(Val));                                                                 \
@@ -707,7 +709,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         return res;                                                                                                   \
     }                                                                                                                 \
     Insn(T) * Insn_OP_def(T, match)(Val * bc) {                                                                       \
-        for (size_t i = 0; i < InsnMax(T); i++) {                                                                     \
+        for (size_t i = 1; i < InsnMax(T); i++) {                                                                     \
             if (InsnDef_match(T, bc, i)) {                                                                            \
                 Insn(T)* res = Insn_OP(T, new)(i);                                                                    \
                 return res;                                                                                           \
@@ -724,7 +726,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
                 BitMap* bm = (df->tr.t[i]).map;                                                                       \
                 size_t bml = (df->tr.t[i]).len;                                                                       \
                 insn->oprs[i] = args[i];                                                                              \
-                Val_wrt_map(&insn->bc, bm, bml, args[i]);                                                             \
+                Val_imp_map(&insn->bc, bm, bml, args[i]);                                                             \
             }                                                                                                         \
         }                                                                                                             \
         return insn;                                                                                                  \
@@ -737,7 +739,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
                 BitMap* bm = (df->tr.t[i]).map;                                                                       \
                 size_t bml = (df->tr.t[i]).len;                                                                       \
                 insn->oprs[i] = Val_ext_map(bc, bm, bml);                                                             \
-                Val_copy(&insn->bc, bc);                                                                              \
+                Val_copy(insn->bc, bc);                                                                               \
             }                                                                                                         \
         }                                                                                                             \
         return insn;                                                                                                  \
