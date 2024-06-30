@@ -28,6 +28,7 @@ UnitTest_fn_def(test_insn_encode){
     args[0] = Val_new_u8(1);
     args[1] = Val_new_u8(2);
     args[2] = Val_new_u8(3);
+    Val_tset(args[2], TY_i);
     Insn_display(EIR, insn, buf);
     UnitTest_msg("%s", buf);
     Insn_encode(EIR, insn, args);

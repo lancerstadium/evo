@@ -32,11 +32,22 @@ bool Val_tmatch(Val* v, int ty) {
     if(v->t == ty) {
         return true;
     } else if (v->t == TY_NONE) {
-        v->t = ty;
+        if(ty == TY_r) {
+            if (v->len == 1) {
+                v->t = TY_r;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            v->t = ty;
+            return true;
+        }
+    } else if (ty == TY_NONE) {
         return true;
-    } else if (ty == TY_NONE){
+    } else if (ty == TY_o && (TY_oprs == (v->t | TY_oprs))) {
         return true;
-    }else {
+    } else {
         return false;
     }
 }
