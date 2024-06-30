@@ -1055,7 +1055,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
     typedef struct {            \
         CPUState(S) * cs;       \
         Insn(S) * pc_succ_insn; \
-        void* tb;               \
+        Block(T)* tb;           \
     } Translator(S, T)
 
 #define Translator_def(S, T)                          \
