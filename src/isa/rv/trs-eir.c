@@ -1,9 +1,10 @@
-#include <isa/rv/def.h>
-
+#include <isa/rv/trs-eir.h>
 
 #if defined(CFG_IISA_EIR) || defined(CFG_TISA_EIR)
 #include <isa/eir/def.h>
 
+
+Translator_fn_def(RV, EIR);
 
 #define Tys_gen1op2(ID, OP1, OP2)               Tys_new(Ty_N(ID), Ty_t(OP1), Ty_t(OP2))
 #define Tys_gen1op3(ID, OP1, OP2, OP3)          Tys_new(Ty_N(ID), Ty_t(OP1), Ty_t(OP2), Ty_t(OP3))
@@ -51,7 +52,6 @@ TransDef_fn_def(RV, EIR,
     {   SID_new(RV_BGEU)        , .tt = Tys_genbrc(TY_COND_GEU)                 },
 
 );
-
 
 
 #endif  // CFG_XISA_EIR

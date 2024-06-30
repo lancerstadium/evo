@@ -810,9 +810,8 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         for (size_t i = 0; i < len; i++) {               \
             block->insns[i] = Insn_OP(T, new)(sid[i]);   \
         }                                                \
+        return block;                                    \
     }
-
-
 
 // ==================================================================================== //
 //                                    evo: CPU
@@ -1046,6 +1045,34 @@ UNUSED static char* cpustatus_tbl2 [] = {
 
 #define TransDef_displayone(S, T, C, I) TransDef_OP(S, T, displayone)(C, I)
 #define TransDef_display(S, T, C)       TransDef_OP(S, T, display)(C)
+
+
+#define Translator(S, T)     CONCAT3(Translator_, S##_, T)
+#define Translator_OP(S, T, OP)  CONCAT4(Translator_, S##_, T##_, OP)
+#define Translator_OP_def(S, T, OP) UNUSED Translator_OP(S, T, OP)
+
+#define Translator_T(S, T)      \
+    typedef struct {            \
+        CPUState(S) * cs;       \
+        Insn(S) * pc_succ_insn; \
+        void* tb;               \
+    } Translator(S, T)
+
+#define Translator_def(S, T)                          \
+    Translator_T(S, T);                                                        \
+    Translator(S, T) * Translator_OP_def(S, T, init)();
+
+#define Translator_fn_def(S, T)                                                \
+    Translator(S, T) * Translator_OP_def(S, T, init)() {                       \
+        Translator(S, T)* t = malloc(sizeof(Translator(S, T)));                \
+        t->tb = NULL;                                                          \
+        t->cs = CPUState_init(S, 0);                                           \
+        t->pc_succ_insn = CPUState_decode(S, t->cs, CPUState_fetch(S, t->cs)); \
+        t->tb = NULL;                                                          \
+        return t;                                                              \
+    }
+
+#define Translator_init(S, T)  Translator_OP(S, T, init)()
 
 // ==================================================================================== //
 //                                    evo: Task
