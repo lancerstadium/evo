@@ -10,10 +10,11 @@
 
 
 TransDef_fn_def(RV, EIR,
-    {   SID_new(RV_ADD)       , .tt = Tys_gen1op2(EIR_ADD_I32, 0, 1) },
-    {   SID_new(RV_SUB)       , .tt = Tys_gen1op2(EIR_SUB_I32, 0, 1) },
-    {   SID_new(RV_XOR)       , .tt = Tys_gen1op2(EIR_XOR_I32, 0, 1) },
-
+    {   SID_new(RV_ADD)         , .tt = Tys_gen1op3(EIR_ADD_I32, 0, 1, 2)   },
+    {   SID_new(RV_SUB)         , .tt = Tys_gen1op3(EIR_SUB_I32, 0, 1, 2)   },
+    {   SID_new(RV_XOR)         , .tt = Tys_gen1op3(EIR_XOR_I32, 0, 1, 2)   },
+    {   SID_new(RV_LUI)         , .tt = Tys_gen1op2(EIR_MOV_I32, 0, 1)      },
+    {   SID_new(RV_AUIPC)       , .tt = Tys_new(Ty_N(EIR_MOV_I32), Ty_t(0), Ty_gnp(0), Ty_s(0)) },
 );
 
 
