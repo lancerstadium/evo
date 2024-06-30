@@ -1,15 +1,58 @@
 
 #include <evo/evo.h>
 
-
-
 Val* Val_alloc(size_t len) {
     Val* v = malloc(sizeof(Val));
     v->len = len;
     v->b = malloc(len * sizeof(u8));
+    v->t = TY_NONE;
     memset(v->b, 0, len * sizeof(u8));
     return v;
 }
+
+Val* Val_talloc(size_t len, int ty) {
+    Val* v = malloc(sizeof(Val));
+    v->len = len;
+    v->b = malloc(len * sizeof(u8));
+    v->t = ty;
+    memset(v->b, 0, len * sizeof(u8));
+    return v;
+}
+
+
+Val* Val_tset(Val* v, int ty) {
+    Log_ast(v != NULL, "Val_tset: v is null");
+    v->t = ty;
+    return v;
+}
+
+
+bool Val_tmatch(Val* v, int ty) {
+    Log_ast(v != NULL, "Val_tmatch: v is null");
+    if(v->t == ty) {
+        return true;
+    } else if (v->t == TY_NONE) {
+        v->t = ty;
+        return true;
+    } else if (ty == TY_NONE){
+        return true;
+    }else {
+        return false;
+    }
+}
+
+
+Val* Val_tymatch(Val* v, Ty* t) {
+    Ty* cur = t;
+    while(cur != NULL) {
+        if(Val_tmatch(v, cur->k)) {
+            break;
+        }
+        cur = cur->or;
+    }
+    return v;
+}
+
 
 void Val_free(Val* v) {
     Log_ast(v != NULL, "Val_free: v is null");
@@ -17,6 +60,10 @@ void Val_free(Val* v) {
     free(v);
     v = NULL;
 }
+
+
+
+
 
 Val* Val_inc(Val* v, size_t l) {
     u64 c = Val_as_u64(v, 0);
@@ -31,6 +78,7 @@ Val* Val_from(Val* val) {
     Val* v = malloc(sizeof(Val));
     v->len = val->len;
     v->b = malloc(v->len * sizeof(u8));
+    v->t = val->t;
     for(size_t i=0; i< v->len; i++) {
         v->b[i] = val->b[i];
     }
@@ -68,6 +116,7 @@ Val* Val_from_u32(u32* val, size_t len) {
     Val* v = malloc(sizeof(Val));
     v->len = len;
     v->b = malloc((v->len) * sizeof(u8));
+    v->t = TY_NONE;
     for(size_t i = 0; i < v->len; i++) {
         v->b[i] = (u8)(*((u8*)(val) + i));
     }
@@ -156,6 +205,7 @@ Val* Val_new_u8(u8 val) {
     v->len = 1;
     v->b = malloc(1 * sizeof(u8));
     v->b[0] = val;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -165,6 +215,7 @@ Val* Val_new_u16(u16 val) {
     v->b = malloc(2 * sizeof(u8));
     v->b[0] = val & 0xFF;
     v->b[1] = (val & 0xFF00) >> 8;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -176,6 +227,7 @@ Val* Val_new_u32(u32 val) {
     v->b[1] = (val & 0xFF00) >> 8;
     v->b[2] = (val & 0xFF0000) >> 16;
     v->b[3] = (val & 0xFF000000) >> 24;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -191,6 +243,7 @@ Val* Val_new_u64(u64 val) {
     v->b[5] = (val & 0xFF0000000000) >> 40;
     v->b[6] = (val & 0xFF000000000000) >> 48;
     v->b[7] = (val & 0xFF00000000000000) >> 56;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -199,6 +252,7 @@ Val* Val_new_i8(i8 val) {
     v->len = 1;
     v->b = malloc(1 * sizeof(u8));
     v->b[0] = val;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -251,6 +305,7 @@ Val* Val_new_i16(i16 val) {
     v->b = malloc(2 * sizeof(u8));
     v->b[0] = val & 0xFF;
     v->b[1] = (val & 0xFF00) >> 8;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -262,6 +317,7 @@ Val* Val_new_i32(i32 val) {
     v->b[1] = (val & 0xFF00) >> 8;
     v->b[2] = (val & 0xFF0000) >> 16;
     v->b[3] = (val & 0xFF000000) >> 24;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -277,6 +333,7 @@ Val* Val_new_i64(i64 val) {
     v->b[5] = (val & 0xFF0000000000) >> 40;
     v->b[6] = (val & 0xFF00000000000) >> 48;
     v->b[7] = (val & 0xFF000000000000) >> 56;
+    v->t = TY_NONE;
     return v;
 }
 
@@ -345,6 +402,7 @@ Val* Val_as_val(Val* v, size_t i, size_t len) {
     for(size_t j = 0; (j < len) && (i + j < v->len); j++) {
         res->b[j] = v->b[i+j];
     }
+    v->t = TY_NONE;
     return res;
 }
 

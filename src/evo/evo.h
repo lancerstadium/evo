@@ -343,6 +343,7 @@ typedef enum {
 } TyCond;
 
 typedef enum {
+    TY_NONE =   0,
     /* ctrl */
     TY_I    =   1 << 0,
     TY_S    =   1 << 1,
@@ -403,6 +404,7 @@ typedef struct {
 
 #define Tys_new(...) { .t = (Ty[]){__VA_ARGS__}, .len = (sizeof((Ty[]){__VA_ARGS__}) / sizeof(Ty)) }
 char* Tys_sym(Tys v);
+const char* TyKd_sym(TyKd k);
 
 // ==================================================================================== //
 //                                    evo: Val
@@ -413,26 +415,30 @@ char* Tys_sym(Tys v);
 #endif
 
 typedef struct {
+    int t;
     u8* b;
     size_t len;
 } Val;
 
-#define Val_new(...)  { .b = (u8[]){__VA_ARGS__}, .len = (sizeof((u8[]){__VA_ARGS__}) / sizeof(u8)) }
-#define Val_zero(N)   { .b = (u8[]){0}, .len = (N) }
+#define Val_new(...)  { .t = TY_NONE,  .b = (u8[]){__VA_ARGS__}, .len = (sizeof((u8[]){__VA_ARGS__}) / sizeof(u8)) }
+#define Val_zero(N)   { .t = TY_NONE,  .b = (u8[]){0}, .len = (N) }
 
 #define Val_u8(V) \
-    {   .b = (u8[]){   \
+    {   .t = TY_NONE, \
+        .b = (u8[]){   \
         (u8)((V) >>  0), \
         }, .len = 1 }
 
 #define Val_u16(V) \
-    {   .b = (u8[]){   \
+    {   .t = TY_NONE, \
+        .b = (u8[]){   \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
         }, .len = 2 }
 
 #define Val_u32(V) \
-    {   .b = (u8[]){   \
+    {   .t = TY_NONE, \
+        .b = (u8[]){   \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
         (u8)((V) >> 16), \
@@ -440,7 +446,8 @@ typedef struct {
         }, .len = 4 }
 
 #define Val_u64(V) \
-    {   .b = (u8[]){  \
+    {   .t = TY_NONE, \
+        .b = (u8[]){  \
         (u8)((V) >>  0), \
         (u8)((V) >>  8), \
         (u8)((V) >> 16), \
@@ -453,6 +460,10 @@ typedef struct {
 
 Val* Val_str(char* str);
 void Val_copy(Val* v, Val* other);
+Val* Val_alloc(size_t len);
+Val* Val_talloc(size_t len, int ty);
+Val* Val_tymatch(Val* v, Ty* t);
+Val* Val_tset(Val* v, int ty);
 void Val_free(Val* v);
 Val* Val_from(Val* val);
 Val* Val_from_file(char* path);
@@ -674,80 +685,80 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]);         \
     __VA_ARGS__
 
-#define Insn_fn_def(T)                                                                                                \
-    void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                                                         \
-        char res_buf[32];                                                                                             \
-        res[0] = '\0';                                                                                                \
-        sprintf(res_buf, "%-14s %s ", ValHex(insn->bc), InsnTbl(T)[insn->id].mnem);                                   \
-        strcat(res, res_buf);                                                                                         \
-        for (size_t i = 0; i < insn->len; i++) {                                                                      \
-            if (insn->oprs[i] != NULL) {                                                                              \
-                if (InsnTbl(T)[insn->id].tr.t[i].k == TY_r) {                                                         \
-                    sprintf(res_buf, "$%s", RegName(RV, Val_as_u8(insn->oprs[i], 0)));                                \
-                } else if (InsnTbl(T)[insn->id].tr.t[i].k == TY_i) {                                                  \
-                    sprintf(res_buf, "%ld", Val_as_i64(insn->oprs[i], 0));                                            \
-                } else {                                                                                              \
-                    sprintf(res_buf, "%s%s", Val_as_hex(insn->oprs[i], false), Ty_sym(InsnTbl(T)[insn->id].tr.t[i])); \
-                }                                                                                                     \
-                strcat(res, res_buf);                                                                                 \
-                if (i != insn->len - 1) {                                                                             \
-                    strcat(res, " ");                                                                                 \
-                }                                                                                                     \
-            }                                                                                                         \
-        }                                                                                                             \
-    }                                                                                                                 \
-    Insn(T) * Insn_OP_def(T, new)(size_t id) {                                                                        \
-        Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);                                                  \
-        Insn(T)* res = malloc(sizeof(Insn(T)));                                                                       \
-        res->id = id;                                                                                                 \
-        res->bc = Val_alloc(InsnTbl(T)[id].bc.len);                                                                   \
-        Val_copy(res->bc, &InsnTbl(T)[id].bc);                                                                        \
-        res->len = InsnTbl(T)[id].tr.len;                                                                             \
-        res->oprs = malloc(res->len * sizeof(Val));                                                                   \
-        memset(res->oprs, 0, res->len * sizeof(Val));                                                                 \
-        res->flag = InsnTbl(T)[id].flag;                                                                              \
-        return res;                                                                                                   \
-    }                                                                                                                 \
-    Insn(T) * Insn_OP_def(T, match)(Val * bc) {                                                                       \
-        for (size_t i = 1; i < InsnMax(T); i++) {                                                                     \
-            if (InsnDef_match(T, bc, i)) {                                                                            \
-                Insn(T)* res = Insn_OP(T, new)(i);                                                                    \
-                return res;                                                                                           \
-            }                                                                                                         \
-        }                                                                                                             \
-        return Insn_OP(T, new)(0);                                                                                    \
-    }                                                                                                                 \
-    Insn(T) * Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]) {                                                  \
-        Log_ast(insn != NULL, "Insn: insn is null");                                                                  \
-        Log_ast(args != NULL, "Insn: args are null");                                                                 \
-        InsnDef(T)* df = INSN(T, insn->id);                                                                           \
-        for (size_t i = 0; i < insn->len; i++) {                                                                      \
-            if (args[i] != NULL) {                                                                                    \
-                BitMap* bm = (df->tr.t[i]).map;                                                                       \
-                size_t bml = (df->tr.t[i]).len;                                                                       \
-                insn->oprs[i] = args[i];                                                                              \
-                Val_imp_map(&insn->bc, bm, bml, args[i]);                                                             \
-            }                                                                                                         \
-        }                                                                                                             \
-        return insn;                                                                                                  \
-    }                                                                                                                 \
-    Insn(T) * Insn_OP_def(T, decode)(Val * bc) {                                                                      \
-        Insn(T)* insn = Insn_OP(T, match)(bc);                                                                        \
-        if (insn != NULL) {                                                                                           \
-            InsnDef(T)* df = INSN(T, insn->id);                                                                       \
-            for (size_t i = 0; i < insn->len; i++) {                                                                  \
-                BitMap* bm = (df->tr.t[i]).map;                                                                       \
-                size_t bml = (df->tr.t[i]).len;                                                                       \
-                insn->oprs[i] = Val_ext_map(bc, bm, bml);                                                             \
-                Val_copy(insn->bc, bc);                                                                               \
-            }                                                                                                         \
-        }                                                                                                             \
-        return insn;                                                                                                  \
-    }                                                                                                                 \
-    Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]) {                                                          \
-        Insn(T)* insn = Insn_OP(T, new)(id);                                                                          \
-        insn = Insn_OP(T, encode)(insn, args);                                                                        \
-        return insn;                                                                                                  \
+#define Insn_fn_def(T)                                                                                      \
+    void Insn_OP_def(T, display)(Insn(T) * insn, char* res) {                                               \
+        char res_buf[32];                                                                                   \
+        res[0] = '\0';                                                                                      \
+        sprintf(res_buf, "%-14s %s ", ValHex(insn->bc), InsnTbl(T)[insn->id].mnem);                         \
+        strcat(res, res_buf);                                                                               \
+        for (size_t i = 0; i < insn->len; i++) {                                                            \
+            if (insn->oprs[i] != NULL) {                                                                    \
+                if (insn->oprs[i]->t == TY_r) {                                                             \
+                    sprintf(res_buf, "$%s", RegName(RV, Val_as_u8(insn->oprs[i], 0)));                      \
+                } else if (insn->oprs[i]->t == TY_i) {                                                      \
+                    sprintf(res_buf, "%ld", Val_as_i64(insn->oprs[i], 0));                                  \
+                } else {                                                                                    \
+                    sprintf(res_buf, "%s%s", Val_as_hex(insn->oprs[i], false), TyKd_sym(insn->oprs[i]->t)); \
+                }                                                                                           \
+                strcat(res, res_buf);                                                                       \
+                if (i != insn->len - 1) {                                                                   \
+                    strcat(res, " ");                                                                       \
+                }                                                                                           \
+            }                                                                                               \
+        }                                                                                                   \
+    }                                                                                                       \
+    Insn(T) * Insn_OP_def(T, new)(size_t id) {                                                              \
+        Log_ast(id < InsnMax(T), "Invalid instruction id: %lu", id);                                        \
+        Insn(T)* res = malloc(sizeof(Insn(T)));                                                             \
+        res->id = id;                                                                                       \
+        res->bc = Val_alloc(InsnTbl(T)[id].bc.len);                                                         \
+        Val_copy(res->bc, &InsnTbl(T)[id].bc);                                                              \
+        res->len = InsnTbl(T)[id].tr.len;                                                                   \
+        res->oprs = malloc(res->len * sizeof(Val));                                                         \
+        memset(res->oprs, 0, res->len * sizeof(Val));                                                       \
+        res->flag = InsnTbl(T)[id].flag;                                                                    \
+        return res;                                                                                         \
+    }                                                                                                       \
+    Insn(T) * Insn_OP_def(T, match)(Val * bc) {                                                             \
+        for (size_t i = 1; i < InsnMax(T); i++) {                                                           \
+            if (InsnDef_match(T, bc, i)) {                                                                  \
+                Insn(T)* res = Insn_OP(T, new)(i);                                                          \
+                return res;                                                                                 \
+            }                                                                                               \
+        }                                                                                                   \
+        return Insn_OP(T, new)(0);                                                                          \
+    }                                                                                                       \
+    Insn(T) * Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]) {                                        \
+        Log_ast(insn != NULL, "Insn: insn is null");                                                        \
+        Log_ast(args != NULL, "Insn: args are null");                                                       \
+        InsnDef(T)* df = INSN(T, insn->id);                                                                 \
+        for (size_t i = 0; i < insn->len; i++) {                                                            \
+            if (args[i] != NULL) {                                                                          \
+                BitMap* bm = (df->tr.t[i]).map;                                                             \
+                size_t bml = (df->tr.t[i]).len;                                                             \
+                insn->oprs[i] = Val_tymatch(args[i], &df->tr.t[i]);                                         \
+                Val_imp_map(&insn->bc, bm, bml, args[i]);                                                   \
+            }                                                                                               \
+        }                                                                                                   \
+        return insn;                                                                                        \
+    }                                                                                                       \
+    Insn(T) * Insn_OP_def(T, decode)(Val * bc) {                                                            \
+        Insn(T)* insn = Insn_OP(T, match)(bc);                                                              \
+        if (insn != NULL) {                                                                                 \
+            InsnDef(T)* df = INSN(T, insn->id);                                                             \
+            for (size_t i = 0; i < insn->len; i++) {                                                        \
+                BitMap* bm = (df->tr.t[i]).map;                                                             \
+                size_t bml = (df->tr.t[i]).len;                                                             \
+                insn->oprs[i] = Val_ext_map(bc, bm, bml);                                                   \
+                Val_copy(insn->bc, bc);                                                                     \
+            }                                                                                               \
+        }                                                                                                   \
+        return insn;                                                                                        \
+    }                                                                                                       \
+    Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]) {                                                \
+        Insn(T)* insn = Insn_OP(T, new)(id);                                                                \
+        insn = Insn_OP(T, encode)(insn, args);                                                              \
+        return insn;                                                                                        \
     }
 
 #define Insn_display(T, insn, res)  Insn_OP(T, display)(insn, res)

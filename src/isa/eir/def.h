@@ -104,13 +104,20 @@ InsnID_def(EIR,
 #define Ty_eirr1(V)         Ty_r(V, {23, 16})
 #define Ty_eirr2(V)         Ty_r(V, {31, 24})
 #define Ty_eiriw(V)         Ty_i(V, {63, 32})
+#define Ty_eiriw2(V)        Ty_i(V, {55, 24})
 
 #define Tys_eirri()         Tys_new(Ty_eirop(0))
 #define Tys_eirRI()         Tys_new(Ty_eirrd(0), Ty_eirr1(0), Ty_or(Ty_eiriw(0), r, 0, {31, 24}))
+#define Tys_eirRI2()        Tys_new(Ty_eirrd(0), Ty_or(Ty_eiriw(0), r, 0, {23, 16}))
+
 
 InsnDef_def(EIR,
-    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI() },
-    [EIR_ADD_I64]   = { .id = EIR_ADD_I64   , .mnem = "add_i64" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI() },
+    [EIR_ADD_I32]   = { .id = EIR_ADD_I32   , .mnem = "add_i32" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
+    [EIR_ADD_I64]   = { .id = EIR_ADD_I64   , .mnem = "add_i64" , .bc = Val_u8(0x01)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
+    [EIR_SUB_I32]   = { .id = EIR_SUB_I32   , .mnem = "sub_i32" , .bc = Val_u8(0x02)    , .tc = Tys_eirri()     , .tr = Tys_eirRI()  },
+    [EIR_SUB_I64]   = { .id = EIR_SUB_I64   , .mnem = "sub_i64" , .bc = Val_u8(0x02)    , .tc = Tys_eirri()     , .tr = Tys_eirRI2() },
+    [EIR_NEG_I32]   = { .id = EIR_NEG_I32   , .mnem = "neg_i32" , .bc = Val_u8(0x03)    , .tc = Tys_eirri()     , .tr = Tys_eirRI2() },
+
 );
 
 
