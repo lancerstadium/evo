@@ -8,7 +8,7 @@ OBJDIR = obj
 SOBDIR = src/sob
 INCFLAGS = $(addprefix -I,$(INCDIR))
 OPTFLAGS = 
-CFLAGS = -g -O2 -Wall -Wextra $(INCFLAGS) -rdynamic -DSOB_APP_OFF -DSOB_LOG_DBG_OFF $(OPTFLAGS)
+CFLAGS = -g -O2 -Wall -Wextra -std=gnu11 $(INCFLAGS) -rdynamic -DSOB_APP_OFF -DSOB_LOG_DBG_OFF $(OPTFLAGS)
 PREFIX ?= /usr/local
 LIBS = -ldl $(OPTLIBS)
 OS=$(shell lsb_release -si)

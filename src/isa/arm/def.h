@@ -8,7 +8,7 @@
  * 
  * @note
  * - [Arm Insn](https://groupoid.github.io/languages/ARM.htm)
- * - [A64 Dissamble](https://tonpa.guru/stream/2022/2022-06-11%20A64%20Disassembler.htm)
+ * - [A64 Disasm](https://tonpa.guru/stream/2022/2022-06-11%20A64%20Disassembler.htm)
  * 
  * ## 1 Arm 64 Reg
  * 

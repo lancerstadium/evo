@@ -23,7 +23,6 @@ UnitTest_fn_def(test_insn_display){
 }
 
 UnitTest_fn_def(test_insn_decode){
-    // Test Website: https://luplab.gitlab.io/rvcodecjs/
     // lbu x10, 16(x5) == lbu x5, x10, 16
     Insn(RV)* insn = Insn_decode(RV, Val_new_u32(0b0110011 + (0b011 << 12) + (0x00 << 25) + (0x02 << 7)));
     UnitTest_msg("%s", InsnMnem(RV, insn->id));
