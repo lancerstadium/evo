@@ -18,10 +18,11 @@ UnitTest_fn_def(test_tran_run){
     char buf[48];
     Translator(RV, EIR) * t = Translator_init(RV, EIR);
     Block(RV) *bb = Block_init(RV);
-    Val* val[3];
-    val[0] = Val_new_u8(1);
-    val[1] = Val_new_u8(3);
-    val[2] = Val_new_u8(2);
+    Val* val[3] = {
+        Val_new_u8(1),
+        Val_new_u8(3),
+        Val_new_u8(2)
+    };
     Block_push(RV, bb, RV_ADD, val);
     Block_display(RV, bb, buf);
     UnitTest_msg("%s", buf);
