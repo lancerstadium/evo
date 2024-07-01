@@ -680,15 +680,17 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define Insn(T) CONCAT(Insn_, T)
 #define Insn_OP(T, OP) CONCAT3(Insn_, T##_, OP)
 #define Insn_OP_def(T, OP) UNUSED Insn_OP(T, OP)
-#define Insn_T(T, S)      \
-    typedef struct {      \
-        InsnID(T) id;     \
-        Val* bc;          \
-        Val** oprs;       \
-        size_t len;       \
-        u32 flag;         \
-        S                 \
-    } Insn(T)
+#define Insn_T(T, S)           \
+    typedef struct Insn(T) {   \
+        InsnID(T) id;          \
+        Val* bc;               \
+        Val** oprs;            \
+        struct Insn(T) * next; \
+        size_t len;            \
+        u32 flag;              \
+        S                      \
+    }                          \
+    Insn(T)
 
 #define Insn_def(T, S, ...)                                         \
     Insn_T(T, S);                                                   \
@@ -732,6 +734,7 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         res->oprs = malloc(res->len * sizeof(Val));                                                         \
         memset(res->oprs, 0, res->len * sizeof(Val));                                                       \
         res->flag = InsnTbl(T)[id].flag;                                                                    \
+        res->next = NULL;                                                                                   \
         return res;                                                                                         \
     }                                                                                                       \
     Insn(T) * Insn_OP_def(T, match)(Val * bc) {                                                             \
@@ -788,30 +791,55 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 //                                    evo: Block
 // ==================================================================================== //
 
+typedef enum {
+    BLOCK_INIT,                 /* Basic Block */
+    BLOCK_TRAN,                 /* Translated Block */
+    BLOCK_EXEC,                 /* Executed Block */
+} BlockKd;
+
+
 #define Block(T) CONCAT(Block_, T)
 #define Block_OP(T, OP) CONCAT3(Block_, T##_, OP)
 #define Block_OP_def(T, OP) UNUSED Block_OP(T, OP)
-#define Block_T(T)        \
-    typedef struct {      \
-        Insn(T) * *insns; \
-        size_t len;       \
+#define Block_T(T)       \
+    typedef struct {     \
+        BlockKd kd;      \
+        Insn(T) * ihead; \
+        Insn(T) * itail; \
+        size_t ilen;     \
     } Block(T)
 
-#define Block_def(T) \
-    Block_T(T);      \
-    Block(T) * Block_OP(T, init)(int* sid, size_t len);
+#define Block_def(T)                \
+    Block_T(T);                     \
+    Block(T) * Block_OP(T, init)(); \
+    Block(T) * Block_OP(T, push)(Block(T) * b, int id, Val* args[]);
 
-#define Block_fn_def(T)                                  \
-    Block(T) * Block_OP(T, init)(int* sid, size_t len) { \
-        Log_ast(sid != NULL, "Block_init: sid is null"); \
-        Block(T)* block = malloc(sizeof(Block(T)));      \
-        block->insns = malloc(sizeof(Insn(T)*) * len);   \
-        block->len = len;                                \
-        for (size_t i = 0; i < len; i++) {               \
-            block->insns[i] = Insn_OP(T, new)(sid[i]);   \
-        }                                                \
-        return block;                                    \
+#define Block_fn_def(T)                                               \
+    Block(T) * Block_OP(T, init)() {                                  \
+        Block(T)* b = malloc(sizeof(Block(T)));                       \
+        b->ihead = NULL;                                              \
+        b->itail = NULL;                                              \
+        b->ilen = 0;                                                  \
+        b->kd = BLOCK_INIT;                                           \
+        return b;                                                     \
+    }                                                                 \
+    Block(T) * Block_OP(T, push)(Block(T) * b, int id, Val* args[]) { \
+        if (b->itail == NULL) {                                       \
+            b->itail = Insn_new(T, id);                               \
+            Insn_encode(T, b->itail, args);                           \
+            b->ihead = b->itail;                                      \
+        } else {                                                      \
+            b->itail->next = Insn_new(T, id);                         \
+            b->itail = b->itail->next;                                \
+            Insn_encode(T, b->itail, args);                           \
+            b->ilen = b->ilen + 1;                                    \
+        }                                                             \
+        return b;                                                     \
     }
+
+
+#define Block_init(T)  Block_OP(T, init)()
+#define Block_push(T, b, id, args) Block_OP(T, push)(b, id, args)
 
 // ==================================================================================== //
 //                                    evo: CPU
@@ -1012,7 +1040,7 @@ UNUSED static char* cpustatus_tbl2 [] = {
 #define TransDef(S, T)                  CONCAT3(TransDef_, CONCAT(S,_), T)
 #define TransTbl(S, T)                  CONCAT3(S##_, T, _trans_tbl)
 #define TransMax(S, T)                  (sizeof(TransTbl(S, T))/sizeof(TransDef(S, T)))
-#define TransTblEnd(S, T, I)               (((I) < TransMax(S, T)) && (TransTbl(S, T)[I].sid != NULL))
+#define TransTblEnd(S, T, I)            (((I) < TransMax(S, T)) && (TransTbl(S, T)[I].sid != NULL))
 #define TransDef_OP(S, T, OP)           CONCAT4(TransDef_, S##_, T##_, OP)
 #define TransDef_OP_def(S, T, OP)       UNUSED TransDef_OP(S, T, OP)
 #define TransDef_T(S, T) \
@@ -1028,10 +1056,34 @@ UNUSED static char* cpustatus_tbl2 [] = {
     TransDef_T(S, T);                                            \
     extern TransDef(S, T) TransTbl(S, T)[CFG_TRANS_CAP];         \
     void TransDef_OP_def(S, T, displayone)(char* res, size_t i); \
-    void TransDef_OP_def(S, T, display)(char* res);
+    void TransDef_OP_def(S, T, display)(char* res);              \
+    bool TransDef_OP_def(S, T, is_match)(Insn(S) * sinsn, size_t len, int idx); \
+    int TransDef_OP_def(S, T, match)(Insn(S) * sinsn, size_t len);
 
 #define TransDef_fn_def(S, T, ...)                                                     \
     TransDef(S, T) TransTbl(S, T)[] = {__VA_ARGS__};                                   \
+    bool TransDef_OP_def(S, T, is_match)(Insn(S) * sinsn, size_t len, int idx) {       \
+        Log_ast(sinsn, "TransDef_is_match: sinsn is null");                            \
+        if (TransTbl(S, T)[idx].len == len) {                                          \
+            Insn(S)* cur = sinsn;                                                      \
+            for (size_t j = 0; cur != NULL && j < len; j++) {                          \
+                if ((int)cur->id != TransTbl(S, T)[idx].sid[j]) {                      \
+                    return false;                                                      \
+                }                                                                      \
+                cur = cur->next;                                                       \
+            }                                                                          \
+        }                                                                              \
+        return true;                                                                   \
+    }                                                                                  \
+    int TransDef_OP_def(S, T, match)(Insn(S) * sinsn, size_t len) {                    \
+        Log_ast(sinsn, "TransDef_match: sinsn is null");                               \
+        for (size_t i = 0; TransTblEnd(S, T, i); i++) {                                \
+            if (TransDef_OP(S, T, is_match)(sinsn, len, i)) {                          \
+                return i;                                                              \
+            }                                                                          \
+        }                                                                              \
+        return -1;                                                                     \
+    }                                                                                  \
     void TransDef_OP_def(S, T, displayone)(char* res, size_t i) {                      \
         if (i < TransMax(S, T) && TransTbl(S, T)[i].sid != NULL) {                     \
             sprintf(res, "%s", Tys_sym(TransTbl(S, T)[i].tt));                         \
@@ -1043,9 +1095,9 @@ UNUSED static char* cpustatus_tbl2 [] = {
         }                                                                              \
     }
 
-#define TransDef_displayone(S, T, C, I) TransDef_OP(S, T, displayone)(C, I)
-#define TransDef_display(S, T, C)       TransDef_OP(S, T, display)(C)
-
+#define TransDef_displayone(S, T, C, I)     TransDef_OP(S, T, displayone)(C, I)
+#define TransDef_display(S, T, C)           TransDef_OP(S, T, display)(C)
+#define TransDef_match(S, T, sinsn, len)    TransDef_OP(S, T, match)(sinsn, len)
 
 #define Translator(S, T)     CONCAT3(Translator_, S##_, T)
 #define Translator_OP(S, T, OP)  CONCAT4(Translator_, S##_, T##_, OP)
@@ -1058,18 +1110,36 @@ UNUSED static char* cpustatus_tbl2 [] = {
         Block(T)* tb;           \
     } Translator(S, T)
 
-#define Translator_def(S, T)                          \
-    Translator_T(S, T);                                                        \
-    Translator(S, T) * Translator_OP_def(S, T, init)();
+#define Translator_def(S, T)                                           \
+    Translator_T(S, T);                                                \
+    Translator(S, T) * Translator_OP_def(S, T, init)();                \
+    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Ty * ty); \
+    Block(T) * Translator_OP_def(S, T, run)(Translator(S, T) * t, Block(S) * sb);
 
-#define Translator_fn_def(S, T)                                                \
-    Translator(S, T) * Translator_OP_def(S, T, init)() {                       \
-        Translator(S, T)* t = malloc(sizeof(Translator(S, T)));                \
-        t->tb = NULL;                                                          \
-        t->cs = CPUState_init(S, 0);                                           \
-        t->pc_succ_insn = CPUState_decode(S, t->cs, CPUState_fetch(S, t->cs)); \
-        t->tb = NULL;                                                          \
-        return t;                                                              \
+#define Translator_fn_def(S, T)                                                    \
+    Translator(S, T) * Translator_OP_def(S, T, init)() {                           \
+        Translator(S, T)* t = malloc(sizeof(Translator(S, T)));                    \
+        t->tb = NULL;                                                              \
+        t->cs = CPUState_init(S, 0);                                               \
+        t->pc_succ_insn = CPUState_decode(S, t->cs, CPUState_fetch(S, t->cs));     \
+        t->tb = NULL;                                                              \
+        return t;                                                                  \
+    }                                                                              \
+    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Ty * ty) {            \
+    }                                                                              \
+    Block(T) * Translator_OP_def(S, T, run)(Translator(S, T) * t, Block(S) * sb) { \
+        Log_ast(t, "Translator_run: t is null");                                   \
+        Log_ast(sb, "Translator_run: sb is null");                                 \
+        Block(T)* b = Block_init(T);                                               \
+        Insn(S)* cur = sb->ihead;                                                  \
+        for (size_t i = 0; i < sb->ilen; i++) {                                    \
+            int idx = TransDef_match(S, T, cur, 1);                                \
+            Tys pattern = TransTbl(S, T)[idx].tt;                                  \
+            for (size_t j = 0; j < pattern.len; j++) {                             \
+                Translator_OP(S, T, exec)(t, &pattern.t[j]);                       \
+            }                                                                      \
+        }                                                                          \
+        return b;                                                                  \
     }
 
 #define Translator_init(S, T)  Translator_OP(S, T, init)()
