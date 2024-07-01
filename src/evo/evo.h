@@ -1110,36 +1110,37 @@ UNUSED static char* cpustatus_tbl2 [] = {
         Block(T)* tb;           \
     } Translator(S, T)
 
-#define Translator_def(S, T)                                           \
-    Translator_T(S, T);                                                \
-    Translator(S, T) * Translator_OP_def(S, T, init)();                \
-    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Ty * ty); \
+#define Translator_def(S, T)                                                            \
+    Translator_T(S, T);                                                                 \
+    Translator(S, T) * Translator_OP_def(S, T, init)();                                 \
+    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Insn(S) * sinsn, Ty * ty); \
     Block(T) * Translator_OP_def(S, T, run)(Translator(S, T) * t, Block(S) * sb);
 
-#define Translator_fn_def(S, T)                                                    \
-    Translator(S, T) * Translator_OP_def(S, T, init)() {                           \
-        Translator(S, T)* t = malloc(sizeof(Translator(S, T)));                    \
-        t->tb = NULL;                                                              \
-        t->cs = CPUState_init(S, 0);                                               \
-        t->pc_succ_insn = CPUState_decode(S, t->cs, CPUState_fetch(S, t->cs));     \
-        t->tb = NULL;                                                              \
-        return t;                                                                  \
-    }                                                                              \
-    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Ty * ty) {            \
-    }                                                                              \
-    Block(T) * Translator_OP_def(S, T, run)(Translator(S, T) * t, Block(S) * sb) { \
-        Log_ast(t, "Translator_run: t is null");                                   \
-        Log_ast(sb, "Translator_run: sb is null");                                 \
-        Block(T)* b = Block_init(T);                                               \
-        Insn(S)* cur = sb->ihead;                                                  \
-        for (size_t i = 0; i < sb->ilen; i++) {                                    \
-            int idx = TransDef_match(S, T, cur, 1);                                \
-            Tys pattern = TransTbl(S, T)[idx].tt;                                  \
-            for (size_t j = 0; j < pattern.len; j++) {                             \
-                Translator_OP(S, T, exec)(t, &pattern.t[j]);                       \
-            }                                                                      \
-        }                                                                          \
-        return b;                                                                  \
+#define Translator_fn_def(S, T)                                                          \
+    Translator(S, T) * Translator_OP_def(S, T, init)() {                                 \
+        Translator(S, T)* t = malloc(sizeof(Translator(S, T)));                          \
+        t->tb = NULL;                                                                    \
+        t->cs = CPUState_init(S, 0);                                                     \
+        t->pc_succ_insn = CPUState_decode(S, t->cs, CPUState_fetch(S, t->cs));           \
+        t->tb = NULL;                                                                    \
+        return t;                                                                        \
+    }                                                                                    \
+    void Translator_OP_def(S, T, exec)(Translator(S, T) * t, Insn(S) * sinsn, Ty * ty) { \
+        \
+    }                                                                                    \
+    Block(T) * Translator_OP_def(S, T, run)(Translator(S, T) * t, Block(S) * sb) {       \
+        Log_ast(t, "Translator_run: t is null");                                         \
+        Log_ast(sb, "Translator_run: sb is null");                                       \
+        Block(T)* b = Block_init(T);                                                     \
+        Insn(S)* cur = sb->ihead;                                                        \
+        for (size_t i = 0; i < sb->ilen; i++) {                                          \
+            int idx = TransDef_match(S, T, cur, 1);                                      \
+            Tys pattern = TransTbl(S, T)[idx].tt;                                        \
+            for (size_t j = 0; j < pattern.len; j++) {                                   \
+                Translator_OP(S, T, exec)(t, cur, &pattern.t[j]);                        \
+            }                                                                            \
+        }                                                                                \
+        return b;                                                                        \
     }
 
 #define Translator_init(S, T)  Translator_OP(S, T, init)()
