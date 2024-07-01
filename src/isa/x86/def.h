@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2024
  * 
  * @note
- * - [x86 Insn](https://groupoid.github.io/languages/ARM.htm)
+ * - [x86 Insn](http://ref.x86asm.net/coder32.html)
  * - [x86 Disasm](https://defuse.ca/online-x86-assembler.htm)
  * 
  */
