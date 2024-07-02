@@ -419,6 +419,7 @@ typedef struct {
     size_t len;
 } Tys;
 
+#define Tys_no()  { .t = NULL, .len = 0 }
 #define Tys_new(...) { .t = (Ty[]){__VA_ARGS__}, .len = (sizeof((Ty[]){__VA_ARGS__}) / sizeof(Ty)) }
 char* Tys_sym(Tys v);
 const char* TyKd_sym(TyKd k);

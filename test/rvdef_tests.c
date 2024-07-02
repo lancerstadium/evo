@@ -64,8 +64,8 @@ UnitTest_fn_def(test_insn_encode){
 
 
 UnitTest_fn_def(all_tests) {
-    // UnitTest_add(test_reg_display);
-    // UnitTest_add(test_insn_display);
+    UnitTest_add(test_reg_display);
+    UnitTest_add(test_insn_display);
     // UnitTest_add(test_insn_decode);
     // UnitTest_add(test_insn_encode);
     return NULL;
