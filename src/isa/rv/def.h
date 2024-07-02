@@ -9,6 +9,7 @@
  * @note
  * - [rv Insn]()
  * - [rv Disasm](https://luplab.gitlab.io/rvcodecjs/)
+ * - [rv Man](http://www.riscbook.com/chinese/RISC-V-Reader-Chinese-v2p1.pdf)
  * 
  */
 
@@ -323,6 +324,8 @@ InsnDef_def(RV,
     [RV_REMW]   = { .id = RV_REMW   , .mnem = "remw"    , .bc = Val_u32(0b0111011 + (0b110 << 12) + (0x01 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
     [RV_REMUW]  = { .id = RV_REMUW  , .mnem = "remuw"   , .bc = Val_u32(0b0111011 + (0b111 << 12) + (0x01 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
     /* RV32/64A: Atomic */
+    /* RV32/64F: Float Arithmetic */
+    /* RV32/64D: Double Arithmetic */
 );
 
 
