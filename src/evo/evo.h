@@ -801,7 +801,6 @@ typedef enum {
     BLOCK_EXEC,                 /* Executed Block */
 } BlockKd;
 
-
 #define Block(T) CONCAT(Block_, T)
 #define Block_OP(T, OP) CONCAT3(Block_, T##_, OP)
 #define Block_OP_def(T, OP) UNUSED Block_OP(T, OP)
