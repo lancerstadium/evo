@@ -208,8 +208,15 @@ extern "C" {
 #define IFZERO(macro, ...) MUXZERO(macro, __KEEP, __IGNORE)(__VA_ARGS__)
 
 
-#define likely(x) __builtin_expect((x), 1)
-#define unlikely(x) __builtin_expect((x), 0)
+#ifdef __GNUC__
+#define LIKELY(x) __builtin_expect((x), 1)
+#define UNLIKELY(x) __builtin_expect((x), 0)
+#define ASSUME(x) do { if (!(x)) __builtin_unreachable(); } while (0)
+#else
+#define LIKELY(x) (x)
+#define UNLIKELY(x) (x)
+#define ASSUME(x) ((void) 0)
+#endif
 
 #undef offsetof
 #ifdef __compiler_offsetof

@@ -1,5 +1,5 @@
 
-#include "rvdec.h"
+#include <isa/rv/dec.h>
 
 #include <stddef.h>
 #include <stdint.h>

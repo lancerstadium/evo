@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <sob/sob.h>
-#include <dec/rvdec.h>
+#include <isa/rv/dec.h>
 
 
 static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
@@ -73,7 +73,7 @@ UnitTest_fn_def(test_decode){
 
 
 UnitTest_fn_def(all_tests) {
-    // UnitTest_add(test_decode);
+    UnitTest_add(test_decode);
     return NULL;
 }
 

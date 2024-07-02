@@ -684,6 +684,20 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define InsnDef_display(T, res) InsnDef_OP(T, display)(res)
 #define InsnDef_displayone(T, res, i)  InsnDef_OP(T, displayone)(res, i)
 
+
+/**
+ * @brief Insn Struct
+ *
+ * flag:
+ *      |                           8 |         | 3 2 1 0 |
+ *      |-------------------------------------------------|
+ *      |                           D |         | C C C C |
+ * 
+ *  C = Cond
+ *  D - Is Dynamic Append Mode
+ *  
+ */
+
 #define Insn(T) CONCAT(Insn_, T)
 #define Insn_OP(T, OP) CONCAT3(Insn_, T##_, OP)
 #define Insn_OP_def(T, OP) UNUSED Insn_OP(T, OP)

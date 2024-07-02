@@ -91,13 +91,41 @@ RegDef_def(X86,
 
 
 InsnID_def(X86, 
-
-
+    /* X86: None    */
+    REP1(X86_EL, INV),
+    REP2(X86_EL, RET, LEAVE),
+    REP2(X86_EL, CWTL, CLTD),
+    REP1(X86_EL, MOVS),
+    REP2(X86_EL, REP_MOVS, REP_STOS),
+    REP3(X86_EL, PUSHF, PUSHA, POPA),
+    REP3(X86_EL, CLC, STC, CLD),
+    REP1(X86_EL, IRET),
+    REP2(X86_EL, CPUID, RDTSC),
+    /* X86: Unary   */
+    REP6(X86_EL, CALL, JCC, JMP, SETCC, CALL_E, JMP_E),
+    REP2(X86_EL, PUSH, POP),
+    REP4(X86_EL, INC, DEC, NEG, NOT),
+    REP4(X86_EL, MUL, IMUL1, DIV, IDIV),
+    REP4(X86_EL, LGDT, LIDT, LTR, INT),
+    /* X86: Binary  */
+    REP6(X86_EL, MOV, ADD, SUB, ADC, SBB, CMP),
+    REP4(X86_EL, AND, OR, TEST, XOR),
+    REP5(X86_EL, SHL, SHR, SAR, ROL, ROR),
+    REP5(X86_EL, LEA, MOVZB, MOVZW, MOVSB, MOVSW),
+    REP1(X86_EL, IMUL2),
+    REP4(X86_EL, BSR, BT, XCHG, CMPXCHG),
+    /* X86: Ternary */
+    REP3(X86_EL, IMUL3, SHLD, SHRD),
 );
 
+#define Tys_x86op1()    Tys_new(Ty_I(0, {7, 0}))
+#define Tys_x86op2()    Tys_new(Ty_I(0, {7, 0}), Ty_I(0, {15, 8}))
+
+#define Tys_x86r()      Tys_new(Ty_r(0, {15, 8}))
+
+
 InsnDef_def(X86,
-
-
+    [X86_ADC]   = { .id = X86_ADC   , .mnem = "adc" , .bc = Val_u8(0x01)    , .tc = Tys_x86op1()    , .tr = Tys_x86r()  },
 );
 
 

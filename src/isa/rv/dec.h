@@ -1,6 +1,6 @@
 
-#ifndef DEC_RVDEC_H
-#define DEC_RVDEC_H
+#ifndef _ISA_RV_DEC_H_
+#define _ISA_RV_DEC_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -96,5 +96,5 @@ void rv_format(const RvInst* inst, size_t len, char* buf);
 }
 #endif
 
-#endif  // DEC_RVDEC_H
+#endif  // _ISA_RV_DEC_H_
 
