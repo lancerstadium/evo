@@ -80,7 +80,7 @@ typedef void*       ptr;
 
 #define CFG_WORD_SIZE       __WORDSIZE
 #define CFG_CODE_CAP        1024
-#define CFG_MEM_BASE        0x08000000
+#define CFG_MEM_BASE        0x80000000
 #define CFG_MEM_CAP         1024 * 1024
 #define CFG_STACK_CAP       1024
 #define CFG_GEN_ELF         "out.elf"      

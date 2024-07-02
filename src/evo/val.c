@@ -1,4 +1,6 @@
-
+#define _DEFAULT_SOURCE
+#include <unistd.h>
+#include <sys/mman.h>
 #include <evo/evo.h>
 
 Val* Val_alloc(size_t len) {
@@ -17,6 +19,23 @@ Val* Val_talloc(size_t len, int ty) {
     v->t = ty;
     memset(v->b, 0, len * sizeof(u8));
     return v;
+}
+
+
+Val* Val_mmap(size_t len) {
+    Val* v = malloc(sizeof(Val));
+    v->len = len;
+    v->t = TY_NONE;
+    v->b = mmap((void*)CFG_MEM_BASE, len, PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    Log_ast(v->b != MAP_FAILED, "Val_mmap: mmap failed");
+    memset(v->b, 0, len);
+    return v;
+}
+
+void Val_munmap(Val* v) {
+    Log_ast(v != NULL, "Val_munmap: v is null");
+    munmap(v->b, v->len);
+    v = NULL;
 }
 
 
@@ -73,6 +92,11 @@ void Val_free(Val* v) {
 }
 
 
+Val* Val_set_zero(Val* v) {
+    Log_ast(v != NULL, "Val_set_zero: v is null");
+    memset(v->b, 0, v->len * sizeof(u8));
+    return v;
+}
 
 
 
