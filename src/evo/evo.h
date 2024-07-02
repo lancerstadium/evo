@@ -377,8 +377,10 @@ typedef struct {
 } BitMap;
 
 #define BitMap_new(H, L)        { .h = (H), .l = (L) }
+#define BitMap_apd(B)           ((B).h < (B).l)
 #define BitMap_arr(...)         (BitMap[]){ __VA_ARGS__ }
 #define BitMap_chk(M, I)        (((M) != NULL) && ((M) + (I)) != NULL)
+size_t BitMap_tot(BitMap* map, size_t len);
 
 typedef struct Ty {
     TyKd k;
@@ -534,7 +536,9 @@ bool Val_eq_bit(Val *v, size_t hi, size_t lo, Val *val);
 u64 Val_get_map(Val *v, BitMap* map, size_t len);
 Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val);
+Val* Val_exts_map(Val *v, BitMap* map, size_t len, size_t shift);
 Val* Val_wrt_map(Val *v, BitMap* map, size_t len, Val *val);
+Val* Val_imps_map(Val **v, BitMap* map, size_t len, Val *val, size_t shift);
 Val* Val_imp_map(Val **v, BitMap* map, size_t len, Val *val);
 bool Val_eq_map(Val *v, BitMap* map, size_t len, Val *val);
 bool Val_cmp_map(Val *v, BitMap* map, size_t len, Val *val);

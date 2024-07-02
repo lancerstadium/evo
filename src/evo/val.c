@@ -780,6 +780,53 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len) {
     return tmp;
 }
 
+size_t BitMap_tot(BitMap* map, size_t len) {
+    Log_ast(map, "Val_ext_map: map is null");
+    size_t shift = 0;
+    size_t scl = 0;
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            if(BitMap_apd(map[i])) {
+                scl = map[i].l - map[i].h;
+            } else {
+                scl = map[i].h - map[i].l;
+            }
+            shift += scl;
+            scl = 0;
+        }
+    }
+    return shift;
+}
+
+
+Val* Val_exts_map(Val *v, BitMap* map, size_t len, size_t shift) {
+    Log_ast(v, "Val_ext_map: v is null");
+    Log_ast(map, "Val_ext_map: map is null");
+    u64 res = 0;
+    size_t offset = 0;
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            size_t scl = map[i].h - map[i].l + 1;
+            Val* tmp = NULL;
+            if(BitMap_apd(map[i])) {
+                tmp = Val_get_bit(v, map[i].l + shift, map[i].h + shift);
+            } else {
+                tmp = Val_get_bit(v, map[i].h, map[i].l);
+            }
+            res |= Val_as_u64(tmp, 0) << offset;
+            offset += scl;
+            Val_free(tmp);
+        }
+    }
+    size_t len_ = offset / 8;
+    if(offset % 8) len_++;
+    Val* tmp = Val_alloc(len_);
+    for(size_t i = 0; i < len_; i++) {
+        tmp->b[i] = (res >> (i * 8)) & 0xFF;
+    }
+    return tmp;
+}
+
 
 Val* Val_set_map(Val *v, BitMap* map, size_t len, u64 val) {
     Log_ast(v, "Val_set_map: v is null");
@@ -839,6 +886,35 @@ Val* Val_imp_map(Val **v, BitMap* map, size_t len, Val *val) {
             u64 tmp = val_ & mask;
             // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
             Val_imp_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
+            val_ >>= scl;
+        }
+    }
+    return (*v);
+}
+
+
+Val* Val_imps_map(Val **v, BitMap* map, size_t len, Val *val, size_t shift) {
+    Log_ast(v != NULL, "Val_wrt_map: v is null");
+    Log_ast(*v != NULL, "Val_wrt_map: v is null");
+    Log_ast(map != NULL, "Val_wrt_map: map is null");
+    Log_ast(val != NULL, "Val_wrt_map: val is null");
+    u64 val_ = Val_as_u64(val, 0);
+    for(size_t i = 0; i < len; i++) {
+        if(BitMap_chk(map, i)) {
+            size_t scl = map[i].h - map[i].l + 1;
+            u64 mask = BITMASK(scl);
+            if (scl >= 64) {
+                mask = ~0;
+                scl = 64;
+            }
+            u64 tmp = val_ & mask;
+            // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
+            if(BitMap_apd(map[i])) {
+                Val_imp_bit(v, map[i].l + shift, map[i].h + shift, Val_new_u64(tmp));
+            } else {
+                Val_imp_bit(v, map[i].h, map[i].l, Val_new_u64(tmp));
+            }
             // UnitTest_msg("v: %s[%lu:%lu] <- 0x%lx (%lu)", Val_as_hex((*v), 0), map[i].h, map[i].l, tmp, scl);
             val_ >>= scl;
         }
