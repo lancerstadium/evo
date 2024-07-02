@@ -22,6 +22,27 @@
 
 #define RV_EL(I)    RV_##I
 
+// ==================================================================================== //
+//                                    rv: Typedef                                      
+// ==================================================================================== //
+
+typedef enum RvOptions RvOptions;
+
+enum RvOptions {
+    RV_RV32 = 0 << 0,
+    RV_RV64 = 1 << 0,
+    RV_RV128 = 2 << 0,
+    RV_RVMSK = 3 << 0,
+};
+
+enum {
+    RV_UNDEF = -1,
+    RV_PARTIAL = -2,
+};
+
+enum {
+    RV_REG_INV = (uint8_t) -1,
+};
 
 // ==================================================================================== //
 //                                    rv: Reg                                      
@@ -132,7 +153,6 @@ RegDef_def(RV,
 // ==================================================================================== //
 
 InsnID_def(RV, 
-#ifdef CFG_SISA_RVI
     /* RV32I: R-Type Arithmetic */
     REP5(RV_EL, ADD, SUB, XOR, OR , AND),
     REP5(RV_EL, SLL, SRL, SRA, SLT, SLTU),
@@ -150,37 +170,25 @@ InsnID_def(RV,
     /* RV32I: Device & System */
     REP1(RV_EL, FENCE),
     REP2(RV_EL, ECALL, EBREAK),
-#if CFG_SISA_BIT == 64
     /* RV64I: Arithmetic */
     REP5(RV_EL, ADDW, SUBW, SLLW, SRLW, SRAW),
     REP4(RV_EL, ADDIW, SLLIW, SRAIW, SRLIW),
     /* RV64I: Load I-Type & Store S-Type */
     REP3(RV_EL, LD, LWU, SD),
-#endif
-#endif
-#ifdef CFG_SISA_RVZifencei
     /* RV32/64Zifencei: CSR */
     REP1(RV_EL, FENCEI),
-#endif
-#ifdef CFG_SISA_RVZicsr
     /* RV32/64Zicsr: CSR */
     REP6(RV_EL, CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI),
-#endif
-#ifdef CFG_SISA_RVM
     /* RV32/64M: Multiply & Divide */
     REP4(RV_EL, MUL, MULH, MULHSU, MULHU),
     REP4(RV_EL, DIV, DIVU, REM, REMU),
     REP5(RV_EL, MULW, DIVW, DIVUW, REMW, REMUW),
-#endif
-#ifdef CFG_SISA_RVA
     /* RV32/64A: Atomic */
     REP4(RV_EL, LRW, SCW, LRD, SCD),
     REP5(RV_EL, AMOADDW, AMOSWAPW, AMOXORW, AMOORW, AMOANDW),
     REP4(RV_EL, AMOMINW, AMOMAXW, AMOMINUW, AMOMAXUW),
     REP5(RV_EL, AMOADDD, AMOSWAPD, AMOXORD, AMOORD, AMOANDD),
     REP4(RV_EL, AMOMIND, AMOMAXD, AMOMINUD, AMOMAXUD),
-#endif
-#ifdef CFG_SISA_RVF
     /* RV32/64F: Float Arithmetic */
     REP5(RV_EL, FLW, FSW, FMVXW, FMVWX, FCLASSS),
     REP4(RV_EL, FMADDS, FMSUBS, FNMSUBS, FNMADDS),
@@ -189,17 +197,14 @@ InsnID_def(RV,
     REP3(RV_EL, FLES, FLTS, FEQS),
     REP4(RV_EL, FCVTWS, FCVTWUS, FCVTLS, FCVTLUS),
     REP4(RV_EL, FCVTSW, FCVTSWU, FCVTSL, FCVTSLU),
-#endif
-#ifdef CFG_SISA_RVD
     /* RV32/64D: Double Arithmetic */
     REP5(RV_EL, FLD, FSD, FMVXD, FMVDX, FCLASSD),
     REP4(RV_EL, FMADDD, FMSUBD, FNMSUBD, FNMADDD),
     REP5(RV_EL, FADDD, FSUBD, FMULD, FDIVD, FSQRTD),
     REP5(RV_EL, FSGNJD, FSGNJND, FSGNJXD, FMIND, FMAXD),
-    REP5(RV_EL, FLED, FLT, FEQD, FCVTSD, FCVTDS),
+    REP5(RV_EL, FLED, FLTD, FEQD, FCVTSD, FCVTDS),
     REP4(RV_EL, FCVTWD, FCVTWUD, FCVTLD, FCVTLUD),
     REP4(RV_EL, FCVTDW, FCVTDWU, FCVTDL, FCVTDLU),
-#endif
 );
 
 // RVI Pattern
@@ -279,9 +284,16 @@ InsnDef_def(RV,
 
 
 Insn_def(RV,
-
+    uint8_t rd;
+    uint8_t rs1;
+    uint8_t rs2;
+    uint8_t rs3;
+    uint8_t misc;
+    int32_t imm;
 ,
-
+    int rv_decode(size_t bufsz, const uint8_t* buf, RvOptions, Insn(RV)* rv_inst);
+    // Note: actual format is unstable.
+    void rv_format(const Insn(RV)* inst, size_t len, char* buf);
 
 );
 

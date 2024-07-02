@@ -1,11 +1,11 @@
 #include <inttypes.h>
 #include <sob/sob.h>
-#include <isa/rv/dec.h>
+#include <isa/rv/def.h>
 
 
 static int test_impl(RvOptions opt, unsigned len, uint32_t inst_raw,
                      const char* exp_fmt) {
-    RvInst inst;
+    Insn(RV) inst;
     char fmt[128];
     int retval = rv_decode(len, (unsigned char*) &inst_raw, opt, &inst);
     if (retval == RV_PARTIAL)

@@ -162,6 +162,12 @@ extern "C" {
 #define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog
 #define EBYTE(v, s)     ((v >> (s * 8)) & 0xFF)
 
+#define LOAD_LE_1(buf) ((size_t) *(uint8_t*) (buf))
+#define LOAD_LE_2(buf) (LOAD_LE_1(buf) | LOAD_LE_1((uint8_t*) (buf) + 1)<<8)
+#define LOAD_LE_4(buf) (LOAD_LE_2(buf) | LOAD_LE_2((uint8_t*) (buf) + 2)<<16)
+#define UBFX(val, start, end) (((val) >> start) & ((1 << (end - start + 1)) - 1))
+#define SBFXIZ(val, start, end, shl) ((struct { long v: end-start+1+shl; }) {UBFX(val, start, end)<<shl}.v)
+
 // ==================================================================================== //
 //                                    sob: Macro Testing
 // ==================================================================================== //
