@@ -118,16 +118,15 @@
 //                                    arm: Typedef                               
 // ==================================================================================== //
 
-typedef enum AddrMode AddrMode;
-typedef enum Cond Cond;
-typedef enum ExtendType ExtendType;
-typedef enum FPSize FPSize;
+typedef enum ARMAddrMode ARMAddrMode;
+typedef enum ARMCond ARMCond;
+typedef enum ARMExtendType ARMExtendType;
+typedef enum ARMFPSize ARMFPSize;
 typedef enum MemOrdering MemOrdering;
-typedef enum Op Op;
-typedef enum PstateField PstateField; // for MSR_IMM
-typedef enum Shift Shift;
-typedef enum Size Size;
-typedef enum VectorArrangement VectorArrangement;
+typedef enum ARMPstateField ARMPstateField; // for MSR_IMM
+typedef enum ARMShift ARMShift;
+typedef enum ARMSize ARMSize;
+typedef enum ARMVectorArrangment ARMVectorArrangment;
 
 // ==================================================================================== //
 //                                    arm: u8                                       
@@ -599,7 +598,7 @@ InsnID_def(ARM,
 	// GPR: General Purpose Register (Wn, Xn).
 	//
 	// Inst.flags.W32  := GPR bits == 32
-	// Inst.flags.prec := Sca(fp) precision (FPSize)
+	// Inst.flags.prec := Sca(fp) precision (ARMFPSize)
 	// Inst.flags.ext  := Vec(fp) vector arrangement
 	// Inst.fcvt.mode  := rounding mode
 	// Inst.fcvt.fbits := #fbits for fixed-point
@@ -1344,7 +1343,7 @@ UNUSED static char *mnemonics[] = {
 // The condition bits used by conditial branches, selects and compares, stored in the
 // upper four bit of the Inst.flags field. The first three bits determine the condition
 // proper while the LSB inverts the condition if set.
-enum Cond {
+enum ARMCond {
 	COND_EQ = 0b0000,  // =
 	COND_NE = 0b0001,  // ≠
 	COND_CS = 0b0010,  // Carry Set
@@ -1365,7 +1364,7 @@ enum Cond {
 	COND_NV = 0b1111,  // Always true (not "never" as in A32!)
 };
 
-enum Shift {
+enum ARMShift {
 	SH_LSL = 0b00,
 	SH_LSR = 0b01,
 	SH_ASR = 0b10,
@@ -1386,7 +1385,7 @@ enum Shift {
 //     u64 a[128];
 //     u64 x0 = a[i]; → ldr x0, [a, i, LSL #3]
 //
-enum AddrMode {
+enum ARMAddrMode {
 	AM_SIMPLE,  // [base] -- used by atomics, exclusive, ordered load/stores → check Inst.ldst_order
 	AM_OFF_IMM, // [base, #imm]
 	AM_OFF_REG, // [base, Xm, {LSL #imm}] (#imm either #log2(size) or #0)
@@ -1407,17 +1406,17 @@ enum MemOrdering {
 	MO_LO_RELEASE, // Store-LORelease -- Release in LORegion
 };
 
-// Size, encoded in two bits.
-enum Size {
+// ARMSize, encoded in two bits.
+enum ARMSize {
 	SZ_B = 0b00, // Byte     -  8 bit
 	SZ_H = 0b01, // Halfword - 16 bit
 	SZ_W = 0b10, // Word     - 32 bit
 	SZ_X = 0b11, // Extended - 64 bit
 };
 
-// Floating-point size, encoded in three bits. Mostly synonymous to Size, but
+// Floating-point size, encoded in three bits. Mostly synonymous to ARMSize, but
 // with the 128-bit quadruple precision.
-enum FPSize {
+enum ARMFPSize {
 	FSZ_B = SZ_B, // Byte   -   8 bits
 	FSZ_H = SZ_H, // Half   -  16 bits
 	FSZ_S = SZ_W, // Single -  32 bits
@@ -1433,8 +1432,8 @@ enum FPSize {
 //
 // The vector registers V0...V31 are 128 bit long, but some arrangements use
 // only the bottom 64 bits. Scalar SIMD instructions encode their scalars'
-// precision as FPSize in the upper two bits.
-enum VectorArrangement {
+// precision as ARMFPSize in the upper two bits.
+enum ARMVectorArrangment {
 	VA_8B  = (FSZ_B << 1) | 0, //  64 bit
 	VA_16B = (FSZ_B << 1) | 1, // 128 bit
 	VA_4H  = (FSZ_H << 1) | 0, //  64 bit
@@ -1458,8 +1457,8 @@ enum FPRounding {
 	FPR_ODD,      // XN, Non-IEEE 754 Round to Odd, only used by FCVTXN(2)
 };
 
-// ExtendType: signed(1):size(2)
-enum ExtendType {
+// ARMExtendType: signed(1):size(2)
+enum ARMExtendType {
 	UXTB = (0 << 2) | SZ_B,
 	UXTH = (0 << 2) | SZ_H,
 	UXTW = (0 << 2) | SZ_W,
@@ -1470,8 +1469,8 @@ enum ExtendType {
 	SXTX = (1 << 2) | SZ_X,
 };
 
-// PstateField: encodes which PSTATE bits the MSR_IMM instruction modifies.
-enum PstateField {
+// ARMPstateField: encodes which PSTATE bits the MSR_IMM instruction modifies.
+enum ARMPstateField {
 	PSF_UAO,
 	PSF_PAN,
 	PSF_SPSel,
@@ -1496,7 +1495,7 @@ enum special_registers {
 enum flagmasks {
 	W32 = 1 << 0,         // use the 32-bit W0...W31 facets?
 	SET_FLAGS = 1 << 1,   // modify the NZCV flags? (S mnemonic suffix)
-	// SIMD: Is scalar? If so, interpret Inst.flags.vec<2:1> as FPSize precision for the scalar.
+	// SIMD: Is scalar? If so, interpret Inst.flags.vec<2:1> as ARMFPSize precision for the scalar.
 	SIMD_SCALAR = 1 << 5,
 	SIMD_SIGNED = 1 << 6, // Integer SIMD: treat values as signed?
 	SIMD_ROUND = 1 << 7,  // Integer SIMD: round result instead of truncating?
@@ -1624,7 +1623,7 @@ Insn_def(ARM,
 			u16 crm;
 		} sys; // We don't decode SYS and SYSL further
 		struct {
-			u32 psfld;  // enum PstateField
+			u32 psfld;  // enum ARMPstateField
 			u32 imm;    // imm(4)
 		} msr_imm;
 		struct {
@@ -1632,7 +1631,7 @@ Insn_def(ARM,
 			u32 bit;    // b5:b40 field -- bit number to be tested
 		} tbz;
 		struct {
-			u32 type;   // enum Shift (not used because sizeof(enum) is impl-defined)
+			u32 type;   // enum ARMShift (not used because sizeof(enum) is impl-defined)
 			u32 amount;
 		} shift;
 		struct {
@@ -1640,7 +1639,7 @@ Insn_def(ARM,
 			u32 ror;  // rotate right amount - 0..63
 		} rmif;
 		struct {
-			u32 type; // enum ExtendType
+			u32 type; // enum ARMExtendType
 			u32 lsl;  // left shift amount
 		} extend;
 		struct {
@@ -1675,12 +1674,12 @@ Insn_def(ARM,
 		} fcmla_elem;
 	};
 ,
-    Cond fad_get_cond(u8 flags);
-	AddrMode fad_get_addrmode(u8 flags);
-	ExtendType fad_get_mem_extend(u8 flags);
-	VectorArrangement fad_get_vec_arrangement(u8 flags);
-	FPSize fad_get_prec(u8 flags);
-	FPSize fad_size_from_vec_arrangement(VectorArrangement);
+    ARMCond fad_get_cond(u8 flags);
+	ARMAddrMode fad_get_addrmode(u8 flags);
+	ARMExtendType fad_get_mem_extend(u8 flags);
+	ARMVectorArrangment fad_get_vec_arrangement(u8 flags);
+	ARMFPSize fad_get_prec(u8 flags);
+	ARMFPSize fad_size_from_vec_arrangement(ARMVectorArrangment);
 	int fad_decode(u32 *in, unsigned int n, Insn(ARM) *out);
 );
 

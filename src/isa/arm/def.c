@@ -53,58 +53,58 @@ static Insn(ARM) errinst(char *err) {
 	return inst;
 }
 
-Cond fad_get_cond(u8 flags) {
+ARMCond fad_get_cond(u8 flags) {
 	return (flags >> 4) & 0b1111;
 }
 
-static u8 set_cond(u8 flags, Cond cond) {
+static u8 set_cond(u8 flags, ARMCond cond) {
 	cond &= 0xF;
 	flags &= 0x0F;
 	return (cond << 4) | flags;
 }
 
 static u8 invert_cond(u8 flags) {
-	Cond cond = fad_get_cond(flags);
+	ARMCond cond = fad_get_cond(flags);
 	return set_cond(flags, cond ^ 0b001); // invert LSB
 }
 
 // Addressing mode, for Loads and Stores.
-AddrMode fad_get_addrmode(u8 flags) {
-	return (AddrMode)((flags >> 5) & 0b111);
+ARMAddrMode fad_get_addrmode(u8 flags) {
+	return (ARMAddrMode)((flags >> 5) & 0b111);
 }
 
-static u8 set_addrmode(u8 flags, AddrMode mode) {
+static u8 set_addrmode(u8 flags, ARMAddrMode mode) {
 	return ((mode&0b111) << 5) | (flags&0b11111);
 }
 
 // How much memory to load/store (access size) and whether to sign-
 // or zero-extend the value.
-ExtendType fad_get_mem_extend(u8 flags) {
-	return (ExtendType)((flags >> 2) & 0b111);
+ARMExtendType fad_get_mem_extend(u8 flags) {
+	return (ARMExtendType)((flags >> 2) & 0b111);
 }
 
-static u8 set_mem_extend(u8 flags, ExtendType memext) {
+static u8 set_mem_extend(u8 flags, ARMExtendType memext) {
 	return ((memext&0b111) << 2) | (flags&0b11100011);
 }
 
-VectorArrangement fad_get_vec_arrangement(u8 flags) {
-	return (VectorArrangement)((flags >> 2) & 0b111);
+ARMVectorArrangment fad_get_vec_arrangement(u8 flags) {
+	return (ARMVectorArrangment)((flags >> 2) & 0b111);
 }
 
-static u8 set_vec_arrangement(u8 flags, VectorArrangement va) {
+static u8 set_vec_arrangement(u8 flags, ARMVectorArrangment va) {
 	return ((va&0b111) << 2) | (flags&0b11100011);
 }
 
-FPSize fad_get_prec(u8 flags) {
-	return (FPSize)((flags >> 1) & 0b111);
+ARMFPSize fad_get_prec(u8 flags) {
+	return (ARMFPSize)((flags >> 1) & 0b111);
 }
 
-static u8 set_prec(u8 flags, FPSize prec) {
+static u8 set_prec(u8 flags, ARMFPSize prec) {
 	return ((prec&0b111) << 1) | (flags&0b11110001);
 }
 
-FPSize fad_size_from_vec_arrangement(VectorArrangement va) {
-	return (FPSize)(va >> 1);
+ARMFPSize fad_size_from_vec_arrangement(ARMVectorArrangment va) {
+	return (ARMFPSize)(va >> 1);
 }
 
 // The destination register Rd, if present, occupies bits 0..4.
@@ -838,11 +838,11 @@ static Insn(ARM) data_proc_reg(u32 binst) {
 			return inst;
 		case 0b000010: inst.id = A64_UDIV; break;
 		case 0b000011: inst.id = A64_SDIV; break;
-		case 0b001000: inst.id = A64_LSLV; break; // lowest two bits → enum Shift
+		case 0b001000: inst.id = A64_LSLV; break; // lowest two bits → enum ARMShift
 		case 0b001001: inst.id = A64_LSRV; break; // --
 		case 0b001010: inst.id = A64_ASRV; break; // --
 		case 0b001011: inst.id = A64_RORV; break; // --
-		case 0b010000: inst.id = A64_CRC32B; break; // lowest two bits → enum Size
+		case 0b010000: inst.id = A64_CRC32B; break; // lowest two bits → enum ARMSize
 		case 0b010001: inst.id = A64_CRC32H; break;
 		case 0b010010: inst.id = A64_CRC32W; break;
 		case 0b010011: inst.id = A64_CRC32X; break;
@@ -1245,7 +1245,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 	case SIMDMult: {
 		u8 Q = (binst >> 30) & 1;
 		bool load = (binst >> 22) & 1;
-		VectorArrangement va = (((binst >> 10) & 0b11) << 1) | Q; // size(2):Q(1)
+		ARMVectorArrangment va = (((binst >> 10) & 0b11) << 1) | Q; // size(2):Q(1)
 		unsigned int nreg = 0;
 
 		switch ((binst >> 12) & 0b1111) { // opcode(4)
@@ -1280,7 +1280,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 		u8 Q = (binst >> 30) & 1;
 		bool load = (binst >> 22) & 1;
 		bool even = (binst >> 21) & 1; // R(1): determines evenness of inst: R=0 → LD1, LD3; R=1 → LD2, LD4
-		FPSize size = 0;
+		ARMFPSize size = 0;
 		u8 size_field = (binst >> 10) & 0b11;         // size(2) is called "size", but is actually part of index
 		unsigned int nreg = 0;
 
@@ -1319,7 +1319,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 			}
 		}
 
-		VectorArrangement va = (size << 1) | Q;
+		ARMVectorArrangment va = (size << 1) | Q;
 
 		switch (inst.id) {
 		case A64_LD1R: case A64_LD1_SINGLE: case A64_ST1_SINGLE: nreg = 1; break;
@@ -1449,9 +1449,9 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 			}
 		} else {
 			switch (top2) { // opc
-			case 0b00: inst.flag = W32 | set_mem_extend(inst.flag, (ExtendType)SZ_W); break; // 32-bit LDR
-			case 0b01: inst.flag = set_mem_extend(inst.flag, (ExtendType)SZ_X); break;       // 64-bit LDR
-			case 0b10: inst.flag = set_mem_extend(inst.flag, (ExtendType)SXTW); break;       // LDRSW
+			case 0b00: inst.flag = W32 | set_mem_extend(inst.flag, (ARMExtendType)SZ_W); break; // 32-bit LDR
+			case 0b01: inst.flag = set_mem_extend(inst.flag, (ARMExtendType)SZ_X); break;       // 64-bit LDR
+			case 0b10: inst.flag = set_mem_extend(inst.flag, (ARMExtendType)SXTW); break;       // LDRSW
 			case 0b11: inst.id = A64_PRFM; break;                                  // PRFM (literal)
 			}
 		}
@@ -1478,9 +1478,9 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 		} else {
 			inst.id = (load) ? A64_LDP : A64_STP;
 			switch (top2) {
-			case 0b00: scale = 4; inst.flag = W32 | set_mem_extend(inst.flag, (ExtendType)SZ_W); break; // 32-bit
-			case 0b01: scale = 4; inst.flag = set_mem_extend(inst.flag, (ExtendType)SXTW); break;       // LDPSW, STPSW
-			case 0b10: scale = 8; inst.flag = set_mem_extend(inst.flag, (ExtendType)SZ_X); break;       // 64-bit
+			case 0b00: scale = 4; inst.flag = W32 | set_mem_extend(inst.flag, (ARMExtendType)SZ_W); break; // 32-bit
+			case 0b01: scale = 4; inst.flag = set_mem_extend(inst.flag, (ARMExtendType)SXTW); break;       // LDPSW, STPSW
+			case 0b10: scale = 8; inst.flag = set_mem_extend(inst.flag, (ARMExtendType)SZ_X); break;       // 64-bit
 			default:
 				return errinst("loads_and_stores: invalid opc for LDP/STP");
 			}
@@ -1523,7 +1523,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 
 		u8 opc = (binst >> 22) & 0b11;
 		if (vector) {
-			FPSize size = 0;
+			ARMFPSize size = 0;
 			switch (opc) {
 			case 0b00: load = false; size = top2; break; // STR_FP 8, 16, 32, 64 bit
 			case 0b01: load = true;  size = top2; break; // LDR_FP ------
@@ -1550,7 +1550,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 			inst.id = (load) ? A64_LDR_FP : A64_STR_FP;
 			inst.flag = set_prec(inst.flag, size);
 		} else {
-			Size size = top2;
+			ARMSize size = top2;
 			bool sign_extend = false;
 			bool w32 = (size != SZ_X);
 
@@ -1599,7 +1599,7 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 			inst.flag = set_mem_extend(inst.flag, (sign_extend<<2) | size);
 		}
 
-		AddrMode mode = fad_get_addrmode(inst.flag);
+		ARMAddrMode mode = fad_get_addrmode(inst.flag);
 		switch (mode) {
 		default:
 			return UNKNOWN_INST;
@@ -1730,7 +1730,7 @@ static Insn(ARM) scalar_floating_point(u32 binst) {
 	bool b21 = (binst >> 21) & 1;
 	u8 op3 = (binst >> 10) & 0b111111111;
 
-	// Field "type" (bits 23-22): precision, but not in FPSize order
+	// Field "type" (bits 23-22): precision, but not in ARMFPSize order
 	switch ((binst >> 22) & 0b11) {
 	case 0b00: inst.flag = set_prec(inst.flag, FSZ_S); break;
 	case 0b01: inst.flag = set_prec(inst.flag, FSZ_D); break;
@@ -1933,7 +1933,7 @@ static Insn(ARM) scalar_floating_point(u32 binst) {
 		break;
 	}
 	case CondCompare: {
-		Cond cond = (binst >> 12) & 0b1111;
+		ARMCond cond = (binst >> 12) & 0b1111;
 		bool signalling = (binst >> 4) & 1;
 
 		inst.id = (signalling) ? A64_FCCMPE : A64_FCCMP;
@@ -1963,7 +1963,7 @@ static Insn(ARM) scalar_floating_point(u32 binst) {
 		break;
 	}
 	case CondSelect: {
-		Cond cond = (binst >> 12) & 0b1111;
+		ARMCond cond = (binst >> 12) & 0b1111;
 		inst.id = A64_FCSEL;
 		inst.flag = set_cond(inst.flag, cond);
 		inst.rd = regRd(binst);
@@ -1983,7 +1983,7 @@ static Insn(ARM) decode_simd(u32 binst) {
 	bool scalar = (binst >> 28) & 1;
 	bool U = (binst >> 29) & 1; // often – but not always – means Unsigned
 	bool Q = (binst >> 30) & 1; // use full 128-bit vectors? (vector arrangement = size:Q)
-	VectorArrangement va = (size << 1) | Q;
+	ARMVectorArrangment va = (size << 1) | Q;
 
 	// A sensible default that can be overridden by specific instructions where needed.
 	inst.flag = set_vec_arrangement(inst.flag, va);
@@ -2122,7 +2122,7 @@ static Insn(ARM) decode_simd(u32 binst) {
 		u8 imm5 = (binst >> 16) & 0b11111;
 		bool op = (binst >> 29) & 1;
 
-		FPSize prec;
+		ARMFPSize prec;
 		u32 idx;
 		if ((imm5 & 0b1111) == 0b1000) {      // x1000
 			idx = imm5 >> 4;
@@ -2362,7 +2362,7 @@ static Insn(ARM) decode_simd(u32 binst) {
 	case Reduce: {
 		u8 opcode = (binst >> 12) & 0b11111;
 		bool set_signedness = false; // set Insn(ARM).flag.signed = NOT (<U bit>)?
-		VectorArrangement va = -1;
+		ARMVectorArrangment va = -1;
 		bool is_fmin = (size & 0b10) != 0;
 
 		inst.flag |= (scalar) ? SIMD_SCALAR : 0;
@@ -2668,7 +2668,7 @@ static Insn(ARM) decode_simd(u32 binst) {
 
 		u8 immh = (binst >> 19) & 0b1111;   // immh -- encodes size
 		u8 immh_immb = (binst >> 16) & 0b1111111; // immh:immb -- encodes immediate (shift amount)
-		FPSize size;
+		ARMFPSize size;
 
 		if (immh == 0b0000)
 			return errinst("SIMD/ShiftByImm: internal decoding to kind failed: immh=0000 → ModifiedImm");
