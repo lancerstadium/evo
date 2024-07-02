@@ -1,50 +1,4 @@
 
-#include <isa/arm/def.h>
-
-RegDef_fn_def(ARM);
-
-// ==================================================================================== //
-//                                    arm: Insn                                      
-// ==================================================================================== //
-
-static Insn(ARM) UNKNOWN_INST = {
-	.id = A64_UNKNOWN,
-	// all other fields: zero
-};
-
-InsnDef_fn_def(ARM);
-
-Insn_fn_def(ARM);
-
-
-Insn(ARM) * Insn_OP_def(ARM, encode)(Insn(ARM) * insn, Val * args[]) {
-    Log_ast(insn != NULL, "Insn: insn is null");
-    Log_ast(args != NULL, "Insn: args are null");
-    InsnDef(ARM)* df = INSN(ARM, insn->id);
-    for (size_t i = 0; i < insn->len; i++) {
-        if (args[i] != NULL) {
-            BitMap* bm = (df->tr.t[i]).map;
-            size_t bml = (df->tr.t[i]).len;
-            insn->oprs[i] = Val_tymatch(args[i], &df->tr.t[i]);
-            Val_imp_map(&insn->bc, bm, bml, args[i]);
-        }
-    }
-    return insn;
-}
-Insn(ARM) * Insn_OP_def(ARM, decode)(Val* bc) {
-    Insn(ARM)* insn = Insn_OP(ARM, match)(bc);
-    if (insn != NULL) {
-        InsnDef(ARM)* df = INSN(ARM, insn->id);
-        for (size_t i = 0; i < insn->len; i++) {
-            BitMap* bm = (df->tr.t[i]).map;
-            size_t bml = (df->tr.t[i]).len;
-            insn->oprs[i] = Val_ext_map(bc, bm, bml);
-            Val_copy(insn->bc, bc);
-        }
-    }
-    return insn;
-}
-
 
 static Insn(ARM) errinst(char *err) {
 	Insn(ARM) inst = UNKNOWN_INST;
@@ -350,7 +304,7 @@ static Insn(ARM) data_proc_imm(u32 binst) {
 	return inst;
 }
 
-UNUSED static int fallback_highest_bit(unsigned int x) {
+static int fallback_highest_bit(unsigned int x) {
 	// 43210  n
 	// -----  -
 	// 01001  0
@@ -1449,9 +1403,9 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 			}
 		} else {
 			switch (top2) { // opc
-			case 0b00: inst.flag = W32 | set_mem_extend(inst.flag, (ExtendType)SZ_W); break; // 32-bit LDR
-			case 0b01: inst.flag = set_mem_extend(inst.flag, (ExtendType)SZ_X); break;       // 64-bit LDR
-			case 0b10: inst.flag = set_mem_extend(inst.flag, (ExtendType)SXTW); break;       // LDRSW
+			case 0b00: inst.flag = W32 | set_mem_extend(inst.flag, SZ_W); break; // 32-bit LDR
+			case 0b01: inst.flag = set_mem_extend(inst.flag, SZ_X); break;       // 64-bit LDR
+			case 0b10: inst.flag = set_mem_extend(inst.flag, SXTW); break;       // LDRSW
 			case 0b11: inst.id = A64_PRFM; break;                                  // PRFM (literal)
 			}
 		}
@@ -1478,9 +1432,9 @@ static Insn(ARM) loads_and_stores(u32 binst) {
 		} else {
 			inst.id = (load) ? A64_LDP : A64_STP;
 			switch (top2) {
-			case 0b00: scale = 4; inst.flag = W32 | set_mem_extend(inst.flag, (ExtendType)SZ_W); break; // 32-bit
-			case 0b01: scale = 4; inst.flag = set_mem_extend(inst.flag, (ExtendType)SXTW); break;       // LDPSW, STPSW
-			case 0b10: scale = 8; inst.flag = set_mem_extend(inst.flag, (ExtendType)SZ_X); break;       // 64-bit
+			case 0b00: scale = 4; inst.flag = W32 | set_mem_extend(inst.flag, SZ_W); break; // 32-bit
+			case 0b01: scale = 4; inst.flag = set_mem_extend(inst.flag, SXTW); break;       // LDPSW, STPSW
+			case 0b10: scale = 8; inst.flag = set_mem_extend(inst.flag, SZ_X); break;       // 64-bit
 			default:
 				return errinst("loads_and_stores: invalid opc for LDP/STP");
 			}
@@ -2412,7 +2366,7 @@ static Insn(ARM) decode_simd(u32 binst) {
 		if (set_signedness)
 			inst.flag |= (U) ? 0 : SIMD_SIGNED;
 
-		if ((int)va != -1)
+		if (va != -1)
 			inst.flag = set_vec_arrangement(inst.flag, va);
 
 		inst.rd = regRd(binst);
