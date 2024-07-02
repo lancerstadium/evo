@@ -768,33 +768,6 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
         }                                                                                                   \
         return Insn_OP(T, new)(0);                                                                          \
     }                                                                                                       \
-    Insn(T) * Insn_OP_def(T, encode)(Insn(T) * insn, Val * args[]) {                                        \
-        Log_ast(insn != NULL, "Insn: insn is null");                                                        \
-        Log_ast(args != NULL, "Insn: args are null");                                                       \
-        InsnDef(T)* df = INSN(T, insn->id);                                                                 \
-        for (size_t i = 0; i < insn->len; i++) {                                                            \
-            if (args[i] != NULL) {                                                                          \
-                BitMap* bm = (df->tr.t[i]).map;                                                             \
-                size_t bml = (df->tr.t[i]).len;                                                             \
-                insn->oprs[i] = Val_tymatch(args[i], &df->tr.t[i]);                                         \
-                Val_imp_map(&insn->bc, bm, bml, args[i]);                                                   \
-            }                                                                                               \
-        }                                                                                                   \
-        return insn;                                                                                        \
-    }                                                                                                       \
-    Insn(T) * Insn_OP_def(T, decode)(Val * bc) {                                                            \
-        Insn(T)* insn = Insn_OP(T, match)(bc);                                                              \
-        if (insn != NULL) {                                                                                 \
-            InsnDef(T)* df = INSN(T, insn->id);                                                             \
-            for (size_t i = 0; i < insn->len; i++) {                                                        \
-                BitMap* bm = (df->tr.t[i]).map;                                                             \
-                size_t bml = (df->tr.t[i]).len;                                                             \
-                insn->oprs[i] = Val_ext_map(bc, bm, bml);                                                   \
-                Val_copy(insn->bc, bc);                                                                     \
-            }                                                                                               \
-        }                                                                                                   \
-        return insn;                                                                                        \
-    }                                                                                                       \
     Insn(T) * Insn_OP_def(T, gen)(size_t id, Val * args[]) {                                                \
         Insn(T)* insn = Insn_OP(T, new)(id);                                                                \
         insn = Insn_OP(T, encode)(insn, args);                                                              \
@@ -805,9 +778,10 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
 #define Insn_new(T, id) Insn_OP(T, new)(id)
 #define Insn_size(T, insn) ((insn)->bc.len)
 #define Insn_match(T, bc) Insn_OP(T, match)(bc)
+#define Insn_gen(T, id, args) Insn_OP(T, gen)(id, args)
+// Need to impl in `isa/xxx/def.c`
 #define Insn_encode(T, insn, args) Insn_OP(T, encode)(insn, args)
 #define Insn_decode(T, bc) Insn_OP(T, decode)(bc)
-#define Insn_gen(T, id, args) Insn_OP(T, gen)(id, args)
 
 // ==================================================================================== //
 //                                    evo: Block

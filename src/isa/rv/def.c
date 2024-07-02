@@ -17,6 +17,35 @@ InsnDef_fn_def(RV);
 
 Insn_fn_def(RV);
 
+
+Insn(RV) * Insn_OP_def(RV, encode)(Insn(RV) * insn, Val * args[]) {
+    Log_ast(insn != NULL, "Insn: insn is null");
+    Log_ast(args != NULL, "Insn: args are null");
+    InsnDef(RV)* df = INSN(RV, insn->id);
+    for (size_t i = 0; i < insn->len; i++) {
+        if (args[i] != NULL) {
+            BitMap* bm = (df->tr.t[i]).map;
+            size_t bml = (df->tr.t[i]).len;
+            insn->oprs[i] = Val_tymatch(args[i], &df->tr.t[i]);
+            Val_imp_map(&insn->bc, bm, bml, args[i]);
+        }
+    }
+    return insn;
+}
+Insn(RV) * Insn_OP_def(RV, decode)(Val* bc) {
+    Insn(RV)* insn = Insn_OP(RV, match)(bc);
+    if (insn != NULL) {
+        InsnDef(RV)* df = INSN(RV, insn->id);
+        for (size_t i = 0; i < insn->len; i++) {
+            BitMap* bm = (df->tr.t[i]).map;
+            size_t bml = (df->tr.t[i]).len;
+            insn->oprs[i] = Val_ext_map(bc, bm, bml);
+            Val_copy(insn->bc, bc);
+        }
+    }
+    return insn;
+}
+
 // ==================================================================================== //
 //                                    eir: Block                                      
 // ==================================================================================== //
