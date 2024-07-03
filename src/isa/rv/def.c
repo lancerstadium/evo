@@ -476,92 +476,17 @@ static char* rv_format_int(int32_t val, char buf[static 16]) {
     return &buf[idx];
 }
 
-static const char* mnem_str[] = {
-    [RV_LB] = "lb", [RV_LH] = "lh", [RV_LW] = "lw", [RV_LD] = "ld",
-    [RV_LBU] = "lbu", [RV_LHU] = "lhu", [RV_LWU] = "lwu",
-    [RV_SB] = "sb", [RV_SH] = "sh", [RV_SW] = "sw", [RV_SD] = "sd",
-
-    [RV_ADDI] = "addi", [RV_SLLI] = "slli", [RV_SLTI] = "slti",
-    [RV_SLTIU] = "sltiu", [RV_XORI] = "xori", [RV_SRAI] = "srai",
-    [RV_SRLI] = "srli", [RV_ORI] = "ori", [RV_ANDI] = "andi",
-    [RV_ADD] = "add", [RV_SLL] = "sll", [RV_SLT] = "slt",
-    [RV_SLTU] = "sltu", [RV_XOR] = "xor", [RV_SRL] = "srl", [RV_OR] = "or",
-    [RV_AND] = "and", [RV_SUB] = "sub", [RV_SRA] = "sra",
-
-    [RV_FENCE] = "fence", [RV_FENCEI] = "fencei",
-    [RV_AUIPC] = "auipc", [RV_LUI] = "lui",
-    [RV_JAL] = "jal", [RV_JALR] = "jalr",
-    [RV_BEQ] = "beq", [RV_BNE] = "bne", [RV_BLT] = "blt", [RV_BGE] = "bge",
-    [RV_BLTU] = "bltu", [RV_BGEU] = "bgeu",
-    [RV_ECALL] = "ecall",
-
-    [RV_ADDIW] = "addiw", [RV_SLLIW] = "slliw", [RV_SRAIW] = "sraiw",
-    [RV_SRLIW] = "srliw", [RV_ADDW] = "addw", [RV_SLLW] = "sllw",
-    [RV_SRLW] = "srlw", [RV_SUBW] = "subw", [RV_SRAW] = "sraw",
-
-    [RV_MUL] = "mul", [RV_MULH] = "mulh", [RV_MULHSU] = "mulhsu",
-    [RV_MULHU] = "mulhu", [RV_DIV] = "div", [RV_DIVU] = "divu",
-    [RV_REM] = "rem", [RV_REMU] = "remu", [RV_MULW] = "mulw",
-    [RV_DIVW] = "divw", [RV_DIVUW] = "divuw", [RV_REMW] = "remw",
-    [RV_REMUW] = "remuw",
-
-    [RV_LRW] = "lr.w", [RV_SCW] = "sc.w",
-    [RV_LRD] = "lr.d", [RV_SCD] = "sc.d",
-    [RV_AMOADDW] = "amoadd.w", [RV_AMOADDD] = "amoadd.d",
-    [RV_AMOSWAPW] = "amoswap.w", [RV_AMOSWAPD] = "amoswap.d",
-    [RV_AMOXORW] = "amoxor.w", [RV_AMOXORD] = "amoxor.d",
-    [RV_AMOORW] = "amoor.w", [RV_AMOORD] = "amoor.d",
-    [RV_AMOANDW] = "amoand.w", [RV_AMOANDD] = "amoand.d",
-    [RV_AMOMINW] = "amomin.w", [RV_AMOMIND] = "amomin.d",
-    [RV_AMOMAXW] = "amomax.w", [RV_AMOMAXD] = "amomax.d",
-    [RV_AMOMINUW] = "amominu.w", [RV_AMOMINUD] = "amominu.d",
-    [RV_AMOMAXUW] = "amomaxu.w", [RV_AMOMAXUD] = "amomaxu.d",
-
-    [RV_CSRRW] = "csrrw", [RV_CSRRWI] = "csrrwi",
-    [RV_CSRRS] = "csrrs", [RV_CSRRSI] = "csrrsi",
-    [RV_CSRRC] = "csrrc", [RV_CSRRCI] = "csrrci",
-
-    [RV_FLW] = "flw", [RV_FSW] = "fsw",
-    [RV_FMVXW] = "fmv.x.w", [RV_FMVWX] = "fmv.w.x", [RV_FCLASSS] = "fclass.s",
-    [RV_FMADDS] = "fmadd.s", [RV_FMSUBS] = "fmsub.s",
-    [RV_FNMSUBS] = "fnmsub.s", [RV_FNMADDS] = "fnmadd.s",
-    [RV_FADDS] = "fadd.s", [RV_FSUBS] = "fsub.s",
-    [RV_FMULS] = "fmul.s", [RV_FDIVS] = "fdiv.s", [RV_FSQRTS] = "fsqrt.s",
-    [RV_FSGNJS] = "fsgnj.s", [RV_FSGNJNS] = "fsgnjn.s",
-    [RV_FSGNJXS] = "fsgnjx.s", [RV_FMINS] = "fmin.s", [RV_FMAXS] = "fmax.s",
-    [RV_FLES] = "fle.s", [RV_FLTS] = "flt.s", [RV_FEQS] = "feq.s",
-    [RV_FCVTWS] = "fcvt.w.s", [RV_FCVTWUS] = "fcvt.wu.s",
-    [RV_FCVTLS] = "fcvt.l.s", [RV_FCVTLUS] = "fcvt.lu.s",
-    [RV_FCVTSW] = "fcvt.s.w", [RV_FCVTSWU] = "fcvt.s.wu",
-    [RV_FCVTSL] = "fcvt.s.l", [RV_FCVTSLU] = "fcvt.s.lu",
-    // RV32D/RV64D
-    [RV_FLD] = "fld", [RV_FSD] = "fsd",
-    [RV_FMVXD] = "fmv.x.d", [RV_FMVDX] = "fmv.d.x", [RV_FCLASSD] = "fclass.d",
-    [RV_FMADDD] = "fmadd.d", [RV_FMSUBD] = "fmsub.d",
-    [RV_FNMSUBD] = "fnmsub.d", [RV_FNMADDD] = "fnmadd.d",
-    [RV_FADDD] = "fadd.d", [RV_FSUBD] = "fsub.d",
-    [RV_FMULD] = "fmul.d", [RV_FDIVD] = "fdiv.d", [RV_FSQRTD] = "fsqrt.d",
-    [RV_FSGNJD] = "fsgnj.d", [RV_FSGNJND] = "fsgnjn.d",
-    [RV_FSGNJXD] = "fsgnjx.d", [RV_FMIND] = "fmin.d", [RV_FMAXD] = "fmax.d",
-    [RV_FLED] = "fle.d", [RV_FLTD] = "flt.d", [RV_FEQD] = "feq.d",
-    [RV_FCVTSD] = "fcvt.s.d", [RV_FCVTDS] = "fcvt.d.s",
-    [RV_FCVTWD] = "fcvt.w.d", [RV_FCVTWUD] = "fcvt.wu.d",
-    [RV_FCVTLD] = "fcvt.l.d", [RV_FCVTLUD] = "fcvt.lu.d",
-    [RV_FCVTDW] = "fcvt.d.w", [RV_FCVTDWU] = "fcvt.d.wu",
-    [RV_FCVTDL] = "fcvt.d.l", [RV_FCVTDLU] = "fcvt.d.lu",
-};
-
 void rv_format(const Insn(RV)* inst, size_t len, char* restrict buf) {
     char tmp[18];
     if (!len)
         return;
     buf[0] = 0;
     
-    if (inst->id >= sizeof mnem_str / sizeof mnem_str[0] || !mnem_str[inst->id]) {
+    if (inst->id >= InsnMax(RV)) {
         strlcat(buf, "<invalid>", len);
         return;
     }
-    strlcat(buf, mnem_str[inst->id], len);
+    strlcat(buf, InsnMnem(RV, inst->id), len);
     if (inst->rd != RV_REG_INV) {
         char* fmt = rv_format_int(inst->rd, tmp + 2);
         *--fmt = 'r';
