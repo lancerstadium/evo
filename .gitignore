@@ -1,9 +1,16 @@
+# dir
 build/
 bin/*
+
+# Gen
+/.cproject
+/.project
+/.settings/
 
 # elf
 *.elf
 *.out
+*.bin
 
 # txt
 expr.txt
@@ -13,14 +20,17 @@ expr.txt
 
 # lib
 *.o
+*.a
+*.so
+*~
 
 # MacOS Cache
 .DS_Store
 
 # test
-test/*_tests
+tests/*_tests
 
 # test log
-test/tests.log
+tests/tests.log
 
 

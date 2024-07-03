@@ -1,6 +1,0 @@
-test: module
-main: func i64
-      ret 0
-      endfunc
-      endmodule
-

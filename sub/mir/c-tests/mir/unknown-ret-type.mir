@@ -1,5 +1,0 @@
-M0:	module
-main:	func	v
-        ret
-	endfunc
-	endmodule

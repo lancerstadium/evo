@@ -1,64 +1,24 @@
 /**
+ * =================================================================================== //
  * @file sob.h
  * @author lancerstadium (lancerstadium@163.com)
  * @brief Super No Build Toolkit
  * @version 0.0.4
  * @date 2024-06-13
  * @copyright Copyright (c) 2024
- * 
+ * =================================================================================== //
  */
 
-#ifndef _SOB_SOB_H_
-#define _SOB_SOB_H_
+#ifndef __SOB_SOB_H__
+#define __SOB_SOB_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 
 // ==================================================================================== //
 //                                       Include
 // ==================================================================================== //
-
-#ifndef _WIN32
-
-#define _POSIX_C_SOURCE 200809L
-#define PATH_SEP "/"
-#define PATH_SEPC '/'
-
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <fcntl.h>
-
-typedef pid_t SobPid;
-typedef int SobFd;
-
-#define ERRON_MSG (errno == 0 ? "" : strerror(errno))
-
-#else
-
-#define WIN32_MEAN_AND_LEAN
-#define PATH_SEP "\\"
-#define PATH_SEPC '\\'
-#include "windows.h"
-#include <process.h>
-
-typedef HANDLE SobPid;
-typedef HANDLE SobFd;
-
-struct dirent {
-    char d_name[MAX_PATH+1];
-};
-
-typedef struct DIR DIR;
-DIR *opendir(const char *dirpath);
-struct dirent *readdir(DIR *dirp);
-int closedir(DIR *dirp);
-LPSTR GetLastErrorAsString(void);
-
-#define ERRON_MSG (GetLastErrorAsString())
-
-#endif  // _WIN32
-
 
 #include <time.h>
 #include <stdio.h>
@@ -75,10 +35,6 @@ LPSTR GetLastErrorAsString(void);
 //                                    sob: SOB Config (SOB)
 // ==================================================================================== //
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // #define SOB_APP_OFF
 // #define SOB_CLR_OFF
 // #define SOB_LOG_DBG_OFF
@@ -94,15 +50,6 @@ extern "C" {
 #define SOB_AP_LFLAG "--"
 #define SOB_AP_SFLAG "-"
 #define SOB_AP_GLCMD "all"
-
-
-
-// ==================================================================================== //
-//                                    sob: Typedef
-// ==================================================================================== //
-
-
-
 
 // ==================================================================================== //
 //                                    sob: Func (FN)
@@ -126,8 +73,9 @@ extern "C" {
 #define NORETURN
 #endif
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b)           ({typeof(a) _amin = (a); typeof(b) _bmin = (b); (void)(&_amin == &_bmin); _amin < _bmin ? _amin : _bmin;})
+#define MIN(a, b)           ({typeof(a) _amax = (a); typeof(b) _bmax = (b); (void)(&_amax == &_bmax); _amax > _bmax ? _amax : _bmax;})
+#define CLAMP(v, a, b)		MIN(MAX(a, v), b)
 
 #define REP1(M, a1) M (a1)
 #define REP2(M, a1, a2) M (a1) REP_SEP M (a2)
@@ -507,7 +455,7 @@ UNUSED static Logger sob_logger = {
     ERROR_SOB_NONE
 };
 
-#define Log_errno                   (sob_logger.no == ERROR_SOB_NONE ? (ERRON_MSG) : sob_logger.error[sob_logger.no].msg)
+#define Log_errno                   (sob_logger.no == ERROR_SOB_NONE ? (strerror(errno)) : sob_logger.error[sob_logger.no].msg)
 #define Log_msg(level, fmt, ...)                                                   \
     do {                                                                           \
         time_t t = time(NULL);                                                     \
@@ -568,712 +516,6 @@ UNUSED static Logger sob_logger = {
         return ptr;                                                                                       \
     }
 
-// ==================================================================================== //
-//                                    sob: CString (CS)
-// ==================================================================================== //
-
-typedef const char * CStr;
-#define CStr_new(S)                     STR(S)
-#define CStr_len(S)                     strlen(S)
-#define CStr_put(S)                     fprintf(stdout, "%s", S)
-#define CStr_copy(SD, S)                if ((SD) == NULL) { SD = malloc(CStr_len(S) + 1); } strcpy((SD), (S))
-#define CStr_cat(SD, S1, S2)            char* SD = malloc(CStr_len(S1) + CStr_len(S2) + 1); CStr_copy(SD, S1); strcat(SD, S2)
-#define CStr_is_end(S1, S2)             ((CStr_len(S1) <= CStr_len(S2)) && (strncmp(S1 + CStr_len(S1) - CStr_len(S2), S2, CStr_len(S2)) == 0))
-#define CStr_is_begin(S1, S2)           ((CStr_len(S1) <= CStr_len(S2)) && (strncmp(S1, S2, CStr_len(S2)) == 0))
-#define CStr_find(S, C)                 strstr(S, C)
-#define CStr_find_back(S, C)            strrchr(S, C)
-#define CStr_no_ext(S1, S2)                                               \
-    do {                                                                  \
-        char* ext = CStr_find_back(S1, '.');                              \
-        if (ext && strncmp(ext + 1, PATH_SEP, CStr_len(PATH_SEP)) != 0) { \
-            size_t n = ext - S1;                                          \
-            S2 = malloc((n + 1) * sizeof(char));                          \
-            memcpy(S2, S1, n);                                            \
-            S2[n] = '\0';                                                 \
-        } else {                                                          \
-            S2 = malloc(CStr_len(S1) + 1);                                \
-            memcpy(S2, S1, CStr_len(S1) + 1);                             \
-        }                                                                 \
-    } while (0)
-
-#define CStr_no_path(S1, S2)                          \
-    do {                                              \
-        char* sep = CStr_find_back(S1, PATH_SEPC);    \
-        if (sep) {                                    \
-            size_t n = CStr_len(S1) - (sep - S1) - 1; \
-            S2 = malloc((n + 1) * sizeof(char));      \
-            memcpy(S2, sep + 1, n);                   \
-            S2[n] = '\0';                             \
-        } else {                                      \
-            S2 = malloc(CStr_len(S1) + 1);            \
-            memcpy(S2, S1, CStr_len(S1) + 1);         \
-        }                                             \
-    } while (0)
-
-
-static inline size_t VA_ARGS_COUNT(va_list args) {
-    size_t count = 0;
-    const char* arg;
-    while ((arg = va_arg(args, const char*)) != NULL) {
-        count++;
-    }
-    return count;
-}
-
-#define CStrArray_OP(OP)                    CONCAT(CStrArray_, OP)
-#define CStrArray_OP_def(OP)                UNUSED CStrArray_OP(OP)
-#define CStrArray_err_no(N, OP, VAL)        Log_err_no(N, "[CStrArray]: wrong val `%s` to %s.", #VAL ,#OP)
-#define CStrArray_ast_no(expr, N, OP, VAL)  Log_ast_no(expr, N, "[CStrArray]: wrong val `%s` to %s.", #VAL ,#OP)
-#define CStrArray_def()                                                        \
-    static inline void Str_trim(char* str) {                                   \
-        if (str == NULL) return;                                               \
-        char* end = str + strlen(str) - 1;                                     \
-        while (end >= str && (*end == '\n' || isspace((unsigned char)*end))) { \
-            *end = '\0';                                                       \
-            --end;                                                             \
-        }                                                                      \
-    }                                                                          \
-    static inline size_t CStrArray_OP_def(length)(CStr * sa) {                 \
-        if (sa == NULL) return 0;                                              \
-        size_t n = 0;                                                          \
-        while (sa[n] != NULL) {                                                \
-            n++;                                                               \
-        }                                                                      \
-        return n;                                                              \
-    }                                                                          \
-    static inline void CStrArray_OP_def(init)(CStr * *sa, ...) {               \
-        va_list args;                                                          \
-        va_start(args, *sa);                                                   \
-        size_t count = VA_ARGS_COUNT(args);                                    \
-        va_end(args);                                                          \
-        *sa = (CStr*)malloc(sizeof(CStr) * count);                             \
-        if (*sa == NULL) {                                                     \
-            va_end(args);                                                      \
-            return;                                                            \
-        }                                                                      \
-        va_start(args, *sa);                                                   \
-        for (size_t i = 0; i < count; i++) {                                   \
-            (*sa)[i] = va_arg(args, CStr);                                     \
-        }                                                                      \
-        va_end(args);                                                          \
-    }                                                                          \
-    static inline void CStrArray_OP_def(from)(CStr * *sa, CStr s) {            \
-        if (s == NULL) return;                                                 \
-        char* temp1 = strdup(s);                                               \
-        if (!temp1) {                                                          \
-            perror("strdup failed");                                           \
-            return;                                                            \
-        }                                                                      \
-        size_t count = 0;                                                      \
-        char* token = strtok(temp1, " ");                                      \
-        while (token != NULL) {                                                \
-            count++;                                                           \
-            token = strtok(NULL, " ");                                         \
-        }                                                                      \
-        *sa = (CStr*)malloc((count + 1) * sizeof(CStr));                       \
-        if (*sa == NULL) {                                                     \
-            perror("malloc failed");                                           \
-            free(temp1);                                                       \
-            return;                                                            \
-        }                                                                      \
-        char* temp2 = strdup(s);                                               \
-        token = strtok(temp2, " ");                                            \
-        size_t index = 0;                                                      \
-        while (token != NULL) {                                                \
-            (*sa)[index++] = token;                                            \
-            token = strtok(NULL, " ");                                         \
-        }                                                                      \
-        (*sa)[index] = NULL;                                                   \
-        free(temp1);                                                           \
-    }                                                                          \
-    static inline CStr CStrArray_OP_def(get)(CStr * sa, size_t i) {            \
-        size_t n = CStrArray_OP(length)(sa);                                   \
-        if (sa == NULL || i > n) {                                             \
-            CStrArray_ast_no(sa != NULL, ERROR_CS_ALLOC_FAIL, i, get);         \
-            return NULL;                                                       \
-        } else {                                                               \
-            return sa[i];                                                      \
-        }                                                                      \
-    }                                                                          \
-    static inline void CStrArray_OP_def(set)(CStr * sa, size_t i, CStr s) {    \
-        size_t n = CStrArray_OP(length)(sa);                                   \
-        if (sa == NULL || i > n) {                                             \
-            CStrArray_ast_no(sa != NULL, ERROR_CS_ALLOC_FAIL, i, get);         \
-        } else {                                                               \
-            sa[i] = strdup(s);                                                 \
-        }                                                                      \
-    }                                                                          \
-    static inline void CStrArray_OP_def(display)(CStr * sa) {                  \
-        size_t n = CStrArray_OP(length)(sa);                                   \
-        for (size_t i = 0; i < n; i++) {                                       \
-            CStr_put(sa[i]);                                                   \
-            CStr_put(" ");                                                     \
-        }                                                                      \
-        CStr_put("\n");                                                        \
-    }
-
-// ==================================================================================== //
-//                                    sob: Data Struct (DS)
-// ==================================================================================== //
-
-#define DSArray(T)                  CONCAT(DSArray_, T)             
-#define DSArray_OP(T, OP)           CONCAT3(DSArray_, T ## _, OP)
-#define DSArray_OP_def(T, OP)       UNUSED DSArray_OP(T, OP)
-#define DSArray_ast(expr, OP, VAL)  Log_ast(expr, "[DSArray]: wrong val `%s` to %s.", #VAL, #OP)
-
-#define DSArray_T(T)            \
-    typedef struct DSArray(T) { \
-        size_t els_num;         \
-        size_t size;            \
-        T* varr;                \
-    } DSArray(T)
-
-#define DSArray_def(T)                                                                             \
-    DSArray_T(T);                                                                                  \
-    static inline void DSArray_OP_def(T, create)(DSArray(T) ** varr, size_t size) {                \
-        DSArray(T) * va;                                                                           \
-        if (size == 0) size = SOB_DS_DSIZE;                                                        \
-        *varr = va = (DSArray(T)*)malloc(sizeof(DSArray(T)));                                      \
-        DSArray_ast(va != NULL, create, va);                                                       \
-        va->els_num = 0;                                                                           \
-        va->size = size;                                                                           \
-        va->varr = (T*)malloc(size * sizeof(T));                                                   \
-        DSArray_ast(va->varr != NULL, create, va->varr);                                           \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, destroy)(DSArray(T) ** varr) {                            \
-        DSArray(T)* va = *varr;                                                                    \
-        DSArray_ast(va && va->varr, destroy, varr);                                                \
-        free(va->varr);                                                                            \
-        free(va);                                                                                  \
-        *varr = NULL;                                                                              \
-    }                                                                                              \
-    static inline size_t DSArray_OP_def(T, length)(const DSArray(T) * varr) {                      \
-        DSArray_ast(varr, length, T);                                                              \
-        return varr->els_num;                                                                      \
-    }                                                                                              \
-    static inline T* DSArray_OP_def(T, addr)(const DSArray(T) * varr) {                            \
-        DSArray_ast(varr, addr, T);                                                                \
-        return &varr->varr[0];                                                                     \
-    }                                                                                              \
-    static inline T DSArray_OP_def(T, last)(const DSArray(T) * varr) {                             \
-        DSArray_ast(varr && varr->varr && varr->els_num, last, T);                                 \
-        return varr->varr[varr->els_num - 1];                                                      \
-    }                                                                                              \
-    static inline T DSArray_OP_def(T, get)(const DSArray(T) * varr, size_t ix) {                   \
-        DSArray_ast(varr && varr->varr && ix < varr->els_num, get, T);                             \
-        return varr->varr[ix];                                                                     \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, set)(const DSArray(T) * varr, size_t ix, T obj) {         \
-        DSArray_ast(varr && varr->varr && ix < varr->els_num, set, T);                             \
-        varr->varr[ix] = obj;                                                                      \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, trunc)(DSArray(T) * varr, size_t size) {                  \
-        DSArray_ast(varr && varr->varr && varr->els_num >= size, trunc, T);                        \
-        varr->els_num = size;                                                                      \
-    }                                                                                              \
-    static inline int DSArray_OP_def(T, expand)(DSArray(T) * varr, size_t size) {                  \
-        DSArray_ast(varr && varr->varr, expand, T);                                                \
-        if (varr->size < size) {                                                                   \
-            size += size / 2;                                                                      \
-            varr->varr = (T*)realloc(varr->varr, sizeof(T) * size);                                \
-            varr->size = size;                                                                     \
-            return 1;                                                                              \
-        }                                                                                          \
-        return 0;                                                                                  \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, tailor)(DSArray(T) * varr, size_t size) {                 \
-        DSArray_ast(varr && varr->varr, tailor, T);                                                \
-        if (varr->size != size)                                                                    \
-            varr->varr = (T*)realloc(varr->varr, sizeof(T) * size);                                \
-        varr->els_num = varr->size = size;                                                         \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, push)(DSArray(T) * varr, T obj) {                         \
-        T* slot;                                                                                   \
-        DSArray_OP(T, expand)(varr, varr->els_num + 1);                                            \
-        slot = &varr->varr[varr->els_num++];                                                       \
-        *slot = obj;                                                                               \
-    }                                                                                              \
-    static inline void DSArray_OP_def(T, pushn)(DSArray(T) * varr, const T* objs, size_t len) {    \
-        size_t i;                                                                                  \
-        T* slot;                                                                                   \
-        DSArray_OP(T, expand)(varr, varr->els_num + len);                                          \
-        for (i = 0; i < len; i++) {                                                                \
-            slot = &varr->varr[varr->els_num++];                                                   \
-            *slot = objs[i];                                                                       \
-        }                                                                                          \
-    }                                                                                              \
-    static inline T DSArray_OP_def(T, pop)(DSArray(T) * varr) {                                    \
-        T obj;                                                                                     \
-        DSArray_ast(varr && varr->varr && varr->els_num, pop, T);                                  \
-        obj = varr->varr[--varr->els_num];                                                         \
-        return obj;                                                                                \
-    }
-
-#define DSArray_new(T, ...)         { .varr = {__VA_ARGS__}, .size = (sizeof((T[]){__VA_ARGS__}) / sizeof(T)), .els_num = (sizeof((T[]){__VA_ARGS__}) / sizeof(T))}
-#define DSArray_create(T, V, L)     (DSArray_OP(T, create) (&(V), L))
-#define DSArray_destroy(T, V)       (DSArray_OP(T, destroy) (&(V)))
-#define DSArray_length(T, V)        (DSArray_OP(T, length) (V))
-#define DSArray_addr(T, V)          (DSArray_OP(T, addr) (V))
-#define DSArray_last(T, V)          (DSArray_OP(T, last) (V))
-#define DSArray_get(T, V, I)        (DSArray_OP(T, get) (V, I))
-#define DSArray_set(T, V, I, O)     (DSArray_OP(T, set) (V, I, O))
-#define DSArray_trunc(T, V, S)      (DSArray_OP(T, trunc) (V, S))
-#define DSArray_expand(T, V, S)     (DSArray_OP(T, expand) (V, S))
-#define DSArray_tailor(T, V, S)     (DSArray_OP(T, tailor) (V, S))
-#define DSArray_push(T, V, O)       (DSArray_OP(T, push) (V, O))
-#define DSArray_pushn(T, V, O, L)   (DSArray_OP(T, pushn) (V, O, L))
-#define DSArray_pop(T, V)           (DSArray_OP(T, pop) (V))
-#define DSArray_foreach(T, V, I, E) for ((I) = 0; (I) >= DSArray_length(T, V) ? 0 : (E = DSArray_get(T, V, I), 1); (I)++)
-
-
-#define DSList(T)                   CONCAT(DSList_, T)
-#define DSList_OP(T, OP)            CONCAT3(DSList_, T ## _, OP)
-#define DSList_OP_def(T, OP)        UNUSED DSList_OP(T, OP)
-#define DSList_link(T)              CONCAT(DSList_link_, T)
-#define DSList_ast(expr, OP, VAL)   Log_ast(expr, "[DSList]: wrong val `%s` to %s.", #VAL, #OP)
-
-#define DSList_T(T)                 \
-    typedef struct DSList_link(T) { \
-        T prev, next;               \
-    } DSList_link(T);               \
-    typedef struct DSList(T) {      \
-        T head, tail;               \
-    } DSList(T)
-
-#define DSList_def(T, LiNK)                                                                         \
-    DSList_T(T);                                                                                    \
-    static inline void DSList_OP_def(T, init)(DSList(T) * list) { list->head = list->tail = NULL; } \
-    static inline T DSList_OP_def(T, head)(DSList(T) * list) { return list->head; }                 \
-    static inline T DSList_OP_def(T, tail)(DSList(T) * list) { return list->tail; }                 \
-    static inline T DSList_OP_def(T, prev)(T elem) { return elem->LINK.prev; }                      \
-    static inline T DSList_OP_def(T, next)(T elem) { return elem->LINK.next; }                      \
-    static inline T DSList_OP_def(T, get)(DSList(T) * list, int n) {                                \
-        T e;                                                                                        \
-        if (n < 0) {                                                                                \
-            for (e = list->tail; e && n != -1; e = e->LINK.prev, n--) {}                            \
-        } else {                                                                                    \
-            for (e = list->head; e && n != 0; e = e->LINK.next, n--) {}                             \
-        }                                                                                           \
-        return e;                                                                                   \
-    }                                                                                               \
-    static inline void DSList_OP_def(T, prepend)(DSList(T) * list, T elem) {                        \
-        DSList_ast(list&& elem, prepend, T);                                                        \
-        if (list->head == NULL) {                                                                   \
-            DSList_ast(list->tail == NULL, prepend, T);                                             \
-            list->tail = elem;                                                                      \
-        } else {                                                                                    \
-            DSList_ast(list->head->LINK.prev == NULL, prepend, T);                                  \
-            list->head->LINK.prev = elem;                                                           \
-        }                                                                                           \
-        elem->LINK.prev = NULL;                                                                     \
-        elem->LINK.next = list->head;                                                               \
-        list->head = elem;                                                                          \
-    }                                                                                               \
-    static inline void DSList_OP_def(T, append)(DSList(T) * list, T elem) {                         \
-        DSList_ast(list&& elem, append, T);                                                         \
-        if (list->tail == NULL) {                                                                   \
-            DSList_ast(list->head == NULL, append, T);                                              \
-            list->tail = elem;                                                                      \
-        } else {                                                                                    \
-            DSList_ast(list->tail->LINK.next == NULL, append, T);                                   \
-            list->tail->LINK.next = elem;                                                           \
-        }                                                                                           \
-        elem->LINK.prev = list->tail;                                                               \
-        elem->LINK.next = NULL;                                                                     \
-        list->tail = elem;                                                                          \
-    }                                                                                               \
-    static inline void DSList_OP_def(T, insertb)(DSList(T) * list, T before, T elem) {              \
-        DSList_ast(list&& before&& elem && list->tail, insertb, T);                                 \
-        if (before->LINK.prev == NULL) {                                                            \
-            DSList_ast(before->LINK.next == NULL, insertb, T);                                      \
-            list->head = elem;                                                                      \
-            elem->LINK.next = before;                                                               \
-            elem->LINK.prev = NULL;                                                                 \
-            list->head = elem;                                                                      \
-        } else {                                                                                    \
-            DSList_ast(list->head, insertb, T);                                                     \
-            before->LINK.prev->LINK.next = elem;                                                    \
-            elem->LINK.prev = before->LINK.prev;                                                    \
-            elem->LINK.next = before;                                                               \
-            before->LINK.prev = elem;                                                               \
-        }                                                                                           \
-    }                                                                                               \
-    static inline void DSList_OP_def(T, inserta)(DSList(T) * list, T after, T elem) {               \
-        DSList_ast(list&& after&& elem && list->tail, inserta, T);                                  \
-        if (after->LINK.next == NULL) {                                                             \
-            DSList_ast(after->LINK.prev == NULL, inserta, T);                                       \
-            after->LINK.next = elem;                                                                \
-            elem->LINK.prev = after;                                                                \
-            elem->LINK.next = NULL;                                                                 \
-            list->tail = elem;                                                                      \
-        } else {                                                                                    \
-            DSList_ast(list->tail, inserta, T);                                                     \
-            after->LINK.next->LINK.prev = elem;                                                     \
-            elem->LINK.next = after->LINK.next;                                                     \
-            elem->LINK.prev = after;                                                                \
-            after->LINK.next = elem;                                                                \
-        }                                                                                           \
-    }                                                                                               \
-    static inline void DSList_OP_def(T, delete)(DSList(T) * list, T elem) {                         \
-        DSList_ast(list&& elem, delete, T);                                                         \
-        if (elem->LINK.prev == NULL) {                                                              \
-            DSList_ast(elem->LINK.next == NULL, delete, T);                                         \
-            list->head = elem->LINK.next;                                                           \
-        } else {                                                                                    \
-            elem->LINK.prev->LINK.next = elem->LINK.next;                                           \
-        }                                                                                           \
-        if (elem->LINK.next == NULL) {                                                              \
-            DSList_ast(elem->LINK.prev == NULL, delete, T);                                         \
-            list->tail = elem->LINK.prev;                                                           \
-        } else {                                                                                    \
-            elem->LINK.next->LINK.prev = elem->LINK.prev;                                           \
-        }                                                                                           \
-    }                                                                                               \
-    static inline size_t DSList_OP_def(T, length)(const DSList(T) * list) {                         \
-        size_t len = 0;                                                                             \
-        T cur;                                                                                      \
-        for (cur = list->head; cur != NULL; cur = cur->LINK.next) len++;                            \
-        return len;                                                                                 \
-    }
-
-#define DSList_init(T, L)           (DSList_OP(T, init) (&(L)))
-#define DSList_head(T, L)           (DSList_OP(T, head) (&(L)))
-#define DSList_tail(T, L)           (DSList_OP(T, tail) (&(L)))
-#define DSList_prev(T, E)           (DSList_OP(T, prev) (E))
-#define DSList_next(T, E)           (DSList_OP(T, next) (E))
-#define DSList_get(T, L, N)         (DSList_OP(T, get) (&(L), N))
-#define DSList_prepend(T, L, E)     (DSList_OP(T, prepend) (&(L), (E)))
-#define DSList_append(T, L, E)      (DSList_OP(T, append) (&(L), (E)))
-#define DSList_insertb(T, L, B, E)  (DSList_OP(T, insertb) (&(L), (B), (E)))
-#define DSList_inserta(T, L, A, E)  (DSList_OP(T, inserta) (&(L), (A), (E)))
-#define DSList_delete(T, L, E)      (DSList_OP(T, delete) (&(L), (E)))
-#define DSList_length(T, L)         (DSList_OP(T, length) (&(L)))
-#define DSList_foreach(T, L, I, E)  for ((I) = 0; (I) >= DSList_length(T, L) ? 0 : (E = DSList_get(T, L, I), 1); (I)++)
-
-
-typedef unsigned DSMap_idx_t;
-typedef unsigned DSMap_size_t;
-typedef unsigned DSMap_hash_t;
-
-#define DSMap(T)                    CONCAT(DSMap_, T)
-#define DSMap_OP(T, OP)             CONCAT3(DSMap_, T ## _, OP)
-#define DSMap_OP_def(T, OP)         UNUSED DSMap_OP(T, OP)
-#define DSMap_elem(T)               CONCAT(DSMap_elem_, T)
-#define DSMap_empty_idx             (~(DSMap_idx_t) 0)
-#define DSMap_empty_hash            0
-#define DSMap_ast(expr, OP, VAL)    Log_ast(expr, "[DSMap]: wrong val `%s` to %s.", #VAL, #OP)
-
-DSArray_def(DSMap_idx_t)
-#define DSMap_T(T)                                              \
-    typedef struct DSMap_elem(T) {                              \
-        DSMap_hash_t hash;                                      \
-        T el;                                                   \
-    } DSMap_elem(T);                                            \
-    DSArray_def(DSMap_elem(T))                                  \
-    typedef struct DSMap(T) {                                   \
-        DSMap_size_t els_num, els_start, els_bound, collisions; \
-        void* arg;                                              \
-        DSMap_hash_t (*hash_func)(T el, void* arg);             \
-        int (*cmp_func)(T el1, T el2, void* arg);               \
-        void (*free_func)(T el, void* arg);                     \
-        DSArray(DSMap_elem(T)) * els;                           \
-        DSArray(DSMap_idx_t) * entries;                         \
-    } DSMap(T)
-
-#define DSMap_def(T)                                                                              \
-    DSMap_T(T);                                                                                   \
-    static inline void DSMap_OP_def(T, create)(                                                   \
-        DSMap(T) * *map,                                                                          \
-        DSMap_size_t min_size,                                                                    \
-        DSMap_hash_t(*hash_func)(T, void*),                                                       \
-        int (*cmp_func)(T, T, void*),                                                             \
-        void (*free_func)(T, void*),                                                              \
-        void* arg                                                                                 \
-    ) {                                                                                           \
-        DSMap(T) * _map;                                                                          \
-        DSMap_size_t i, size;                                                                     \
-        for (size = 2; min_size > size; size *= 2) {}                                             \
-        _map = malloc(sizeof(*_map));                                                             \
-        DSMap_ast(_map != NULL, create, T);                                                       \
-        DSArray_create(DSMap_elem(T), _map->els, size);                                           \
-        DSArray_tailor(DSMap_elem(T), _map->els, size);                                           \
-        _map->arg = arg;                                                                          \
-        _map->hash_func = hash_func;                                                              \
-        _map->cmp_func = cmp_func;                                                                \
-        _map->free_func = free_func;                                                              \
-        _map->els_num = 0;                                                                        \
-        _map->els_start = 0;                                                                      \
-        _map->els_bound = 0;                                                                      \
-        _map->collisions = 0;                                                                     \
-        for (i = 0; i < 2 * size; i++) DSArray_push(DSMap_idx_t, _map->entries, DSMap_empty_idx); \
-        *map = _map;                                                                              \
-    }                                                                                             \
-    static inline void DSMap_OP_def(T, clear)(DSMap(T) * map) {                                   \
-        DSMap_idx_t* addr;                                                                        \
-        DSMap_size_t i, size;                                                                     \
-        DSMap_elem(T) * els_addr;                                                                 \
-        void* arg;                                                                                \
-        DSMap_ast(map != NULL, clear, T);                                                         \
-        arg = map->arg;                                                                           \
-        if (map->free_func) {                                                                     \
-            els_addr = DSArray_addr(DSMap_elem(T), map->els);                                     \
-            size = (DSMap_size_t)DSArray_length(DSMap_elem(T), map->els);                         \
-            for (i = 0; i < size; i++) {                                                          \
-                if (els_addr[i].hash != DSMap_empty_hash) map->free_func(els_addr[i].el, arg);    \
-            }                                                                                     \
-        }                                                                                         \
-        map->els_num = 0;                                                                         \
-        map->els_start = 0;                                                                       \
-        map->els_bound = 0;                                                                       \
-        addr = DSArray_addr(DSMap_idx_t, map->entries);                                           \
-        suze = (DSMap_size_t)DSArray_length(DSMap_idx_t, map->entries);                           \
-        for (i = 0; i < size; i++) addr[i] = DSMap_empty_idx;                                     \
-    }                                                                                             \
-    static inline void DSMap_OP_def(T, destroy)(DSMap(T) * *map) {                                \
-        DSMap_ast(*map != NULL, destroy, T);                                                      \
-        if ((*map)->free_func) DSMap_OP(T, clear)(*map);                                          \
-        DSArray_destroy(DSMap_elem(T), (*map)->els);                                              \
-        DSArray_destroy(DSMap_idx_t, (*map)->entries);                                            \
-        free(*map);                                                                               \
-        *map = NULL;                                                                              \
-    }
-
-
-// ==================================================================================== //
-//                                    sob: SysCall (Unix/Windows)                             
-// ==================================================================================== //
-
-typedef struct {
-    SobFd read;
-    SobPid write;
-} SobPipe;
-
-
-#ifdef _WIN32
-#define RENAME(oldpath, newpath) (MoveFileEx((oldpath), (newpath), MOVEFILE_REPLACE_EXISTING))
-#define IS_DIR(path)                          \
-    ({                                        \
-        DWORD attr = GetFileAttributes(path); \
-        (attr != INVALID_FILE_ATTRIBUTES &&   \
-         attr & FILE_ATTRIBUTE_DIRECTORY);    \
-    })
-
-#define IS_FILE(path)                         \
-    ({                                        \
-        DWORD attr = GetFileAttributes(path); \
-        (attr != INVALID_FILE_ATTRIBUTES &&   \
-         !(attr & FILE_ATTRIBUTE_DIRECTORY)); \
-    })
-
-#define EXIST_PATH(path) (GetFileAttributes(path) != INVALID_FILE_ATTRIBUTES)
-#define MKDIR(...) \
-    do {           \
-        CStr* paths; \
-        CStrArray_new(paths, __VA_ARGS__); \
-        CStrArray_forauto(paths, i, path, { \
-            CreateDirectory(path, NULL); \
-        }); \
-        CStrArray_free(paths); \
-    } while (0)
-
-#else
-
-#define RENAME(oldpath, newpath) (rename((oldpath), (newpath)) >= 0)
-#define IS_DIR(path)                        \
-    ({                                      \
-        struct stat st;                     \
-        stat(path, &st);                    \
-        S_ISDIR(st.st_mode) ? true : false; \
-    })
-
-#define IS_FILE(path)                       \
-    ({                                      \
-        struct stat st;                     \
-        stat(path, &st);                    \
-        S_ISREG(st.st_mode) ? true : false; \
-    })
-
-#define EXIST_PATH(path) (access((path), F_OK) == 0)
-#define MKDIR(...)                                          \
-    do {                                                    \
-        Log_sysc(_RED("[%d] ") _BLUE_UL("mkdir"), getpid());\
-        CStr* paths;                                        \
-        CStrArray_init(&paths, __VA_ARGS__);                \
-        CStrArray_forauto(paths, i, path,                   \
-            if (!IS_DIR(path)) {                            \
-                if(mkdir(path, 0777) < 0) {                 \
-                    if(errno == EEXIST) {                   \
-                        errno = 0;                          \
-                        Log_warn("mkdir %s exists", path);  \
-                    } else {                                \
-                        Log_err("mkdir %s failed", path);   \
-                    }                                       \
-                } else {                                    \
-                    Log_info(_GREEN_BD("+") " %s", path);   \
-                }                                           \
-            } else { Log_warn("mkdir %s exists", path); }); \
-    } while (0)
-
-#define TOUCH(...)                                      \
-    do {                                                \
-        CStr* paths;                                    \
-        CStrArray_new(paths, __VA_ARGS__);              \
-        CStrArray_forauto(paths, i, path,               \
-            FILE* f = fopen(path, "w");                 \
-            Log_ast(f != NULL, "touch %s fail", path);  \
-            fclose(f);                                  \
-            Log_info(_GREEN_BD("+") " %s", path);       \
-        );                                              \
-    } while (0)
-
-#define RM(...)                                             \
-    do {                                                    \
-        Log_sysc(_RED("[%d] ") _BLUE_UL("rm"), getpid());   \
-        CStr* paths;                                        \
-        CStrArray_new(paths, __VA_ARGS__);                  \
-        CStrArray_forauto(paths, i, path, {                 \
-            if (IS_DIR(path)) {                             \
-                if (rmdir(path) < 0) {                      \
-                    if (errno == ENOENT) {                  \
-                        errno = 0;                          \
-                        Log_warn("rm %s not exists", path); \
-                    } else {                                \
-                        Log_err("rm %s failed", path);      \
-                    }                                       \
-                } else {                                    \
-                    Log_info(_RED_BD("-") " %s", path);     \
-                }                                           \
-            } else {                                        \
-                if (unlink(path) < 0) {                     \
-                    if (errno == ENOENT) {                  \
-                        errno = 0;                          \
-                        Log_warn("rm %s not exists", path); \
-                    } else {                                \
-                        Log_err("rm %s failed", path);      \
-                    }                                       \
-                } else {                                    \
-                    Log_info(_RED_BD("-") " %s", path);     \
-                }                                           \
-            }                                               \
-        });                                                 \
-    } while (0)
-
-#define IS_MODIFIED_AFTER(path1, path2)                                                           \
-    ({                                                                                            \
-        struct stat st1, st2;                                                                     \
-        Log_ast_no(stat(path1, &st1) >= 0, ERROR_SYS_STAT_FAIL, "`" _YELLOW_BD("%s") "`", path1); \
-        Log_ast_no(stat(path2, &st2) >= 0, ERROR_SYS_STAT_FAIL, "`" _YELLOW_BD("%s") "`", path2); \
-        st1.st_mtime > st2.st_mtime;                                                              \
-    })
-
-#define WAIT(PID)                                                                                  \
-    do {                                                                                           \
-        int status;                                                                                \
-        Log_ast(waitpid(PID, &status, 0) >= 0, "`" _YELLOW_BD("%d") "`", PID);                     \
-        Log_ast(!WIFEXITED(status) || WEXITSTATUS(status) == 0, "`" _YELLOW_BD("%d") "`", status); \
-        Log_ast(!WIFSIGNALED(status), "`" _YELLOW_BD("%d") "`", status);                           \
-    } while (0)
-
-#define FORK(PID)                                           \
-    do {                                                    \
-        SobPid cpid = fork();                               \
-        Log_ast(cpid >= 0, "`" _YELLOW_BD("%d") "`", cpid); \
-        PID = cpid;                                         \
-    } while (0)
-
-// Use execvp()
-#define CMD(PID, SA)                                                \
-    do {                                                            \
-        if (PID == 0) {                                             \
-            CStr prog = CStrArray_get(SA, 0);                       \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA);                         \
-        } else {                                                    \
-            WAIT(PID);                                              \
-        }                                                           \
-    } while (0)
-
-#define CMD2(PID, SA1, SA2)                                         \
-    do {                                                            \
-        if (PID == 0) {                                             \
-            CStr prog = CStrArray_get(SA1, 0);                      \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA1);                        \
-            prog = CStrArray_get(SA2, 0);                           \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA2);                        \
-        } else {                                                    \
-            WAIT(PID);                                              \
-        }                                                           \
-    } while (0)
-
-#define CMD3(PID, SA1, SA2, SA3)                                    \
-    do {                                                            \
-        if (PID == 0) {                                             \
-            CStr prog = CStrArray_get(SA1, 0);                      \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA1);                        \
-            prog = CStrArray_get(SA2, 0);                           \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA2);                        \
-            prog = CStrArray_get(SA3, 0);                           \
-            Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-            execvp(prog, (char* const*)SA3);                        \
-        } else {                                                    \
-            WAIT(PID);                                              \
-        }                                                           \
-    } while (0)
-
-#define ECHO(...) fprintf(stdout, __VA_ARGS__)
-
-#define EXEC(S)                    \
-    do {                           \
-        CStr* cmd;                 \
-        CStrArray_from(&cmd, (S)); \
-        SobPid PID;                \
-        FORK(PID);                 \
-        if (cmd) {                 \
-            CMD(PID, cmd);         \
-        }                          \
-    } while (0)
-
-#define EXES(N, S)                                              \
-    do {                                                        \
-        char* cmd = strdup((S));                                \
-        char* prog = strtok(cmd, " ");                          \
-        Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog); \
-        N = system(S);                                          \
-    } while (0)
-
-#define EXEF(FP, M, S)                                           \
-    do {                                                         \
-        char* cmd = strdup((S));                                 \
-        char* prog = strtok(cmd, " ");                           \
-        Log_sysc(_RED("[%d] ") _BLUE_UL("%s"), getpid(), prog);  \
-        FP = popen(S, M);                                        \
-        Log_ast(FP, "Popen `" _YELLOW_BD("%s") "` fail.\n", #S); \
-    } while (0)
-
-#define EXNF(FP) \
-    Log_ast(pclose(FP) != -1, "Pclose `" _YELLOW_BD("%s") "` fail.\n", #FP)
-
-#define LIST_FILES(PATH, SA)                             \
-    do {                                                 \
-        CStrArray_init(&SA, NULL);                       \
-        DIR* dir;                                        \
-        struct dirent* entry;                            \
-        if (IS_DIR(PATH)) {                              \
-            dir = opendir(PATH);                         \
-            if (dir) {                                   \
-                while ((entry = readdir(dir)) != NULL) { \
-                    CStrArray_push(SA, entry->d_name);   \
-                }                                        \
-                closedir(dir);                           \
-            }                                            \
-        }                                                \
-    } while (0)
-
-#endif  // _WIN32
 
 // ==================================================================================== //
 //                                    sob: Unit Test (UT)
@@ -1407,10 +649,6 @@ typedef struct ArgParserCmd{
             int   n_args;
             ArgParser_cmd_fn fn;
         };
-        // System exec command
-        struct {
-            CStr * sys_line;
-        };
     };
 
     enum {
@@ -1522,62 +760,35 @@ UNUSED static ArgParser sob_ap = {
         }                                                 \
     } while (0)
 
-#define ArgParser_sys_CMD(SA)                                                                \
-    do {                                                                                     \
-        ArgParser_ast_no(sob_ap.n_cmd < SOB_AP_MSCMD, ERROR_AP_OVER_SUBCMD);                 \
-        ArgParser_ast_no((SA) != NULL, ERROR_CS_ACCESS_FAIL, "`" _YELLOW_BD("%s") "`", #SA); \
-        ArgParser_max_cmd.type = AP_CMD_SYS;                                                 \
-        ArgParser_max_cmd.sys_line = (SA);                                                   \
-        ArgParser_max_cmd.next = NULL;                                                       \
-        ArgParser_max_cmd.prev = NULL;                                                       \
-        sob_ap.has_subcmd = true;                                                            \
-        sob_ap.n_cmd++;                                                                      \
+#define ArgParser_print_base_command(Cmd)                                                                              \
+    do {                                                                                                               \
+        fprintf(stderr, "> " _BOLD("%s ") _GREEN_BD("%s") _GREY(" < ... >\n   ") _WHITE_BD_UL("Descr:") _GREY("  %s"), \
+                sob_ap.prog_name, Cmd->name, Cmd->desc);                                                               \
+        fprintf(stderr, "\n   " _WHITE_BD_UL("Usage:") _GREY("  %s\n"), Cmd->uasge);                                   \
+        for (int i = 0; i < Cmd->n_args; i++) {                                                                        \
+            if ((Cmd)->type == AP_CMD_USER) {                                                                          \
+                fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY("%s\n"), SOB_AP_SFLAG, Cmd->args[i].sarg,     \
+                        SOB_AP_LFLAG, Cmd->args[i].larg, Cmd->args[i].help);                                           \
+            } else {                                                                                                   \
+            }                                                                                                          \
+        }                                                                                                              \
+        fprintf(stderr, "\n");                                                                                         \
     } while (0)
 
-#define ArgParser_sys_cmd(S)     \
-    do {                         \
-        CStr* cmd;               \
-        CStrArray_from(&cmd, S); \
-        ArgParser_sys_CMD(cmd);  \
-    } while (0)
-
-#define ArgParser_print_base_command(Cmd)                                                                                    \
-    do {                                                                                                                     \
-        fprintf(stderr, "> " _BOLD("%s ") _GREEN_BD("%s") _GREY_IT(" < ... >\n   ") _WHITE_BD_UL("Descr:") _GREY_IT("  %s"), \
-                sob_ap.prog_name, Cmd->name, Cmd->desc);                                                                     \
-        fprintf(stderr, "\n   " _WHITE_BD_UL("Usage:") _GREY_IT("  %s\n"), Cmd->uasge);                                      \
-        for (int i = 0; i < Cmd->n_args; i++) {                                                                              \
-            if ((Cmd)->type == AP_CMD_USER) {                                                                                \
-                fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY_IT("%s\n"), SOB_AP_SFLAG, Cmd->args[i].sarg,        \
-                        SOB_AP_LFLAG, Cmd->args[i].larg, Cmd->args[i].help);                                                 \
-            } else {                                                                                                         \
-            }                                                                                                                \
-        }                                                                                                                    \
-        fprintf(stderr, "\n");                                                                                               \
-    } while (0)
-
-#define ArgParser_print_help_command(Cmd)                                                \
-    if ((Cmd)->type == AP_CMD_USER) {                                                    \
-        fprintf(stderr, _GREEN_BD(" %8s") _GREY_IT("  %s\n"), (Cmd)->name, (Cmd)->desc); \
-    } else if ((Cmd)->type == AP_CMD_SYS) {                                              \
-        fprintf(stderr, _CYAN_BD(" %8s") "  ", (Cmd)->sys_line[0]);                      \
-        CStr* cur_line = (Cmd)->sys_line + 1;                                            \
-        while (*cur_line) {                                                              \
-            fprintf(stderr, "%s ", *cur_line);                                           \
-            cur_line++;                                                                  \
-        }                                                                                \
-        fprintf(stderr, "\n");                                                           \
+#define ArgParser_print_help_command(Cmd)                                                 \
+    if ((Cmd)->type == AP_CMD_USER) {                                                     \
+        fprintf(stderr, _GREEN_BD("    %-8s") _GREY("  %s\n"), (Cmd)->name, (Cmd)->desc); \
     }
 
 #define ArgParser_print_options(Cmd)                                                                            \
     if ((Cmd)->type == AP_CMD_USER) {                                                                           \
         for (int i = 0; i < (Cmd)->n_args; i++) {                                                               \
             if (i >= SOB_AP_NFLAG) {                                                                            \
-                fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY_IT("%s\n"),                            \
+                fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY("%s\n"),                               \
                         SOB_AP_SFLAG, "h", SOB_AP_LFLAG, "help", "Get more info ...");                          \
                 break;                                                                                          \
             }                                                                                                   \
-            fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY_IT("%s\n"),                                \
+            fprintf(stderr, "       " _RED("%s%s") "  %s%-10s" _GREY("%s\n"),                                   \
                     SOB_AP_SFLAG, (Cmd)->args[i].sarg, SOB_AP_LFLAG, (Cmd)->args[i].larg, (Cmd)->args[i].help); \
         }                                                                                                       \
     }
@@ -1728,13 +939,6 @@ UNUSED static ArgParser sob_ap = {
                         exist = true;                                                                                           \
                         break;                                                                                                  \
                     } else if (subcmd && sob_ap.cmds[i].type == AP_CMD_SYS) {                                                   \
-                        CStr prog = CStrArray_get(sob_ap.cmds[i].sys_line, 0) ? CStrArray_get(sob_ap.cmds[i].sys_line, 0) : ""; \
-                        if (strcmp(subcmd, prog) == 0) {                                                                        \
-                            sob_ap.cmds[i].is_sub = true;                                                                       \
-                            sob_ap.cur_cmd = i;                                                                                 \
-                            exist = true;                                                                                       \
-                            break;                                                                                              \
-                        }                                                                                                       \
                     }                                                                                                           \
                 }                                                                                                               \
                 if (!exist) {                                                                                                   \
@@ -1769,12 +973,6 @@ UNUSED static ArgParser sob_ap = {
             if (cur_cmd->type == AP_CMD_USER) {                                                                                 \
                 cur_cmd->fn(argc_copy, argv_copy, Envp);                                                                        \
             } else if (cur_cmd->type == AP_CMD_SYS) {                                                                           \
-                SobPid PID;                                                                                                     \
-                FORK(PID);                                                                                                      \
-                CStr* cmd_line = cur_cmd->sys_line;                                                                             \
-                if (cmd_line) {                                                                                                 \
-                    CMD(PID, cmd_line);                                                                                         \
-                }                                                                                                               \
             }                                                                                                                   \
             cur_cmd = cur_cmd->next;                                                                                            \
         }                                                                                                                       \
@@ -1784,4 +982,4 @@ UNUSED static ArgParser sob_ap = {
 }
 #endif  // __cplusplus
 
-#endif  // _SOB_SOB_H_
+#endif  // __SOB_SOB_H__
