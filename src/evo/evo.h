@@ -654,31 +654,31 @@ Val* Val_ext_map(Val *v, BitMap* map, size_t len);
     void InsnDef_OP_def(T, displayone)(char* res, size_t i);         \
     void InsnDef_OP_def(T, display)(char* res);
 
-#define InsnDef_fn_def(T)                                                                                          \
-    bool InsnDef_OP_def(T, match)(Val * bc, size_t i) {                                                            \
-        InsnDef(T)* insn = &InsnTbl(T)[i];                                                                         \
-        Log_ast(bc->len >= insn->bc.len, "InsnDef: bc len mismatch %s <= %s", ValHex(bc), ValHex(&(insn->bc)));    \
-        bool is_match = false;                                                                                     \
-        Val* v = &(insn->bc);                                                                                      \
-        for (size_t j = 0; j < insn->tc.len; j++) {                                                                \
-            BitMap* bm = (insn->tc.t[j]).map;                                                                      \
-            size_t bml = (insn->tc.t[j]).len;                                                                      \
-            is_match = Val_cmp_map(v, bm, bml, bc);                                                                \
-            if (!is_match) {                                                                                       \
-                break;                                                                                             \
-            }                                                                                                      \
-        }                                                                                                          \
-        return is_match;                                                                                           \
-    }                                                                                                              \
-    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                                                      \
-        if (i < InsnMax(T)) {                                                                                      \
-            sprintf(res, "%-14s %s %s", ValHex(&InsnTbl(T)[i].bc), InsnTbl(T)[i].mnem, Tys_sym(InsnTbl(T)[i].tr)); \
-        }                                                                                                          \
-    }                                                                                                              \
-    void InsnDef_OP_def(T, display)(char* res) {                                                                   \
-        for (size_t i = 0; i < InsnMax(T); i++) {                                                                  \
-            sprintf(res, "%s\n", InsnTbl(T)[i].mnem);                                                              \
-        }                                                                                                          \
+#define InsnDef_fn_def(T)                                                                                                     \
+    bool InsnDef_OP_def(T, match)(Val * bc, size_t i) {                                                                       \
+        InsnDef(T)* insn = &InsnTbl(T)[i];                                                                                    \
+        Log_ast(bc->len >= insn->bc.len, "InsnDef: bc len mismatch %s <= %s", ValHex(bc), ValHex(&(insn->bc)));               \
+        bool is_match = false;                                                                                                \
+        Val* v = &(insn->bc);                                                                                                 \
+        for (size_t j = 0; j < insn->tc.len; j++) {                                                                           \
+            BitMap* bm = (insn->tc.t[j]).map;                                                                                 \
+            size_t bml = (insn->tc.t[j]).len;                                                                                 \
+            is_match = Val_cmp_map(v, bm, bml, bc);                                                                           \
+            if (!is_match) {                                                                                                  \
+                break;                                                                                                        \
+            }                                                                                                                 \
+        }                                                                                                                     \
+        return is_match;                                                                                                      \
+    }                                                                                                                         \
+    void InsnDef_OP_def(T, displayone)(char* res, size_t i) {                                                                 \
+        if (i < InsnMax(T)) {                                                                                                 \
+            sprintf(res, "%-14s %s %s", Val_as_hex(&InsnTbl(T)[i].bc, false), InsnTbl(T)[i].mnem, Tys_sym(InsnTbl(T)[i].tr)); \
+        }                                                                                                                     \
+    }                                                                                                                         \
+    void InsnDef_OP_def(T, display)(char* res) {                                                                              \
+        for (size_t i = 0; i < InsnMax(T); i++) {                                                                             \
+            sprintf(res, "%s\n", InsnTbl(T)[i].mnem);                                                                         \
+        }                                                                                                                     \
     }
 
 #define InsnDef_match(T, bc, i) InsnDef_OP(T, match)(bc, i)
