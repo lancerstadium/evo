@@ -215,18 +215,25 @@ InsnID_def(RV,
 #define Ty_rvrd(V)      Ty_r(V, {11,  7})
 #define Ty_rvr1(V)      Ty_r(V, {19, 15})
 #define Ty_rvr2(V)      Ty_r(V, {24, 20})
+#define Ty_rvr3(V)      Ty_r(V, {27, 31})
 #define Ty_rvii(V)      Ty_i(V, {31, 20})
 #define Ty_rvis(V)      Ty_i(V, {11,  7}, {31, 25})
 #define Ty_rvib(V)      Ty_i(V, {11,  8}, {30, 25}, { 7,  7}, {31, 31})
 #define Ty_rviu(V)      Ty_i(V, {31, 12})
 #define Ty_rviz(V)      Ty_i(V, {19, 15})
+#define Ty_rvirm(V)     Ty_i(V, {14, 12})
 #define Ty_rvij(V)      Ty_i(V, {30, 21}, {20, 20}, {19, 12}, {31, 31})
 #define Tys_rvr()       Tys_new(Ty_rvop(0), Ty_rvf3(0), Ty_rvf7(0))
+#define Tys_rvrx()      Tys_new(Ty_rvop(0), Ty_rvf3(0), Ty_rvr2(0), Ty_rvf7(0))
+#define Tys_rvr4()      Tys_new(Ty_rvop(0), Ty_rvf3(0), Ty_I(0, {26, 25}), Ty_or(Ty_x(0), i, 0, {14, 12}))
 #define Tys_rvi()       Tys_new(Ty_rvop(0), Ty_rvf3(0))
 #define Tys_rvu()       Tys_new(Ty_rvop(0))
 #define Tys_rvie()      Tys_new(Ty_rvop(0), Ty_rvf3(0), Ty_I(0, {31, 20}))
 #define Tys_rvif()      Tys_new(Ty_rvop(0), Ty_rvrd(0), Ty_rvf3(0), Ty_rvr1(0), Ty_I(0, {31, 28}))
 #define Tys_rvR()       Tys_new(Ty_rvrd(0), Ty_rvr1(0), Ty_rvr2(0))
+#define Tys_rvRx()      Tys_new(Ty_rvrd(0), Ty_rvr1(0))
+#define Tys_rvRxm()     Tys_new(Ty_rvrd(0), Ty_rvr1(0), Ty_or(Ty_x(0), i, 0, {14, 12}))
+#define Tys_rvR4()      Tys_new(Ty_rvrd(0), Ty_rvr1(0), Ty_rvr2(0), Ty_rvr3(0), Ty_or(Ty_x(0), i, 0, {14, 12}))
 #define Tys_rvI()       Tys_new(Ty_rvrd(0), Ty_rvr1(0), Ty_rvii(0))
 #define Tys_rvS()       Tys_new(Ty_rvr1(0), Ty_rvr2(0), Ty_rvis(0))
 #define Tys_rvB()       Tys_new(Ty_rvr1(0), Ty_rvr2(0), Ty_rvib(0))
@@ -325,7 +332,45 @@ InsnDef_def(RV,
     [RV_REMUW]  = { .id = RV_REMUW  , .mnem = "remuw"   , .bc = Val_u32(0b0111011 + (0b111 << 12) + (0x01 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
     /* RV32/64A: Atomic */
     /* RV32/64F: Float Arithmetic */
+    [RV_FLW]    = { .id = RV_FLW    , .mnem = "flw"     , .bc = Val_u32(0b0000111 + (0b010 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_FSW]    = { .id = RV_FSW    , .mnem = "fsw"     , .bc = Val_u32(0b0100111 + (0b010 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvS()  },
+    [RV_FMVXW]  = { .id = RV_FMVXW  , .mnem = "fmv.x.w" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x70 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FMVWX]  = { .id = RV_FMVWX  , .mnem = "fmv.w.x" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x78 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FCLASSS]= { .id = RV_FCLASSS, .mnem = "fclass.s", .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x70 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FMADDS] = { .id = RV_FMADDS , .mnem = "fmadd.s" , .bc = Val_u32(0b1000011 + (0b000 << 12) + (0b00 << 25))   , .tc = Tys_rvr4()  , .tr = Tys_rvR4() },
+    [RV_FMSUBS] = { .id = RV_FMSUBS , .mnem = "fmsub.s" , .bc = Val_u32(0b1000111 + (0b000 << 12) + (0b00 << 25))   , .tc = Tys_rvr4()  , .tr = Tys_rvR4() },
+    [RV_FNMSUBS]= { .id = RV_FNMSUBS, .mnem = "fnmsub.s", .bc = Val_u32(0b1001011 + (0b000 << 12) + (0b00 << 25))   , .tc = Tys_rvr4()  , .tr = Tys_rvR4() },
+    [RV_FNMADDS]= { .id = RV_FNMADDS, .mnem = "fnmadd.s", .bc = Val_u32(0b1001111 + (0b000 << 12) + (0b00 << 25))   , .tc = Tys_rvr4()  , .tr = Tys_rvR4() },
+    [RV_FADDS]  = { .id = RV_FADDS  , .mnem = "fadd.s"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x00 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FSUBS]  = { .id = RV_FSUBS  , .mnem = "fsub.s"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x04 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FMULS]  = { .id = RV_FMULS  , .mnem = "fmul.s"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x08 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FDIVS]  = { .id = RV_FDIVS  , .mnem = "fdiv.s"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x0c << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FSQRTS] = { .id = RV_FSQRTS , .mnem = "fsqrt.s" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x2c << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FSGNJS] = { .id = RV_FSGNJS , .mnem = "fsgnj.s" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x10 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FSGNJNS]= { .id = RV_FSGNJNS, .mnem = "fsgnjn.s", .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x10 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FSGNJXS]= { .id = RV_FSGNJXS, .mnem = "fsgnjx.s", .bc = Val_u32(0b1010011 + (0b010 << 12) + (0x10 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FMINS]  = { .id = RV_FMINS  , .mnem = "fmin.s"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x14 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FMAXS]  = { .id = RV_FMAXS  , .mnem = "fmax.s"  , .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x14 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FLES]   = { .id = RV_FLES   , .mnem = "fle.s"   , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x50 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FLTS]   = { .id = RV_FLTS   , .mnem = "flt.s"   , .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x50 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FEQS]   = { .id = RV_FEQS   , .mnem = "feq.s"   , .bc = Val_u32(0b1010011 + (0b010 << 12) + (0x50 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FCVTWS] = { .id = RV_FCVTWS , .mnem = "fcvt.w.s", .bc = Val_u32(0b1010011 + (0b000 << 20) + (0x60 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTWUS]= { .id = RV_FCVTWUS, .mnem = "fcvt.wu.s",.bc = Val_u32(0b1010011 + (0b001 << 20) + (0x60 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTLS] = { .id = RV_FCVTLS , .mnem = "fcvt.l.s", .bc = Val_u32(0b1010011 + (0b010 << 20) + (0x60 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTLUS]= { .id = RV_FCVTLUS, .mnem = "fcvt.lu.s",.bc = Val_u32(0b1010011 + (0b011 << 20) + (0x60 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTSW] = { .id = RV_FCVTSW , .mnem = "fcvt.s.w", .bc = Val_u32(0b1010011 + (0b000 << 20) + (0x68 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTSWU]= { .id = RV_FCVTSWU, .mnem = "fcvt.s.wu",.bc = Val_u32(0b1010011 + (0b001 << 20) + (0x68 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTSL] = { .id = RV_FCVTSL , .mnem = "fcvt.s.l", .bc = Val_u32(0b1010011 + (0b010 << 20) + (0x68 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
+    [RV_FCVTSLU]= { .id = RV_FCVTSLU, .mnem = "fcvt.s.lu",.bc = Val_u32(0b1010011 + (0b011 << 20) + (0x68 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRxm()},
     /* RV32/64D: Double Arithmetic */
+    [RV_FLD]    = { .id = RV_FLD    , .mnem = "fld"     , .bc = Val_u32(0b0000111 + (0b011 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvI()  },
+    [RV_FSD]    = { .id = RV_FSD    , .mnem = "fsd"     , .bc = Val_u32(0b0100111 + (0b011 << 12))                  , .tc = Tys_rvi()   , .tr = Tys_rvS()  },
+    [RV_FLED]   = { .id = RV_FLED   , .mnem = "fle.d"   , .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x51 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
+    [RV_FMVDX]  = { .id = RV_FMVDX  , .mnem = "fmv.d.x" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x78 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FMVXD]  = { .id = RV_FMVXD  , .mnem = "fmv.x.d" , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x71 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+    [RV_FCLASSD]= { .id = RV_FCLASSD, .mnem = "fclass.d", .bc = Val_u32(0b1010011 + (0b001 << 12) + (0x71 << 25))   , .tc = Tys_rvrx()  , .tr = Tys_rvRx() },
+
+    [RV_FADDD]  = { .id = RV_FADDD  , .mnem = "fadd.d"  , .bc = Val_u32(0b1010011 + (0b000 << 12) + (0x01 << 25))   , .tc = Tys_rvr()   , .tr = Tys_rvR()  },
 );
 
 
