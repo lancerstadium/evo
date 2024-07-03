@@ -24,8 +24,8 @@ UnitTest_fn_def(test_reg_display){
 
 
 UnitTest_fn_def(all_tests) {
-    // UnitTest_add(test_insn_display);
-    // UnitTest_add(test_reg_display);
+    UnitTest_add(test_insn_display);
+    UnitTest_add(test_reg_display);
     return NULL;
 }
 
