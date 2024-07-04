@@ -146,7 +146,18 @@ static inline __fp16 fp32_to_fp16(float data) {
 
 #endif  // __ARM_ARCH || __riscv
 
+// ==================================================================================== //
+//                                    string hash
+// ==================================================================================== //
 
+static inline unsigned int shash(const char* s) {
+    unsigned int v = 5381;
+    if (s) {
+        while (*s)
+            v = (v << 5) + v + (*s++);
+    }
+    return v;
+}
 
 #ifdef __cplusplus
 }
