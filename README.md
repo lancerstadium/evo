@@ -27,7 +27,7 @@
     │  Model Serial   │   │         │ 
     └─────────────────┘   │         │
     ┌─────────────────┐   │         │
-    │   Graph Analy   │   │ Monitor │
+    │  Graph IR Analy │   │ Monitor │
     └─────────────────┘   │         │
     ┌─────────────────┐   │         │
     │  Exec Schedule  │   │         │

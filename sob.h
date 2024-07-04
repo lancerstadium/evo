@@ -24,7 +24,6 @@ extern "C" {
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
-#include <assert.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
