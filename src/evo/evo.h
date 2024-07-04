@@ -36,6 +36,7 @@ typedef struct node node_t;
 typedef struct graph graph_t;
 typedef struct tensor tensor_t;
 typedef struct device device_t;
+typedef enum op_type op_type_t;
 typedef struct context context_t;
 typedef struct scheduler scheduler_t;
 typedef struct optimizer optimizer_t;
@@ -78,14 +79,28 @@ struct tensor {
 };
 
 // ==================================================================================== //
+//                                       evo: op type
+// ==================================================================================== //
+
+enum op_type {
+    EVO_OP_TYPE_GENERIC,
+    EVO_OP_TYPE_ABSVAL,
+    EVO_OP_TYPE_ADD_N,
+};
+
+
+
+// ==================================================================================== //
 //                                       evo: op
 // ==================================================================================== //
 
 struct op {
-    unsigned int type;                                      /* Operator type        */
+    op_type_t type;                                         /* Operator type        */
     const char* name;                                       /* Operator name        */
     void (*run)(node_t*);                                   /* Operator run fn      */
 };
+
+void op_init(op_t*);
 
 // ==================================================================================== //
 //                                       evo: node
@@ -159,12 +174,12 @@ struct allocator {
 struct device {
     const char* name;
     interface_t* itf;
-    allocator_t* act;
+    allocator_t* alc;
     optimizer_t* opt;
     scheduler_t* scd;
 };
 
-void device_init(device_t*, const char* name);
+void device_init(device_t*, const char*);
 
 
 

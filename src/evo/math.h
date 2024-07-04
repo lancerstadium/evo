@@ -41,6 +41,27 @@ extern "C" {
 #define NORETURN
 #endif  // __GNUC__ || __clang__
 
+// ==================================================================================== //
+//                                    calcu macros
+// ==================================================================================== //
+
+#define MIN(a, b)			({typeof(a) _amin = (a); typeof(b) _bmin = (b); (void)(&_amin == &_bmin); _amin < _bmin ? _amin : _bmin;})
+#define MAX(a, b)			({typeof(a) _amax = (a); typeof(b) _bmax = (b); (void)(&_amax == &_bmax); _amax > _bmax ? _amax : _bmax;})
+#define CLAMP(v, a, b)		MIN(MAX(a, v), b)
+
+
+// ==================================================================================== //
+//                                     interger
+// ==================================================================================== //
+
+int imin(int a, int b);
+int imax(int a, int b);
+int min_abs(int a, int b);
+int max_abs(int a, int b);
+int gcd(int a, int b);
+int lcm(int a, int b);
+int align(int value, int step);
+void* align_address(void* address, int step);
 
 // ==================================================================================== //
 //                                    float 16 & 32
@@ -65,16 +86,16 @@ extern "C" {
 typedef struct fp16_pack __fp16;
 
 PACKED(struct fp16_pack {
-    unsigned short frac : 10;
-    unsigned char exp : 5;
-    unsigned char sign : 1;
+    unsigned int frac : 10;
+    unsigned int exp  : 5;
+    unsigned int sign : 1;
 });
 
 
 PACKED(struct fp32_pack {
     unsigned int frac : 23;
-    unsigned char exp : 8;
-    unsigned char sign : 1;
+    unsigned int exp  : 8;
+    unsigned int sign : 1;
 });
 
 static inline float fp16_to_fp32(__fp16 data) {
