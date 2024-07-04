@@ -20,6 +20,8 @@ expr.txt
 
 # lib
 *.o
+*.d
+*.o.d
 *.a
 *.so
 *~
