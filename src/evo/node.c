@@ -32,7 +32,12 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
         sys_free(nd);
         return NULL;
     }
+    nd->opset = 0;
     nd->graph = g;
+    nd->ctx = NULL;
+    nd->node_proto = NULL;
+    nd->reshape = NULL;
+    nd->operator = NULL;
     if(name) {
         nd->name = sys_strdup(name);
     }

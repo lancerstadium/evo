@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "evo.h"
+#include "log.h"
 #include "math.h"
 #include "onnx.proto3.pb-c.h"
 #include "sys.h"
@@ -10,20 +11,19 @@
 //                                      onnx
 // ==================================================================================== //
 
-context_t *load_onnx(struct serializer *s, const void *buf, int len) {
-    context_t *ctx = NULL;
-    if (!buf || len <= 0)
-        return NULL;
-    ctx = context_new(NULL);
-    ctx->sez = s;
-    ctx->model = onnx__model_proto__unpack(NULL, len, buf);
-    ctx->model_size = len;
-    if (!ctx->model) {
-        if (ctx)
-            sys_free(ctx);
-        return NULL;
-    }
-    return ctx;
+context_t *load_file_onnx(struct serializer *sez, const char *path);
+void unload_onnx(context_t *ctx);
+tensor_t *load_tensor_onnx(const char *path);
+graph_t *get_graph_onnx(context_t * ctx);
+context_t *load_onnx(struct serializer *s, const void *buf, int len);
+
+
+EVO_UNUSED static int reshape_dummy(node_t *n) {
+    return 1;
+}
+
+EVO_UNUSED static void operator_dummy(node_t *n) {
+    LOG_WARN("\033[45;37mUnsupported opset\033[0m => %s-%d (%s)\r\n", ((Onnx__NodeProto *)(n->node_proto))->op_type, n->opset, (strlen(((Onnx__NodeProto *)(n->node_proto))->domain) > 0) ? ((Onnx__NodeProto *)(n->node_proto))->domain : "ai.onnx");
 }
 
 context_t *load_file_onnx(struct serializer *sez, const char *path) {
@@ -110,7 +110,7 @@ EVO_UNUSED static tensor_t *tensor_from_value_info(Onnx__ValueInfoProto *v) {
     return t;
 }
 
-static void tensor_copy_proto(tensor_t *t, Onnx__TensorProto *o) {
+EVO_UNUSED static void tensor_copy_proto(tensor_t *t, Onnx__TensorProto *o) {
     size_t n, i;
     int sz;
 
@@ -429,13 +429,160 @@ graph_t *get_graph_onnx(context_t * ctx) {
         sys_free(g);
         return NULL;
     }
-
+    
+    // deal with input
     for(i = 0; i < graph->n_input; i++) {
         v = graph->input[i];
+        if(!context_get_tensor(ctx, v->name)) {
+            t = tensor_from_value_info(v);
+            if(t) {
+                for(j = 0; j < graph->n_initializer; j++) {
+                    if(strcmp(graph->initializer[j]->name, t->name) == 0) {
+                        tensor_copy_proto(t, graph->initializer[j]);
+                        break;
+                    }
+                }
+                hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+            }
+        }
+    }
+    // deal with output
+    for(i = 0; i < graph->n_output; i++) {
+        v = graph->output[i];
+        if(!context_get_tensor(ctx, v->name)) {
+            t = tensor_from_value_info(v);
+            if(t) {
+                hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+            }
+        }
+    }
+    // deal with value info
+    for(i = 0; i < graph->n_value_info; i++) {
+        v = graph->value_info[i];
+        if(!context_get_tensor(ctx, v->name)) {
+            t = tensor_from_value_info(v);
+            if(t) {
+                hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+            }
+        }
+    }
+    // deal with node output
+    for(i = 0; i < graph->n_node; i++) {
+        for(j = 0; j < graph->node[i]->n_output; j++) {
+            name = graph->node[i]->output[j];
+            if(!context_get_tensor(ctx, name)) {
+                t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
+                if(t) hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+            }
+        }
+    }
+    
+    // deal with node input
+    for(i = 0; i < graph->n_node; i++) {
+        for(j = 0; j < graph->node[i]->n_input; j++) {
+            name = graph->node[i]->input[j];
+            if(!context_get_tensor(ctx, name)) {
+                for(k = 0; k < graph->n_initializer; k++) {
+                    if(strcmp(graph->initializer[k]->name, name) == 0) {
+                        o = graph->initializer[k];
+                        if(o) {
+                            int ndim = o->n_dims;
+                            int dims[ndim];
+                            for(l = 0; l < ndim; l++) {
+                                dims[l] = o->dims[l];
+                            }
+                            t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
+                            if(t) {
+                                tensor_set_shape(t, ndim, dims);
+                                tensor_copy_proto(t, o);
+                                hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+                            }
+                            break;
+                        }
+                    }
+                }
+                if(!context_get_tensor(ctx, name)){
+                    if(g->nodes)
+                        free(g->nodes);
+                    free(g);
+                    g = NULL;
+                    return NULL;
+                }
+            }
+        }
     }
 
+    // deal with node
+    for(i = 0; i < g->nnode; i++) {
+        n = (node_t*)&g->nodes[i];
+        // memset(&n, 0, sizeof(node_t));
+        // n->ctx = ctx;
+        // n->node_proto = graph->node[i];
+        // domain = ((Onnx__NodeProto*)n->node_proto)->domain;
+        // if(!domain || (strlen(domain) == 0))
+        //     domain = "ai.onnx";
+        // for(j = 0; j < ((Onnx__ModelProto*)(ctx->model))->n_opset_import; j++) {
+        //     p = ((Onnx__ModelProto*)(ctx->model))->opset_import[j]->domain;
+        //     if(!p || (strlen(p) == 0))
+        //         p = "ai.onnx";
+        //     if(strcmp(domain, p) == 0) {
+        //         n->opset = ((Onnx__ModelProto*)(ctx->model))->opset_import[j]->version;
+        //         break;
+        //     }
+        // }
+        // if(((Onnx__NodeProto*)n->node_proto)->n_input > 0) {
+        //     n->input_tensors = (tensor_t **)sys_malloc(((Onnx__NodeProto*)n->node_proto)->n_input * sizeof(tensor_t *));
+        //     if(n->input_tensors) {
+        //         n->ninput = ((Onnx__NodeProto*)n->node_proto)->n_input;
+        //         for(j = 0; j < n->ninput; j++) {
+        //             n->input_tensors[j] = context_get_tensor(ctx, ((Onnx__NodeProto*)n->node_proto)->input[j]);
+        //         }
+        //     }
+        // }
+        // if(((Onnx__NodeProto*)n->node_proto)->n_output > 0) {
+        //     n->output_tensors = (tensor_t **)sys_malloc(((Onnx__NodeProto*)n->node_proto)->n_output * sizeof(tensor_t *));
+        //     if(n->output_tensors) {
+        //         n->noutput = ((Onnx__NodeProto*)n->node_proto)->n_output;
+        //         for(j = 0; j < n->noutput; j++) {
+        //             n->output_tensors[j] = context_get_tensor(ctx, ((Onnx__NodeProto*)n->node_proto)->output[j]);
+        //         }
+        //     }
+        // }
+        if(!n->reshape)
+            n->reshape = reshape_dummy;
+        if(!n->operator)
+            n->operator = operator_dummy;
+    }
     return g;
 }
+
+
+context_t *load_onnx(struct serializer *s, const void *buf, int len) {
+    context_t *ctx = NULL;
+    if (!buf || len <= 0)
+        return NULL;
+    ctx = context_new(NULL);
+    ctx->sez = s;
+    ctx->model = onnx__model_proto__unpack(NULL, len, buf);
+    ctx->model_size = len;
+    if (!ctx->model) {
+        if (ctx)
+            sys_free(ctx);
+        return NULL;
+    }
+    ctx->tensor_map = hashmap_create();
+    if(!ctx->tensor_map){
+        if(ctx->model)
+            onnx__model_proto__free_unpacked(ctx->model, NULL);
+        if(ctx)
+            sys_free(ctx);
+        return NULL;
+    }
+    // graph
+    ctx->graph = get_graph_onnx(ctx);
+    return ctx;
+}
+
 
 // ==================================================================================== //
 //                                    serializer API

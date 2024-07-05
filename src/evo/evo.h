@@ -114,7 +114,7 @@ struct tensor {
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
 EVO_API void tensor_free(tensor_t*);
-EVO_API void tensor_dump(tensor_t*);
+EVO_API void tensor_dump(tensor_t *);
 EVO_API int tensor_set_shape(tensor_t*, int, int*);
 EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
 EVO_API int tensor_get_index_by_name(graph_t *, const char *);
@@ -136,9 +136,11 @@ enum op_type {
 struct op {
     op_type_t type;                         /* Operator type            */
     const char* name;                       /* Operator name            */
-    uint8_t is_same_shape : 1;              /* Operator same shape      */
     uint16_t param_size;                    /* Size of param mem buf    */
     void* param_mem;                        /* Param mem buffer         */
+
+    uint8_t is_same_shape : 1;              /* Operator same shape      */
+
     int (*infer_shape)(node_t*);            /* Operator shape fn        */
     void (*init)(op_t*);                    /* Operator init fn         */
     void (*release)(op_t*);                 /* Operator release fn      */
@@ -168,11 +170,18 @@ struct node {
     uint8_t ninput;                         /* Number of Input          */
     uint8_t noutput;                        /* Number of Output         */
 
-    uint16_t * input_tensors;               /* Input Tensor Indexes     */
-    uint16_t * output_tensors;              /* Output Tensor Indexes    */
+    tensor_t ** input_tensors;              /* Input Tensor Indexes     */
+    tensor_t ** output_tensors;             /* Output Tensor Indexes    */
 
     op_t op;                                /* Operator                 */
+    int opset;                              /* Operator set             */
     graph_t *graph;                         /* Owner Graph              */
+    context_t *ctx;                         /* Owner Context            */
+
+    void* node_proto;
+
+    int (*reshape)(struct node *);
+    void (*operator)(struct node *);
 };
 
 EVO_API node_t * node_new(graph_t*, const char*, op_type_t);
@@ -222,6 +231,7 @@ struct context {
 };
 
 EVO_API context_t * context_new(const char*);
+EVO_API tensor_t* context_get_tensor(context_t *ctx, const char *name);
 EVO_API void context_free(context_t*);
 
 // ==================================================================================== //

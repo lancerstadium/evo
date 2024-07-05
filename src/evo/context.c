@@ -20,8 +20,19 @@ context_t * context_new(const char *name) {
     // init graph
     ctx->graph = graph_new(ctx);
     // init tensor map
-    ctx->tensor_map = NULL;
+    ctx->tensor_map = hashmap_create();
     return ctx;
+}
+
+
+tensor_t* context_get_tensor(context_t *ctx, const char *name) {
+    if(ctx && ctx->tensor_map) {
+        tensor_t * t = NULL;
+        int err = hashmap_get(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t*)&t);
+        if(err != -1) 
+            return t;
+    }
+    return NULL;
 }
 
 
@@ -29,6 +40,7 @@ void context_free(context_t *ctx) {
     if(ctx) {
         if(ctx->name) free(ctx->name);
         if(ctx->model) ctx->sez->unload(ctx);
+        if(ctx->tensor_map) hashmap_free(ctx->tensor_map);
     }
     ctx = NULL;
 }
