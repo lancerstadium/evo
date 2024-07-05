@@ -14,9 +14,11 @@ context_t * context_new(const char *name) {
     ctx->sez = NULL;
     ctx->scd = NULL;
     ctx->dev = NULL;
-    
+    // load model
     ctx->model = NULL;
     ctx->model_size = 0;
+    // init graph
+    ctx->graph = graph_new(ctx);
     return ctx;
 }
 

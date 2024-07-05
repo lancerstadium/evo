@@ -228,6 +228,7 @@ EVO_API void context_free(context_t*);
 struct serializer {
     void (*init) (struct serializer*);
     context_t * (*load) (struct serializer*, const void *, int);
+    context_t * (*load_file) (struct serializer*, const char*);
     void (*release) (struct serializer*);
 };
 
