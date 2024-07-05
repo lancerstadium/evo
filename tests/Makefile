@@ -11,7 +11,7 @@ all: $(TEST_TRG)
 
 %: %.c
 	@echo [CC] $<
-	@$(CC) $(INCDIRS) $(LIBDIRS) $(LIBS) -o $@ $<
+	$(CC) $(INCDIRS) $(LIBDIRS) -o $@ $< $(LIBS) -static
 
 run: $(TEST_TRG)
 	@for target in $(TEST_TRG); do \

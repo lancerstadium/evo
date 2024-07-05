@@ -7,7 +7,7 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->index = nd_idx;
     nd->ninput = 0;
     nd->noutput= 0;
-    nd->type = EVO_NODE_TYPE_INTERMEDIATE;
+    nd->type = NODE_TYPE_INTER;
     nd->input_tensors = NULL;
     nd->output_tensors = NULL;
     nd->name = NULL;

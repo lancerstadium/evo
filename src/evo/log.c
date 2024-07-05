@@ -122,7 +122,7 @@ static void output_stderr(const char* msg) {
     fprintf(stderr, "%s", msg);
 }
 
-struct logger* get_default_logger(void) {
+struct logger* logger_get_default(void) {
     static int inited = 0;
     static struct logger default_logger;
 
