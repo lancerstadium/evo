@@ -36,11 +36,14 @@ NAME		:= evo
 TRGDIR 		:= build
 LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 
+CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
+
 $(shell mkdir -p $(TRGDIR))
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all : $(LIBTRG)
+	@$(MAKE) -s -C tests all
 
 $(LIBTRG) : $(OBJS)
 	@echo [AR] Archiving $@
@@ -58,7 +61,16 @@ $(CPPOBJS) : %.o : %.cpp
 	@echo [CXX] $<
 	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
+test:
+	@$(MAKE) -s -C tests run
+
+commit:
+	git add .
+	git commit -m '$(CUR_TIME)'
+	git push
+
 clean:
 	@$(RM) $(DEPS) $(OBJS) $(LIBTRG)
+	@$(MAKE) -s -C tests clean
 
 sinclude $(DEPS)

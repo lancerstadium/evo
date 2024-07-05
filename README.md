@@ -16,6 +16,14 @@
 
 
 
+### 1.2 Test
+
+```shell
+# test all
+make test
+# test target unit
+make test TEST_TRG=[xxx]_tests
+```
 
 
 ## 2 Item Architecture
