@@ -25,7 +25,6 @@ extern "C" {
 // ==================================================================================== //
 
 #include "hashmap.h"
-#include "onnx.proto3.pb-c.h"
 
 // ==================================================================================== //
 //                                       define
@@ -39,7 +38,7 @@ extern "C" {
 #define EVO_API
 #endif  // __GNUC__ || __clang__
 
-
+#define EVO_UNUSED      __attribute__((unused))
 #define EVO_DIM_MAX     8
 #define EVO_ALIGN_SIZE 16
 
@@ -226,13 +225,13 @@ EVO_API void context_free(context_t*);
 // ==================================================================================== //
 
 struct serializer {
-    void (*init) (struct serializer*);
     context_t * (*load) (struct serializer*, const void *, int);
     context_t * (*load_file) (struct serializer*, const char*);
-    void (*release) (struct serializer*);
+    void (*unload) (context_t*);
 };
 
 EVO_API serializer_t * serializer_new();
+EVO_API void serializer_free(serializer_t *);
 
 // ==================================================================================== //
 //                                       evo: scheduler

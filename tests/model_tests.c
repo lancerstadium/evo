@@ -5,7 +5,10 @@
 UnitTest_fn_def(test_model_load) {
     serializer_t * sez = serializer_new();
     context_t * ctx = sez->load_file(sez, "model/mnist_8/model.onnx");
-    UnitTest_msg("%u", ctx->model_size);
+    UnitTest_msg("load: %u", ctx->model_size);
+    ctx->sez->unload(ctx);
+    UnitTest_msg("unload: %u", ctx->model_size);
+    serializer_free(sez);
     return NULL;
 }
 

@@ -24,6 +24,9 @@ context_t * context_new(const char *name) {
 
 
 void context_free(context_t *ctx) {
-    free(ctx->name);
+    if(ctx) {
+        if(ctx->name) free(ctx->name);
+        if(ctx->model) ctx->sez->unload(ctx);
+    }
     ctx = NULL;
 }
