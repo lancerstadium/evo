@@ -229,6 +229,8 @@ struct serializer {
     context_t * (*load) (struct serializer*, const void *, int);
     context_t * (*load_file) (struct serializer*, const char*);
     void (*unload) (context_t*);
+
+    graph_t* (*apply_graph) (context_t*);
 };
 
 EVO_API serializer_t * serializer_new();
