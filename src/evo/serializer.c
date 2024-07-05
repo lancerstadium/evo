@@ -57,7 +57,7 @@ void unload_onnx(context_t* ctx) {
 
 EVO_UNUSED static tensor_t* tensor_from_value_info(Onnx__ValueInfoProto* v) {
     tensor_t* t;
-    EVO_UNUSED tensor_type_t type;
+    tensor_type_t type;
     int* dims = NULL;
     int ndim;
     int i;
@@ -90,7 +90,8 @@ EVO_UNUSED static tensor_t* tensor_from_value_info(Onnx__ValueInfoProto* v) {
                     }
                 }
             }
-            // t = tensor_alloc(v->name, type, dims, ndim);
+            t = tensor_new(v->name, type);
+            tensor_set_shape(t, ndim, dims);
             if (dims)
                 free(dims);
             break;

@@ -35,11 +35,25 @@ graph_t * graph_new(context_t *ctx) {
     return g;
 }
 
+void graph_push_tenser(graph_t* g, tensor_t* ts) {
+    if(ts && g) {
+        ts->layout = g->data_layout;
+        ts->index = g->ntensor;
+        // ts list
+        tensor_t ** new_tensor_list = (tensor_t **)sys_realloc(g->tensors, (g->ntensor + 1) * sizeof(tensor_t *));
+        if(!new_tensor_list) return;
+        // update
+        new_tensor_list[g->ntensor] = ts;
+        g->tensors = new_tensor_list;
+        g->ntensor++;
+    }
+}
+
 void graph_free(graph_t *g) {
 
     // free tensors
     for(int i = 0; i < g->ntensor; i++) {
-        tensor_free(g->tensors[i], g);
+        tensor_free(g->tensors[i]);
     }
     // free nodes
     for(int i = 0; i < g->nnode; i++) {

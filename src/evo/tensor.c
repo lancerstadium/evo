@@ -92,15 +92,11 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->datas = NULL;
 }
 
-tensor_t *tensor_new(graph_t *g, const char *name, tensor_type_t type) {
+tensor_t *tensor_new(const char *name, tensor_type_t type) {
     // ts init
     tensor_t *ts = (tensor_t *)sys_malloc(sizeof(tensor_t));
     if (!ts) return NULL;
-    tensor_init(ts, g->ntensor, type);
-    ts->layout = g->data_layout;
-    // ts list
-    tensor_t ** new_tensor_list = (tensor_t **)sys_realloc(g->tensors, (g->ntensor + 1) * sizeof(tensor_t *));
-    if(!new_tensor_list) return NULL;
+    tensor_init(ts, -1, type);
     // name
     if(name) {
         const int str_len = align(strlen(name) + 1, EVO_ALIGN_SIZE);
@@ -112,16 +108,11 @@ tensor_t *tensor_new(graph_t *g, const char *name, tensor_type_t type) {
         memcpy(ts->name, name, str_len);
         ts->name[str_len - 1] = '\0';
     }
-    // update
-    new_tensor_list[g->ntensor] = ts;
-    g->tensors = new_tensor_list;
-    g->ntensor++;
-
     return ts;
 }
 
 
-void tensor_free(tensor_t* ts, graph_t* g) {
+void tensor_free(tensor_t* ts) {
     sys_free(ts->name);
     sys_free(ts);
 }
@@ -170,7 +161,7 @@ int tensor_get_index_by_name(graph_t *g, const char *name) {
 }
 
 
-void tensor_dump(graph_t *g, tensor_t *ts) {
+void tensor_dump(tensor_t *ts) {
     if(!ts) return;
     if(ts->name) {
         LOG_INFO("%s type: %s/%s", ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));

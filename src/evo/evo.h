@@ -112,9 +112,9 @@ struct tensor {
     int8_t layout : 1;                      /* Tensor is layout 0NCHW1NHWC  */
 };
 
-EVO_API tensor_t * tensor_new(graph_t*, const char*, tensor_type_t);
-EVO_API void tensor_free(tensor_t*, graph_t*);
-EVO_API void tensor_dump(graph_t*, tensor_t*);
+EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
+EVO_API void tensor_free(tensor_t*);
+EVO_API void tensor_dump(tensor_t*);
 EVO_API int tensor_set_shape(tensor_t*, int, int*);
 EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
 EVO_API int tensor_get_index_by_name(graph_t *, const char *);
@@ -200,6 +200,7 @@ struct graph {
 };
 
 EVO_API graph_t * graph_new(context_t*);
+EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //
