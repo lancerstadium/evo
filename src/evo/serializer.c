@@ -20,7 +20,7 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len) {
     ctx->model_size = len;
     if (!ctx->model) {
         if (ctx)
-            free(ctx);
+            sys_free(ctx);
         return NULL;
     }
     return ctx;
@@ -42,7 +42,7 @@ context_t *load_file_onnx(struct serializer *sez, const char *path) {
             if (buf) {
                 for (i = 0; i < len; i += fread(buf + i, 1, len - i, fp));
                 ctx = load_onnx(sez, buf, len);
-                free(buf);
+                sys_free(buf);
             }
         }
         fclose(fp);
@@ -95,7 +95,7 @@ EVO_UNUSED static tensor_t *tensor_from_value_info(Onnx__ValueInfoProto *v) {
             t = tensor_new(v->name, type);
             tensor_set_shape(t, ndim, dims);
             if (dims)
-                free(dims);
+                sys_free(dims);
             break;
         case ONNX__TYPE_PROTO__VALUE_SEQUENCE_TYPE:
             t = NULL;
@@ -307,12 +307,12 @@ static void tensor_copy_proto(tensor_t *t, Onnx__TensorProto *o) {
                                 char **str = (char **)t->datas;
                                 for (i = 0; i < t->ndata; i++) {
                                     if (str[i]) {
-                                        free(str[i]);
+                                        sys_free(str[i]);
                                         str[i] = NULL;
                                     }
                                 }
                                 for (i = 0; i < n; i++) {
-                                    str[i] = malloc(o->string_data[i].len + 1);
+                                    str[i] = sys_malloc(o->string_data[i].len + 1);
                                     if (str[i]) {
                                         str[i][o->string_data[i].len] = 0;
                                         memcpy(str[i], o->string_data[i].data, o->string_data[i].len);
@@ -372,14 +372,14 @@ tensor_t *load_tensor_onnx(const char *path) {
         l = ftell(fp);
         fseek(fp, 0L, SEEK_SET);
         if (l > 0) {
-            buf = malloc(l);
+            buf = sys_malloc(l);
             if (buf) {
                 for (len = 0; len < l; len += fread(buf + len, 1, l - len, fp));
                 pb = onnx__tensor_proto__unpack(NULL, len, buf);
-                free(buf);
+                sys_free(buf);
                 if (pb) {
                     if (pb->n_dims > 0) {
-                        dims = malloc(sizeof(int) * pb->n_dims);
+                        dims = (int*)sys_malloc(sizeof(int) * pb->n_dims);
                         if (dims) {
                             for (i = 0; i < pb->n_dims; i++)
                                 dims[i] = pb->dims[i];
@@ -389,7 +389,7 @@ tensor_t *load_tensor_onnx(const char *path) {
                     t = tensor_new(pb->name, (tensor_type_t)pb->data_type);
                     tensor_set_shape(t, ndim, dims);
                     if ((ndim > 0) && dims)
-                        free(dims);
+                        sys_free(dims);
                     tensor_copy_proto(t, pb);
                     onnx__tensor_proto__free_unpacked(pb, NULL);
                 }
@@ -401,7 +401,7 @@ tensor_t *load_tensor_onnx(const char *path) {
 }
 
 
-graph_t *apply_graph_onnx(context_t * ctx) {
+graph_t *get_graph_onnx(context_t * ctx) {
     if(!ctx || !ctx->model) {
         return NULL;
     }
@@ -409,6 +409,31 @@ graph_t *apply_graph_onnx(context_t * ctx) {
     EVO_UNUSED graph_t * g;
     EVO_UNUSED node_t * n;
     EVO_UNUSED tensor_t * t;
+    EVO_UNUSED Onnx__TensorProto * o;
+	EVO_UNUSED Onnx__ValueInfoProto * v;
+	EVO_UNUSED char * p, * domain;
+	EVO_UNUSED char * name;
+	EVO_UNUSED int i, j, k, l;
+
+    if(!graph)
+        return NULL;
+
+    g = (graph_t *)sys_malloc(sizeof(graph_t));
+    if(!g)
+        return NULL;
+    memset(g, 0, sizeof(graph_t));
+
+    g->nnode = graph->n_node;
+    g->nodes = (node_t **)sys_malloc(sizeof(node_t *) * g->nnode);
+    if(!g->nodes){
+        sys_free(g);
+        return NULL;
+    }
+
+    for(i = 0; i < graph->n_input; i++) {
+        v = graph->input[i];
+    }
+
     return g;
 }
 
@@ -422,7 +447,7 @@ serializer_t *serializer_new() {
     s->load = load_onnx;
     s->load_file = load_file_onnx;
     s->unload = unload_onnx;
-    s->apply_graph = NULL;
+    s->get_graph = NULL;
     return s;
 }
 
@@ -430,9 +455,9 @@ void serializer_free(serializer_t *sez) {
     if (sez) {
         sez->load = NULL;
         sez->load_file = NULL;
-        sez->apply_graph = NULL;
+        sez->get_graph = NULL;
         sez->unload = NULL;
-        free(sez);
+        sys_free(sez);
         sez = NULL;
     }
 }

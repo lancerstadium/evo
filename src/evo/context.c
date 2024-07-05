@@ -19,6 +19,8 @@ context_t * context_new(const char *name) {
     ctx->model_size = 0;
     // init graph
     ctx->graph = graph_new(ctx);
+    // init tensor map
+    ctx->tensor_map = NULL;
     return ctx;
 }
 

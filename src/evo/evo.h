@@ -24,7 +24,7 @@ extern "C" {
 //                                       include
 // ==================================================================================== //
 
-#include "hashmap.h"
+#include "map.h"
 
 // ==================================================================================== //
 //                                       define
@@ -210,12 +210,15 @@ EVO_API void graph_free(graph_t*);
 struct context {
     char *name;                             /* Context name             */
     graph_t  *graph;                        /* Context graph entry      */
+
     scheduler_t *scd;                       /* Context scheduler        */
     serializer_t *sez;                      /* Serializer of contex     */
     device_t *dev;                          /* Context device           */
 
     void* model;                            /* Context model proto      */
     uint32_t model_size;                    /* Context model size       */
+
+    hashmap_t *tensor_map;                  /* Context tensor map       */
 };
 
 EVO_API context_t * context_new(const char*);
@@ -230,7 +233,7 @@ struct serializer {
     context_t * (*load_file) (struct serializer*, const char*);
     void (*unload) (context_t*);
 
-    graph_t* (*apply_graph) (context_t*);
+    graph_t* (*get_graph) (context_t*);
 };
 
 EVO_API serializer_t * serializer_new();
