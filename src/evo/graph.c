@@ -19,6 +19,11 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->dev = NULL;
 
     g->data_layout = 0;     /* Default: NCHW */
+
+    if(ctx) {
+        ctx->graph = g;
+        g->sez = ctx->sez;
+    }
 }
 
 graph_t * graph_new(context_t *ctx) {

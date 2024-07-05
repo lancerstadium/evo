@@ -11,8 +11,12 @@ context_t * context_new(const char *name) {
     } else {
         ctx->name = NULL;
     }
+    ctx->sez = NULL;
     ctx->scd = NULL;
     ctx->dev = NULL;
+    
+    ctx->model = NULL;
+    ctx->model_size = 0;
     return ctx;
 }
 

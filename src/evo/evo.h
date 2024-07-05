@@ -25,6 +25,7 @@ extern "C" {
 // ==================================================================================== //
 
 #include "hashmap.h"
+#include "onnx.proto3.pb-c.h"
 
 // ==================================================================================== //
 //                                       define
@@ -114,8 +115,10 @@ struct tensor {
 
 EVO_API tensor_t * tensor_new(graph_t*, const char*, tensor_type_t);
 EVO_API void tensor_free(tensor_t*, graph_t*);
-EVO_API int tensor_set_shape(tensor_t *tensor, int ndim, int *dims);
-EVO_API char* tensor_set_name_by_index(graph_t *graph, int index) ;
+EVO_API void tensor_dump(graph_t*, tensor_t*);
+EVO_API int tensor_set_shape(tensor_t*, int, int*);
+EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
+EVO_API int tensor_get_index_by_name(graph_t *, const char *);
 
 // ==================================================================================== //
 //                                       evo: op type
@@ -206,8 +209,13 @@ EVO_API void graph_free(graph_t*);
 
 struct context {
     char *name;                             /* Context name             */
+    graph_t  *graph;                        /* Context graph entry      */
     scheduler_t *scd;                       /* Context scheduler        */
+    serializer_t *sez;                      /* Serializer of contex     */
     device_t *dev;                          /* Context device           */
+
+    void* model;                            /* Context model proto      */
+    uint32_t model_size;                    /* Context model size       */
 };
 
 EVO_API context_t * context_new(const char*);
@@ -219,6 +227,7 @@ EVO_API void context_free(context_t*);
 
 struct serializer {
     void (*init) (struct serializer*);
+    context_t * (*load) (struct serializer*, const void *, int);
     void (*release) (struct serializer*);
 };
 
