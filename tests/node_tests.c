@@ -1,6 +1,6 @@
 
 #include "sob.h"
-#include <evo/evo.h>
+#include <evo.h>
 
 UnitTest_fn_def(test_node_init) {
     context_t * ctx = context_new("nihao");

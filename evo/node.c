@@ -11,13 +11,11 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->input_tensors = NULL;
     nd->output_tensors = NULL;
     nd->name = NULL;
+    // operater
     nd->op.type = op_ty;
     nd->op.is_same_shape = 1;
     nd->op.param_size = 0;
     nd->op.param_mem = NULL;
-    nd->op.infer_shape = NULL;
-    nd->op.init = NULL;
-    nd->op.release = NULL;
 }
 
 node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
@@ -62,9 +60,6 @@ void node_free(node_t* nd, graph_t* g) {
     if(nd->noutput > 0) {
         sys_free(nd->output_tensors);
         nd->output_tensors = NULL;
-    }
-    if(nd->op.release) {
-        nd->op.release(&nd->op);
     }
     sys_free(nd);
 }

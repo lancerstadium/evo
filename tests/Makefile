@@ -3,7 +3,7 @@
 
 SRC_TEST := $(wildcard *_tests.c)
 TEST_TRG := $(patsubst %.c,%,$(SRC_TEST))
-INCDIRS		:= -I . -I ../src
+INCDIRS		:= -I . -I ../evo
 LIBDIRS		:= -L ../build
 LIBS 		:= -levo -lm
 

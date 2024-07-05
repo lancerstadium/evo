@@ -54,6 +54,7 @@ typedef struct device device_t;
 typedef enum op_type op_type_t;
 typedef struct context context_t;
 typedef enum node_type node_type_t;
+typedef struct resolver resolver_t;
 typedef struct scheduler scheduler_t;
 typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
@@ -136,17 +137,28 @@ enum op_type {
 struct op {
     op_type_t type;                         /* Operator type            */
     const char* name;                       /* Operator name            */
-    uint16_t param_size;                    /* Size of param mem buf    */
-    void* param_mem;                        /* Param mem buffer         */
+    void (*run)(node_t*);                   /* Operator run fn          */
 
     uint8_t is_same_shape : 1;              /* Operator same shape      */
 
-    int (*infer_shape)(node_t*);            /* Operator shape fn        */
-    void (*init)(op_t*);                    /* Operator init fn         */
-    void (*release)(op_t*);                 /* Operator release fn      */
+    uint16_t param_size;                    /* Size of param mem buf    */
+    void* param_mem;                        /* Param mem buffer         */
 };
 
-void op_init(op_t*);
+// ==================================================================================== //
+//                                       evo: resolver
+// ==================================================================================== //
+
+struct resolver {
+    const char* name;
+    void* (*init)();                        /* Operator init fn         */
+    void (*release)(void*);                 /* Operator release fn      */
+
+    op_t* op_tbl;                          /* Operator table           */
+};
+
+extern resolver_t default_resolver;         /* Default resolver         */
+
 
 // ==================================================================================== //
 //                                       evo: node type
@@ -248,6 +260,7 @@ struct serializer {
 
 EVO_API serializer_t * serializer_new();
 EVO_API void serializer_free(serializer_t *);
+
 
 // ==================================================================================== //
 //                                       evo: scheduler

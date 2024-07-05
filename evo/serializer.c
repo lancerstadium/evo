@@ -515,6 +515,7 @@ graph_t *get_graph_onnx(context_t * ctx) {
     // deal with node
     for(i = 0; i < g->nnode; i++) {
         n = (node_t*)&g->nodes[i];
+        /// TODO: segments fault
         // memset(&n, 0, sizeof(node_t));
         // n->ctx = ctx;
         // n->node_proto = graph->node[i];

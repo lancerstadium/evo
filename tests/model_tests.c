@@ -1,6 +1,6 @@
 
 #include "sob.h"
-#include <evo/evo.h>
+#include <evo.h>
 
 UnitTest_fn_def(test_model_load) {
     serializer_t * sez = serializer_new();

@@ -11,12 +11,13 @@ OC			:= $(CROSS_COMPILE)objcopy
 OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
+NAME		:= evo
 OPTIONS		:= -DSOB_APP_OFF
 ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS)
 CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS)
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS)
 INCDIRS		:= -I .
-SRCDIRS		:= src src/** src/**/**
+SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
 
 SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
@@ -32,7 +33,6 @@ COBJS		:= $(patsubst %, %, $(CFILES:.c=.o))
 CPPOBJS		:= $(patsubst %, %, $(CPPFILES:.cpp=.o)) 
 OBJS		:= $(SOBJS) $(COBJS) $(CPPOBJS)
 
-NAME		:= evo
 TRGDIR 		:= build
 LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 
