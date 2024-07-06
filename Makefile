@@ -38,6 +38,7 @@ LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 
 CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
+
 $(shell mkdir -p $(TRGDIR))
 
 .PHONY: all clean test
