@@ -14,7 +14,7 @@
 context_t *load_file_onnx(struct serializer *sez, const char *path);
 void unload_onnx(context_t *ctx);
 tensor_t *load_tensor_onnx(const char *path);
-graph_t *get_graph_onnx(context_t * ctx);
+graph_t *load_graph_onnx(context_t * ctx);
 context_t *load_onnx(struct serializer *s, const void *buf, int len);
 
 
@@ -401,7 +401,7 @@ tensor_t *load_tensor_onnx(const char *path) {
 }
 
 
-graph_t *get_graph_onnx(context_t * ctx) {
+graph_t *load_graph_onnx(context_t * ctx) {
     if(!ctx || !ctx->model) {
         return NULL;
     }
@@ -514,9 +514,9 @@ graph_t *get_graph_onnx(context_t * ctx) {
 
     // deal with node
     for(i = 0; i < g->nnode; i++) {
+        g->nodes[i] = node_new(g, NULL, OP_TYPE_GENERIC);
         n = (node_t*)&g->nodes[i];
         /// TODO: segments fault
-        // memset(&n, 0, sizeof(node_t));
         // n->ctx = ctx;
         // n->node_proto = graph->node[i];
         // domain = ((Onnx__NodeProto*)n->node_proto)->domain;
@@ -549,10 +549,10 @@ graph_t *get_graph_onnx(context_t * ctx) {
         //         }
         //     }
         // }
-        if(!n->reshape)
-            n->reshape = reshape_dummy;
-        if(!n->operator)
-            n->operator = operator_dummy;
+        // if(!n->reshape)
+        //     n->reshape = reshape_dummy;
+        // if(!n->operator)
+        //     n->operator = operator_dummy;
     }
     return g;
 }
@@ -580,7 +580,7 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len) {
         return NULL;
     }
     // graph
-    ctx->graph = get_graph_onnx(ctx);
+    ctx->graph = load_graph_onnx(ctx);
     return ctx;
 }
 
@@ -589,7 +589,7 @@ static serializer_t onnx_serializer = {
     .load = load_onnx,
     .load_file = load_file_onnx,
     .unload = unload_onnx,
-    .get_graph = get_graph_onnx,
+    .load_graph = load_graph_onnx,
 };
 
 
@@ -610,7 +610,7 @@ void serializer_free(serializer_t *sez) {
         sez->fmt = NULL;
         sez->load = NULL;
         sez->load_file = NULL;
-        sez->get_graph = NULL;
+        sez->load_graph = NULL;
         sez->unload = NULL;
         sez = NULL;
     }

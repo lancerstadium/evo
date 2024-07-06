@@ -194,8 +194,8 @@ struct node {
     uint8_t ninput;                                 /* Number of Input          */
     uint8_t noutput;                                /* Number of Output         */
 
-    tensor_t ** input_tensors;                      /* Input Tensor Indexes     */
-    tensor_t ** output_tensors;                     /* Output Tensor Indexes    */
+    tensor_t ** input_tensors;                      /* Input Tensor List        */
+    tensor_t ** output_tensors;                     /* Output Tensor List       */
 
     op_t op;                                        /* Operator                 */
     int opset;                                      /* Operator set             */
@@ -209,6 +209,7 @@ struct node {
 };
 
 EVO_API node_t * node_new(graph_t*, const char*, op_type_t);
+EVO_API void node_dump(node_t *nd);
 EVO_API void node_free(node_t*, graph_t*);
 
 // ==================================================================================== //
@@ -244,6 +245,7 @@ struct graph {
 
     serializer_t *sez;                              /* Serializer of graph      */
     device_t *dev;                                  /* Device of graph          */
+    context_t *ctx;                                 /* Owner Context            */
 
     uint8_t data_layout : 1;                        /* Data layout: 0NCHW/1NHWC */
     uint8_t is_sub : 1;                             /* Graph is sub graph       */
@@ -252,6 +254,10 @@ struct graph {
 
 EVO_API graph_t * graph_new(context_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
+EVO_API void graph_prerun(graph_t *g);
+EVO_API void graph_run(graph_t *g);
+EVO_API void graph_wait(graph_t *g);
+EVO_API void graph_posrun(graph_t *g);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //
@@ -274,6 +280,7 @@ struct context {
 
 EVO_API context_t * context_new(const char*);
 EVO_API tensor_t* context_get_tensor(context_t *ctx, const char *name);
+EVO_API void context_run(context_t*);
 EVO_API void context_free(context_t*);
 
 // ==================================================================================== //
@@ -285,9 +292,8 @@ struct serializer {
 
     context_t * (*load) (struct serializer*, const void *, int);
     context_t * (*load_file) (struct serializer*, const char*);
+    graph_t* (*load_graph) (context_t*);
     void (*unload) (context_t*);
-
-    graph_t* (*get_graph) (context_t*);
 };
 
 EVO_API serializer_t *serializer_new(const char*);

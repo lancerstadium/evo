@@ -1,5 +1,5 @@
-
 #include "evo.h"
+#include "log.h"
 #include "sys.h"
 
 
@@ -32,7 +32,7 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     }
     nd->opset = 0;
     nd->graph = g;
-    nd->ctx = NULL;
+    nd->ctx = g->ctx;
     nd->node_proto = NULL;
     nd->reshape = NULL;
     nd->operator = NULL;
@@ -43,6 +43,27 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     g->nodes = new_node_list;
     g->nnode++;
     return nd;
+}
+
+void node_dump(node_t *nd) {
+    int i;
+    if(nd) {
+        LOG_INFO("%s: %s-%d\r\n", nd->name, nd->op.name, nd->opset);
+        if(nd->ninput > 0) {
+            LOG_INFO("\tInputs: ");
+            for(i = 0; i < nd->ninput; i++) {
+                LOG_INFO("\t\t");
+                tensor_dump(nd->input_tensors[i]);
+            }
+        }
+        if(nd->noutput > 0) {
+            LOG_INFO("\tOutputs: ");
+            for(i = 0; i < nd->noutput; i++) {
+                LOG_INFO("\t\t");
+                tensor_dump(nd->output_tensors[i]);
+            }
+        }
+    }
 }
 
 void node_free(node_t* nd, graph_t* g) {

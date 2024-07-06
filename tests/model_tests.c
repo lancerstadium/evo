@@ -7,8 +7,10 @@ UnitTest_fn_def(test_model_load) {
     context_t * ctx = sez->load_file(sez, "model/mnist_8/model.onnx");
     UnitTest_msg("load: %u", ctx->model_size);
     ctx->sez->unload(ctx);
-    tensor_t * t = context_get_tensor(ctx, "Input3");
-    tensor_dump(t);
+    tensor_t * t1 = context_get_tensor(ctx, "Input3");
+    tensor_dump(t1);
+    tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
+    tensor_dump(t2);
     UnitTest_msg("unload: %u", ctx->model_size);
     serializer_free(sez);
     return NULL;

@@ -1,6 +1,5 @@
-
-
 #include "evo.h"
+#include "log.h"
 #include "sys.h"
 
 
@@ -33,6 +32,20 @@ tensor_t* context_get_tensor(context_t *ctx, const char *name) {
             return t;
     }
     return NULL;
+}
+
+
+void context_run(context_t *ctx) {
+    if(!ctx) {
+        LOG_WARN("Context run warning, is NULL");
+    }
+    node_t *nd;
+    int i;
+    for(i = 0; i < ctx->graph->nnode; i++) {
+        nd = ctx->graph->nodes[i];
+        if(nd->reshape(nd))
+            nd->operator(nd);
+    }
 }
 
 

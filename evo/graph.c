@@ -15,6 +15,7 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->ninput_node = 0;
     g->noutput_node = 0;
 
+    g->ctx = ctx;
     g->sez = NULL;
     g->dev = NULL;
 
@@ -49,6 +50,31 @@ void graph_push_tenser(graph_t* g, tensor_t* ts) {
         g->tensors = new_tensor_list;
         g->ntensor++;
     }
+}
+
+void graph_prerun(graph_t *g) {
+    context_t *ctx = g->ctx;
+    scheduler_t *scd = ctx->scd;
+    scd->prerun(scd, g);
+}
+
+void graph_run(graph_t *g) {
+    context_t *ctx = g->ctx;
+    scheduler_t *scd = ctx->scd;
+    g->status = GRAPH_STATUS_RUN;
+    scd->run(scd, g);
+}
+
+void graph_wait(graph_t *g) {
+    context_t *ctx = g->ctx;
+    scheduler_t *scd = ctx->scd;
+    scd->wait(scd, g);
+}
+
+void graph_posrun(graph_t *g) {
+    context_t *ctx = g->ctx;
+    scheduler_t *scd = ctx->scd;
+    scd->posrun(scd, g);
 }
 
 void graph_free(graph_t *g) {
