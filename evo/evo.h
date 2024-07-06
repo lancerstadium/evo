@@ -107,23 +107,23 @@ EVO_API int tensor_type_sizeof(tensor_type_t type);
 // ==================================================================================== //
 
 struct tensor {
-    tensor_type_t type;                     /* Tensor data type             */
-    char* name;                             /* Tensor name                  */
-    int index;                              /* Tensor index                 */
-    int dims[EVO_DIM_MAX];                  /* Shape of dim array           */
-    int ndim;                               /* Valid entry number           */
-    void* datas;                            /* Tensor data addr             */
-    uint8_t ndata;                          /* Tensor data size             */
-    uint8_t  szelem;                        /* Tensor element size          */
-    uint32_t nelem;                         /* Tensor element number        */
-    int16_t pnode;                          /* Tensor parent node index     */
+    tensor_type_t type;                             /* Tensor data type             */
+    char* name;                                     /* Tensor name                  */
+    int index;                                      /* Tensor index                 */
+    int dims[EVO_DIM_MAX];                          /* Shape of dim array           */
+    int ndim;                                       /* Valid entry number           */
+    void* datas;                                    /* Tensor data addr             */
+    uint8_t ndata;                                  /* Tensor data size             */
+    uint8_t  szelem;                                /* Tensor element size          */
+    uint32_t nelem;                                 /* Tensor element number        */
+    int16_t pnode;                                  /* Tensor parent node index     */
 
-    uint8_t is_reshaped : 1;                /* Tensor is reshaped           */
-    uint8_t is_constant : 1;                /* Tensor is constant           */
-    uint8_t is_input : 1;                   /* Tensor is input              */
-    uint8_t is_output : 1;                  /* Tensor is output             */
-    uint8_t is_iallocated: 1;               /* Tensor is iallocated         */
-    uint8_t layout : 1;                     /* Tensor is layout 0NCHW1NHWC  */
+    uint8_t is_reshaped : 1;                        /* Tensor is reshaped           */
+    uint8_t is_constant : 1;                        /* Tensor is constant           */
+    uint8_t is_input : 1;                           /* Tensor is input              */
+    uint8_t is_output : 1;                          /* Tensor is output             */
+    uint8_t is_iallocated: 1;                       /* Tensor is iallocated         */
+    uint8_t layout : 1;                             /* Tensor is layout 0NCHW1NHWC  */
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
@@ -148,14 +148,14 @@ enum op_type {
 // ==================================================================================== //
 
 struct op {
-    op_type_t type;                         /* Operator type            */
-    const char* name;                       /* Operator name            */
-    void (*run)(node_t*);                   /* Operator run fn          */
+    op_type_t type;                                 /* Operator type            */
+    const char* name;                               /* Operator name            */
+    void (*run)(node_t*);                           /* Operator run fn          */
 
-    uint8_t is_same_shape : 1;              /* Operator same shape      */
+    uint8_t is_same_shape : 1;                      /* Operator same shape      */
 
-    uint16_t param_size;                    /* Size of param mem buf    */
-    void* param_mem;                        /* Param mem buffer         */
+    uint16_t param_size;                            /* Size of param mem buf    */
+    void* param_mem;                                /* Param mem buffer         */
 };
 
 // ==================================================================================== //
@@ -164,10 +164,10 @@ struct op {
 
 struct resolver {
     const char* name;
-    void* (*init)();                        /* Operator init fn         */
-    void (*release)(void*);                 /* Operator release fn      */
+    void* (*init)();                                /* Operator init fn         */
+    void (*release)(void*);                         /* Operator release fn      */
 
-    op_t* op_tbl;                           /* Operator table           */
+    op_t* op_tbl;                                   /* Operator table           */
 };
 
 EVO_API resolver_t* resolver_get_default();
@@ -188,19 +188,19 @@ enum node_type {
 // ==================================================================================== //
 
 struct node {
-    char *name;                             /* Node name                */
-    uint16_t index;                         /* Index of Node Graph      */
-    node_type_t type;                       /* Type of Node             */
-    uint8_t ninput;                         /* Number of Input          */
-    uint8_t noutput;                        /* Number of Output         */
+    char *name;                                     /* Node name                */
+    uint16_t index;                                 /* Index of Node Graph      */
+    node_type_t type;                               /* Type of Node             */
+    uint8_t ninput;                                 /* Number of Input          */
+    uint8_t noutput;                                /* Number of Output         */
 
-    tensor_t ** input_tensors;              /* Input Tensor Indexes     */
-    tensor_t ** output_tensors;             /* Output Tensor Indexes    */
+    tensor_t ** input_tensors;                      /* Input Tensor Indexes     */
+    tensor_t ** output_tensors;                     /* Output Tensor Indexes    */
 
-    op_t op;                                /* Operator                 */
-    int opset;                              /* Operator set             */
-    graph_t *graph;                         /* Owner Graph              */
-    context_t *ctx;                         /* Owner Context            */
+    op_t op;                                        /* Operator                 */
+    int opset;                                      /* Operator set             */
+    graph_t *graph;                                 /* Owner Graph              */
+    context_t *ctx;                                 /* Owner Context            */
 
     void* node_proto;
 
@@ -232,22 +232,22 @@ enum graph_status {
 
 struct graph {
 
-    tensor_t **tensors;                     /* Graph tensors list       */
-    node_t **nodes;                         /* Graph nodes list         */
-    uint16_t ntensor;                       /* Count of all tensor      */
-    uint16_t nnode;                         /* Count of all note        */
+    tensor_t **tensors;                             /* Graph tensors list       */
+    node_t **nodes;                                 /* Graph nodes list         */
+    uint16_t ntensor;                               /* Count of all tensor      */
+    uint16_t nnode;                                 /* Count of all note        */
 
-    uint16_t *input_nodes;                  /* Input nodes indexs       */
-    uint16_t *output_nodes;                 /* Output nodes indexs      */
-    uint16_t ninput_node;                   /* Input nodes number       */
-    uint16_t noutput_node;                  /* Output nodes umber       */
+    uint16_t *input_nodes;                          /* Input nodes indexs       */
+    uint16_t *output_nodes;                         /* Output nodes indexs      */
+    uint16_t ninput_node;                           /* Input nodes number       */
+    uint16_t noutput_node;                          /* Output nodes umber       */
 
-    serializer_t *sez;                      /* Serializer of graph      */
-    device_t *dev;                          /* Device of graph          */
+    serializer_t *sez;                              /* Serializer of graph      */
+    device_t *dev;                                  /* Device of graph          */
 
-    uint8_t data_layout : 1;                /* Data layout: 0NCHW/1NHWC */
-    uint8_t is_sub : 1;                     /* Graph is sub graph       */
-    uint8_t status : 4;                     /* Status of Graph          */
+    uint8_t data_layout : 1;                        /* Data layout: 0NCHW/1NHWC */
+    uint8_t is_sub : 1;                             /* Graph is sub graph       */
+    uint8_t status : 4;                             /* Status of Graph          */
 };
 
 EVO_API graph_t * graph_new(context_t*);
@@ -259,17 +259,17 @@ EVO_API void graph_free(graph_t*);
 // ==================================================================================== //
 
 struct context {
-    char *name;                             /* Context name             */
-    graph_t  *graph;                        /* Context graph entry      */
+    char *name;                                     /* Context name             */
+    graph_t  *graph;                                /* Context graph entry      */
 
-    scheduler_t *scd;                       /* Context scheduler        */
-    serializer_t *sez;                      /* Serializer of contex     */
-    device_t *dev;                          /* Context device           */
+    scheduler_t *scd;                               /* Context scheduler        */
+    serializer_t *sez;                              /* Serializer of contex     */
+    device_t *dev;                                  /* Context device           */
 
-    void* model;                            /* Context model proto      */
-    uint32_t model_size;                    /* Context model size       */
+    void* model;                                    /* Context model proto      */
+    uint32_t model_size;                            /* Context model size       */
 
-    hashmap_t *tensor_map;                  /* Context tensor map       */
+    hashmap_t *tensor_map;                          /* Context tensor map       */
 };
 
 EVO_API context_t * context_new(const char*);
@@ -281,6 +281,8 @@ EVO_API void context_free(context_t*);
 // ==================================================================================== //
 
 struct serializer {
+    const char* fmt;                                /* Serializer format name   */
+
     context_t * (*load) (struct serializer*, const void *, int);
     context_t * (*load_file) (struct serializer*, const char*);
     void (*unload) (context_t*);
@@ -288,7 +290,7 @@ struct serializer {
     graph_t* (*get_graph) (context_t*);
 };
 
-EVO_API serializer_t * serializer_new();
+EVO_API serializer_t *serializer_new(const char*);
 EVO_API void serializer_free(serializer_t *);
 
 
@@ -297,11 +299,11 @@ EVO_API void serializer_free(serializer_t *);
 // ==================================================================================== //
 
 struct scheduler {
-    const char* name;                       /* Scheduler name           */
-    void (*prerun)(scheduler_t*, graph_t*); /* Scheduler pre run fn     */
-    void (*run)(scheduler_t*, graph_t*);    /* Scheduler run fn         */
-    void (*wait)(scheduler_t*, graph_t*);   /* Scheduler wait fn        */
-    void (*posrun)(scheduler_t*, graph_t*); /* Scheduler pos run fn     */
+    const char* name;                               /* Scheduler name           */
+    void (*prerun)(scheduler_t*, graph_t*);         /* Scheduler pre run fn     */
+    void (*run)(scheduler_t*, graph_t*);            /* Scheduler run fn         */
+    void (*wait)(scheduler_t*, graph_t*);           /* Scheduler wait fn        */
+    void (*posrun)(scheduler_t*, graph_t*);         /* Scheduler pos run fn     */
 };
 
 EVO_API scheduler_t* scheduler_get_default();
@@ -328,8 +330,8 @@ struct interface {
 struct allocator {
     void (*desc)(device_t*);
     void (*eval)(device_t*, graph_t*);
-    void (*alloc)(device_t*, graph_t*);     /* Alloc resource           */
-    void (*release)(device_t*, graph_t*);   /* Release all allocated    */
+    void (*alloc)(device_t*, graph_t*);             /* Alloc resource           */
+    void (*release)(device_t*, graph_t*);           /* Release all allocated    */
 };
 
 // ==================================================================================== //

@@ -13,7 +13,7 @@ context_t * context_new(const char *name) {
     }
     ctx->sez = NULL;
     ctx->scd = scheduler_get_default();         /* Default: sync scheduler  */
-    ctx->dev = device_registry_find("CPU");     /* Default: device CPU      */
+    ctx->dev = device_registry_find("cpu");     /* Default: device cpu      */
     // load model
     ctx->model = NULL;
     ctx->model_size = 0;

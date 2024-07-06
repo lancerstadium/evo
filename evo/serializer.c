@@ -584,28 +584,34 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len) {
     return ctx;
 }
 
+static serializer_t onnx_serializer = {
+    .fmt = "onnx",
+    .load = load_onnx,
+    .load_file = load_file_onnx,
+    .unload = unload_onnx,
+    .get_graph = get_graph_onnx,
+};
+
 
 // ==================================================================================== //
 //                                    serializer API
 // ==================================================================================== //
 
-serializer_t *serializer_new() {
-    serializer_t *s = (serializer_t *)sys_malloc(sizeof(serializer_t));
-    // default load by onnx
-    s->load = load_onnx;
-    s->load_file = load_file_onnx;
-    s->unload = unload_onnx;
-    s->get_graph = NULL;
-    return s;
+serializer_t *serializer_new(const char* fmt) {
+    if(strcmp(fmt, "onnx") == 0) {
+        return &onnx_serializer;
+    } else {                        // default load by onnx
+        return &onnx_serializer;
+    }
 }
 
 void serializer_free(serializer_t *sez) {
     if (sez) {
+        sez->fmt = NULL;
         sez->load = NULL;
         sez->load_file = NULL;
         sez->get_graph = NULL;
         sez->unload = NULL;
-        sys_free(sez);
         sez = NULL;
     }
 }
