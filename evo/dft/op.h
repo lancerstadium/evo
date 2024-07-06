@@ -16,15 +16,13 @@ extern "C" {
 
 #include "../evo.h"
 
-void* resolver_init_dft();
-void resolver_release_dft(void* rctx);
-
 // ==================================================================================== //
 //                                       operator
 // ==================================================================================== //
 
 void op_Abs_dft(node_t*);
 void op_Add_dft(node_t*);
+
 
 
 #ifdef __cplusplus

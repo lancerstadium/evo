@@ -12,8 +12,8 @@ context_t * context_new(const char *name) {
         ctx->name = NULL;
     }
     ctx->sez = NULL;
-    ctx->scd = NULL;
-    ctx->dev = NULL;
+    ctx->scd = scheduler_get_default();         /* Default: sync scheduler  */
+    ctx->dev = device_registry_find("CPU");     /* Default: device CPU      */
     // load model
     ctx->model = NULL;
     ctx->model_size = 0;

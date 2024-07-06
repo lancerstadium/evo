@@ -12,9 +12,14 @@
 ```
 
 
-## 1 Build & Demo
+## 1 Build & Test
 
 
+### 1.1 Build
+
+```shell
+make
+```
 
 ### 1.2 Test
 

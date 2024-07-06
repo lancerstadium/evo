@@ -18,7 +18,9 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->sez = NULL;
     g->dev = NULL;
 
-    g->data_layout = 0;     /* Default: NCHW */
+    g->data_layout = 0;             /* Default: NCHW */
+    g->is_sub = 0;                  /* Default: not  */
+    g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
 
     if(ctx) {
         ctx->graph = g;

@@ -25,6 +25,7 @@ extern "C" {
 // ==================================================================================== //
 
 #include "map.h"
+#include "vec.h"
 
 // ==================================================================================== //
 //                                       define
@@ -61,6 +62,18 @@ typedef struct interface interface_t;
 typedef struct allocator allocator_t;
 typedef enum tensor_type tensor_type_t;
 typedef struct serializer serializer_t;
+
+// ==================================================================================== //
+//                                       evo: internal
+// ==================================================================================== //
+
+EVO_UNUSED static device_t* internal_device_registry = NULL;
+
+EVO_API device_t* device_registry_find(const char* name);
+EVO_API device_t* device_registry_get(int idx);
+EVO_API void device_registry_release();
+EVO_API int device_reg(device_t* dev);
+EVO_API int device_unreg(device_t* dev);
 
 // ==================================================================================== //
 //                                       evo: tensor type
@@ -110,7 +123,7 @@ struct tensor {
     uint8_t is_input : 1;                   /* Tensor is input              */
     uint8_t is_output : 1;                  /* Tensor is output             */
     uint8_t is_iallocated: 1;               /* Tensor is iallocated         */
-    int8_t layout : 1;                      /* Tensor is layout 0NCHW1NHWC  */
+    uint8_t layout : 1;                     /* Tensor is layout 0NCHW1NHWC  */
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
@@ -154,11 +167,10 @@ struct resolver {
     void* (*init)();                        /* Operator init fn         */
     void (*release)(void*);                 /* Operator release fn      */
 
-    op_t* op_tbl;                          /* Operator table           */
+    op_t* op_tbl;                           /* Operator table           */
 };
 
-extern resolver_t default_resolver;         /* Default resolver         */
-
+EVO_API resolver_t* resolver_get_default();
 
 // ==================================================================================== //
 //                                       evo: node type
@@ -200,10 +212,26 @@ EVO_API node_t * node_new(graph_t*, const char*, op_type_t);
 EVO_API void node_free(node_t*, graph_t*);
 
 // ==================================================================================== //
+//                                       evo: graph status
+// ==================================================================================== //
+
+enum graph_status {
+    GRAPH_STATUS_INIT,
+    GRAPH_STATUS_READY,
+    GRAPH_STATUS_RUN,
+    GRAPH_STATUS_SUSPEND,
+    GRAPH_STATUS_RESUME,
+    GRAPH_STATUS_ABORT,
+    GRAPH_STATUS_DONE,
+    GRAPH_STATUS_ERROR
+};
+
+// ==================================================================================== //
 //                                       evo: graph
 // ==================================================================================== //
 
 struct graph {
+
     tensor_t **tensors;                     /* Graph tensors list       */
     node_t **nodes;                         /* Graph nodes list         */
     uint16_t ntensor;                       /* Count of all tensor      */
@@ -217,7 +245,9 @@ struct graph {
     serializer_t *sez;                      /* Serializer of graph      */
     device_t *dev;                          /* Device of graph          */
 
-    int8_t data_layout : 1;                 /* Data layout: 0NCHW/1NHWC */
+    uint8_t data_layout : 1;                /* Data layout: 0NCHW/1NHWC */
+    uint8_t is_sub : 1;                     /* Graph is sub graph       */
+    uint8_t status : 4;                     /* Status of Graph          */
 };
 
 EVO_API graph_t * graph_new(context_t*);
@@ -267,12 +297,14 @@ EVO_API void serializer_free(serializer_t *);
 // ==================================================================================== //
 
 struct scheduler {
-    const char* name;                       /* Scheduler name       */
-    void (*prerun)(scheduler_t*, graph_t*); /* Scheduler pre run fn */
-    void (*run)(scheduler_t*, graph_t*);
-    void (*wait)(scheduler_t*, graph_t*);
-    void (*posrun)(scheduler_t*, graph_t*);
+    const char* name;                       /* Scheduler name           */
+    void (*prerun)(scheduler_t*, graph_t*); /* Scheduler pre run fn     */
+    void (*run)(scheduler_t*, graph_t*);    /* Scheduler run fn         */
+    void (*wait)(scheduler_t*, graph_t*);   /* Scheduler wait fn        */
+    void (*posrun)(scheduler_t*, graph_t*); /* Scheduler pos run fn     */
 };
+
+EVO_API scheduler_t* scheduler_get_default();
 
 // ==================================================================================== //
 //                                       evo: optimizer
@@ -296,8 +328,8 @@ struct interface {
 struct allocator {
     void (*desc)(device_t*);
     void (*eval)(device_t*, graph_t*);
-    void (*alloc)(device_t*, graph_t*);   /* Alloc resource       */
-    void (*release)(device_t*, graph_t*); /* Release all allocated*/
+    void (*alloc)(device_t*, graph_t*);     /* Alloc resource           */
+    void (*release)(device_t*, graph_t*);   /* Release all allocated    */
 };
 
 // ==================================================================================== //
@@ -312,7 +344,6 @@ struct device {
     scheduler_t* scd;
 };
 
-void device_init(device_t*, const char*);
 
 #ifdef __cplusplus
 }
