@@ -72,8 +72,6 @@ EVO_UNUSED static device_t* internal_device_registry = NULL;
 EVO_API device_t* device_registry_find(const char* name);
 EVO_API device_t* device_registry_get(int idx);
 EVO_API void device_registry_release();
-EVO_API int device_reg(device_t* dev);
-EVO_API int device_unreg(device_t* dev);
 
 // ==================================================================================== //
 //                                       evo: tensor type
@@ -197,7 +195,7 @@ struct node {
     tensor_t ** input_tensors;                      /* Input Tensor List        */
     tensor_t ** output_tensors;                     /* Output Tensor List       */
 
-    op_t op;                                        /* Operator                 */
+    op_t* op;                                       /* Operator                 */
     int opset;                                      /* Operator set             */
     graph_t *graph;                                 /* Owner Graph              */
     context_t *ctx;                                 /* Owner Context            */
@@ -334,6 +332,9 @@ struct device {
     scheduler_t* scd;
 };
 
+EVO_API device_t * device_new(const char *name);
+EVO_API int device_reg(device_t* dev);
+EVO_API int device_unreg(device_t* dev);
 
 // ==================================================================================== //
 //                                  evo: interface (device)

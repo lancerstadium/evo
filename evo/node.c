@@ -12,10 +12,11 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->output_tensors = NULL;
     nd->name = NULL;
     // operater
-    nd->op.type = op_ty;
-    nd->op.is_same_shape = 1;
-    nd->op.param_size = 0;
-    nd->op.param_mem = NULL;
+    nd->op = (op_t*)sys_malloc(sizeof(op_t));
+    nd->op->type = op_ty;
+    nd->op->is_same_shape = 1;
+    nd->op->param_size = 0;
+    nd->op->param_mem = NULL;
 }
 
 node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
@@ -39,18 +40,18 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
 void node_dump(node_t *nd) {
     int i;
     if(nd) {
-        LOG_INFO("%s: %s-%d\r\n", nd->name, nd->op.name, nd->opset);
+        LOG_INFO("%s: %s-%d\r\n", nd->name, nd->op->name, nd->opset);
         if(nd->ninput > 0) {
-            LOG_INFO("\tInputs: \n");
+            LOG_INFO("  - Inputs: \n");
             for(i = 0; i < nd->ninput; i++) {
-                LOG_INFO("\t\t");
+                LOG_INFO("        ");
                 tensor_dump(nd->input_tensors[i]);
             }
         }
         if(nd->noutput > 0) {
-            LOG_INFO("\tOutputs: \n");
+            LOG_INFO("  - Outputs: \n");
             for(i = 0; i < nd->noutput; i++) {
-                LOG_INFO("\t\t");
+                LOG_INFO("        ");
                 tensor_dump(nd->output_tensors[i]);
             }
         }

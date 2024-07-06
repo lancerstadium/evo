@@ -511,8 +511,6 @@ graph_t *load_graph_onnx(context_t * ctx) {
         }
     }
 
-    LOG_INFO("nnode: %u\n", ctx->graph->nnode);
-
     // deal with node
     for(i = 0; i < g->nnode; i++) {
         g->nodes[i] = node_new(g, NULL, OP_TYPE_GENERIC);
@@ -556,7 +554,6 @@ graph_t *load_graph_onnx(context_t * ctx) {
             n->operator = operator_dummy;
     }
 
-    LOG_INFO("nnode: %u\n", ctx->graph->nnode);
     return g;
 }
 
