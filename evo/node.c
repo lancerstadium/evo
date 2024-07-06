@@ -24,12 +24,6 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
         return NULL;
     }
     node_init(nd, op_ty, g->nnode);
-
-    node_t ** new_node_list = (node_t**)sys_realloc(g->nodes, sizeof(node_t*) * (g->nnode + 1));
-    if(new_node_list == NULL) {
-        sys_free(nd);
-        return NULL;
-    }
     nd->opset = 0;
     nd->graph = g;
     nd->ctx = g->ctx;
@@ -39,9 +33,6 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     if(name) {
         nd->name = sys_strdup(name);
     }
-    new_node_list[g->nnode] = nd;
-    g->nodes = new_node_list;
-    g->nnode++;
     return nd;
 }
 
@@ -50,14 +41,14 @@ void node_dump(node_t *nd) {
     if(nd) {
         LOG_INFO("%s: %s-%d\r\n", nd->name, nd->op.name, nd->opset);
         if(nd->ninput > 0) {
-            LOG_INFO("\tInputs: ");
+            LOG_INFO("\tInputs: \n");
             for(i = 0; i < nd->ninput; i++) {
                 LOG_INFO("\t\t");
                 tensor_dump(nd->input_tensors[i]);
             }
         }
         if(nd->noutput > 0) {
-            LOG_INFO("\tOutputs: ");
+            LOG_INFO("\tOutputs: \n");
             for(i = 0; i < nd->noutput; i++) {
                 LOG_INFO("\t\t");
                 tensor_dump(nd->output_tensors[i]);

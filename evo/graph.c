@@ -52,6 +52,20 @@ void graph_push_tenser(graph_t* g, tensor_t* ts) {
     }
 }
 
+
+void graph_push_node(graph_t* g, node_t* nd) {
+    if(nd && g) {
+        nd->index = g->nnode;
+        // nd list
+        node_t ** new_node_list = (node_t **)sys_realloc(g->nodes, (g->nnode + 1) * sizeof(node_t *));
+        if(!new_node_list) return;
+        // update
+        new_node_list[g->nnode] = nd;
+        g->nodes = new_node_list;
+        g->nnode++;
+    }
+}
+
 void graph_prerun(graph_t *g) {
     context_t *ctx = g->ctx;
     scheduler_t *scd = ctx->scd;

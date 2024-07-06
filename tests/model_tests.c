@@ -11,7 +11,9 @@ UnitTest_fn_def(test_model_load) {
     tensor_dump(t1);
     tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
     tensor_dump(t2);
+    UnitTest_msg("nnode: %u", ctx->graph->nnode);
     UnitTest_msg("unload: %u", ctx->model_size);
+    node_dump(ctx->graph->nodes[1]);
     serializer_free(sez);
     return NULL;
 }
