@@ -61,7 +61,7 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
 }
 
 static int cpu_run(device_t *dev, graph_t *g) {
-    /// TODO: Foreach Node in graph should trun
+    /// TODO: Foreach Node in graph should run
     return 0;
 }
 

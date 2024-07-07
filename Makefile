@@ -65,6 +65,9 @@ $(CPPOBJS) : %.o : %.cpp
 test:
 	@$(MAKE) -s -C tests run
 
+line:
+	@wc -l `find ./ -name "*.c";find -name "*.h"`
+
 commit:
 	git add .
 	git commit -m '$(CUR_TIME)'
