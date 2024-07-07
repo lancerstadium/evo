@@ -113,7 +113,6 @@ static device_t cpu_dev = {
 //                                       cpu: API
 // ==================================================================================== //
 
-
 device_t* device_get_cpu() {
     return &cpu_dev;
 }
