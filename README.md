@@ -11,6 +11,7 @@
 
 ```
 
+- Docs: [evo-docs](https://lancerstadium.github.io/evo/docs/)
 
 ## 1 Build & Test
 
