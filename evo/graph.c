@@ -23,11 +23,29 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->is_sub = 0;                  /* Default: not  */
     g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
 
+    g->sub_vec = vector_create();   /* Sub graph vec */
+
     if(ctx) {
         ctx->graph = g;
         g->sez = ctx->sez;
     }
 }
+
+static void graph_sub_init(graph_t *g, graph_t *pg) {
+    g->tensors = NULL;
+    g->nodes = NULL;
+    g->ntensor = 0;
+    g->nnode = 0;
+
+    g->ctx = pg->ctx;
+    g->sez = pg->sez;
+    g->dev = pg->dev;
+
+    g->data_layout = pg->data_layout;
+    g->is_sub = 1;                  /* Default: yes  */
+    g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
+}
+
 
 graph_t * graph_new(context_t *ctx) {
     graph_t *g = (graph_t*)sys_malloc(sizeof(graph_t));
@@ -36,6 +54,15 @@ graph_t * graph_new(context_t *ctx) {
     }
     graph_init(g, ctx);
     return g;
+}
+
+graph_t * graph_sub(graph_t* g) {
+    graph_t *sg = (graph_t*)sys_malloc(sizeof(graph_t));
+    if(!sg) {
+        return NULL;
+    }
+    graph_sub_init(sg, g);
+    return sg;
 }
 
 void graph_push_tenser(graph_t* g, tensor_t* ts) {
@@ -103,6 +130,12 @@ void graph_free(graph_t *g) {
     }
     sys_free(g->tensors);
     sys_free(g->nodes);
+
+    if(g->is_sub) {
+
+    } else {
+        if(g->sub_vec) vector_free(g->sub_vec);
+    }
 
     g = NULL;
 }

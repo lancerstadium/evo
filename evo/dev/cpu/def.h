@@ -16,9 +16,33 @@ extern "C" {
 
 #include "../../evo.h"
 
+
+// ==================================================================================== //
+//                                       dev: cpu
+// ==================================================================================== //
+
+static interface_t cpu_itf = {
+    
+};
+
+static allocator_t cpu_alc = {
+
+};
+
+static optimizer_t cpu_opt = {
+
+};
+
 static device_t cpu_dev = {
     .name = "cpu",
+    .itf  = &cpu_itf,
+    .alc  = &cpu_alc,
+    .opt  = &cpu_opt,
+    .scd  = NULL
 };
+
+
+
 
 
 #ifdef __cplusplus

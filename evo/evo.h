@@ -236,11 +236,6 @@ struct graph {
     uint16_t ntensor;                               /* Count of all tensor      */
     uint16_t nnode;                                 /* Count of all note        */
 
-    uint16_t *input_nodes;                          /* Input nodes indexs       */
-    uint16_t *output_nodes;                         /* Output nodes indexs      */
-    uint16_t ninput_node;                           /* Input nodes number       */
-    uint16_t noutput_node;                          /* Output nodes umber       */
-
     serializer_t *sez;                              /* Serializer of graph      */
     device_t *dev;                                  /* Device of graph          */
     context_t *ctx;                                 /* Owner Context            */
@@ -248,9 +243,23 @@ struct graph {
     uint8_t data_layout : 1;                        /* Data layout: 0NCHW/1NHWC */
     uint8_t is_sub : 1;                             /* Graph is sub graph       */
     uint8_t status : 4;                             /* Status of Graph          */
+
+    union {
+        struct {                                    /* When is_sub = 0          */
+            struct graph * sub_vec;                 /* Vector of sub graphs     */
+            uint16_t *input_nodes;                  /* Input nodes indexs       */
+            uint16_t *output_nodes;                 /* Output nodes indexs      */
+            uint16_t ninput_node;                   /* Input nodes number       */
+            uint16_t noutput_node;                  /* Output nodes umber       */
+        };
+        struct {                                    /* When is_sub = 1          */
+            struct graph * pgraph;                  /* Parent graph of this sub */
+        };
+    };
 };
 
 EVO_API graph_t * graph_new(context_t*);
+EVO_API graph_t * graph_sub(graph_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_prerun(graph_t *g);
 EVO_API void graph_run(graph_t *g);
