@@ -16,32 +16,23 @@ extern "C" {
 
 #include "../../evo.h"
 
+typedef struct cpu_graph_info cpu_graph_info_t;
 
 // ==================================================================================== //
-//                                       dev: cpu
+//                                       cpu: graph info
 // ==================================================================================== //
 
-static interface_t cpu_itf = {
-    
+struct cpu_graph_info {
+    int exec_nnode;
+    node_t * exec_node_vec;
+    double * exec_time_vec;     /* 0..nnode-1 for node, nnode for repeat, nnode+1 for sum */
 };
 
-static allocator_t cpu_alc = {
+// ==================================================================================== //
+//                                       cpu API
+// ==================================================================================== //
 
-};
-
-static optimizer_t cpu_opt = {
-
-};
-
-static device_t cpu_dev = {
-    .name = "cpu",
-    .itf  = &cpu_itf,
-    .alc  = &cpu_alc,
-    .opt  = &cpu_opt,
-    .scd  = NULL
-};
-
-
+device_t* device_get_cpu();
 
 
 

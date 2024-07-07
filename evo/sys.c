@@ -1,6 +1,12 @@
 
 #include "sys.h"
 #include <string.h>
+#ifdef _MSC_VER
+#include <windows.h>
+#else
+#include <sys/stat.h>
+#include <sys/time.h>
+#endif
 
 // ==================================================================================== //
 //                                      sys port API
@@ -39,5 +45,24 @@ char* sys_strdup(const char* src) {
 char* sys_strdup(const char* src) {
     return strdup(src);
 }
+#endif // CONFIG_ARCH_CORTEX_M
 
+
+
+// ==================================================================================== //
+//                                       system time
+// ==================================================================================== //
+
+double sys_time() {
+#ifdef _MSC_VER
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
+    return pc.QuadPart * 1000.0 / freq.QuadPart;
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000.0 + (tv.tv_usec / 1000.0);
 #endif
+}

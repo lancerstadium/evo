@@ -7,7 +7,7 @@
 //                                  internal: device
 // ==================================================================================== //
 
-EVO_UNUSED static int device_registry_init(const char* name) {
+int device_registry_init(const char* name) {
     if(!internal_device_registry) {
         internal_device_registry = vector_create();
         if(internal_device_registry) {
@@ -56,6 +56,9 @@ void device_registry_release() {
     vector_free(internal_device_registry);
     internal_device_registry = NULL;
 }
+
+
+
 
 int device_reg(device_t* dev) {
     if(!dev) return -1;

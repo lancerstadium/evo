@@ -65,6 +65,16 @@ int cpu_get_cluster_mask(int cluster);
 char* sys_strdup(const char* src);
 
 
+
+
+// ==================================================================================== //
+//                                       system time
+// ==================================================================================== //
+
+double sys_time();
+
+
+
 #ifdef __cplusplus
 }
 #endif  // __cplusplus

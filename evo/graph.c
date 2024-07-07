@@ -7,8 +7,8 @@
 static void graph_init(graph_t *g, context_t *ctx) {
     g->tensors = NULL;
     g->nodes = NULL;
-    g->input_nodes = NULL;
-    g->output_nodes = NULL;
+    g->input_inodes_vec = vector_create();
+    g->output_inodes_vec = vector_create();
 
     g->ntensor = 0;
     g->nnode = 0;
@@ -36,14 +36,20 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->nodes = NULL;
     g->ntensor = 0;
     g->nnode = 0;
+    g->nodes_vec = vector_create();
+    g->input_itensors_vec = vector_create();
+    g->output_itensors_vec = vector_create();
 
     g->ctx = pg->ctx;
     g->sez = pg->sez;
     g->dev = pg->dev;
 
-    g->data_layout = pg->data_layout;
+    g->data_layout = pg ? pg->data_layout : 0;
     g->is_sub = 1;                  /* Default: yes  */
     g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
+
+    g->pgraph = pg;
+    g->info = NULL;
 }
 
 
@@ -93,6 +99,13 @@ void graph_push_node(graph_t* g, node_t* nd) {
     }
 }
 
+node_t* graph_get_node(graph_t *g, int i) {
+    if(g && (i >= 0) && (i < g->nnode)) {
+        return g->nodes[i];
+    }
+    return NULL;
+}
+
 void graph_prerun(graph_t *g) {
     context_t *ctx = g->ctx;
     scheduler_t *scd = ctx->scd;
@@ -132,9 +145,14 @@ void graph_free(graph_t *g) {
     sys_free(g->nodes);
 
     if(g->is_sub) {
-
+        if(g->info) sys_free(g->info);
+        if(g->nodes_vec) vector_free(g->nodes_vec);
+        if(g->input_itensors_vec) vector_free(g->input_itensors_vec);
+        if(g->output_itensors_vec) vector_free(g->output_itensors_vec);
     } else {
         if(g->sub_vec) vector_free(g->sub_vec);
+        if(g->input_inodes_vec) vector_free(g->input_inodes_vec);
+        if(g->output_inodes_vec) vector_free(g->output_inodes_vec);
     }
 
     g = NULL;
