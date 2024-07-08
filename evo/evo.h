@@ -298,7 +298,6 @@ struct context {
 
 EVO_API context_t * context_new(const char*);
 EVO_API tensor_t* context_get_tensor(context_t*, const char*);
-EVO_API void context_run(context_t*);
 EVO_API void context_free(context_t*);
 
 // ==================================================================================== //

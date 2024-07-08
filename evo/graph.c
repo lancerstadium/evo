@@ -122,6 +122,7 @@ void graph_run(graph_t *g) {
 void graph_wait(graph_t *g) {
     context_t *ctx = g->ctx;
     scheduler_t *scd = ctx->scd;
+    g->status = GRAPH_STATUS_SUSPEND;
     scd->wait(scd, g);
 }
 

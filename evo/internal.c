@@ -64,26 +64,30 @@ int device_reg_dev(device_t* dev) {
         LOG_CRIT("Device %s register fail, module was not be inited.\n", dev->name);
         return -1;
     }
-    /// TODO: interface init
+    // interface init
     vector_add(&internal_device_registry, *dev);
+    if (dev->itf && dev->itf->init)
+        dev->itf->init(dev);
     int last = vector_size(internal_device_registry);
-    if(last > 0) {
+    if (last > 0) {
         LOG_INFO("Device %s init success!\n", internal_device_registry[last - 1].name);
     }
     return 0;
 }
 
 int device_unreg_dev(device_t* dev) {
-    if(!dev) return -1;
-    int cnt = vector_size(&internal_device_registry);
-    if(cnt == 0) {
+    if (!dev) return -1;
+    int cnt = vector_size(internal_device_registry);
+    if (cnt == 0) {
         LOG_CRIT("Can not remove any device, module was empty.\n");
         return -1;
     }
-    for(int i = 0; i < cnt; i++) {
-        if(strcmp(internal_device_registry[i].name, dev->name) == 0) {
+    for (int i = 0; i < cnt; i++) {
+        if (strcmp(internal_device_registry[i].name, dev->name) == 0) {
             vector_remove(internal_device_registry, i);
-            /// TODO: interface release
+            // interface release
+            if (dev->itf && dev->itf->release) dev->itf->release(dev);
+            LOG_INFO("Device %s release success!\n", internal_device_registry[i].name);
             return 0;
         }
     }

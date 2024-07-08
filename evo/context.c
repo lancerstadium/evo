@@ -35,20 +35,6 @@ tensor_t* context_get_tensor(context_t *ctx, const char *name) {
 }
 
 
-void context_run(context_t *ctx) {
-    if(!ctx) {
-        LOG_WARN("Context run warning, is NULL");
-    }
-    node_t *nd;
-    int i;
-    for(i = 0; i < ctx->graph->nnode; i++) {
-        nd = ctx->graph->nodes[i];
-        if(nd->reshape(nd))
-            nd->operator(nd);
-    }
-}
-
-
 void context_free(context_t *ctx) {
     if(ctx) {
         if(ctx->name) free(ctx->name);
