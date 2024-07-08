@@ -7,16 +7,17 @@ UnitTest_fn_def(test_model_load) {
     serializer_t * sez = serializer_new("onnx");
     context_t * ctx = sez->load_file(sez, "model/mnist_8/model.onnx");
     UnitTest_msg("load: %u", ctx->model_size);
-    ctx->sez->unload(ctx);
+    
     tensor_t * t1 = context_get_tensor(ctx, "Input3");
     tensor_dump(t1);
     tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
     tensor_dump(t2);
-    UnitTest_msg("nnode: %u", ctx->graph->nnode);
-    UnitTest_msg("unload: %u", ctx->model_size);
-    node_dump(ctx->graph->nodes[1]);
-    graph_sub(ctx->graph);
+    graph_dump(ctx->graph);
+    graph_t * sub_g = graph_sub(ctx->graph);
     graph_prerun(ctx->graph);
+    graph_run(ctx->graph);
+    ctx->sez->unload(ctx);
+    UnitTest_msg("unload: %u", ctx->model_size);
     serializer_free(sez);
     device_unreg_dev(cpu);
     return NULL;

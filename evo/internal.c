@@ -29,7 +29,7 @@ device_t* device_registry_find(const char* name) {
         return NULL;
     }
     for(int i = 0; i < cnt; i++) {
-        device_t* dev = &internal_device_registry[i];
+        device_t* dev = internal_device_registry[i];
         if(strcmp(dev->name, name) == 0) {
             return dev;
         }
@@ -41,7 +41,7 @@ device_t* device_registry_find(const char* name) {
 device_t* device_registry_get(int idx) {
     int cnt = vector_size(internal_device_registry);
     if(idx >= 0 && idx < cnt) {
-        device_t* dev = &internal_device_registry[idx];
+        device_t* dev = internal_device_registry[idx];
         return dev;
     } else {
         return NULL;
@@ -50,7 +50,7 @@ device_t* device_registry_get(int idx) {
 
 void device_registry_release() {
     while(vector_size(internal_device_registry) > 0) {
-        device_t* dev = &internal_device_registry[0];
+        device_t* dev = internal_device_registry[0];
         device_unreg_dev(dev);
     }
     vector_free(internal_device_registry);
@@ -65,12 +65,12 @@ int device_reg_dev(device_t* dev) {
         return -1;
     }
     // interface init
-    vector_add(&internal_device_registry, *dev);
+    vector_add(&internal_device_registry, dev);
     if (dev->itf && dev->itf->init)
         dev->itf->init(dev);
     int last = vector_size(internal_device_registry);
     if (last > 0) {
-        LOG_INFO("Device %s init success!\n", internal_device_registry[last - 1].name);
+        LOG_INFO("Device %s init success!\n", internal_device_registry[last - 1]->name);
     }
     return 0;
 }
@@ -83,11 +83,11 @@ int device_unreg_dev(device_t* dev) {
         return -1;
     }
     for (int i = 0; i < cnt; i++) {
-        if (strcmp(internal_device_registry[i].name, dev->name) == 0) {
+        if (strcmp(internal_device_registry[i]->name, dev->name) == 0) {
             vector_remove(internal_device_registry, i);
             // interface release
             if (dev->itf && dev->itf->release) dev->itf->release(dev);
-            LOG_INFO("Device %s release success!\n", internal_device_registry[i].name);
+            LOG_INFO("Device %s release success!\n", internal_device_registry[i]->name);
             return 0;
         }
     }

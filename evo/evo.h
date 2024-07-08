@@ -65,11 +65,16 @@ typedef struct allocator allocator_t;
 typedef enum tensor_type tensor_type_t;
 typedef struct serializer serializer_t;
 
+typedef device_t** device_vec_t;
+typedef tensor_t** tensor_vec_t;
+typedef graph_t** graph_vec_t;
+typedef node_t** node_vec_t;
+
 // ==================================================================================== //
 //                                       evo: internal
 // ==================================================================================== //
 
-EVO_UNUSED static device_t* internal_device_registry = NULL;
+EVO_UNUSED static device_vec_t internal_device_registry = NULL;
 
 EVO_API int device_registry_init(const char*);
 EVO_API device_t* device_registry_find(const char*);
@@ -438,7 +443,7 @@ struct graph {
 
     union {
         struct {                                        /* When is_sub = 0              */
-            struct graph * sub_vec;                     /* P|Vector of sub graphs       */
+            graph_vec_t sub_vec;                        /* P|Vector of sub graphs       */
             uint16_t *input_inodes_vec;                 /* P|Input nodes index Vector   */
             uint16_t *output_inodes_vec;                /* P|Output nodes index Vector  */
             uint16_t ninput_node;                       /* P|Input nodes number         */
@@ -464,6 +469,7 @@ EVO_API void graph_prerun(graph_t*);
 EVO_API void graph_run(graph_t*);
 EVO_API void graph_wait(graph_t*);
 EVO_API void graph_posrun(graph_t*);
+EVO_API void graph_dump(graph_t*);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //

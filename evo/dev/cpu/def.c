@@ -82,6 +82,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
     }
     for(int i = 0; i < g_info->exec_nnode; i++) {
         node_t* nd = &(g_info->exec_node_vec[i]);
+        LOG_INFO("+ op_type: %d\n", nd->op->type);
         if(!nd->reshape) {
             LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
             return -1;
@@ -100,6 +101,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
         if(g_info->exec_time_vec) {
             g_info->exec_time_vec[i] = time_ed - time_st;
             g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
+
         }
     }
 

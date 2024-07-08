@@ -17,14 +17,14 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->noutput_node = 0;
 
     g->ctx = ctx;
-    g->sez = NULL;
-    g->dev = NULL;
+    g->sez = ctx->sez;
+    g->dev = ctx->dev;
 
-    g->data_layout = 0;             /* Default: NCHW */
-    g->is_sub = 0;                  /* Default: not  */
-    g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
+    g->data_layout = 0;                             /* Default: NCHW */
+    g->is_sub = 0;                                  /* Default: not  */
+    g->status = GRAPH_STATUS_INIT;                  /* Default: INIT */
 
-    g->sub_vec = vector_create();   /* Sub graph vec */
+    g->sub_vec = vector_create();                   /* Sub graph vec */
 
     if(ctx) {
         ctx->graph = g;
@@ -46,17 +46,17 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->dev = pg->dev;
 
     g->data_layout = pg ? pg->data_layout : 0;
-    g->is_sub = 1;                  /* Default: yes  */
-    g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
+    g->is_sub = 1;                                  /* Default: yes  */
+    g->status = GRAPH_STATUS_INIT;                  /* Default: INIT */
 
-    g->idx = 0;                     /* Need to modify */
+    g->idx = 0;                                     /* Need to modify */
     g->pgraph = pg;
     g->info = NULL;
 
     for(int i = 0; i < g->nnode; i++) {             // Copy nodes from parent
         vector_add(&(g->nodes_vec), i);
     }
-    vector_add(&pg->sub_vec, *g);                   // Append sub graph to sub_vec[0]
+    vector_add(&pg->sub_vec, g);                    // Append sub graph to sub_vec[0]
 }
 
 
@@ -141,8 +141,16 @@ void graph_posrun(graph_t *g) {
     ctx->scd->posrun(ctx->scd, g);
 }
 
-void graph_free(graph_t *g) {
+void graph_dump(graph_t* g) {
+    if(!g) return;
+    LOG_INFO("[Graph]\n");
+    for(int i=0; i < g->nnode; i++) {
+        node_dump(g->nodes[i]);
+    }
+}
 
+void graph_free(graph_t *g) {
+    if(!g) return;
     // free tensors
     for(int i = 0; i < g->ntensor; i++) {
         tensor_free(g->tensors[i]);

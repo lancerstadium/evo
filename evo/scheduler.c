@@ -13,21 +13,15 @@ static void scheduler_prerun_sync(scheduler_t* scd, graph_t* g) {
         LOG_WARN("Scheduler only prerun Parent graph");
     }
     for(int i = 0; i < vector_size(g->sub_vec); i++) {
-        LOG_INFO("hello: %d\n", i);
-        graph_t* sg = &(g->sub_vec[i]);
-        LOG_INFO("hello: %d\n", i);
+        graph_t* sg = g->sub_vec[i];
         device_t* dev = sg->dev;
-        LOG_INFO("hello: %d\n", i);
         int ret = dev->itf->prerun(dev, sg);
-        LOG_INFO("hello: %d\n", i);
         if(ret != 0) {
             sg->status = GRAPH_STATUS_ERROR;
             LOG_ERR("Prerun subgraph(%d) on %s fail\n", sg->idx, dev->name);
             return;
         }
-        LOG_INFO("hello: %d\n", i);
         sg->status = GRAPH_STATUS_READY;
-        LOG_INFO("hello: %d\n", i);
     }
 }
 
@@ -37,7 +31,7 @@ static void scheduler_run_sync(scheduler_t* scd, graph_t* g) {
         LOG_WARN("Scheduler only run Parent graph");
     }
     for(int i = 0; i < vector_size(g->sub_vec); i++) {
-        graph_t* sg = &(g->sub_vec[i]);
+        graph_t* sg = g->sub_vec[i];
         device_t* dev = sg->dev;
         int ret = dev->itf->run(dev, sg);
         if(ret != 0) {
@@ -59,7 +53,7 @@ static void scheduler_posrun_sync(scheduler_t* scd, graph_t* g) {
         LOG_WARN("Scheduler only run Parent graph");
     }
     for(int i = 0; i < vector_size(g->sub_vec); i++) {
-        graph_t* sg = &(g->sub_vec[i]);
+        graph_t* sg = g->sub_vec[i];
         device_t* dev = sg->dev;
         int ret = dev->itf->posrun(dev, sg);
         if(ret != 0) {
