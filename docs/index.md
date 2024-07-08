@@ -14,7 +14,7 @@ presentation:
 ---
 
 
-## EVO
+## libevo
 
 - `libevo` is a Inference engine used in TinyML write by pure C.
 - **Keyword**: high perf, embedding, Deep Learning
@@ -26,6 +26,7 @@ presentation:
 |:-----------:|:---------------------------:|:------------:|
 |    model    | [evo-mdl.md](./evo-mdl.md)  |  model load  |
 |  operator   | [evo-op.md](./evo-op.md)    | operator lib |
+|  reference  | [evo-ref.md](./evo-ref.md)  | reference    |
 
 
 

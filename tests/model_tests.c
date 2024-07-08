@@ -3,6 +3,7 @@
 #include <evo.h>
 
 UnitTest_fn_def(test_model_load) {
+    device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
     context_t * ctx = sez->load_file(sez, "model/mnist_8/model.onnx");
     UnitTest_msg("load: %u", ctx->model_size);

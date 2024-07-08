@@ -10,7 +10,7 @@
 int device_registry_init(const char* name) {
     if(!internal_device_registry) {
         internal_device_registry = vector_create();
-        if(internal_device_registry) {
+        if(!internal_device_registry) {
             LOG_CRIT("Can not init device %s, create the vector failed.\n", name);
             return -1;
         }
@@ -23,7 +23,7 @@ device_t* device_registry_find(const char* name) {
         LOG_CRIT("Can not find any device, module was not inited.\n");
         return NULL;
     }
-    int cnt = vector_size(&internal_device_registry);
+    int cnt = vector_size(internal_device_registry);
     if(cnt == 0) {
         LOG_CRIT("Can not find any device, module was empty.\n");
         return NULL;
@@ -51,28 +51,29 @@ device_t* device_registry_get(int idx) {
 void device_registry_release() {
     while(vector_size(internal_device_registry) > 0) {
         device_t* dev = &internal_device_registry[0];
-        device_unreg(dev);
+        device_unreg_dev(dev);
     }
     vector_free(internal_device_registry);
     internal_device_registry = NULL;
 }
 
-
-
-
-int device_reg(device_t* dev) {
+int device_reg_dev(device_t* dev) {
     if(!dev) return -1;
     device_registry_init(dev->name);
     if(!internal_device_registry) {
-        LOG_CRIT("Tengine: Can not register %s, module was not be inited.\n", dev->name);
+        LOG_CRIT("Device %s register fail, module was not be inited.\n", dev->name);
         return -1;
     }
     /// TODO: interface init
     vector_add(&internal_device_registry, *dev);
+    int last = vector_size(internal_device_registry);
+    if(last > 0) {
+        LOG_INFO("Device %s init success!\n", internal_device_registry[last - 1].name);
+    }
     return 0;
 }
 
-int device_unreg(device_t* dev) {
+int device_unreg_dev(device_t* dev) {
     if(!dev) return -1;
     int cnt = vector_size(&internal_device_registry);
     if(cnt == 0) {

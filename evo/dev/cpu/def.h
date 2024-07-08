@@ -23,16 +23,16 @@ typedef struct cpu_graph_info cpu_graph_info_t;
 // ==================================================================================== //
 
 struct cpu_graph_info {
-    int exec_nnode;
+    int exec_nnode;             /* Node Number of exec */
     node_t * exec_node_vec;
-    double * exec_time_vec;     /* 0..nnode-1 for node, nnode for repeat, nnode+1 for sum */
+    double * exec_time_vec;     /* 0..nnode-1 for node, nnode for sum */
 };
 
 // ==================================================================================== //
 //                                       cpu API
 // ==================================================================================== //
 
-device_t* device_get_cpu();
+device_t* device_reg_cpu();
 
 
 
