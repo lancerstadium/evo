@@ -1,6 +1,7 @@
 
 
 #include "evo.h"
+#include "log.h"
 #include "sys.h"
 
 
@@ -32,10 +33,10 @@ static void graph_init(graph_t *g, context_t *ctx) {
 }
 
 static void graph_sub_init(graph_t *g, graph_t *pg) {
-    g->tensors = NULL;
-    g->nodes = NULL;
-    g->ntensor = 0;
-    g->nnode = 0;
+    g->tensors = pg->tensors;
+    g->nodes = pg->nodes;
+    g->ntensor = pg->ntensor;
+    g->nnode = pg->nnode;
     g->nodes_vec = vector_create();
     g->input_itensors_vec = vector_create();
     g->output_itensors_vec = vector_create();
@@ -48,8 +49,14 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->is_sub = 1;                  /* Default: yes  */
     g->status = GRAPH_STATUS_INIT;  /* Default: INIT */
 
+    g->idx = 0;                     /* Need to modify */
     g->pgraph = pg;
     g->info = NULL;
+
+    for(int i = 0; i < g->nnode; i++) {             // Copy nodes from parent
+        vector_add(&(g->nodes_vec), i);
+    }
+    vector_add(&pg->sub_vec, *g);                   // Append sub graph to sub_vec[0]
 }
 
 
@@ -107,29 +114,31 @@ node_t* graph_get_node(graph_t *g, int i) {
 }
 
 void graph_prerun(graph_t *g) {
+    if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;
-    scheduler_t *scd = ctx->scd;
-    scd->prerun(scd, g);
+    if(ctx->scd) {
+        ctx->scd->prerun(ctx->scd, g);
+    }
 }
 
 void graph_run(graph_t *g) {
+    if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;
-    scheduler_t *scd = ctx->scd;
     g->status = GRAPH_STATUS_RUN;
-    scd->run(scd, g);
+    ctx->scd->run(ctx->scd, g);
 }
 
 void graph_wait(graph_t *g) {
+    if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;
-    scheduler_t *scd = ctx->scd;
     g->status = GRAPH_STATUS_SUSPEND;
-    scd->wait(scd, g);
+    ctx->scd->wait(ctx->scd, g);
 }
 
 void graph_posrun(graph_t *g) {
+    if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;
-    scheduler_t *scd = ctx->scd;
-    scd->posrun(scd, g);
+    ctx->scd->posrun(ctx->scd, g);
 }
 
 void graph_free(graph_t *g) {

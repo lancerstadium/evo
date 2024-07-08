@@ -140,7 +140,6 @@ EVO_API int tensor_get_index_by_name(graph_t *, const char *);
 //                                       evo: op type
 // ==================================================================================== //
 
-
 enum op_type {
     // ==== OP: Genergic
     OP_TYPE_GENERIC,
@@ -446,6 +445,7 @@ struct graph {
             uint16_t noutput_node;                      /* P|Output nodes umber         */
         };
         struct {                                        /* When is_sub = 1              */
+            int idx;                                    /* S|Index in sub vector        */
             uint16_t *nodes_vec;                        /* S|Node index Vec from parents*/
             uint16_t *input_itensors_vec;               /* S|Input tensors index Vector */
             uint16_t *output_itensors_vec;              /* S|Output tensors index Vector*/

@@ -15,6 +15,8 @@ UnitTest_fn_def(test_model_load) {
     UnitTest_msg("nnode: %u", ctx->graph->nnode);
     UnitTest_msg("unload: %u", ctx->model_size);
     node_dump(ctx->graph->nodes[1]);
+    graph_sub(ctx->graph);
+    graph_prerun(ctx->graph);
     serializer_free(sez);
     device_unreg_dev(cpu);
     return NULL;

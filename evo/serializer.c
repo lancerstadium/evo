@@ -899,6 +899,7 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len) {
     ctx->sez = s;
     ctx->model = onnx__model_proto__unpack(NULL, len, buf);
     ctx->model_size = len;
+    ctx->name = sys_strdup("onnx");
     if (!ctx->model) {
         if (ctx)
             sys_free(ctx);
