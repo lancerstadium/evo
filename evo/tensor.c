@@ -86,6 +86,7 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     // dim
     for(int i = 0; i < EVO_DIM_MAX; i++) {
         ts->dims[i] = 1;
+        ts->strides[i] = 1;
     }
     ts->ndim = 0;
     // data
@@ -113,8 +114,78 @@ tensor_t *tensor_new(const char *name, tensor_type_t type) {
 
 
 void tensor_free(tensor_t* ts) {
-    sys_free(ts->name);
+    if(!ts) return;
+    if(ts->name) sys_free(ts->name);
+    if(ts->datas) sys_free(ts->datas);
     sys_free(ts);
+    ts = NULL;
+}
+
+tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) {
+    char ** str;
+    int n;
+    int sz, i;
+    if(ts) {
+        // release dim & data
+        ts->ndim = 0;
+        if((ts->ndata > 0) && ts->datas) {
+            if(ts->type == TENSOR_TYPE_STRING) {
+                str = (char**)ts->datas;
+                for(int idx = 0; idx < ts->ndata; idx++) {
+                    if(str[idx]) {
+                        free(str[idx]);
+                        str[idx] = NULL;
+                    }
+                }
+            }
+            ts->datas = NULL;
+            ts->ndata = 0;
+        }
+    }
+    // reinit
+    if(type != TENSOR_TYPE_UNDEFINED) {
+        if((ndim > 0) && dims) {
+            // check size
+            for(i = 0, n = 1; i < ndim; i++) {
+                if(dims[i] <= 0)
+                    return ts;
+                n *= dims[i];
+            }
+            // init
+            ts->type = type;
+            ts->ndim = ndim;
+            sz = tensor_type_sizeof(ts->type);
+            if(n > 0 && sz > 0) {
+                // ndim     = 3
+                // dims     = [2,2,4]
+                // strides  = [0,0,1]
+                //          = [8,4,1]
+                for(i = ts->ndim - 1; i >= 0; i--) {
+                    ts->dims[i] = dims[i];
+                    if(i == ts->ndim - 1) {
+                        ts->strides[i] = 1;
+                    } else {
+                        ts->strides[i] = ts->dims[i+1] * ts->strides[i+1];
+                    }
+                }
+                ts->datas = sys_malloc(n * sz);
+                if(ts->datas) {
+                    memset(ts->datas, 0, n * sz);
+                    ts->ndata = n;
+                }
+            }
+        } else {
+            sz = tensor_type_sizeof(ts->type);
+            if(sz > 0) {
+                ts->datas = sys_malloc(sz);
+                if(ts->datas) {
+                    memset(ts->datas, 0, sz);
+                    ts->ndata = 1;
+                }
+            }
+        }
+    }
+    return ts;
 }
 
 

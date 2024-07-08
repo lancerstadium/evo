@@ -112,6 +112,7 @@ struct tensor {
     char* name;                                         /* Tensor name                  */
     int index;                                          /* Tensor index                 */
     int dims[EVO_DIM_MAX];                              /* Shape of dim array           */
+    int strides[EVO_DIM_MAX];                           /* Offset of dim array          */
     int ndim;                                           /* Valid entry number           */
     void* datas;                                        /* Tensor data addr             */
     uint8_t ndata;                                      /* Tensor data size             */
@@ -128,8 +129,9 @@ struct tensor {
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
+EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API void tensor_free(tensor_t*);
-EVO_API void tensor_dump(tensor_t *);
+EVO_API void tensor_dump(tensor_t*);
 EVO_API int tensor_set_shape(tensor_t*, int, int*);
 EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
 EVO_API int tensor_get_index_by_name(graph_t *, const char *);
