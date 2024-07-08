@@ -33,6 +33,8 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len);
 EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
     if(!op_ty) return OP_TYPE_GENERIC;
     switch(shash(op_ty)) {
+        case 0x0b87d47b: return OP_TYPE_ABS;    /* "Abs" */
+        case 0x7c82680b: return OP_TYPE_ACOS;   /* "Acos" */
         default: return OP_TYPE_GENERIC;
     }
 }
