@@ -146,8 +146,8 @@ EVO_API int tensor_get_index_by_name(graph_t *, const char *);
 // ==================================================================================== //
 
 enum op_type {
-    // ==== OP: Genergic
-    OP_TYPE_GENERIC,
+    // ==== OP: No Operation
+    OP_TYPE_NOP,
     // ==== OP: A head
     OP_TYPE_ABS,
     OP_TYPE_ACOS,

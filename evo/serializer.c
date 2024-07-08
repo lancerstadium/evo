@@ -30,7 +30,8 @@ graph_t *load_graph_onnx(context_t *ctx);
 context_t *load_onnx(struct serializer *s, const void *buf, int len);
 
 EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
-    if (!op_ty) return OP_TYPE_GENERIC;
+    if (!op_ty) return OP_TYPE_NOP;
+    LOG_INFO("++ op ty: %-12s, hash: 0x%08x\n", op_ty, shash(op_ty));
     switch (shash(op_ty)) {
         case 0x0b87d47b:
             return OP_TYPE_ABS; /* "Abs" */
@@ -357,7 +358,7 @@ EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
         case 0x522154a3:
             return OP_TYPE_SOFTMAX_CROSS_ENTROPY_LOSS; /* "SoftmaxCrossEntropyLoss" */
         default:
-            return OP_TYPE_GENERIC;
+            return OP_TYPE_NOP;
     }
 }
 
