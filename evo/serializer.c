@@ -8,6 +8,18 @@
 #include "sys.h"
 
 // ==================================================================================== //
+//                                      dummy
+// ==================================================================================== //
+
+EVO_UNUSED static int reshape_dummy(node_t *n) {
+    return 1;
+}
+
+EVO_UNUSED static void operator_dummy(node_t *n) {
+    LOG_WARN("\033[45;37mUnsupported opset\033[0m => %s-%d (%s)\r\n", ((Onnx__NodeProto *)(n->node_proto))->op_type, n->opset, (strlen(((Onnx__NodeProto *)(n->node_proto))->domain) > 0) ? ((Onnx__NodeProto *)(n->node_proto))->domain : "ai.onnx");
+}
+
+// ==================================================================================== //
 //                                      onnx
 // ==================================================================================== //
 
@@ -18,12 +30,11 @@ graph_t *load_graph_onnx(context_t * ctx);
 context_t *load_onnx(struct serializer *s, const void *buf, int len);
 
 
-EVO_UNUSED static int reshape_dummy(node_t *n) {
-    return 1;
-}
-
-EVO_UNUSED static void operator_dummy(node_t *n) {
-    LOG_WARN("\033[45;37mUnsupported opset\033[0m => %s-%d (%s)\r\n", ((Onnx__NodeProto *)(n->node_proto))->op_type, n->opset, (strlen(((Onnx__NodeProto *)(n->node_proto))->domain) > 0) ? ((Onnx__NodeProto *)(n->node_proto))->domain : "ai.onnx");
+EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
+    if(!op_ty) return OP_TYPE_GENERIC;
+    switch(shash(op_ty)) {
+        default: return OP_TYPE_GENERIC;
+    }
 }
 
 context_t *load_file_onnx(struct serializer *sez, const char *path) {
@@ -513,12 +524,12 @@ graph_t *load_graph_onnx(context_t * ctx) {
 
     // deal with node
     for(i = 0; i < g->nnode; i++) {
-        g->nodes[i] = node_new(g, NULL, OP_TYPE_GENERIC);
+        Onnx__NodeProto * node_proto = graph->node[i];
+        if(!node_proto) break;
+        g->nodes[i] = node_new(g, node_proto->name, op_map_onnx(node_proto->op_type));
         n = g->nodes[i];
-        n->ctx = ctx;
-        n->node_proto = graph->node[i];
-        domain = ((Onnx__NodeProto*)n->node_proto)->domain;
-        n->name = sys_strdup(((Onnx__NodeProto*)n->node_proto)->name);
+        n->node_proto = node_proto;
+        domain = node_proto->domain;
         if(!domain || (strlen(domain) == 0))
             domain = "ai.onnx";
         for(j = 0; j < ((Onnx__ModelProto*)(ctx->model))->n_opset_import; j++) {
@@ -530,21 +541,21 @@ graph_t *load_graph_onnx(context_t * ctx) {
                 break;
             }
         }
-        if(((Onnx__NodeProto*)n->node_proto)->n_input > 0) {
-            n->input_tensors = (tensor_t **)sys_malloc(((Onnx__NodeProto*)n->node_proto)->n_input * sizeof(tensor_t *));
+        if(node_proto->n_input > 0) {
+            n->input_tensors = (tensor_t **)sys_malloc(node_proto->n_input * sizeof(tensor_t *));
             if(n->input_tensors) {
-                n->ninput = ((Onnx__NodeProto*)n->node_proto)->n_input;
+                n->ninput = node_proto->n_input;
                 for(j = 0; j < n->ninput; j++) {
-                    n->input_tensors[j] = context_get_tensor(ctx, ((Onnx__NodeProto*)n->node_proto)->input[j]);
+                    n->input_tensors[j] = context_get_tensor(ctx, node_proto->input[j]);
                 }
             }
         }
-        if(((Onnx__NodeProto*)n->node_proto)->n_output > 0) {
-            n->output_tensors = (tensor_t **)sys_malloc(((Onnx__NodeProto*)n->node_proto)->n_output * sizeof(tensor_t *));
+        if(node_proto->n_output > 0) {
+            n->output_tensors = (tensor_t **)sys_malloc(node_proto->n_output * sizeof(tensor_t *));
             if(n->output_tensors) {
-                n->noutput = ((Onnx__NodeProto*)n->node_proto)->n_output;
+                n->noutput = node_proto->n_output;
                 for(j = 0; j < n->noutput; j++) {
-                    n->output_tensors[j] = context_get_tensor(ctx, ((Onnx__NodeProto*)n->node_proto)->output[j]);
+                    n->output_tensors[j] = context_get_tensor(ctx, node_proto->output[j]);
                 }
             }
         }
