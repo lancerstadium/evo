@@ -936,6 +936,7 @@ serializer_t *serializer_new(const char *fmt) {
     if (strcmp(fmt, "onnx") == 0) {
         return &onnx_serializer;
     } else {  // default load by onnx
+        LOG_WARN("Unsupport model format %s , use onnx as default\n", fmt);
         return &onnx_serializer;
     }
 }
