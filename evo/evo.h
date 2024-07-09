@@ -543,6 +543,7 @@ struct device {
 EVO_API device_t * device_new(const char*);
 EVO_API op_t * device_find_op(device_t*, op_type_t);
 EVO_API device_t* device_reg(const char*);
+EVO_API int device_unreg(const char*);
 EVO_API int device_reg_dev(device_t*);
 EVO_API int device_unreg_dev(device_t*);
 

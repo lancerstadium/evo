@@ -93,3 +93,22 @@ int device_unreg_dev(device_t* dev) {
     }
     return -1;
 }
+
+int device_unreg(const char* name) {
+    if (!name) return -1;
+    int cnt = vector_size(internal_device_registry);
+    if (cnt == 0) {
+        LOG_CRIT("Can not remove any device, module was empty.\n");
+        return -1;
+    }
+    for (int i = 0; i < cnt; i++) {
+        if (strcmp(internal_device_registry[i]->name, name) == 0) {
+            vector_remove(internal_device_registry, i);
+            // interface release
+            if (internal_device_registry[i]->itf && internal_device_registry[i]->itf->release) internal_device_registry[i]->itf->release(internal_device_registry[i]);
+            LOG_INFO("Device %s release success!\n", internal_device_registry[i]->name);
+            return 0;
+        }
+    }
+    return -1;
+}
