@@ -20,10 +20,6 @@ void op_Reshape_dft(node_t* nd) {
 	int total_dim = 1;
 	int total_shape = 1;
     int ndim = s->ndata;
-    int step = tensor_type_sizeof(s->type);
-    for(int i = 0; i < s->ndata; i++) {
-        LOG_INFO("DATA[%d]: %d\n", i, s->datas + i * step);
-    }
     int dims[ndim];
     for(int i = 0; i < ndim; i++) {
         if(sdata[i] == 0)
@@ -40,7 +36,8 @@ void op_Reshape_dft(node_t* nd) {
                 else if(sdata[j] == 0)
                     total_shape *= x->dims[j];
             }
-            LOG_INFO("dim: %d, shape: %d\n", total_dim, total_shape);
+            /// TODO: warning opration for reshape
+            // LOG_INFO("dim: %d, shape: %d\n", total_dim, total_shape);
             // dims[i] = total_dim / total_shape;
         }
     }

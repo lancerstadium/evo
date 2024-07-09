@@ -4,12 +4,12 @@
 UnitTest_fn_def(test_model_load) {
     device_t *cpu = device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
-    context_t * ctx = sez->load_model(sez, "model/mnist_8/model.onnx");
+    context_t * ctx = sez->load_model(sez, "model/resnet_18_v1_7/model.onnx");
     UnitTest_msg("load: %u", ctx->model_size);
     
-    tensor_t * t1 = context_get_tensor(ctx, "Input3");
+    tensor_t * t1 = context_get_tensor(ctx, "data");
     tensor_dump(t1);
-    tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
+    tensor_t * t2 = context_get_tensor(ctx, "resnetv15_dense0_fwd");
     tensor_dump(t2);
 
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");

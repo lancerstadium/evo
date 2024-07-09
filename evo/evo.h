@@ -138,6 +138,7 @@ EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API void tensor_free(tensor_t*);
 EVO_API void tensor_dump(tensor_t*);
 EVO_API int tensor_reshape(tensor_t*, int, int*);
+EVO_API void tensor_apply(tensor_t*, void*, size_t);
 EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
 EVO_API int tensor_get_index_by_name(graph_t *, const char *);
 

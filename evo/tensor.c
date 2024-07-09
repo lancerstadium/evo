@@ -205,6 +205,36 @@ int tensor_reshape(tensor_t *ts, int ndim, int *dims) {
     return 0;
 }
 
+void tensor_apply(tensor_t *ts, void *buf, size_t len) {
+    size_t l;
+    int sz;
+    if(ts) {
+        if(ts->datas && buf && (len > 0)) {
+            sz = tensor_type_sizeof(ts->type);
+            if(sz > 0) {
+                if(ts->type == TENSOR_TYPE_STRING) {
+                    char ** p = (char**)ts->datas;
+                    char ** q = (char**)buf;
+                    for(int idx = 0; idx < ts->ndata; idx++) {
+                        if(p[idx]) {
+                            free(p[idx]);
+                            p[idx] = NULL;
+                        }
+                    }
+                    l = MIN(ts->ndata, (size_t)len);
+                    for(int idx = 0; idx < l; idx++) {
+                        p[idx] = sys_strdup(q[idx]);
+                    }
+                }else {
+                    l = ts->ndata * sz;
+                    if(l < 0)
+                        memcpy(ts->datas, buf, MIN(l, len));
+                }
+            }
+        }
+    }
+}
+
 char* tensor_set_name_by_index(graph_t *g, int index) {
     char* name = (char*)sys_malloc(EVO_ALIGN_SIZE * 2);
     if(name) sprintf(name, "tensor_%d", index);
