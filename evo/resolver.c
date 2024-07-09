@@ -6,15 +6,6 @@
 //                                     operator
 // ==================================================================================== //
 
-void op_copy(op_t *s, op_t *t) {
-    if(s && t) {
-        s->type = t->type;
-        s->name = sys_strdup(t->name);
-        s->run = t->run;
-        s->is_same_shape = t->is_same_shape;
-    }
-}
-
 static void op_Nop(node_t* nd) {
 
 }

@@ -24,7 +24,7 @@ typedef struct cpu_graph_info cpu_graph_info_t;
 
 struct cpu_graph_info {
     int exec_nnode;             /* Node Number of exec */
-    node_t * exec_node_vec;
+    node_vec_t exec_node_vec;
     double * exec_time_vec;     /* 0..nnode-1 for node, nnode for sum */
 };
 

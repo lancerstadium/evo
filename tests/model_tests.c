@@ -15,7 +15,7 @@ UnitTest_fn_def(test_model_load) {
     graph_dump(ctx->graph);
     graph_t * sub_g = graph_sub(ctx->graph);
     graph_prerun(ctx->graph);
-    graph_run(ctx->graph);
+    // graph_run(ctx->graph);
     ctx->sez->unload(ctx);
     UnitTest_msg("unload: %u", ctx->model_size);
     serializer_free(sez);

@@ -54,12 +54,15 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
     cpu_graph_info_t* g_info = cpu_graph_info_new(g);
     /// TODO: Foreach Node in graph should be found
     for(int i = 0; i < g->nnode; i++) {
+        LOG_INFO("hello: %d\n", i);
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
+        LOG_INFO("hello: %s\n", nd->name);
         if(nd) {
+            LOG_INFO("hello: %s\n", nd->name);
             op_t* trg_op = device_find_op(dev, nd->op->type);
             if(trg_op) {
-                op_copy(nd->op, trg_op);
-                vector_add(&(g_info->exec_node_vec), *nd);
+                nd->op = trg_op;
+                vector_add(&(g_info->exec_node_vec), nd);
                 vector_add(&(g_info->exec_time_vec), 0.0);
                 g_info->exec_nnode++;
             }
@@ -81,7 +84,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
         return -1;
     }
     for(int i = 0; i < g_info->exec_nnode; i++) {
-        node_t* nd = &(g_info->exec_node_vec[i]);
+        node_t* nd = g_info->exec_node_vec[i];
         LOG_INFO("+ op_type: %d\n", nd->op->type);
         if(!nd->reshape) {
             LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
