@@ -121,6 +121,13 @@ void graph_prerun(graph_t *g) {
     }
 }
 
+void graph_step(graph_t* g, int n) {
+    if(!g || !g->ctx) return;
+    context_t *ctx = g->ctx;
+    g->status = GRAPH_STATUS_RUN;
+    ctx->scd->step(ctx->scd, g, n);
+}
+
 void graph_run(graph_t *g) {
     if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;

@@ -1,5 +1,5 @@
 
-.PHONY: all clean
+.PHONY: all run clean
 
 SRC_TEST := $(wildcard *_tests.c)
 TEST_TRG := $(patsubst %.c,%,$(SRC_TEST))

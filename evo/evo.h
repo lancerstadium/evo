@@ -465,6 +465,7 @@ EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
 EVO_API void graph_prerun(graph_t*);
+EVO_API void graph_step(graph_t*, int);
 EVO_API void graph_run(graph_t*);
 EVO_API void graph_wait(graph_t*);
 EVO_API void graph_posrun(graph_t*);
@@ -519,6 +520,7 @@ struct scheduler {
     const char* name;                                   /* Scheduler name               */
     void (*prerun)(scheduler_t*, graph_t*);             /* Scheduler pre run fn         */
     void (*run)(scheduler_t*, graph_t*);                /* Scheduler run fn             */
+    void (*step)(scheduler_t*, graph_t*, int);          /* Scheduler step fn            */
     void (*wait)(scheduler_t*, graph_t*);               /* Scheduler wait fn            */
     void (*posrun)(scheduler_t*, graph_t*);             /* Scheduler pos run fn         */
 };
@@ -551,6 +553,7 @@ EVO_API int device_unreg_dev(device_t*);
 struct interface {
     int (*init)(device_t*);                             /* Device Init: rsv ...         */
     int (*prerun)(device_t*, graph_t*);                 /* Pre Run Graph: True Entry    */
+    int (*step)(device_t*, graph_t*, int);              /* Step Run Graph: True Entry   */
     int (*run)(device_t*, graph_t*);                    /* Run Graph: True Entry        */
     int (*posrun)(device_t*, graph_t*);                 /* Post Run Graph: True Entry   */
     int (*release)(device_t*);                          /* Device Release: rsv ...      */

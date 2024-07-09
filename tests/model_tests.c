@@ -17,6 +17,7 @@ UnitTest_fn_def(test_model_load) {
     
     graph_t * sub_g = graph_sub(ctx->graph);
     graph_prerun(ctx->graph);
+    graph_step(ctx->graph, 1);
     graph_run(ctx->graph);
     graph_dump(ctx->graph); // Exec dump
 

@@ -41,7 +41,7 @@ CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 $(shell mkdir -p $(TRGDIR))
 
-.PHONY: all clean test line
+.PHONY: all clean test line tool
 
 all : $(LIBTRG)
 	@$(MAKE) -s -C tests all

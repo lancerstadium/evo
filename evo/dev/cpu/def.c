@@ -11,6 +11,7 @@ static cpu_graph_info_t* cpu_graph_info_new(graph_t *g) {
     cpu_graph_info_t* g_info = (cpu_graph_info_t*)sys_malloc(sizeof(cpu_graph_info_t));
     if(!g_info) return NULL;
     // Init info record vector
+    g_info->exec_node_idx = 0;
     g_info->exec_nnode = 0;
     g_info->exec_node_vec = vector_create();
     g_info->exec_time_vec = vector_create();
@@ -69,6 +70,43 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
     return 0;
 }
 
+static int cpu_step(device_t *dev, graph_t *g, int n) {
+    if(!dev || !g) {
+        LOG_ERR("CPU Step Fail: No device or graph!\n");
+        return -1;
+    }
+    cpu_graph_info_t* g_info = cpu_graph_info_get(g);
+    if(!g_info) {
+        LOG_ERR("CPU Step Fail: No device graph info!\n");
+        return -1;
+    }
+    for(int i = 0; (i < n) && (g_info->exec_node_idx < g_info->exec_nnode); i++, g_info->exec_node_idx++) {
+        node_t* nd = g_info->exec_node_vec[g_info->exec_node_idx];
+        LOG_INFO("+ op_type: %d\n", nd->op->type);
+        if(!nd->reshape) {
+            LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
+            return -1;
+        }
+        nd->reshape(nd);
+        if(!nd->op || !nd->op->run) {
+            LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
+            return -1;
+        }
+        // ==== Clock up ====== //
+        double time_st, time_ed;
+        time_st = sys_time();
+        nd->op->run(nd);
+        time_ed = sys_time();
+        // ==== Clock down ==== //
+        if(g_info->exec_time_vec) {
+            g_info->exec_time_vec[g_info->exec_node_idx] = time_ed - time_st;
+            g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
+            LOG_INFO("Node:%s Op:%s Time: %f\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
+        }
+    }
+    return 0;
+}
+
 static int cpu_run(device_t *dev, graph_t *g) {
     /// TODO: Foreach Node in graph should run
     if(!dev || !g) {
@@ -81,6 +119,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
         return -1;
     }
     for(int i = 0; i < g_info->exec_nnode; i++) {
+        g_info->exec_node_idx = i;
         node_t* nd = g_info->exec_node_vec[i];
         LOG_INFO("+ op_type: %d\n", nd->op->type);
         if(!nd->reshape) {
@@ -101,10 +140,8 @@ static int cpu_run(device_t *dev, graph_t *g) {
         if(g_info->exec_time_vec) {
             g_info->exec_time_vec[i] = time_ed - time_st;
             g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
-
         }
     }
-
     return 0;
 }
 
@@ -138,6 +175,7 @@ static int cpu_release(device_t* dev) {
 static interface_t cpu_itf = {
     .init = cpu_init,
     .prerun = cpu_prerun,
+    .step = cpu_step,
     .run = cpu_run,
     .posrun = cpu_posrun,
     .release = cpu_release
