@@ -23,7 +23,7 @@ EVO_UNUSED static void operator_dummy(node_t *n) {
 //                                      onnx
 // ==================================================================================== //
 
-context_t *load_file_onnx(struct serializer *sez, const char *path);
+context_t *load_model_onnx(struct serializer *sez, const char *path);
 void unload_onnx(context_t *ctx);
 tensor_t *load_tensor_onnx(const char *path);
 graph_t *load_graph_onnx(context_t *ctx);
@@ -362,7 +362,7 @@ EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
     }
 }
 
-context_t *load_file_onnx(struct serializer *sez, const char *path) {
+context_t *load_model_onnx(struct serializer *sez, const char *path) {
     context_t *ctx = NULL;
     FILE *fp;
     uint32_t len;
@@ -922,7 +922,8 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len) {
 static serializer_t onnx_serializer = {
     .fmt = "onnx",
     .load = load_onnx,
-    .load_file = load_file_onnx,
+    .load_model = load_model_onnx,
+    .load_tensor = load_tensor_onnx,
     .unload = unload_onnx,
     .load_graph = load_graph_onnx,
 };
@@ -943,7 +944,7 @@ void serializer_free(serializer_t *sez) {
     if (sez) {
         sez->fmt = NULL;
         sez->load = NULL;
-        sez->load_file = NULL;
+        sez->load_model = NULL;
         sez->load_graph = NULL;
         sez->unload = NULL;
         sez = NULL;

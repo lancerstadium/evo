@@ -50,7 +50,7 @@ make
 int main() {
     // ...
     serializer_t * sez = serializer_new("onnx");
-    context_t * ctx = sez->load_file(sez, "model/mnist_8/model.onnx");
+    context_t * ctx = sez->load_model(sez, "model/mnist_8/model.onnx");
     tensor_t * t1 = context_get_tensor(ctx, "Input3");
     tensor_dump(t1);
     serializer_free(sez);

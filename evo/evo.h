@@ -120,7 +120,7 @@ struct tensor {
     int strides[EVO_DIM_MAX];                           /* Offset of dim array          */
     int ndim;                                           /* Valid entry number           */
     void* datas;                                        /* Tensor data addr             */
-    uint8_t ndata;                                      /* Tensor data size             */
+    size_t ndata;                                       /* Tensor data size             */
     uint8_t  szelem;                                    /* Tensor element size          */
     uint32_t nelem;                                     /* Tensor element number        */
     int16_t pnode;                                      /* Tensor parent node index     */
@@ -500,7 +500,8 @@ struct serializer {
     const char* fmt;                                    /* Serializer format name       */
 
     context_t * (*load) (struct serializer*, const void *, int);
-    context_t * (*load_file) (struct serializer*, const char*);
+    context_t * (*load_model) (struct serializer*, const char*);
+    tensor_t * (*load_tensor) (const char*);
     graph_t* (*load_graph) (context_t*);                /* Serializer load ctx to graph */
     void (*unload) (context_t*);                        /* Serializer unload model      */
 };

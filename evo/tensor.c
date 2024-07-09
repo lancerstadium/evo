@@ -235,7 +235,7 @@ int tensor_get_index_by_name(graph_t *g, const char *name) {
 void tensor_dump(tensor_t *ts) {
     if(!ts) return;
     if(ts->name) {
-        LOG_INFO("%s type: %s/%s", ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));
+        LOG_INFO("%s type: %s/%s", strcmp(ts->name, "") == 0 ? "Tensor" : ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));
     }
     if(ts->ndim > 0) {
         char shape_buf[64];

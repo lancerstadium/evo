@@ -27,10 +27,10 @@ static resolver_t default_resolver = {
     .release = resolver_release_dft,
 
     .op_tbl = (op_t[]){
-        [OP_TYPE_NOP]       = { .type = OP_TYPE_NOP         , .name = "Nop"     , .run = op_Nop     },
-        [OP_TYPE_ABS]       = { .type = OP_TYPE_ABS         , .name = "Abs"     , .run = op_Abs_dft },
-        [OP_TYPE_ADD]       = { .type = OP_TYPE_ADD         , .name = "Add"     , .run = op_Add_dft },
-        [OP_TYPE_RESHAPE]   = { .type = OP_TYPE_RESHAPE     , .name = "Reshape" , .run = NULL       },
+        [OP_TYPE_NOP]       = { .type = OP_TYPE_NOP         , .name = "Nop"     , .run = op_Nop             },
+        [OP_TYPE_ABS]       = { .type = OP_TYPE_ABS         , .name = "Abs"     , .run = op_Abs_dft         },
+        [OP_TYPE_ADD]       = { .type = OP_TYPE_ADD         , .name = "Add"     , .run = op_Add_dft         },
+        [OP_TYPE_RESHAPE]   = { .type = OP_TYPE_RESHAPE     , .name = "Reshape" , .run = op_Reshape_dft     },
 
     }
 };

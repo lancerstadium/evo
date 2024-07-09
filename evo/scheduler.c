@@ -15,7 +15,6 @@ static void scheduler_prerun_sync(scheduler_t* scd, graph_t* g) {
     for(int i = 0; i < vector_size(g->sub_vec); i++) {
         graph_t* sg = g->sub_vec[i];
         device_t* dev = sg->dev;
-        LOG_INFO("wuhuhuhu: %d\n", i);
         int ret = dev->itf->prerun(dev, sg);
         if(ret != 0) {
             sg->status = GRAPH_STATUS_ERROR;
