@@ -1,18 +1,19 @@
-.PHONY: all clean
+SUBDIRS := $(wildcard */)
+EXCLUDED_DIRS := bin build
+SUBDIRS := $(filter-out $(EXCLUDED_DIRS), $(SUBDIRS))
 
-TOOL_DIR := 
+ifeq (,$(strip $(SUBDIRS)))
+$(error No subdirectories found)
+endif
 
-SRC_TOOL := $(wildcard $(TOOL_DIR)/*.c)
-TOOL_TRG := $(patsubst $(TOOL_DIR)/%.c,$(TOOL_DIR)/%,$(SRC_TOOL))
-INCDIRS		:= -I . -I ../evo
-LIBDIRS		:= -L ../build
-LIBS 		:= -levo -lm
+.PHONY: all clean $(SUBDIRS)
 
-all: $(TOOL_TRG)
+all: $(SUBDIRS)
 
-$(TOOL_DIR)/%: $(TOOL_DIR)/%.c
-	@echo [CC] $<
-	@$(CC) $(INCDIRS) $(LIBDIRS) -o $@ $< $(LIBS) -static
+$(SUBDIRS):
+	@$(MAKE) -s -C $@
 
 clean:
-	@rm -f $(TOOL_TRG)
+	@for dir in $(SUBDIRS); do \
+		$(MAKE) -s -C $$dir clean; \
+	done

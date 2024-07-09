@@ -65,6 +65,9 @@ $(CPPOBJS) : %.o : %.cpp
 test:
 	@$(MAKE) -s -C tests run
 
+tool:
+	@$(MAKE) -s -C tools all
+
 line:
 	@wc -l `find ./ -name "*.c";find -name "*.h"`
 
@@ -76,5 +79,6 @@ commit:
 clean:
 	@$(RM) $(DEPS) $(OBJS) $(LIBTRG)
 	@$(MAKE) -s -C tests clean
+	@$(MAKE) -s -C tools clean
 
 sinclude $(DEPS)
