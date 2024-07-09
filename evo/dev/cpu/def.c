@@ -54,11 +54,8 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
     cpu_graph_info_t* g_info = cpu_graph_info_new(g);
     /// TODO: Foreach Node in graph should be found
     for(int i = 0; i < g->nnode; i++) {
-        LOG_INFO("hello: %d\n", i);
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
-        LOG_INFO("hello: %s\n", nd->name);
         if(nd) {
-            LOG_INFO("hello: %s\n", nd->name);
             op_t* trg_op = device_find_op(dev, nd->op->type);
             if(trg_op) {
                 nd->op = trg_op;

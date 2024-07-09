@@ -12,10 +12,13 @@ UnitTest_fn_def(test_model_load) {
     tensor_dump(t1);
     tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
     tensor_dump(t2);
-    graph_dump(ctx->graph);
+    
     graph_t * sub_g = graph_sub(ctx->graph);
     graph_prerun(ctx->graph);
-    // graph_run(ctx->graph);
+    graph_run(ctx->graph);
+
+    graph_dump(ctx->graph);
+
     ctx->sez->unload(ctx);
     UnitTest_msg("unload: %u", ctx->model_size);
     serializer_free(sez);

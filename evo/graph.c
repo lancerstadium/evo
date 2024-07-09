@@ -141,6 +141,7 @@ void graph_posrun(graph_t *g) {
     ctx->scd->posrun(ctx->scd, g);
 }
 
+// Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph]\n");

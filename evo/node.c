@@ -40,7 +40,7 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
 void node_dump(node_t *nd) {
     int i;
     if(nd) {
-        LOG_INFO("%s-%d: %s\r\n", nd->op->name, nd->opset, nd->name);
+        LOG_INFO("%s-%d: %s\r\n", nd->op->name ? nd->op->name : "Uninit" , nd->opset, nd->name);
         if(nd->ninput > 0) {
             LOG_INFO("  - Inputs: \n");
             for(i = 0; i < nd->ninput; i++) {
