@@ -189,7 +189,7 @@ tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) 
 }
 
 
-int tensor_set_shape(tensor_t *ts, int ndim, int *dims) {
+int tensor_reshape(tensor_t *ts, int ndim, int *dims) {
     if(ndim > EVO_DIM_MAX) return -1;
     const int old_nelem = ts->nelem;
     int new_nelem = 1;
@@ -200,7 +200,7 @@ int tensor_set_shape(tensor_t *ts, int ndim, int *dims) {
     ts->ndim = ndim;
     ts->nelem = new_nelem;
     if(old_nelem != new_nelem) {
-        /// TODO: reshape
+        tensor_reinit(ts, ts->type, ndim, dims);
     }
     return 0;
 }

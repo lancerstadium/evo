@@ -22,6 +22,7 @@ extern "C" {
 
 void op_Abs_dft(node_t*);
 void op_Add_dft(node_t*);
+void op_Reshape_dft(node_t*);
 
 
 

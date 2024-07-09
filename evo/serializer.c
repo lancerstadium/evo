@@ -429,7 +429,7 @@ EVO_UNUSED static tensor_t *tensor_from_value_info(Onnx__ValueInfoProto *v) {
                 }
             }
             t = tensor_new(v->name, type);
-            tensor_set_shape(t, ndim, dims);
+            tensor_reshape(t, ndim, dims);
             if (dims)
                 sys_free(dims);
             break;
@@ -723,7 +723,7 @@ tensor_t *load_tensor_onnx(const char *path) {
                         }
                     }
                     t = tensor_new(pb->name, (tensor_type_t)pb->data_type);
-                    tensor_set_shape(t, ndim, dims);
+                    tensor_reshape(t, ndim, dims);
                     if ((ndim > 0) && dims)
                         sys_free(dims);
                     tensor_copy_proto(t, pb);
@@ -827,7 +827,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
                             }
                             t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                             if (t) {
-                                tensor_set_shape(t, ndim, dims);
+                                tensor_reshape(t, ndim, dims);
                                 tensor_copy_proto(t, o);
                                 hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                             }
