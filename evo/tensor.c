@@ -231,7 +231,6 @@ int tensor_get_index_by_name(graph_t *g, const char *name) {
     return -1;
 }
 
-
 void tensor_dump(tensor_t *ts) {
     if(!ts) return;
     if(ts->name) {
