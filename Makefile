@@ -18,28 +18,30 @@ CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS)
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS)
 INCDIRS		:= -I .
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
+TRGDIR 		:= build
+OBJDIR		:= $(TRGDIR)/obj
+LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 
 SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 CPPFILES	:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 
-SDEPS		:= $(patsubst %, %, $(SFILES:.S=.o.d))
-CDEPS		:= $(patsubst %, %, $(CFILES:.c=.o.d))
-CPPDEPS		:= $(patsubst %, %, $(CPPFILES:.cpp=.o.d))
-DEPS		:= $(SDEPS) $(CDEPS) $(CPPDEPS)
+SDEPS       := $(patsubst %, %, $(SFILES:$(NAME)/%.S=$(OBJDIR)/%.o.d))
+CDEPS       := $(patsubst %, %, $(CFILES:$(NAME)/%.c=$(OBJDIR)/%.o.d))
+CPPDEPS     := $(patsubst %, %, $(CPPFILES:$(NAME)/%.cpp=$(OBJDIR)/%.o.d))
+DEPS        := $(SDEPS) $(CDEPS) $(CPPDEPS)
 
-SOBJS		:= $(patsubst %, %, $(SFILES:.S=.o))
-COBJS		:= $(patsubst %, %, $(CFILES:.c=.o))
-CPPOBJS		:= $(patsubst %, %, $(CPPFILES:.cpp=.o)) 
-OBJS		:= $(SOBJS) $(COBJS) $(CPPOBJS)
+SOBJS       := $(patsubst %, %, $(SFILES:$(NAME)/%.S=$(OBJDIR)/%.o))
+COBJS       := $(patsubst %, %, $(CFILES:$(NAME)/%.c=$(OBJDIR)/%.o))
+CPPOBJS     := $(patsubst %, %, $(CPPFILES:$(NAME)/%.cpp=$(OBJDIR)/%.o)) 
+OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
 
-TRGDIR 		:= build
-LIBTRG		:= $(TRGDIR)/lib$(NAME).a
+
 
 CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 
-$(shell mkdir -p $(TRGDIR))
+$(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
 
 .PHONY: all clean test line tool
 
@@ -50,16 +52,19 @@ $(LIBTRG) : $(OBJS)
 	@echo [AR] Archiving $@
 	@$(AR) -rcs $@ $(OBJS)
 
-$(SOBJS) : %.o : %.S
+$(OBJDIR)/%.o : $(NAME)/%.S
 	@echo [AS] $<
+	@mkdir -p $(dir $@)
 	@$(AS) $(ASFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-$(COBJS) : %.o : %.c
+$(OBJDIR)/%.o : $(NAME)/%.c
 	@echo [CC] $<
+	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-$(CPPOBJS) : %.o : %.cpp
+$(OBJDIR)/%.o : $(NAME)/%.cpp
 	@echo [CXX] $<
+	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
 test:
@@ -78,6 +83,7 @@ commit:
 
 clean:
 	@$(RM) $(DEPS) $(OBJS) $(LIBTRG)
+	@$(RM) $(OBJDIR)
 	@$(MAKE) -s -C tests clean
 	@$(MAKE) -s -C tools clean
 
