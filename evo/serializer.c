@@ -1,6 +1,6 @@
 
 #include <string.h>
-
+#include <stdio.h>
 #include "evo.h"
 #include "log.h"
 #include "math.h"
