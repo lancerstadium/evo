@@ -15,6 +15,7 @@
 #define EDB_NWP             32
 #define EDB_NREGEX          ARRLEN(rules)
 #define EDB_MAX_TOKEN_LEN   1024
+#define EDB_DIFFTEST_PORT   1234
 
 // ==================================================================================== //
 //                                    edb: Static                                     
@@ -23,17 +24,26 @@
 // EDB
 typedef struct {
     char* log_file;
-    char* img_file;
-    char* diff_so_file;
+    char* model_file;
+    char* diff_file;
     int   difftest_port;
     bool  is_batch_mode;
-} edb_context_t;
+    // evo var
+    serializer_t * sez;
+    context_t * ctx;
+    tensor_t * in;
+    tensor_t * out;
+} edb_t;
 
-static edb_context_t edb_context = {
+static edb_t edb = {
     .log_file = NULL,
-    .img_file = NULL,
-    .diff_so_file = NULL,
-    .difftest_port = 1234,
+    .model_file = NULL,
+    .diff_file = NULL,
+    .difftest_port = EDB_DIFFTEST_PORT,
+    .sez = NULL,
+    .ctx = NULL,
+    .in = NULL,
+    .out = NULL,
 };
 
 // Regex
@@ -93,30 +103,46 @@ typedef struct edb_wp_t {
 static edb_wp_t wp_pool[EDB_NWP] = {};
 static edb_wp_t *head = NULL, *free_ = NULL;
 
-// ==================================================================================== //
-//                                    edb: Func                                     
-// ==================================================================================== //
-
 
 // ==================================================================================== //
 //                                    edb: Model                                
 // ==================================================================================== //
 
-static size_t EDBImg_init() {
+static size_t edb_model_init() {
+    device_reg(STR(EDB_DEVICE));
+    edb.sez = serializer_new("onnx");
+    if(!edb.model_file) {
+        edb.model_file = "../tests/model/mnist_8/model.onnx";
+        edb.in = edb.sez->load_tensor("../tests/model/mnist_8/test_data_set_0/input_0.pb");
+    }
+    edb.ctx = edb.sez->load_model(edb.sez, edb.model_file);
+    if(edb.ctx && edb.ctx->model_size > 0) {
+        printf("Load model: %s(%u Byte) success!\n", edb.model_file, edb.ctx->model_size);
+        if(edb.ctx->graph) {
+            graph_prerun(edb.ctx->graph);
+            printf("Graph Pre-run success!\n");
+        }else{
+            printf("Graph Pre-run fail!\n");
+        }
+    } else {
+        printf("Load model: %s fail!\n", edb.model_file);
+    }
     return 0;
 }
 
-
 // ==================================================================================== //
-//                                    edb: Node Display                                   
+//                                    edb: Display                                   
 // ==================================================================================== //
 
-void isa_reg_display() {
-
+void graph_display() {
+    graph_dump(edb.ctx->graph);
 }
 
-uint64_t isa_reg_str2val(char *s, bool *success) {
-
+uint64_t tensor_display(char *s, bool *success) {
+    tensor_t * ts = context_get_tensor(edb.ctx, s);
+    tensor_dump(ts);
+    *success = true;
+    return 0;
 }
 
 // ==================================================================================== //
@@ -259,7 +285,7 @@ static uint64_t eval(int p, int q) {
         else if (t_p == EDB_TK_HEX) { res = strtol(e_p, NULL, 16);  }
         else if (t_p == EDB_TK_REG) {
             bool success;
-            res = isa_reg_str2val(e_p + 1, &success);
+            res = tensor_display(e_p + 1, &success);
             if (!success) { printf("Bad register: %s\n", e_p);  }
         }
         return res;
@@ -469,11 +495,11 @@ static int edb_parse(int argc, char *argv[]) {
     int o;
     while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         switch (o) {
-        case 'b': edb_context.is_batch_mode = true; break;
-        case 'p': sscanf(optarg, "%d", &edb_context.difftest_port); break;
-        case 'l': edb_context.log_file = optarg; break;
-        case 'd': edb_context.diff_so_file = optarg; break;
-        case  1 : edb_context.img_file = optarg; return 0;
+        case 'b': edb.is_batch_mode = true; break;
+        case 'p': sscanf(optarg, "%d", &edb.difftest_port); break;
+        case 'l': edb.log_file = optarg; break;
+        case 'd': edb.diff_file = optarg; break;
+        case  1 : edb.model_file = optarg; return 0;
         default:
             printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
             printf("\t-b,--batch              run with batch mode\n");
@@ -502,22 +528,17 @@ static uint64_t get_time_internal() {
     return us;
 }
 
-void edb_rand_init() {
-  srand(get_time_internal());
-}
-
 static void edb_welcome() {
-    Log_info("Build time: %s, %s", __TIME__, __DATE__);
+    printf("Start time: %s %s\n", __TIME__, __DATE__);
     printf("Welcome to EDB %s!\n", _BLUE(STR(EDB_DEVICE)));
-    printf("For help, type \"help\"\n");
+    printf("For help, type `help`\n");
 }
 
 void edb_init(int argc, char *argv[]) {
     edb_parse(argc, argv);
-    device_reg(STR(EDB_DEVICE));
-    edb_rand_init();
+    srand(get_time_internal());
     edb_regex_init();
-    EDBImg_init();
+    edb_model_init();
     edb_wp_pool_init();
     edb_welcome();
 }
@@ -544,7 +565,7 @@ static struct {
     int (*handler) (char *);
 } cmd_table [] = {
     { "help", "Display information about all supported commands"  , cmd_help },
-    { "info", "Info of [r/w]"                                     , cmd_info },
+    { "info", "Info of [g|w]"                                     , cmd_info },
     { "si"  , "Single step execution [N]"                         , cmd_si   },
     { "p"   , "Caculate the value of [expr]"                      , cmd_p    },
     { "tsp" , "Test exprs in [file]"                              , cmd_tsp  },
@@ -567,7 +588,7 @@ static bool edb_trace(uint64_t* dnpc) {
 }
 
 static int cmd_c(UNUSED char *args) {
-
+    graph_run(edb.ctx->graph);
     return 0;
 }
 
@@ -575,22 +596,23 @@ static int cmd_si(char *args) {
     char *sub = strtok(args, " ");
     uint64_t n = 1;
     if (sub != NULL) {
-        n = strtol(sub, NULL, 10);
+        n = strtol(sub, NULL, 10);   
     }
+    graph_step(edb.ctx->graph, n);
     return 0;
 }
 
 static int cmd_info(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: info [r|w]\n");
+        printf("Usage: info [g|w]\n");
     } else {
-        if (strcmp(sub, "r") == 0) {
-            isa_reg_display();
+        if (strcmp(sub, "g") == 0) {
+            graph_display();
         } else if (strcmp(sub, "w") == 0) {
             edb_wp_info(-1);
         } else {
-            printf("Usage: info [r|w]\n");
+            printf("Usage: info [g|w]\n");
         }
     }
     return 0;
@@ -728,6 +750,11 @@ void edb_loop() {
         }
         linenoiseFree(line);
     }
+}
+
+void edb_exit() {
+    edb.sez->unload(edb.ctx);
+    serializer_free(edb.sez);
     device_unreg(STR(EDB_DEVICE));
 }
 
@@ -742,5 +769,6 @@ void edb_loop() {
 int main(int argc, char *argv[]) {
     edb_init(argc, argv);
     edb_loop();
+    edb_exit();
     return 0;
 }

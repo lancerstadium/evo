@@ -80,9 +80,12 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         LOG_ERR("CPU Step Fail: No device graph info!\n");
         return -1;
     }
+    if(g_info->exec_node_idx >= g_info->exec_nnode) {
+        LOG_WARN("CPU Step End: No more node to run!\n");
+        return 0;
+    }
     for(int i = 0; (i < n) && (g_info->exec_node_idx < g_info->exec_nnode); i++, g_info->exec_node_idx++) {
         node_t* nd = g_info->exec_node_vec[g_info->exec_node_idx];
-        LOG_INFO("+ op_type: %d\n", nd->op->type);
         if(!nd->reshape) {
             LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
             return -1;
@@ -101,7 +104,7 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         if(g_info->exec_time_vec) {
             g_info->exec_time_vec[g_info->exec_node_idx] = time_ed - time_st;
             g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
-            LOG_INFO("[STEP] Node: %s Op: %s Time: %f ms\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
+            LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
         }
     }
     return 0;

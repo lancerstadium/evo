@@ -15,7 +15,6 @@ UnitTest_fn_def(test_model_load) {
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
     tensor_dump(t3);
     
-    graph_t * sub_g = graph_sub(ctx->graph);
     graph_prerun(ctx->graph);
     graph_step(ctx->graph, 1);
     graph_run(ctx->graph);

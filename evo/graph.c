@@ -117,6 +117,9 @@ void graph_prerun(graph_t *g) {
     if(!g || !g->ctx) return;
     context_t *ctx = g->ctx;
     if(ctx->scd) {
+        if(!g->is_sub && vector_size(g->sub_vec) == 0 ) {
+            graph_sub(g);
+        }
         ctx->scd->prerun(ctx->scd, g);
     }
 }
