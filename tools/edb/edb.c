@@ -10,6 +10,7 @@
 // ==================================================================================== //
 
 #define EDB_MODLE           onnx
+#define EDB_DEVICE          cpu
 #define EDB_NCMD            ARRLEN(cmd_table)
 #define EDB_NWP             32
 #define EDB_NREGEX          ARRLEN(rules)
@@ -507,12 +508,13 @@ void edb_rand_init() {
 
 static void edb_welcome() {
     Log_info("Build time: %s, %s", __TIME__, __DATE__);
-    printf("Welcome to EDB %s!\n", _BLUE(STR(EDB_MODLE)));
+    printf("Welcome to EDB %s!\n", _BLUE(STR(EDB_DEVICE)));
     printf("For help, type \"help\"\n");
 }
 
 void edb_init(int argc, char *argv[]) {
     edb_parse(argc, argv);
+    device_reg(STR(EDB_DEVICE));
     edb_rand_init();
     edb_regex_init();
     EDBImg_init();
@@ -726,6 +728,7 @@ void edb_loop() {
         }
         linenoiseFree(line);
     }
+    device_unreg(STR(EDB_DEVICE));
 }
 
 #undef EDB_NREGEX
@@ -739,7 +742,5 @@ void edb_loop() {
 int main(int argc, char *argv[]) {
     edb_init(argc, argv);
     edb_loop();
-    device_reg("cpu");
-    device_unreg("cpu");
     return 0;
 }

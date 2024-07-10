@@ -205,6 +205,12 @@ int tensor_reshape(tensor_t *ts, int ndim, int *dims) {
     return 0;
 }
 
+int tensor_reshape_ident(tensor_t *y, tensor_t *x, tensor_type_t type) {
+    if((y->ndim != x->ndim) || (memcmp(y->dims, x->dims, sizeof(int) * y->ndim) != 0) || (y->type != type))
+        tensor_reinit(y, type, x->ndim, x->dims);
+    return 1;
+}
+
 void tensor_apply(tensor_t *ts, void *buf, size_t len) {
     size_t l;
     int sz;

@@ -1,10 +1,10 @@
-#include "def.h"
+
+#include "../../resolver.h"
 #include "../../log.h"
 #include <string.h>
 
 void op_Reshape_dft(node_t* nd) {
     // Reshape init
-    LOG_INFO("Reshape init\n");
     if(!nd || !nd->input_tensors  || nd->input_tensors[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
@@ -12,7 +12,6 @@ void op_Reshape_dft(node_t* nd) {
         return;
     }
     // Reshape reshape
-    LOG_INFO("Reshape reshape\n");
     tensor_t* y = nd->output_tensors[0];
     tensor_t* x = nd->input_tensors[0];
     tensor_t* s = nd->input_tensors[1];
@@ -44,7 +43,6 @@ void op_Reshape_dft(node_t* nd) {
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
     // Reshape run
-    LOG_INFO("Reshape run\n");
     char** xdata = x->datas;
     char** ydata = y->datas;
     if(x->type == TENSOR_TYPE_STRING) {
@@ -57,6 +55,5 @@ void op_Reshape_dft(node_t* nd) {
         memcpy(ydata, xdata, x->ndata * tensor_type_sizeof(x->type));
     }
     // Reshape exit
-    LOG_INFO("Reshape exit\n");
     return;
 }

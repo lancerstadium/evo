@@ -1,9 +1,7 @@
 
-
-
 #include "../../resolver.h"
 
 
-void op_Add_dft(node_t*) {
+void op_MaxPool_dft(node_t*) {
     
 }

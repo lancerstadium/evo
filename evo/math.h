@@ -20,7 +20,6 @@
 extern "C" {
 #endif  // __cplusplus
 
-
 #include <stdint.h>
 
 // ==================================================================================== //
@@ -28,19 +27,19 @@ extern "C" {
 // ==================================================================================== //
 
 #if defined(__GNUC__) || defined(__clang__)
-#define UNUSED      __attribute__((unused))
-#define EXPORT      __attribute__((visibility("default")))
-#define PACKED(D)   D __attribute__((packed))
-#define NORETURN    __attribute__((noreturn))
+#define UNUSED __attribute__((unused))
+#define EXPORT __attribute__((visibility("default")))
+#define PACKED(D) D __attribute__((packed))
+#define NORETURN __attribute__((noreturn))
 #elif defined(MSC_VER)
-#define UNUSED      __pragma(warning(suppress:4100))
-#define EXPORT      __pragma(warning(suppress:4091))
-#define PACKED(D)   __pragma(pack(push, 1)) D __pragma(pack(pop))
+#define UNUSED __pragma(warning(suppress : 4100))
+#define EXPORT __pragma(warning(suppress : 4091))
+#define PACKED(D) __pragma(pack(push, 1)) D __pragma(pack(pop))
 #define NORETURN
-#else   // __GNUC__ || __clang__
+#else  // __GNUC__ || __clang__
 #define UNUSED
 #define EXPORT
-#define PACKED(D)   D
+#define PACKED(D) D
 #define NORETURN
 #endif  // __GNUC__ || __clang__
 
@@ -48,9 +47,9 @@ extern "C" {
 //                                    calcu macros
 // ==================================================================================== //
 
-#define MIN(a, b)			({typeof(a) _amin = (a); typeof(b) _bmin = (b); (void)((void*)&_amin == (void*)&_bmin); _amin < _bmin ? _amin : _bmin;})
-#define MAX(a, b)			({typeof(a) _amax = (a); typeof(b) _bmax = (b); (void)((void*)&_amax == (void*)&_bmax); _amax > _bmax ? _amax : _bmax;})
-#define CLAMP(v, a, b)		MIN(MAX(a, v), b)
+#define MIN(a, b) ({typeof(a) _amin = (a); typeof(b) _bmin = (b); (void)((void*)&_amin == (void*)&_bmin); _amin < _bmin ? _amin : _bmin; })
+#define MAX(a, b) ({typeof(a) _amax = (a); typeof(b) _bmax = (b); (void)((void*)&_amax == (void*)&_bmax); _amax > _bmax ? _amax : _bmax; })
+#define CLAMP(v, a, b) MIN(MAX(a, v), b)
 
 // ==================================================================================== //
 //                                      swab
@@ -84,7 +83,6 @@ static inline uint32_t __swahb32(uint32_t x) {
     return (((x & (uint32_t)0x00ff00ffUL) << 8) | ((x & (uint32_t)0xff00ff00UL) >> 8));
 }
 
-
 // ==================================================================================== //
 //                                      cpu
 // ==================================================================================== //
@@ -115,7 +113,7 @@ static inline uint32_t __swahb32(uint32_t x) {
 #define be32_to_cpu(x) (__swab32((uint32_t)(x)))
 #define cpu_to_be16(x) (__swab16((uint16_t)(x)))
 #define be16_to_cpu(x) (__swab16((uint16_t)(x)))
-#else   // Unknown
+#else  // Unknown
 #define cpu_to_le64(x) ((uint64_t)(x))
 #define le64_to_cpu(x) ((uint64_t)(x))
 #define cpu_to_le32(x) ((uint32_t)(x))
@@ -161,20 +159,19 @@ void* align_address(void* address, int step);
         f;                 \
     })
 
-#else   // __ARM_ARCH || __riscv
+#else  // __ARM_ARCH || __riscv
 
 typedef struct fp16_pack __fp16;
 
 PACKED(struct fp16_pack {
     unsigned int frac : 10;
-    unsigned int exp  : 5;
+    unsigned int exp : 5;
     unsigned int sign : 1;
 });
 
-
 PACKED(struct fp32_pack {
     unsigned int frac : 23;
-    unsigned int exp  : 8;
+    unsigned int exp : 8;
     unsigned int sign : 1;
 });
 
@@ -226,6 +223,53 @@ static inline __fp16 fp32_to_fp16(float data) {
 
 #endif  // __ARM_ARCH || __riscv
 
+/*
+ * float16, bfloat16 and float32 conversion
+ */
+static inline uint16_t float32_to_float16(float v) {
+    union {
+        uint32_t u;
+        float f;
+    } t;
+    uint16_t y;
+
+    t.f = v;
+    y = ((t.u & 0x7fffffff) >> 13) - (0x38000000 >> 13);
+    y |= ((t.u & 0x80000000) >> 16);
+    return y;
+}
+
+static inline float float16_to_float32(uint16_t v) {
+    union {
+        uint32_t u;
+        float f;
+    } t;
+
+    t.u = v;
+    t.u = ((t.u & 0x7fff) << 13) + 0x38000000;
+    t.u |= ((v & 0x8000) << 16);
+    return t.f;
+}
+
+static inline uint16_t float32_to_bfloat16(float v) {
+    union {
+        uint32_t u;
+        float f;
+    } t;
+
+    t.f = v;
+    return t.u >> 16;
+}
+
+static inline float bfloat16_to_float32(uint16_t v) {
+    union {
+        uint32_t u;
+        float f;
+    } t;
+
+    t.u = v << 16;
+    return t.f;
+}
 
 // ==================================================================================== //
 //                                    string hash

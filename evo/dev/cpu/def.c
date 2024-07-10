@@ -101,7 +101,7 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         if(g_info->exec_time_vec) {
             g_info->exec_time_vec[g_info->exec_node_idx] = time_ed - time_st;
             g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
-            LOG_INFO("Node:%s Op:%s Time: %f\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
+            LOG_INFO("[STEP] Node: %s Op: %s Time: %f ms\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
         }
     }
     return 0;

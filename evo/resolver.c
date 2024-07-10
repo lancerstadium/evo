@@ -1,6 +1,4 @@
-#include "evo.h"
-#include "sys.h"
-#include "op/dft/def.h"
+#include "resolver.h"
 
 // ==================================================================================== //
 //                                     operator
@@ -30,9 +28,9 @@ static resolver_t default_resolver = {
         [OP_TYPE_NOP]       = { .type = OP_TYPE_NOP         , .name = "Nop"     , .run = op_Nop             },
         [OP_TYPE_ABS]       = { .type = OP_TYPE_ABS         , .name = "Abs"     , .run = op_Abs_dft         },
         [OP_TYPE_ADD]       = { .type = OP_TYPE_ADD         , .name = "Add"     , .run = op_Add_dft         },
-        [OP_TYPE_CONV]      = { .type = OP_TYPE_CONV        , .name = "Conv"    , .run = NULL               },
-        [OP_TYPE_MAT_MUL]   = { .type = OP_TYPE_MAT_MUL     , .name = "MatMul"  , .run = NULL               },
-        [OP_TYPE_MAX_POOL]  = { .type = OP_TYPE_MAX_POOL    , .name = "MaxPool" , .run = NULL               },
+        [OP_TYPE_CONV]      = { .type = OP_TYPE_CONV        , .name = "Conv"    , .run = op_Conv_dft        },
+        [OP_TYPE_MAT_MUL]   = { .type = OP_TYPE_MAT_MUL     , .name = "MatMul"  , .run = op_MatMul_dft      },
+        [OP_TYPE_MAX_POOL]  = { .type = OP_TYPE_MAX_POOL    , .name = "MaxPool" , .run = op_MaxPool_dft     },
         [OP_TYPE_RELU]      = { .type = OP_TYPE_RELU        , .name = "Relu"    , .run = op_Relu_dft        },
         [OP_TYPE_RESHAPE]   = { .type = OP_TYPE_RESHAPE     , .name = "Reshape" , .run = op_Reshape_dft     },
     }
