@@ -19,16 +19,31 @@
 ### 1.1 Build
 
 ```shell
+# build
 make
+# clean
+make clean
 ```
 
-### 1.2 Test
+### 1.2 Tests
 
 ```shell
 # test all
 make test
-# test target unit
-make test TEST_TRG=[xxx]_tests
+# test target xxx file
+make test TEST_TRG=xxx_tests
+```
+
+### 1.3 Tools
+
+```shell
+# Make sure build
+make
+# Build Tools
+cd tools
+make
+# clean build
+make clean
 ```
 
 
@@ -73,3 +88,7 @@ make test TEST_TRG=[xxx]_tests
 
 ## Reference
 
+- Libonnx
+- Tengine
+- Mnn
+- TFLM
