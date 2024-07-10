@@ -90,5 +90,5 @@ Support model file format:
 
 - Libonnx
 - Tengine
-- Mnn
+- MNN
 - TFLM
