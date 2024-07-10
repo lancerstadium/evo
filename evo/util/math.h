@@ -10,11 +10,11 @@
  */
 
 // ==================================================================================== //
-//                                       evo/math.h
+//                                    evo/util/math.h
 // ==================================================================================== //
 
-#ifndef __EVO_MATH_H__
-#define __EVO_MATH_H__
+#ifndef __EVO_UTIL_MATH_H__
+#define __EVO_UTIL_MATH_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -288,4 +288,4 @@ static inline unsigned int shash(const char* s) {
 }
 #endif  // __cplusplus
 
-#endif  // __EVO_MATH_H__
+#endif  // __EVO_UTIL_MATH_H__

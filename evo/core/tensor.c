@@ -1,10 +1,8 @@
-
-#include "evo.h"
-#include "sys.h"
-#include "log.h"
-#include "math.h"
+#include "../evo.h"
+#include "../util/sys.h"
+#include "../util/log.h"
+#include "../util/math.h"
 #include <string.h>
-
 
 // ==================================================================================== //
 //                                   tensor type API

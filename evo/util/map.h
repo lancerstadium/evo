@@ -1,5 +1,7 @@
-#ifndef map_h
-#define map_h
+
+
+#ifndef __EVO_UTIL_MAP_H__
+#define __EVO_UTIL_MAP_H__
 
 #define hashmap_str_lit(str) (str), sizeof(str) - 1
 #define hashmap_static_arr(arr) (arr), sizeof(arr)
@@ -69,4 +71,4 @@ int hashmap_iterate(hashmap_t* map, hashmap_callback c, void* usr);
 // `0` is an empty bucket, `1` is occupied, and `x` is removed.
 // void bucket_dump(hashmap_t *m);
 
-#endif  // map_h
+#endif  // __EVO_UTIL_MAP_H__

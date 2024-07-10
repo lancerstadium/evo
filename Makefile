@@ -67,10 +67,10 @@ $(OBJDIR)/%.o : $(NAME)/%.cpp
 	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
 
-test:
+test: $(LIBTRG)
 	@$(MAKE) -s -C tests run
 
-tool:
+tool: $(LIBTRG)
 	@$(MAKE) -s -C tools all
 
 line:

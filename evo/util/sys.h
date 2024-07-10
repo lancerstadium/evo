@@ -10,11 +10,11 @@
  */
 
 // ==================================================================================== //
-//                                       evo/sys.h
+//                                     evo/util/sys.h
 // ==================================================================================== //
 
-#ifndef __EVO_SYS_H__
-#define __EVO_SYS_H__
+#ifndef __EVO_UTIL_SYS_H__
+#define __EVO_UTIL_SYS_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,4 +79,4 @@ double sys_time();
 }
 #endif  // __cplusplus
 
-#endif  // __EVO_SYS_H__
+#endif  // __EVO_UTIL_SYS_H__

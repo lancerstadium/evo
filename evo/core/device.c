@@ -1,8 +1,8 @@
 
-#include "evo.h"
-#include "sys.h"
-#include "log.h"
-#include "dev/cpu/def.h"
+#include "../evo.h"
+#include "../util/sys.h"
+#include "../util/log.h"
+#include "../dev/cpu/def.h"
 #include <string.h>
 
 

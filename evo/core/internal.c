@@ -1,6 +1,6 @@
 
-#include "evo.h"
-#include "log.h"
+#include "../evo.h"
+#include "../util/log.h"
 #include <string.h>
 
 // ==================================================================================== //

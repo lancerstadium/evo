@@ -1,6 +1,5 @@
-
-#include "../../resolver.h"
-#include "../../log.h"
+#include "../../core/resolver.h"
+#include "../../util/log.h"
 #include <string.h>
 
 void op_Reshape_dft(node_t* nd) {

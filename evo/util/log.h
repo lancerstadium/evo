@@ -10,11 +10,11 @@
  */
 
 // ==================================================================================== //
-//                                       evo/log.h
+//                                       evo/util/log.h
 // ==================================================================================== //
 
-#ifndef __EVO_LOG_H__
-#define __EVO_LOG_H__
+#ifndef __EVO_UTIL_LOG_H__
+#define __EVO_UTIL_LOG_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,4 +111,4 @@ struct logger* logger_get_default(void);
 }
 #endif  // __cplusplus
 
-#endif  // __EVO_LOG_H__
+#endif  // __EVO_UTIL_LOG_H__

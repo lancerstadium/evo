@@ -1,11 +1,10 @@
-
+#include "../evo.h"
+#include "../util/log.h"
+#include "../util/math.h"
+#include "../util/onnx.proto3.pb-c.h"
+#include "../util/sys.h"
 #include <string.h>
 #include <stdio.h>
-#include "evo.h"
-#include "log.h"
-#include "math.h"
-#include "onnx.proto3.pb-c.h"
-#include "sys.h"
 
 // ==================================================================================== //
 //                                      dummy

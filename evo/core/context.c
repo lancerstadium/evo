@@ -1,6 +1,6 @@
-#include "evo.h"
-#include "log.h"
-#include "sys.h"
+#include "../evo.h"
+#include "../util/log.h"
+#include "../util/sys.h"
 
 
 context_t * context_new(const char *name) {

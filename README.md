@@ -31,16 +31,17 @@ make clean
 make test
 # test target xxx file
 make test TEST_TRG=xxx_tests
+# clean build
+make clean
 ```
 
 ### 1.3 Tools
 
 ```shell
-# Make sure build
-make
 # Build Tools
-cd tools
-make
+make tool
+# exec tool: edb
+./tools/edb/edb
 # clean build
 make clean
 ```

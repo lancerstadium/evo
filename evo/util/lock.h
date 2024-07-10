@@ -10,11 +10,11 @@
  */
 
 // ==================================================================================== //
-//                                       evo/lock.h
+//                                       evo/util/lock.h
 // ==================================================================================== //
 
-#ifndef __EVO_LOCK_H__
-#define __EVO_LOCK_H__
+#ifndef __EVO_UTIL_LOCK_H__
+#define __EVO_UTIL_LOCK_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,4 +47,4 @@ void mutex_free(mutex_t* mutex);
 }
 #endif  // __cplusplus
 
-#endif  // __EVO_LOCK_H__
+#endif  // __EVO_UTIL_LOCK_H__

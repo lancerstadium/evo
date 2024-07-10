@@ -1,6 +1,6 @@
-#include "../../log.h"
-#include "../../math.h"
-#include "../../resolver.h"
+#include "../../util/log.h"
+#include "../../util/math.h"
+#include "../../core/resolver.h"
 
 static void Relu_int8(node_t *nd) {
     tensor_t *x = nd->input_tensors[0];

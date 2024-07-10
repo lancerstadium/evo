@@ -112,8 +112,8 @@ static size_t edb_model_init() {
     device_reg(STR(EDB_DEVICE));
     edb.sez = serializer_new("onnx");
     if(!edb.model_file) {
-        edb.model_file = "../tests/model/mnist_8/model.onnx";
-        edb.in = edb.sez->load_tensor("../tests/model/mnist_8/test_data_set_0/input_0.pb");
+        edb.model_file = "./tests/model/mnist_8/model.onnx";
+        edb.in = edb.sez->load_tensor("./tests/model/mnist_8/test_data_set_0/input_0.pb");
     }
     edb.ctx = edb.sez->load_model(edb.sez, edb.model_file);
     if(edb.ctx && edb.ctx->model_size > 0) {

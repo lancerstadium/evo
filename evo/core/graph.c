@@ -1,8 +1,8 @@
 
 
-#include "evo.h"
-#include "log.h"
-#include "sys.h"
+#include "../evo.h"
+#include "../util/log.h"
+#include "../util/sys.h"
 
 
 static void graph_init(graph_t *g, context_t *ctx) {

@@ -10,11 +10,11 @@
  */
 
 // ==================================================================================== //
-//                                       evo/vec.h
+//                                    evo/util/vec.h
 // ==================================================================================== //
 
-#ifndef __EVO_VEC_H__
-#define __EVO_VEC_H__
+#ifndef __EVO_UTIL_VEC_H__
+#define __EVO_UTIL_VEC_H__
 
 #ifdef __cpp_decltype
 #include <type_traits>
@@ -107,4 +107,4 @@ vec_size_t vector_capacity(vector_t vec);
 }
 #endif  // __cplusplus
 
-#endif  // __EVO_VEC_H__
+#endif  // __EVO_UTIL_VEC_H__
