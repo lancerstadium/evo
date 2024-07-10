@@ -70,6 +70,7 @@ make clean
 
 ### 2.1 Model File Serializer
 
+Support model file format:
 1. ONNX(*Open Neural Network Exchange*)
 
 ### 2.2 Runtime Scheduler
@@ -83,7 +84,6 @@ make clean
 
 
 ### 2.4 Edge Device Distribute
-
 
 
 
