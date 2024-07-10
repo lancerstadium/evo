@@ -15,7 +15,6 @@
 
 ## 1 Build & Test
 
-
 ### 1.1 Build
 
 ```shell
@@ -45,7 +44,6 @@ make
 # clean build
 make clean
 ```
-
 
 
 ## 2 Item Architecture
