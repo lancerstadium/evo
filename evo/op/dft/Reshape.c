@@ -3,17 +3,17 @@
 #include <string.h>
 
 void op_Reshape_dft(node_t* nd) {
-    // Reshape init
-    if(!nd || !nd->input_tensors  || nd->input_tensors[0]->type == TENSOR_TYPE_UNDEFINED) {
+    // 1. Reshape init
+    if(!nd || !nd->in  || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    if(!(nd->ninput = 2) || !(nd->noutput == 1) || (nd->input_tensors[0]->ndim == 0) || (nd->input_tensors[1]->ndim == 0)) {
+    if(!(nd->nin = 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0)) {
         return;
     }
-    // Reshape reshape
-    tensor_t* y = nd->output_tensors[0];
-    tensor_t* x = nd->input_tensors[0];
-    tensor_t* s = nd->input_tensors[1];
+    // 2. Reshape reshape
+    tensor_t* y = nd->out[0];
+    tensor_t* x = nd->in[0];
+    tensor_t* s = nd->in[1];
     int16_t *sdata = s->datas;
 	int total_dim = 1;
 	int total_shape = 1;
@@ -41,7 +41,7 @@ void op_Reshape_dft(node_t* nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // Reshape run
+    // 3. Reshape run
     char** xdata = x->datas;
     char** ydata = y->datas;
     if(x->type == TENSOR_TYPE_STRING) {
@@ -53,6 +53,6 @@ void op_Reshape_dft(node_t* nd) {
     } else {
         memcpy(ydata, xdata, x->ndata * tensor_type_sizeof(x->type));
     }
-    // Reshape exit
+    // 4. Reshape exit
     return;
 }

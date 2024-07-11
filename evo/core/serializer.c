@@ -865,20 +865,20 @@ graph_t *load_graph_onnx(context_t *ctx) {
             }
         }
         if (node_proto->n_input > 0) {
-            n->input_tensors = (tensor_t **)sys_malloc(node_proto->n_input * sizeof(tensor_t *));
-            if (n->input_tensors) {
-                n->ninput = node_proto->n_input;
-                for (j = 0; j < n->ninput; j++) {
-                    n->input_tensors[j] = context_get_tensor(ctx, node_proto->input[j]);
+            n->in = (tensor_t **)sys_malloc(node_proto->n_input * sizeof(tensor_t *));
+            if (n->in) {
+                n->nin = node_proto->n_input;
+                for (j = 0; j < n->nin; j++) {
+                    n->in[j] = context_get_tensor(ctx, node_proto->input[j]);
                 }
             }
         }
         if (node_proto->n_output > 0) {
-            n->output_tensors = (tensor_t **)sys_malloc(node_proto->n_output * sizeof(tensor_t *));
-            if (n->output_tensors) {
-                n->noutput = node_proto->n_output;
-                for (j = 0; j < n->noutput; j++) {
-                    n->output_tensors[j] = context_get_tensor(ctx, node_proto->output[j]);
+            n->out = (tensor_t **)sys_malloc(node_proto->n_output * sizeof(tensor_t *));
+            if (n->out) {
+                n->nout = node_proto->n_output;
+                for (j = 0; j < n->nout; j++) {
+                    n->out[j] = context_get_tensor(ctx, node_proto->output[j]);
                 }
             }
         }

@@ -5,11 +5,11 @@
 
 static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->index = nd_idx;
-    nd->ninput = 0;
-    nd->noutput= 0;
+    nd->nin = 0;
+    nd->nout= 0;
     nd->type = NODE_TYPE_INTER;
-    nd->input_tensors = NULL;
-    nd->output_tensors = NULL;
+    nd->in = NULL;
+    nd->out = NULL;
     nd->name = NULL;
     // operater
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
@@ -41,18 +41,18 @@ void node_dump(node_t *nd) {
     int i;
     if(nd) {
         LOG_INFO("%s-%d: %s\r\n", nd->op->name ? nd->op->name : "Uninit" , nd->opset, nd->name);
-        if(nd->ninput > 0) {
+        if(nd->nin > 0) {
             LOG_INFO("  - Inputs: \n");
-            for(i = 0; i < nd->ninput; i++) {
+            for(i = 0; i < nd->nin; i++) {
                 LOG_INFO("        ");
-                tensor_dump(nd->input_tensors[i]);
+                tensor_dump(nd->in[i]);
             }
         }
-        if(nd->noutput > 0) {
+        if(nd->nout > 0) {
             LOG_INFO("  - Outputs: \n");
-            for(i = 0; i < nd->noutput; i++) {
+            for(i = 0; i < nd->nout; i++) {
                 LOG_INFO("        ");
-                tensor_dump(nd->output_tensors[i]);
+                tensor_dump(nd->out[i]);
             }
         }
     }
@@ -66,13 +66,13 @@ void node_free(node_t* nd, graph_t* g) {
         sys_free(nd->name);
         nd->name = NULL;
     }
-    if(nd->ninput > 0) {
-        sys_free(nd->input_tensors);
-        nd->input_tensors= NULL;
+    if(nd->nin > 0) {
+        sys_free(nd->in);
+        nd->in= NULL;
     }
-    if(nd->noutput > 0) {
-        sys_free(nd->output_tensors);
-        nd->output_tensors = NULL;
+    if(nd->nout > 0) {
+        sys_free(nd->out);
+        nd->out = NULL;
     }
     sys_free(nd);
 }

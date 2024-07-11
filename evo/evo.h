@@ -386,11 +386,11 @@ struct node {
     char *name;                                         /* Node name                    */
     uint16_t index;                                     /* Index of Node Graph          */
     node_type_t type;                                   /* Type of Node                 */
-    uint8_t ninput;                                     /* Number of Input              */
-    uint8_t noutput;                                    /* Number of Output             */
-
-    tensor_t ** input_tensors;                          /* Input Tensor List            */
-    tensor_t ** output_tensors;                         /* Output Tensor List           */
+    
+    uint8_t nin;                                        /* Number of Input              */
+    uint8_t nout;                                       /* Number of Output             */
+    tensor_t ** in;                                     /* Input Tensor List            */
+    tensor_t ** out;                                    /* Output Tensor List           */
 
     op_t* op;                                           /* Operator                     */
     int opset;                                          /* Operator set                 */
