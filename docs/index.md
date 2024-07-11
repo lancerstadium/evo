@@ -26,7 +26,8 @@ presentation:
 |:-----------:|:---------------------------:|:------------:|
 |    model    | [evo-mdl.md](./evo-mdl.md)  |  model load  |
 |  operator   | [evo-op.md](./evo-op.md)    | operator lib |
-|  reference  | [evo-ref.md](./evo-ref.md)  | reference    |
+|    bindle   | [evo-bind.md](./evo-bind.md)|  Bindle API  |
+|  reference  | [evo-ref.md](./evo-ref.md)  |  reference   |
 
 
 
