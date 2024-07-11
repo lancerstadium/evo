@@ -41,7 +41,6 @@ make
 
 ### 3 Demo
 
-
 - Here is a c demo for `libevo` :
 
 ```c
