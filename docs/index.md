@@ -13,7 +13,6 @@ presentation:
 
 ---
 
-
 ## libevo
 
 - `libevo` is a Inference engine used in TinyML write by pure C.
