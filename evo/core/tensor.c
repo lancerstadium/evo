@@ -209,6 +209,64 @@ int tensor_reshape_ident(tensor_t *y, tensor_t *x, tensor_type_t type) {
     return 1;
 }
 
+int tensor_reshape_multi_broadcast(tensor_t *y, tensor_t *a, tensor_t *b, tensor_type_t type) {
+    int ndim = MAX(a->ndim, b->ndim);
+    int dims[ndim];
+    int i, j, k;
+    if(ndim > 0) {
+        for(i = a->ndim - 1, j = b->ndim - 1, k = ndim - 1; k >= 0; k--) {
+            if(i < 0)
+                dims[k] = b->dims[j--];
+            else if(j < 0)
+                dims[k] = a->dims[i--];
+            else {
+                if(a->dims[i] == b->dims[j])
+                    dims[k] = a->dims[i];
+                else if((a->dims[i] == 1) || (b->dims[j] == 1))
+                    dims[k] = (a->dims[i] > b->dims[j]) ? a->dims[i] : b->dims[j];
+                else 
+                    return 0;
+                i--;
+                j--;
+            }
+        }
+    }
+    if((y->type != type) || (y->ndim != ndim) || (memcmp(y->dims, dims, sizeof(int) * ndim != 0)))
+        tensor_reinit(y, type, ndim, dims);
+    return 1;
+}
+
+void* tensor_broadcast_map_address(tensor_t *x, tensor_t *y, int offset) {
+    int xndim = x->ndim;
+    int yndim = y->ndim;
+    if((x->ndim > 0) && (y->ndim > 0)) {
+        int dndim = yndim - xndim;
+        int ix[xndim];
+        int iy[yndim];
+        int i;
+        tensor_offset2index(y, offset, iy);
+        for(i = 0; i < xndim; i++)
+            ix[i] = iy[dndim + i] % x->dims[i];
+        return x->datas + tensor_index2offset(x, ix) * tensor_type_sizeof(x->type);
+    }
+    return x->datas;
+}
+
+int tensor_index2offset(tensor_t *ts, int *idxs) {
+    int offset, i;
+    for(i = 0, offset = 0; i < ts->ndim; i++)
+        offset += idxs[i] * ts->strides[i];
+    return offset;
+}
+
+void tensor_offset2index(tensor_t *ts, int offset, int *idxs) {
+    int i;
+    for(i = ts->ndim - 1; i >= 0; i--){
+        idxs[i] = offset % ts->dims[i];
+        offset /= ts->dims[i];
+    }
+}
+
 void tensor_apply(tensor_t *ts, void *buf, size_t len) {
     size_t l;
     int sz;
