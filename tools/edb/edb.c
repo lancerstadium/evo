@@ -754,7 +754,10 @@ void edb_loop() {
 }
 
 void edb_exit() {
-    edb.sez->unload(edb.ctx);
+    if(edb.ctx) {
+        printf("Unload model: %s(%u Byte) success!\n", edb.model_file, edb.ctx->model_size);
+        edb.sez->unload(edb.ctx);
+    }
     serializer_free(edb.sez);
     device_unreg(STR(EDB_DEVICE));
 }
