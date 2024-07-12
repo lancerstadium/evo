@@ -6,17 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// ==================================================================================== //
-//                                      dummy
-// ==================================================================================== //
-
-EVO_UNUSED static int reshape_dummy(node_t *n) {
-    return 1;
-}
-
-EVO_UNUSED static void operator_dummy(node_t *n) {
-    LOG_WARN("\033[45;37mUnsupported opset\033[0m => %s-%d (%s)\r\n", ((Onnx__NodeProto *)(n->node_proto))->op_type, n->opset, (strlen(((Onnx__NodeProto *)(n->node_proto))->domain) > 0) ? ((Onnx__NodeProto *)(n->node_proto))->domain : "ai.onnx");
-}
 
 // ==================================================================================== //
 //                                      onnx
@@ -882,10 +871,6 @@ graph_t *load_graph_onnx(context_t *ctx) {
                 }
             }
         }
-        if (!n->reshape)
-            n->reshape = reshape_dummy;
-        if (!n->operator)
-            n->operator= operator_dummy;
     }
 
     return g;

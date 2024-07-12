@@ -403,8 +403,6 @@ struct node {
 
     void* node_proto;
 
-    int (*reshape)(struct node *);
-    void (*operator)(struct node *);
 };
 
 EVO_API node_t * node_new(graph_t*, const char*, op_type_t);

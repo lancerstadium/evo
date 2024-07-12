@@ -80,18 +80,18 @@ static void Relu_float64(node_t *nd) {
 }
 
 void op_Relu_dft(node_t *nd) {
-    // Relu init
+    // 1. Relu init
     if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     if (!(nd->nin = 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
         return;
     }
-    // Relu reshape
+    // 2. Relu reshape
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // Relu run
+    // 3. Relu run
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8: Relu_int8(nd); break;
         case TENSOR_TYPE_INT16: Relu_int16(nd); break;
@@ -104,6 +104,6 @@ void op_Relu_dft(node_t *nd) {
         default: break;
     }
 
-    // Relu exit
+    // 4. Relu exit
     return;
 }

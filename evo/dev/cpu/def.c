@@ -86,13 +86,8 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
     }
     for(int i = 0; (i < n) && (g_info->exec_node_idx < g_info->exec_nnode); i++, g_info->exec_node_idx++) {
         node_t* nd = g_info->exec_node_vec[g_info->exec_node_idx];
-        if(!nd->reshape) {
-            LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
-            return -1;
-        }
-        nd->reshape(nd);
         if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
+            LOG_ERR("CPU Step Fail: Node %s no operator %s !\n", nd->name, nd->op->name ? nd->op->name : "");
             return -1;
         }
         // ==== Clock up ====== //
@@ -125,13 +120,8 @@ static int cpu_run(device_t *dev, graph_t *g) {
         g_info->exec_node_idx = i;
         node_t* nd = g_info->exec_node_vec[i];
         LOG_INFO("+ op_type: %d\n", nd->op->type);
-        if(!nd->reshape) {
-            LOG_ERR("CPU Run Fail: Node %s no reshape!\n", nd->name);
-            return -1;
-        }
-        nd->reshape(nd);
         if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
+            LOG_ERR("CPU Run Fail: Node %s no operator %s !\n", nd->name, nd->op->name ? nd->op->name : "");
             return -1;
         }
         // ==== Clock up ====== //
