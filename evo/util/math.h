@@ -16,11 +16,11 @@
 #ifndef __EVO_UTIL_MATH_H__
 #define __EVO_UTIL_MATH_H__
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
-
-#include <stdint.h>
 
 // ==================================================================================== //
 //                                       macros

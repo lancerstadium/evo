@@ -18,16 +18,16 @@
 #ifndef __EVO_EVO_H__
 #define __EVO_EVO_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
 // ==================================================================================== //
 //                                       include
 // ==================================================================================== //
 
 #include "util/map.h"
 #include "util/vec.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 
 // ==================================================================================== //
 //                                       define
@@ -54,15 +54,12 @@ typedef struct node node_t;
 typedef struct graph graph_t;
 typedef struct tensor tensor_t;
 typedef struct device device_t;
-typedef enum op_type op_type_t;
 typedef struct context context_t;
-typedef enum node_type node_type_t;
 typedef struct resolver resolver_t;
 typedef struct scheduler scheduler_t;
 typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
 typedef struct allocator allocator_t;
-typedef enum tensor_type tensor_type_t;
 typedef struct serializer serializer_t;
 
 typedef device_t** device_vec_t;
@@ -85,7 +82,7 @@ EVO_API void device_registry_release();
 //                                       evo: tensor type
 // ==================================================================================== //
 
-enum tensor_type {
+typedef enum tensor_type {
     TENSOR_TYPE_UNDEFINED = 0,
     TENSOR_TYPE_BOOL = 9,
     TENSOR_TYPE_INT8 = 3,
@@ -103,7 +100,7 @@ enum tensor_type {
     TENSOR_TYPE_COMPLEX64 = 14,
     TENSOR_TYPE_COMPLEX128 = 15,
     TENSOR_TYPE_STRING = 8,
-};
+} tensor_type_t;
 
 EVO_API const char *tensor_type_tostring(tensor_type_t);
 EVO_API int tensor_type_sizeof(tensor_type_t);
@@ -151,7 +148,7 @@ EVO_API int tensor_get_index_by_name(graph_t *, const char *);
 //                                       evo: op type
 // ==================================================================================== //
 
-enum op_type {
+typedef enum op_type {
     // ==== OP: No Operation
     OP_TYPE_NOP,
     // ==== OP: A head
@@ -340,7 +337,7 @@ enum op_type {
     OP_TYPE_XOR,
     // ==== OP: last
     OP_TYPE_LAST
-};
+} op_type_t;
 
 // ==================================================================================== //
 //                                       evo: op
@@ -375,12 +372,12 @@ EVO_API resolver_t* resolver_get_default();
 //                                       evo: node type
 // ==================================================================================== //
 
-enum node_type { 
+typedef enum node_type { 
     NODE_TYPE_GENERIC,
     NODE_TYPE_INPUT, 
     NODE_TYPE_OUTPUT, 
     NODE_TYPE_INTER, 
-};
+} node_type_t;
 
 // ==================================================================================== //
 //                                       evo: node

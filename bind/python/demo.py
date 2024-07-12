@@ -1,4 +1,5 @@
 import pyevo
 
-calcu = pyevo.MyClass(3.0,4.2)
-calcu.run()
+model = pyevo.Evo("onnx", "../../tests/model/mnist_8/model.onnx")
+model.run()
+model.display()

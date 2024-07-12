@@ -1,18 +1,17 @@
-// pywrap.cpp
 #include <pybind11/pybind11.h>
-#include "pyevo.hpp"
+#include "../cpp/Evo.hpp"
 
 namespace py = pybind11;
 
-int add(int i, int j) {
-    return i + j;
-}
-
 PYBIND11_MODULE(pyevo, m) {
-    m.doc() = "pybind11 example plugin"; // optional module docstring
-    m.def("add", &add, "A function that adds two numbers");
-    py::class_<MyClass>(m, "MyClass")
-    .def(py::init<double, double>())  
-    .def("run", &MyClass::run, py::call_guard<py::gil_scoped_release>())
+    m.doc() = "Libevo's python bind: use pybind11.";
+    py::class_<Evo>(m, "Evo")
+    .def(py::init<>())
+    .def(py::init<const char*>())
+    .def(py::init<const char*, const char*>())
+    .def("load", &Evo::load, py::call_guard<py::gil_scoped_release>())
+    .def("unload", &Evo::unload, py::call_guard<py::gil_scoped_release>())
+    .def("run", &Evo::run, py::call_guard<py::gil_scoped_release>())
+    .def("display", &Evo::display, py::call_guard<py::gil_scoped_release>())
     ;
 }

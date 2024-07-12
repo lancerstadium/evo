@@ -12,10 +12,10 @@ OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
 NAME		:= evo
-OPTIONS		:= -DSOB_APP_OFF
-ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS)
-CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS)
-CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS)
+OPTIONS		:= 
+ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
+CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
+CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 INCDIRS		:= -I .
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
 TRGDIR 		:= build
