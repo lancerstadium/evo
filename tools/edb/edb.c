@@ -16,6 +16,7 @@
 #define EDB_NREGEX          ARRLEN(rules)
 #define EDB_MAX_TOKEN_LEN   1024
 #define EDB_DIFFTEST_PORT   1234
+#define EDB_BUFFER_SIZE     1024
 
 // ==================================================================================== //
 //                                    edb: Static                                     
