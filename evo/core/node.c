@@ -11,6 +11,7 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->in = NULL;
     nd->out = NULL;
     nd->name = NULL;
+    nd->priv = NULL;
     // operater
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
     nd->op->type = op_ty;
@@ -71,6 +72,10 @@ void node_free(node_t* nd, graph_t* g) {
     if(nd->nout > 0) {
         sys_free(nd->out);
         nd->out = NULL;
+    }
+    if(nd->priv > 0) {
+        sys_free(nd->priv);
+        nd->priv = NULL;
     }
     sys_free(nd);
 }

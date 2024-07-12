@@ -133,7 +133,7 @@ void op_Abs_dft(node_t *nd) {
     if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    if (!(nd->nin = 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
+    if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
         return;
     }
     // 2. Abs reshape

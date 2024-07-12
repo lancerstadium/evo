@@ -399,7 +399,7 @@ struct node {
     context_t *ctx;                                     /* Owner Context                */
 
     void* node_proto;
-
+    void* priv;
 };
 
 EVO_API node_t * node_new(graph_t*, const char*, op_type_t);
