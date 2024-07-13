@@ -18,6 +18,10 @@
 - 最大池化（Max Pooling）
 - 平均池化（Average Pooling）
 
+![pooling](asserts/op-pool1.gif)
+
+
+
 ### 2 作用
 - 平移（translation）不变性、旋转（rotation）不变性、尺寸（scale）不变性
 - 减少参数量，降低计算复杂度
