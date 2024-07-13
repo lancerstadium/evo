@@ -6,7 +6,7 @@
 - 最大池化（Max Pooling）
 - 平均池化（Average Pooling）
 
-![pooling](asserts/op-pool1.gif)
+![pooling](./asserts/op-pool1.gif)
 
 
 
