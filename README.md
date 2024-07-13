@@ -1,6 +1,6 @@
 # evo
 
-![evo-logo](./docs/public/logo.svg)
+<img src="./docs/public/logo.svg" width="320" align="center">
 
 - Docs: [evo-docs](https://lancerstadium.github.io/evo/docs/)
 
