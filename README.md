@@ -80,7 +80,6 @@ Support model file format:
 ### 2.4 Edge Device Distribute
 
 
-
 ## Reference
 
 - Libonnx
