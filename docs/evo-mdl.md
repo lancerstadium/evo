@@ -44,8 +44,13 @@
 
 |       | ProtoBuffer | FlatBuffer |
 |:-----:|:-----------:|:----------:|
-|       |
-|       |
+| Lang  | C/C++, C#, Go, Java, Python, Ruby, Objective-C, Dart | C/C++, C#, Java, Lua, Python, Rust ... |
+| Version | 2.x / 3.x |  1.x  |
+| File  | .proto | .fbs |
+| Type  |  More  | Base |
+| Model |  `.onnx`  | `.tflite` |
+| Load  |   Normal  |   Fast    |
+| Size  |   Normal  |   Small   |
 
 #### 2.2 ONNX
 
