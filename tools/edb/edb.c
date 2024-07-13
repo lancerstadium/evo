@@ -4,6 +4,9 @@
 #include <getopt.h>
 #include <regex.h>
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 // ==================================================================================== //
 //                                    edb: Defined                                    
@@ -15,7 +18,7 @@
 #define EDB_NWP             32
 #define EDB_NREGEX          ARRLEN(rules)
 #define EDB_MAX_TOKEN_LEN   1024
-#define EDB_DIFFTEST_PORT   1234
+#define EDB_DIFF_POST       0xd1ff
 #define EDB_BUFFER_SIZE     1024
 
 // ==================================================================================== //
@@ -27,7 +30,8 @@ typedef struct {
     char* log_file;
     char* model_file;
     char* diff_file;
-    int   difftest_port;
+    int   diff_port;
+    int   diff_fd;
     bool  is_batch_mode;
     // evo var
     serializer_t * sez;
@@ -40,7 +44,8 @@ static edb_t edb = {
     .log_file = NULL,
     .model_file = NULL,
     .diff_file = NULL,
-    .difftest_port = EDB_DIFFTEST_PORT,
+    .diff_port = EDB_DIFF_POST,
+    .diff_fd = 0,
     .sez = NULL,
     .ctx = NULL,
     .in = NULL,
@@ -497,7 +502,7 @@ static int edb_parse(int argc, char *argv[]) {
     while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
         switch (o) {
         case 'b': edb.is_batch_mode = true; break;
-        case 'p': sscanf(optarg, "%d", &edb.difftest_port); break;
+        case 'p': sscanf(optarg, "%d", &edb.diff_port); break;
         case 'l': edb.log_file = optarg; break;
         case 'd': edb.diff_file = optarg; break;
         case  1 : edb.model_file = optarg; return 0;
@@ -529,6 +534,52 @@ static uint64_t get_time_internal() {
     return us;
 }
 
+static void edb_diff_init() {
+    // 1. Creating socket file desc
+    if((edb.diff_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        Log_err("socket failed!");
+        exit(EXIT_FAILURE);
+    }
+    // 2. Forcefully attaching socket to the port EDB_DIFF_PORT
+    int opt = 1;
+    struct sockaddr_in address;
+    socklen_t addrlen = sizeof(address);
+    if(setsockopt(edb.diff_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        Log_err("setsockopt failed!");
+        exit(EXIT_FAILURE);
+    }
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(EDB_DIFF_POST);
+    // 3. Forcefully binding socket to the port EDB_DIFF_PORT
+    if(bind(edb.diff_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+        Log_err("bind failed!");
+        exit(EXIT_FAILURE);
+    }
+    if(listen(edb.diff_fd, 3) < 0) {
+        Log_err("listen failed!");
+        exit(EXIT_FAILURE);
+    }
+    int new_socket;
+    if((new_socket = accept(edb.diff_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
+        Log_err("accept failed!");
+        exit(EXIT_FAILURE);
+    }
+    // subtract 1 for the null
+    char buffer[1024] = { 0 };
+    ssize_t valread = read(new_socket, buffer, EDB_BUFFER_SIZE - 1);
+    // send message
+    char* hello = "Hello from server";
+    printf("%s\n", buffer);
+    send(new_socket, hello, strlen(hello), 0);
+    printf("Hello message sent\n");
+    // closing the connected socket
+    close(new_socket);
+    // closing the listening socket
+    close(edb.diff_fd);
+    return;
+}
+
 static void edb_welcome() {
     printf("Start time: %s %s\n", __TIME__, __DATE__);
     printf("Welcome to EDB %s!\n", _BLUE(STR(EDB_DEVICE)));
@@ -541,6 +592,9 @@ void edb_init(int argc, char *argv[]) {
     edb_regex_init();
     edb_model_init();
     edb_wp_pool_init();
+#ifndef EDB_DIFF_OFF
+    edb_diff_init();
+#endif  // EDB_DIFF_OFF
     edb_welcome();
 }
 
