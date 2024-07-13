@@ -20,6 +20,18 @@
 #define EDB_MAX_TOKEN_LEN   1024
 #define EDB_DIFF_POST       0xd1ff
 #define EDB_BUFFER_SIZE     1024
+#ifndef  EDB_DIFF_SERVER
+#define EDB_INFO(...)       printf(__VA_ARGS__)
+#else
+#define EDB_INFO(...)                                                 \
+    do {                                                              \
+        memset(edb.diff_buf, 0, strlen(edb.diff_buf) * sizeof(char)); \
+        sprintf(edb.diff_buf, __VA_ARGS__);                           \
+        edb.diff_buf[strlen(edb.diff_buf)] = ' ';                     \
+        send(edb.connect, edb.diff_buf, strlen(edb.diff_buf), 0);     \
+    } while (0)
+
+#endif
 
 // ==================================================================================== //
 //                                    edb: Static                                     
@@ -30,8 +42,10 @@ typedef struct {
     char* log_file;
     char* model_file;
     char* diff_file;
+    char  diff_buf[EDB_BUFFER_SIZE];
     int   diff_port;
-    int   diff_fd;
+    int   listen;
+    int   connect;
     bool  is_batch_mode;
     // evo var
     serializer_t * sez;
@@ -45,7 +59,8 @@ static edb_t edb = {
     .model_file = NULL,
     .diff_file = NULL,
     .diff_port = EDB_DIFF_POST,
-    .diff_fd = 0,
+    .listen = 0,
+    .connect = 0,
     .sez = NULL,
     .ctx = NULL,
     .in = NULL,
@@ -283,7 +298,7 @@ static uint64_t eval(int p, int q) {
     char* e_q = tokens[q].str;
     int t_q = tokens[q].type;
     if (p > q) {
-        printf("Bad expr range: [%d, %d]\n", p, q);
+        EDB_INFO("Bad expr range: [%d, %d]\n", p, q);
         return 0;
     } else if (p == q) {
         uint64_t res = 0;
@@ -292,7 +307,7 @@ static uint64_t eval(int p, int q) {
         else if (t_p == EDB_TK_REG) {
             bool success;
             res = tensor_display(e_p + 1, &success);
-            if (!success) { printf("Bad register: %s\n", e_p);  }
+            if (!success) { EDB_INFO("Bad register: %s\n", e_p);  }
         }
         return res;
     } else if (t_p == '(' && t_q == ')') {
@@ -305,7 +320,7 @@ static uint64_t eval(int p, int q) {
         bool success;
         int op = find_op(p, q, &success);
         if (!success) {
-            printf("Bad expr: (s: %s, e: %s)\n", e_p, e_q);
+            EDB_INFO("Bad expr: (s: %s, e: %s)\n", e_p, e_q);
             return 0;
         }
         if (op == p) {  // Unary: +a, -a, *a
@@ -331,7 +346,7 @@ static uint64_t eval(int p, int q) {
             }
         }
     }
-    printf("Expr eval fail: (s: %s, e: %s)\n", e_p, e_q);
+    EDB_INFO("Expr eval fail: (s: %s, e: %s)\n", e_p, e_q);
     return 0;
 }
 
@@ -445,12 +460,12 @@ void edb_wp_free(int n) {
 void edb_wp_info(int n) {
     if(n >= 0 && n < EDB_NWP) {
         edb_wp_t *wp = &wp_pool[n];
-        printf("- [%2d] expr: %s, res: %lu\n", wp->NO, wp->e, wp->res);
+        EDB_INFO("- [%2d] expr: %s, res: %lu\n", wp->NO, wp->e, wp->res);
     } else {
         edb_wp_t* tmp = head;
-        printf("[Busy wp]: \n");
+        EDB_INFO("[Busy wp]: \n");
         while (tmp != NULL) {
-            printf("- [%2d] expr: %s, res: %lu\n", tmp->NO, tmp->e, tmp->res);
+            EDB_INFO("- [%2d] expr: %s, res: %lu\n", tmp->NO, tmp->e, tmp->res);
             tmp = tmp->next;
         }
     }
@@ -534,52 +549,6 @@ static uint64_t get_time_internal() {
     return us;
 }
 
-static void edb_diff_init() {
-    // 1. Creating socket file desc
-    if((edb.diff_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        Log_err("socket failed!");
-        exit(EXIT_FAILURE);
-    }
-    // 2. Forcefully attaching socket to the port EDB_DIFF_PORT
-    int opt = 1;
-    struct sockaddr_in address;
-    socklen_t addrlen = sizeof(address);
-    if(setsockopt(edb.diff_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        Log_err("setsockopt failed!");
-        exit(EXIT_FAILURE);
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(EDB_DIFF_POST);
-    // 3. Forcefully binding socket to the port EDB_DIFF_PORT
-    if(bind(edb.diff_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        Log_err("bind failed!");
-        exit(EXIT_FAILURE);
-    }
-    if(listen(edb.diff_fd, 3) < 0) {
-        Log_err("listen failed!");
-        exit(EXIT_FAILURE);
-    }
-    int new_socket;
-    if((new_socket = accept(edb.diff_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
-        Log_err("accept failed!");
-        exit(EXIT_FAILURE);
-    }
-    // subtract 1 for the null
-    char buffer[1024] = { 0 };
-    ssize_t valread = read(new_socket, buffer, EDB_BUFFER_SIZE - 1);
-    // send message
-    char* hello = "Hello from server";
-    printf("%s\n", buffer);
-    send(new_socket, hello, strlen(hello), 0);
-    printf("Hello message sent\n");
-    // closing the connected socket
-    close(new_socket);
-    // closing the listening socket
-    close(edb.diff_fd);
-    return;
-}
-
 static void edb_welcome() {
     printf("Start time: %s %s\n", __TIME__, __DATE__);
     printf("Welcome to EDB %s!\n", _BLUE(STR(EDB_DEVICE)));
@@ -592,9 +561,6 @@ void edb_init(int argc, char *argv[]) {
     edb_regex_init();
     edb_model_init();
     edb_wp_pool_init();
-#ifndef EDB_DIFF_OFF
-    edb_diff_init();
-#endif  // EDB_DIFF_OFF
     edb_welcome();
 }
 
@@ -660,14 +626,14 @@ static int cmd_si(char *args) {
 static int cmd_info(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: info [g|w]\n");
+        EDB_INFO("Usage: info [g|w]\n");
     } else {
         if (strcmp(sub, "g") == 0) {
             graph_display();
         } else if (strcmp(sub, "w") == 0) {
             edb_wp_info(-1);
         } else {
-            printf("Usage: info [g|w]\n");
+            EDB_INFO("Usage: info [g|w]\n");
         }
     }
     return 0;
@@ -676,7 +642,7 @@ static int cmd_info(char *args) {
 static int cmd_x(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: x [N] [expr]\n");
+        EDB_INFO("Usage: x [N] [expr]\n");
     } else {
         /// TODO: implement x
     }
@@ -686,23 +652,23 @@ static int cmd_x(char *args) {
 static int cmd_p(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: p [expr]\n");
+        EDB_INFO("Usage: p [expr]\n");
     } else {
         bool success;
         uint64_t res = expr(sub, &success);
-        if (success) printf("%s = %lu\n", sub, res);
+        if (success) EDB_INFO("%s = %lu\n", sub, res);
     }
     return 0;
 }
 static int cmd_tsp(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: tsp [file]\n");
+        EDB_INFO("Usage: tsp [file]\n");
     } else {
         // 1. 读入文件
         FILE *fp = fopen(sub, "r");
         if (fp == NULL) {
-            printf("Open file %s failed.\n", sub);
+            EDB_INFO("Open file %s failed.\n", sub);
             return 0;
         }
         // 2. 读取每一行格式：`ref, exprisson` `int char*`
@@ -719,9 +685,9 @@ static int cmd_tsp(char *args) {
             bool success;
             uint64_t res = expr(exprisson, &success);
             if (success && res == ref) {
-                printf(_GREEN("PASS")" %lu == %lu = %s\n",  res, ref, exprisson);
+                EDB_INFO(_GREEN("PASS")" %lu == %lu = %s\n",  res, ref, exprisson);
             } else if (success && res != ref) {
-                printf(_RED("FAIL")" %lu != %lu = %s\n",  res, ref, exprisson);
+                EDB_INFO(_RED("FAIL")" %lu != %lu = %s\n",  res, ref, exprisson);
             }
         }
     }
@@ -731,7 +697,7 @@ static int cmd_tsp(char *args) {
 static int cmd_w(char *args) {
     char *sub = strtok(args, " ");
     if (sub == NULL) {
-        printf("Usage: w [expr]\n");
+        EDB_INFO("Usage: w [expr]\n");
     } else {
         edb_wp_new(sub);
     }
@@ -744,7 +710,7 @@ static int cmd_d(char *args) {
         UNUSED int n = atoi(sub);
         edb_wp_free(n);
     } else {
-        printf("Usage: d [n]\n");
+        EDB_INFO("Usage: d [n]\n");
     }
     return 0;
 }
@@ -760,16 +726,16 @@ static int cmd_help(UNUSED char *args){
     if (arg == NULL) {
         /* no argument given */
         for (i = 0; i < EDB_NCMD; i ++) {
-            printf("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
+            EDB_INFO("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
         }
     } else {
         for (i = 0; i < EDB_NCMD; i ++) {
             if (strcmp(arg, cmd_table[i].name) == 0) {
-                printf("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
+                EDB_INFO("   %s - %s\n", cmd_table[i].name, cmd_table[i].description);
                 return 0;
             }
         }
-        Log_warn("Unknown command `%s`", arg);
+        EDB_INFO("Unknown command `%s`", arg);
     }
     return 0;
 }
@@ -801,10 +767,82 @@ void edb_loop() {
             }
         }
         if (i == EDB_NCMD) {
-            Log_warn("Unknown command `%s`", cmd);
+            EDB_INFO("Unknown command `%s`", cmd);
         }
         linenoiseFree(line);
     }
+}
+
+static void edb_diff_loop() {
+    // 1. Creating socket file desc
+    if((edb.listen = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        Log_err("socket failed!");
+        exit(EXIT_FAILURE);
+    }
+    // 2. Forcefully attaching socket to the port EDB_DIFF_PORT
+    int opt = 1;
+    struct sockaddr_in address;
+    socklen_t addrlen = sizeof(address);
+    if(setsockopt(edb.listen, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        Log_err("setsockopt failed!");
+        exit(EXIT_FAILURE);
+    }
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(EDB_DIFF_POST);
+    // 3. Forcefully binding socket to the port EDB_DIFF_PORT
+    if(bind(edb.listen, (struct sockaddr*)&address, sizeof(address)) < 0) {
+        Log_err("bind failed!");
+        exit(EXIT_FAILURE);
+    }
+    Log_info("EDB Server listen port: %u", EDB_DIFF_POST);
+    if(listen(edb.listen, 3) < 0) {
+        Log_err("listen failed!");
+        exit(EXIT_FAILURE);
+    }
+    while(1) { // Server Loop
+        if((edb.connect = accept(edb.listen, (struct sockaddr*)&address, &addrlen)) < 0) {
+            Log_err("accept failed!");
+            exit(EXIT_FAILURE);
+        }
+        // subtract 1 for the null
+        char buffer[EDB_BUFFER_SIZE] = { 0 };
+        ssize_t valread = read(edb.connect, buffer, EDB_BUFFER_SIZE - 1);
+        // recevice & send message
+        if(buffer) {
+            Log_info("Client cmd: %s", buffer);
+            char *buffer_end = buffer + strlen(buffer);
+            char *cmd = strtok(buffer, " ");
+            if(cmd == NULL) {
+                continue;
+            }
+            char *args = cmd + strlen(cmd) + 1;
+            if(args >= buffer_end) {
+                args = NULL;
+            }
+            size_t i;
+            for(i = 0; i < EDB_NCMD; i++) {
+                if(strcmp(buffer, cmd_table[i].name) == 0) {
+                    if(cmd_table[i].handler(args) < 0) {
+                        char* bye = "Bye from server";
+                        send(edb.connect, bye, strlen(bye), 0);
+                        Log_info("EDB Server quit");
+                        close(edb.connect);
+                        return;
+                    }
+                    break;
+                }
+            }
+            if(i == EDB_NCMD) {
+                EDB_INFO("Unknown command `%s`", cmd);
+            }
+        }
+        // closing the connected socket
+        close(edb.connect);
+    }
+    // closing the listening socket
+    close(edb.listen);
+    return;
 }
 
 void edb_exit() {
@@ -826,7 +864,11 @@ void edb_exit() {
 
 int main(int argc, char *argv[]) {
     edb_init(argc, argv);
+#ifdef EDB_DIFF_SERVER
+    edb_diff_loop();
+#else
     edb_loop();
+#endif  // EDB_DIFF_SERVER
     edb_exit();
     return 0;
 }
