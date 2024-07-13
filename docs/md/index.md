@@ -1,17 +1,3 @@
----
-title: "EVO"
-author: LancerStadium
-data: July 7, 2024
-output: pdf_document
-presentation:
-    enableSpeakerNotes: true
-    theme: serif.css
-    width: 960
-    height: 700
-    slideNumber: true
-    progress: false
-
----
 
 ## libevo
 
