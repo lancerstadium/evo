@@ -40,17 +40,15 @@
 
 ### 2 Model Format
 
-#### 2.1 ONNX
+#### 2.1 ProtoBuffer & FlatBuffer
 
-1. ONNX(*Open Neural Network Exchange*): A binary file format which use `ProtoBuf` to serialize.
+|       | ProtoBuffer | FlatBuffer |
+|:-----:|:-----------:|:----------:|
+|       |
+|       |
 
-#### 2.2 tflite
+#### 2.2 ONNX
 
+1. ONNX(*Open Neural Network Exchange*): 使用 `ProtoBuf` 进行序列化的二进制模型文件格式，十分通用。
 
-
-### 3 Model Convert
-
-#### 3.1 ProtoBuf
-
-
-#### 3.2 FlatBuf
+#### 2.3 tflite
