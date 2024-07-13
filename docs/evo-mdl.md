@@ -28,14 +28,8 @@
 
 用标准卷积层（*std conv*）贡献计算量：
 
-- Params:
-$$
-    k_h * k_w * c_{in} * c_{out}
-$$
-- FLOPs:
-$$
-    k_h * k_w * c_{in} * c_{out} * H * W
-$$
+- Params: $k_h * k_w * c_{in} * c_{out}$
+- FLOPs: $k_h * k_w * c_{in} * c_{out} * H * W$
 
 
 #### 1.2 Hardware Params
