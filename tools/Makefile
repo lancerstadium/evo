@@ -13,6 +13,7 @@ all: $(SUBDIRS)
 $(SUBDIRS):
 	@$(MAKE) -s -C $@
 
+
 clean:
 	@for dir in $(SUBDIRS); do \
 		$(MAKE) -s -C $$dir clean; \

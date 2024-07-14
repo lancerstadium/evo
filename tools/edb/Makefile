@@ -1,19 +1,14 @@
 CCFLAGS := -DEDB_DIFF_SERVER
 INCDIRS := -I . -I ../../evo
 LIBDIRS := -L ../../build
-EDBSRCS := $(filter-out edb-cl.c, $(wildcard *.c))
-CLSRCS := $(filter-out edb.c, $(wildcard *.c))
-LIBS := -levo -lm
+SRCS 	:= $(filter-out edb-cl.c, $(wildcard *.c))
+LIBS 	:= -levo -lm
 
-all: edb edb-cl
+all: edb
 
-edb: $(EDBSRCS)
+edb: $(SRCS)
 	@echo [CC] $<
-	@$(CC) -o $@ $(EDBSRCS) $(CCFLAGS) $(INCDIRS) $(LIBDIRS) $(LIBS)
-
-edb-cl: $(CLSRCS)
-	@echo [CC] $<
-	@$(CC) -o $@ $(CLSRCS) $(CCFLAGS) $(INCDIRS) $(LIBDIRS) $(LIBS)
+	@$(CC) -o $@ $(SRCS) $(CCFLAGS) $(INCDIRS) $(LIBDIRS) $(LIBS)
 
 clean:
 	@rm -f edb edb-cl
