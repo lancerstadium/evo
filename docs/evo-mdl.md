@@ -54,6 +54,19 @@
 
 #### 2.2 ONNX
 
-1. ONNX(*Open Neural Network Exchange*): 使用 `ProtoBuf` 进行序列化的二进制模型文件格式，十分通用。
+- ONNX(*Open Neural Network Exchange*): 使用 `ProtoBuf` 进行序列化的二进制模型文件格式，十分通用，主流框架（如：Pytorch, TensorFlow）对该格式导出都有相关支持：
+
+![onnx](asserts/evo-mdl1.png)
+
+
+- 模型可视化，通过`netron`插件可以可视化模型文件，从而观察算子和张量形状：
+
+![netron-onnx](asserts/evo-mdl2.png)
+
 
 #### 2.3 tflite
+
+- tflite 是 TensorFlow Lite 的模型文件格式，使用 `FlatBuffer` 进行序列化，较为轻量级，适用于移动端设备.
+
+
+![tflite](asserts/evo-mdl3.png)

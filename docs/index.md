@@ -1,18 +1,10 @@
 
 ## Libevo
 
-```
-   $$$$$$\  $$\    $$\  $$$$$$\  
-  $$  __$$\ \$$\  $$  |$$  __$$\ 
-  $$$$$$$$ | \$$\$$  / $$ /  $$ |
-  $$   ____|  \$$$  /  $$ |  $$ |
-  \$$$$$$$\    \$  /   \$$$$$$  |
-   \_______|    \_/     \______/ 
-
-```
-
 - `libevo` is a Inference engine used in TinyML write by pure C.
-- **Keyword**: High Performance > Easy to Use > Compatibility
+- **Keyword**: Lite > High Performance > Easy to Use > Compatibility
+
+![evo](./public/evo.svg)
 
 ### 1 Docs
 
@@ -58,8 +50,10 @@ int main() {
 ### 4 Performance
 
 - Task: Embedding Deep Learning Model
-- Compare to: `TFLM`, `TVM` and so on
+- Compare to: `ORT`, `TFLM`, `TVM` and so on
 - BenchMark: `MLPerf`
+
+
 
 ### 5 Other Features
 
