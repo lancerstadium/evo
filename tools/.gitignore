@@ -3,4 +3,6 @@
 
 # edb
 edb/edb
-edb/edb-cl
+edb-cl/edb-cl
+obj_dir
+*.vcd
