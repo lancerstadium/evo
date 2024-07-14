@@ -2,7 +2,6 @@
 
 
 # edb
-edb/edb
-edb-cl/edb-cl
+edb/build
 obj_dir
 *.vcd

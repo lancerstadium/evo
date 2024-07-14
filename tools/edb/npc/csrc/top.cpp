@@ -11,6 +11,7 @@
 #include <sys/time.h>
 
 // edb
+#include "../../src/edb.h"
 
 // =================================================== //
 //                    Environment
@@ -75,22 +76,22 @@ int main(int argc, char **argv, char **env) {
     tfp->set_time_unit("ns");           // Set time unit to nanoseconds
     reset(10);
 
-    // char *cmd = NULL;
-    // int ret = 0;
-    // char buffer[1024] = {0};
-    // do {
-    //     if(cmd) {
-    //         ret = edb_client_send(cmd, buffer);
-    //         linenoiseFree(cmd);
-    //         if(strcmp(cmd, "si")) {
-    //             printf("-------- hw --------\n");
-    //             elem_init();
-    //             single_cycle();
-    //             elem_display();
-    //             printf("-------- hw --------\n");
-    //         }
-    //     }
-    // } while(((cmd = linenoise("(EDB) ")) != NULL) && (ret == 0));
+    char *cmd = NULL;
+    int ret = 0;
+    char buffer[1024] = {0};
+    do {
+        ret = edb_client_send(cmd, buffer);
+        if(cmd) {
+            if(strcmp(cmd, "si") == 0) {
+                printf("-------- hw --------\n");
+                elem_init();
+                single_cycle();
+                elem_display();
+                printf("-------- hw --------\n");
+            }
+            linenoiseFree(cmd);
+        }
+    } while(((cmd = linenoise("(EDB) ")) != NULL) && (ret == 0));
 
     // VCD wave dump
     tfp->close();

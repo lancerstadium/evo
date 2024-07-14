@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include "linenoise.h"
 
-#ifndef __EDB_CL_H__
+#ifndef __EDB_CLIENT_H__
 
 #define SERVER_IP       "127.0.0.1"
 #define SERVER_PORT     0xd1ff
@@ -34,6 +34,7 @@
  * ```
  */
 static inline int edb_client_send(char *cmd, char *buffer) {
+    if(!cmd) return 0;
     int status, valread, client_fd;
     struct sockaddr_in serv_addr;
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -69,4 +70,4 @@ static inline int edb_client_send(char *cmd, char *buffer) {
 }
 
 
-#endif // __EDB_CL_H__
+#endif // __EDB_CLIENT_H__
