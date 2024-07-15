@@ -80,15 +80,20 @@ int main(int argc, char **argv, char **env) {
     int ret = 0;
     char buffer[1024] = {0};
     do {
-        if(strcmp(cmd, "exit") == 0) {
+        if(cmd && strcmp(cmd, "q") == 0) {
             printf("Bye!\n");
+            linenoiseFree(cmd);
             break;
         }
         ret = edb_client_send(cmd, buffer);
         if(ret == 0) {
             printf("-------- sw --------\n");
-            printf("%s\n", buffer);
-            printf("-------- sw --------\n");
+            if(buffer) {
+                printf("%s\n", buffer);
+            }
+        } else {
+            linenoiseFree(cmd);
+            break;
         }
         if(cmd) {
             if(strcmp(cmd, "si") == 0) {
@@ -96,8 +101,8 @@ int main(int argc, char **argv, char **env) {
                 elem_init();
                 single_cycle();
                 elem_display();
-                printf("-------- hw --------\n");
             }
+            printf("--------------------\n");
             linenoiseFree(cmd);
         }
     } while(((cmd = linenoise("(EDB) ")) != NULL) && (ret == 0));

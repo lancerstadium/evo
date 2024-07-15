@@ -37,6 +37,9 @@ $(CLTTRG): $(OBJC)
 	@echo [AR] Archiving $@
 	@ar -rcs $@ $^
 
+run: $(SERTRG)
+	@./$(SERTRG)
+
 sim: $(CLTTRG)
 	@$(MAKE) -s -C $(NPCDIR) sim
 

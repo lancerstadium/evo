@@ -34,6 +34,9 @@
  * ```
  */
 static inline int edb_client_send(char *cmd, char *buffer) {
+    if(buffer) {
+        memset(buffer, 0, strlen(buffer) * sizeof(char));
+    }
     int status, valread, client_fd;
     struct sockaddr_in serv_addr;
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -57,11 +60,10 @@ static inline int edb_client_send(char *cmd, char *buffer) {
         send(client_fd, cmd, strlen(cmd), 0);
         valread = read(client_fd, buffer, 1024 - 1);  // subtract 1 for the null
         // terminator at the end
-        if(strcmp(cmd, "q") == 0) {
-            printf("Client quit\n");
-            return -1;
-        }
-    } else {
+    } else if(cmd && strcmp(cmd, "q") == 0) {
+        sprintf(buffer, "You have no privalage to shutdown server!\n");
+        return -1;
+    }else {
         send(client_fd, "Hello!", strlen("Hello!"), 0);
         valread = read(client_fd, buffer, 1024 - 1);  // subtract 1 for the null
     }
