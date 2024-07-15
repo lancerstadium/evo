@@ -10,8 +10,24 @@ UnitTest_fn_def(test_node_init) {
     return NULL;
 }
 
+UnitTest_fn_def(test_matmul_2d) {
+    device_reg("cpu");
+    serializer_t * sez = serializer_new("onnx");
+    context_t * ctx = sez->load_model(sez, "node/test_matmul_2d/model.onnx");
+
+    tensor_t * t0 = sez->load_tensor("node/test_matmul_2d/test_data_set_0/input_0.pb");
+    tensor_dump(t0);
+    tensor_t * t1 = sez->load_tensor("node/test_matmul_2d/test_data_set_0/input_1.pb");
+    tensor_dump(t1);
+
+    ctx->sez->unload(ctx);
+    serializer_free(sez);
+    device_unreg("cpu");
+}
+
 UnitTest_fn_def(test_all) {
     UnitTest_add(test_node_init);
+    UnitTest_add(test_matmul_2d);
     return NULL;
 }
 
