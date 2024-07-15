@@ -80,7 +80,16 @@ int main(int argc, char **argv, char **env) {
     int ret = 0;
     char buffer[1024] = {0};
     do {
+        if(strcmp(cmd, "exit") == 0) {
+            printf("Bye!\n");
+            break;
+        }
         ret = edb_client_send(cmd, buffer);
+        if(ret == 0) {
+            printf("-------- sw --------\n");
+            printf("%s\n", buffer);
+            printf("-------- sw --------\n");
+        }
         if(cmd) {
             if(strcmp(cmd, "si") == 0) {
                 printf("-------- hw --------\n");
