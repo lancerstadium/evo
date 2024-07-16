@@ -69,3 +69,55 @@ AI部署平台细分：
 - 实验目标：测试各个推理引擎（主要：`TinyMaix`, `TFLM`, `ORT`, `microTVM`）在边缘侧推理的指标
 - 实验指标：性能（内存占用，推理时间）、易用性（评估部署时间）、兼容性（多平台部署）
 - 实验数据：收集常用DL模型（格式：`.onnx`, `.tflite`）、MLPerf测试
+
+
+#### 3.2 TFLM
+
+TFLM(*TensorFlow Lite for Microcontrollers*)自称其运行时（runtime）在 Cortex M3 上仅需 16KB，可以直接在“裸机”上运行，不需要操作系统支持。
+
+> 参考：
+>
+> - [TernsorFlow 官方教程]([ps://ten](https://tensorflow.google.cn/lite/microcontrollers/get_started?hl=zh-cn))
+> - [使用TensorFlow Lite Micro流程记录](https://blog.csdn.net/ZhaoDongyu_AK47/article/details/139148425)
+
+
+
+##### 3.2.1 构建
+
+TFLM 使用 Bazel 构筑工具（Google很喜欢这玩意，基于JRM的，有些难用）
+
+1. 在[Bazel仓库](https://github.com/bazelbuild/bazel/releases)去选择适合版本下载，这里是x86_64：
+```shell
+# 下载可执行文件
+wget https://github.com/bazelbuild/bazel/releases/download/7.2.1/bazel-7.2.1-linux-x86_64
+# 移动到/usr/local/bin
+sudo cp ./bazel-7.2.1-linux-x86_64 /usr/local/bin/bazel
+# 更新环境变量
+source ~/.bashrc
+# 检查版本
+bazel --version
+```
+
+> Bazel 中的配置文件：
+>
+> 1. `WORKSPACE`：含有该文件的目录将会被视为根目录
+> 2. `BUILD`：含有该构建规则文件的目录被视为项目的一个模块
+
+
+2. 构筑 TFLM
+
+```shell
+git clone https://github.com/tensorflow/tflite-micro.git
+cd tflite-micro
+# 查看构建规则，笑死看不懂
+cat BUILD
+# 构筑 micro 工具链 ???
+bazel build
+# 这个管用
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite
+```
+
+
+
+
+##### 3.2.x 综合评估

@@ -70,3 +70,16 @@
 
 
 ![tflite](asserts/evo-mdl3.png)
+
+
+
+### 3 EVO Tiny Model
+
+`.etm`是 EVO 小型模型的格式
+
+
+- 使用如下 unix 命令会将`.etm`模型转换为 C 源文件（`unsigned char`类型）：
+
+```shell
+xxd -i converted_model.etm > model_data.c
+```
