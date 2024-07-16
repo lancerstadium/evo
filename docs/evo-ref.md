@@ -7,8 +7,10 @@
 |  Item  |  Type  | Lang |  Company  | Platform |  Targets  |  Main Func  |  Main Opt  |
 |:------:|:------:|:----:|:---------:|:----:|:---------:|:-----------:|:----------:|
 | [TinyMaix](https://github.com/sipeed/TinyMaix) | Infer | C | Sipeed | **MCU** | SSE NEON CSKYV2 RV32P |  | Inline Asm, |
+| [TinyEngine](https://github.com/mit-han-lab/tinyengine.git) | Infer | C |  | **MCU** |
 | [ORT](https://github.com/microsoft/onnxruntime.git) | Infer | C++ | Microsoft | **PC, Server** | SSE AVX NEON CUDA |  | Inline Asm, |
 | [microTVM](https://xinetzone.github.io/tvm/docs/arch/microtvm_design.html) | Infer | C++ | Apache | **Paper** |
+| [CMSIS-NN]() |
 | [TFLM](https://github.com/tensorflow/tflite-micro) | Infer | C++ | Google | **MCU** Arm(Cortex-M), Hexagon, RISC-V, Xtensa | ??? | ??? | ??? |
 | [NCNN](https://github.com/Tencent/ncnn) | Infer | C/C++ | Tencent | **Phone** | 
 | [CoreML](https://github.com/apple/coremltools) | Train & Infer | Swift | Apple | **IPhone** Arm(Cortex-M) | Metal | ??? | ??? |
@@ -70,6 +72,10 @@ AI部署平台细分：
 - 实验指标：性能（内存占用，推理时间）、易用性（评估部署时间）、兼容性（多平台部署）
 - 实验数据：收集常用DL模型（格式：`.onnx`, `.tflite`）、MLPerf测试
 
+|     |    Pynq-Z2    |   PC   |
+|:---:|:-------------:|:------:|
+| CPU | ARM Cortex A9 |        |
+
 
 #### 3.2 TFLM
 
@@ -77,7 +83,7 @@ TFLM(*TensorFlow Lite for Microcontrollers*)自称其运行时（runtime）在 C
 
 > 参考：
 >
-> - [TernsorFlow 官方教程]([ps://ten](https://tensorflow.google.cn/lite/microcontrollers/get_started?hl=zh-cn))
+> - [TernsorFlow 官方教程](https://tensorflow.google.cn/lite/microcontrollers/get_started?hl=zh-cn)
 > - [使用TensorFlow Lite Micro流程记录](https://blog.csdn.net/ZhaoDongyu_AK47/article/details/139148425)
 
 
@@ -117,7 +123,26 @@ bazel build
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite
 ```
 
-
-
-
 ##### 3.2.x 综合评估
+
+
+
+
+#### 3.3 TinyEngine
+
+
+TinyEngine
+
+##### 3.3.1 构建
+
+```shell
+git clone --recursive https://github.com/mit-han-lab/tinyengine.git
+conda create -n tinyengine python=3.6 pip
+conda activate tinyengine
+cd tinyengine
+pip install -r requirements.txt
+
+```
+
+##### 3.3.2 示例
+
