@@ -349,6 +349,24 @@ EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
     }
 }
 
+EVO_UNUSED static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
+    if(!attr) return NULL;
+    switch(attr->type) {
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__FLOAT:
+            return attribute_float(attr->name, attr->f);
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INT:
+            return attribute_int(attr->name, attr->i);
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__STRING:
+            return attribute_string(attr->name, (char*)attr->s.data, attr->s.len);
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__FLOATS:
+            return attribute_floats(attr->name, attr->floats, attr->n_floats);
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INTS:
+            return attribute_ints(attr->name, attr->ints, attr->n_ints);
+        default: 
+            return attribute_undefined(attr->name);
+    }
+}
+
 context_t *load_model_onnx(struct serializer *sez, const char *path) {
     context_t *ctx = NULL;
     FILE *fp;
@@ -875,6 +893,14 @@ graph_t *load_graph_onnx(context_t *ctx) {
                 n->nout = node_proto->n_output;
                 for (j = 0; j < n->nout; j++) {
                     n->out[j] = context_get_tensor(ctx, node_proto->output[j]);
+                }
+            }
+        }
+        // Attribute
+        if (node_proto->n_attribute > 0) {
+            if(n->attr_vec) {
+                for(j = 0; j < node_proto->n_attribute; j++) {
+                    vector_add(&(n->attr_vec), attr_map_onnx(node_proto->attribute[j]));
                 }
             }
         }

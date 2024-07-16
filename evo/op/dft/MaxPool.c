@@ -1,5 +1,7 @@
-#include <math.h>
 #include "../../core/resolver.h"
+#include "../../util/math.h"
+#include <math.h>
+#include <string.h>
 
 typedef enum {
     AUTO_PAD_NOTSET = 0,
@@ -36,6 +38,12 @@ void op_MaxPool_dft(node_t *nd) {
     // operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     // int64_t* ints;
     // int i, l;
+    // if((nd->nin == 1) && (nd->nout >= 1)) {
+    //     pdat = malloc(sizeof(operator_pdata_t));
+    //     if(pdat) {
+    //         memset(pdat, 0, sizeof(operator_pdata_t));
+    //     }
+    // }
     // 2. MaxPool reshape
 
     // 3. MaxPool run

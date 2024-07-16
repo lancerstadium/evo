@@ -60,8 +60,10 @@ typedef struct scheduler scheduler_t;
 typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
 typedef struct allocator allocator_t;
+typedef struct attribute attribute_t;
 typedef struct serializer serializer_t;
 
+typedef attribute_t** attribute_vec_t;
 typedef device_t** device_vec_t;
 typedef tensor_t** tensor_vec_t;
 typedef graph_t** graph_vec_t;
@@ -369,6 +371,65 @@ struct resolver {
 EVO_API resolver_t* resolver_get_default();
 
 // ==================================================================================== //
+//                                       evo: attribute type
+// ==================================================================================== //
+
+typedef enum attribute_type {
+    ATTRIBUTE_TYPE_UNDEFINED,
+    ATTRIBUTE_TYPE_FLOAT,
+    ATTRIBUTE_TYPE_INT,
+    ATTRIBUTE_TYPE_STRING,
+    ATTRIBUTE_TYPE_TENSOR,
+    ATTRIBUTE_TYPE_GRAPH,
+    ATTRIBUTE_TYPE_FLOATS,
+    ATTRIBUTE_TYPE_INTS,
+    ATTRIBUTE_TYPE_TENSORS,
+    ATTRIBUTE_TYPE_GRAPHS,
+} attribute_type_t;
+
+// ==================================================================================== //
+//                                       evo: attribute
+// ==================================================================================== //
+
+struct attribute {
+    char * name;
+    attribute_type_t type;
+    union {
+        float       f;
+        int64_t     i;
+        struct {
+            size_t ns;
+            char  *ss;
+        };
+        tensor_t  * t;
+        graph_t   * g;
+        struct {
+            size_t      nf;
+            float      *fs;
+        };
+        struct {
+            size_t      ni;
+            int64_t    *is;
+        };
+        struct {
+            size_t      nt;
+            tensor_t ** ts;
+        };
+        struct {
+            size_t      ng;
+            graph_t  ** gs;
+        };
+    };
+};
+
+EVO_API attribute_t* attribute_undefined(char *);
+EVO_API attribute_t* attribute_float(char*, float);
+EVO_API attribute_t* attribute_int(char*, int);
+EVO_API attribute_t* attribute_string(char*, char*, size_t);
+EVO_API attribute_t* attribute_floats(char*, float*, size_t);
+EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
+
+// ==================================================================================== //
 //                                       evo: node type
 // ==================================================================================== //
 
@@ -398,11 +459,19 @@ struct node {
     graph_t *graph;                                     /* Owner Graph                  */
     context_t *ctx;                                     /* Owner Context                */
 
+    attribute_vec_t attr_vec;                           /* Attribute Vec of node        */
+
     void* node_proto;
     void* priv;
 };
 
-EVO_API node_t * node_new(graph_t*, const char*, op_type_t);
+EVO_API node_t* node_new(graph_t*, const char*, op_type_t);
+EVO_API attribute_t* node_get_attr(node_t*, const char*);
+EVO_API float node_get_attr_float(node_t*, const char*, float);
+EVO_API int64_t node_get_attr_int(node_t*, const char*, int64_t);
+EVO_API char * node_get_attr_string(node_t*, const char*, char*); 
+EVO_API int node_get_attr_floats(node_t*, const char*, float**);
+EVO_API int node_get_attr_ints(node_t*, const char*, int64_t**);
 EVO_API void node_dump(node_t*);
 EVO_API void node_free(node_t*, graph_t*);
 

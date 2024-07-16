@@ -1,7 +1,7 @@
 #include "../evo.h"
 #include "../util/log.h"
 #include "../util/sys.h"
-
+#include <string.h>
 
 static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->index = nd_idx;
@@ -18,6 +18,8 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->op->is_same_shape = 1;
     nd->op->param_size = 0;
     nd->op->param_mem = NULL;
+    // attribute
+    nd->attr_vec = vector_create();
 }
 
 node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
@@ -34,6 +36,63 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
         nd->name = sys_strdup(name);
     }
     return nd;
+}
+
+attribute_t* node_get_attr(node_t *nd, const char *name) {
+    attribute_t *attr;
+    int i;
+    if(nd && name) {
+        for(i = 0; i < vector_size(nd->attr_vec); i++) {
+            attr = nd->attr_vec[i];
+            if(strcmp(attr->name, name) == 0) {
+                return attr;
+            }
+        }
+    }
+    return NULL;
+}
+
+float node_get_attr_float(node_t *nd, const char *name, float dft) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_FLOAT))
+        return attr->f;
+    return dft;
+}
+
+int64_t node_get_attr_int(node_t *nd, const char *name, int64_t dft) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_INT))
+        return attr->i;
+    return dft;
+}
+
+char * node_get_attr_string(node_t *nd, const char *name, char *dft) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_STRING)) {
+        if(attr->ns > 0) {
+            attr->ss[attr->ns] = 0;
+            return attr->ss;
+        }
+    }
+    return dft;
+}
+
+int node_get_attr_floats(node_t *nd, const char *name, float ** fs) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_FLOATS)) {
+        *fs = attr->fs;
+        return attr->nf;
+    }
+    return 0;
+}
+
+int node_get_attr_ints(node_t *nd, const char *name, int64_t ** is) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_INTS)) {
+        *is = attr->is;
+        return attr->ni;
+    }
+    return 0;
 }
 
 void node_dump(node_t *nd) {
@@ -78,5 +137,6 @@ void node_free(node_t* nd, graph_t* g) {
         sys_free(nd->priv);
         nd->priv = NULL;
     }
+    if(nd->attr_vec) vector_free(nd->attr_vec);
     sys_free(nd);
 }
