@@ -14,7 +14,7 @@ void op_Reshape_dft(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
     tensor_t* s = nd->in[1];
-    int16_t *sdata = s->datas;
+    int64_t *sdata = s->datas;
 	int total_dim = 1;
 	int total_shape = 1;
     int ndim = s->ndata;
@@ -35,8 +35,8 @@ void op_Reshape_dft(node_t* nd) {
                     total_shape *= x->dims[j];
             }
             /// TODO: warning opration for reshape
-            // LOG_INFO("dim: %d, shape: %d\n", total_dim, total_shape);
-            // dims[i] = total_dim / total_shape;
+            LOG_INFO("dim: %d, shape: %d\n", total_dim, total_shape);
+            dims[i] = total_dim / total_shape;
         }
     }
     y->type = x->type;

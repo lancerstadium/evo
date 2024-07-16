@@ -1,6 +1,7 @@
 #include "../evo.h"
 #include "../util/log.h"
 #include "../util/sys.h"
+#include <string.h>
 
 
 context_t * context_new(const char *name) {
@@ -27,9 +28,10 @@ context_t * context_new(const char *name) {
 tensor_t* context_get_tensor(context_t *ctx, const char *name) {
     if(ctx && ctx->tensor_map) {
         tensor_t * t = NULL;
-        int err = hashmap_get(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t*)&t);
-        if(err != -1) 
+        int res = hashmap_get(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t*)&t);
+        if(res != 0 && t && strcmp(name, t->name) == 0) {
             return t;
+        }
     }
     return NULL;
 }

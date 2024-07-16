@@ -1,6 +1,10 @@
 #include "sob.h"
 #include <evo.h>
 
+int map_print(const void* key, size_t ksize, uintptr_t value, void* usr) {
+    Log_info("name: %s", (char*)key);
+}
+
 UnitTest_fn_def(test_model_load) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
@@ -14,9 +18,12 @@ UnitTest_fn_def(test_model_load) {
 
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
     tensor_dump(t3);
-    
+
+    // hashmap_iterate(ctx->tensor_map, map_print, NULL);
+
+    tensor_apply(t1, t3->datas, t3->ndata);
+
     graph_prerun(ctx->graph);
-    graph_step(ctx->graph, 1);
     graph_run(ctx->graph);
     graph_dump(ctx->graph); // Exec dump
 

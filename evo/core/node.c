@@ -37,6 +37,7 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
 }
 
 void node_dump(node_t *nd) {
+    if(!nd) return;
     int i;
     if(nd) {
         LOG_INFO("%s-%d: %s\r\n", nd->op->name ? nd->op->name : "Uninit" , nd->opset, nd->name);

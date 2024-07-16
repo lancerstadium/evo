@@ -3,7 +3,7 @@
 #ifndef __EVO_UTIL_MAP_H__
 #define __EVO_UTIL_MAP_H__
 
-#define hashmap_str_lit(str) (str), sizeof(str) - 1
+#define hashmap_str_lit(str) (str), strlen(str)
 #define hashmap_static_arr(arr) (arr), sizeof(arr)
 
 // removal of map elements is disabled by default because of its slight overhead.

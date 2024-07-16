@@ -19,7 +19,6 @@ context_t *load_onnx(struct serializer *s, const void *buf, int len);
 
 EVO_UNUSED static op_type_t op_map_onnx(char *op_ty) {
     if (!op_ty) return OP_TYPE_NOP;
-    LOG_INFO("++ op ty: %-12s, hash: 0x%08x\n", op_ty, shash(op_ty));
     switch (shash(op_ty)) {
         case 0x0b87d47b:
             return OP_TYPE_ABS; /* "Abs" */
@@ -370,6 +369,8 @@ context_t *load_model_onnx(struct serializer *sez, const char *path) {
             }
         }
         fclose(fp);
+    } else {
+        LOG_ERR("No such file: %s\n", path);
     }
     return ctx;
 }
@@ -720,6 +721,8 @@ tensor_t *load_tensor_onnx(const char *path) {
             }
         }
         fclose(fp);
+    } else {
+        LOG_ERR("No such file: %s\n", path);
     }
     return t;
 }
@@ -735,7 +738,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
     EVO_UNUSED Onnx__TensorProto *o;
     EVO_UNUSED Onnx__ValueInfoProto *v;
     EVO_UNUSED char *p, *domain;
-    EVO_UNUSED char *name;
+    EVO_UNUSED char *name = NULL;
     EVO_UNUSED int i, j, k, l;
 
     if (!graph)
@@ -794,7 +797,9 @@ graph_t *load_graph_onnx(context_t *ctx) {
             name = graph->node[i]->output[j];
             if (!context_get_tensor(ctx, name)) {
                 t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
-                if (t) hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+                if (t) {
+                    hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+                }
             }
         }
     }
@@ -824,6 +829,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
                     }
                 }
                 if (!context_get_tensor(ctx, name)) {
+                    LOG_ERR("Get Tensor: %s fail!\n", name);
                     if (g->nodes)
                         free(g->nodes);
                     free(g);
@@ -839,6 +845,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
         Onnx__NodeProto *node_proto = graph->node[i];
         if (!node_proto) break;
         g->nodes[i] = node_new(g, node_proto->name, op_map_onnx(node_proto->op_type));
+        LOG_INFO("++ op ty: %-12s, name %s\n", node_proto->op_type, node_proto->name);
         n = g->nodes[i];
         n->node_proto = node_proto;
         domain = node_proto->domain;
