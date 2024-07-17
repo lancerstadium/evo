@@ -20,7 +20,8 @@ UnitTest_fn_def(test_model_load) {
     tensor_dump2(t3);
     // hashmap_iterate(ctx->tensor_map, map_print, NULL);
 
-    tensor_apply(t1, t3->datas, t3->ndata);
+    tensor_apply(t1, t3->datas, t3->ndata * tensor_type_sizeof(t3->type));
+    printf("ndata1: %ld, ndata3: %ld\n", t1->ndata, t3->ndata);
     tensor_dump2(t1);
 
     graph_prerun(ctx->graph);
