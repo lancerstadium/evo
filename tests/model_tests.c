@@ -14,14 +14,14 @@ UnitTest_fn_def(test_model_load) {
     tensor_t * t1 = context_get_tensor(ctx, "Input3");
     tensor_dump(t1);
     tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
-    tensor_dump2(t2);
+    tensor_dump(t2);
 
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
-    tensor_dump(t3);
-
+    tensor_dump2(t3);
     // hashmap_iterate(ctx->tensor_map, map_print, NULL);
 
     tensor_apply(t1, t3->datas, t3->ndata);
+    tensor_dump2(t1);
 
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);

@@ -377,8 +377,9 @@ void tensor_apply(tensor_t *ts, void *buf, size_t len) {
                     }
                 } else {
                     l = ts->ndata * sz;
-                    if (l < 0)
+                    if (l > 0) {
                         memcpy(ts->datas, buf, MIN(l, len));
+                    }
                 }
             }
         }
