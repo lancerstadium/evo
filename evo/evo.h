@@ -78,6 +78,7 @@ EVO_UNUSED static device_vec_t internal_device_registry = NULL;
 EVO_API int device_registry_init(const char*);
 EVO_API device_t* device_registry_find(const char*);
 EVO_API device_t* device_registry_get(int);
+EVO_API device_t* device_registry_get_default();
 EVO_API void device_registry_release();
 
 // ==================================================================================== //
@@ -638,8 +639,6 @@ struct interface {
 // ==================================================================================== //
 
 struct allocator {
-    void (*desc)(device_t*);
-    void (*eval)(device_t*, graph_t*);
     void (*alloc)(device_t*, graph_t*);                 /* Alloc resource               */
     void (*release)(device_t*, graph_t*);               /* Release all allocated        */
 };
@@ -650,7 +649,8 @@ struct allocator {
 // ==================================================================================== //
 
 struct optimizer {
-    void (*run)(graph_t*);
+    void (*graph_spilte)(graph_t*);
+    void (*graph_optimize)(graph_t*);
 };
 
 

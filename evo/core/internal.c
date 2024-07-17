@@ -47,6 +47,9 @@ device_t* device_registry_get(int idx) {
         return NULL;
     }
 }
+device_t* device_registry_get_default() {
+    return device_registry_find("cpu");
+}
 
 void device_registry_release() {
     while(vector_size(internal_device_registry) > 0) {

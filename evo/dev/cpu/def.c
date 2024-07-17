@@ -157,6 +157,21 @@ static int cpu_release(device_t* dev) {
 //                                       cpu: allocator
 // ==================================================================================== //
 
+void cpu_alloc(device_t *dev, graph_t *sg) {
+    (void)dev;
+    (void)sg;
+    return;
+}
+
+// ==================================================================================== //
+//                                       cpu: optimizer
+// ==================================================================================== //
+
+void cpu_graph_spilte(graph_t *g) {
+    graph_t *sg = graph_sub(g);
+    sg->dev = device_registry_get_default();
+    /// TODO: spilte graphs
+}
 
 // ==================================================================================== //
 //                                       cpu: define
@@ -172,11 +187,11 @@ static interface_t cpu_itf = {
 };
 
 static allocator_t cpu_alc = {
-
+    .alloc = cpu_alloc
 };
 
 static optimizer_t cpu_opt = {
-
+    .graph_spilte = cpu_graph_spilte
 };
 
 static device_t cpu_dev = {
