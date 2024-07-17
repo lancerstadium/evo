@@ -66,6 +66,7 @@ make clean
 
 Support model file format:
 1. ONNX(*Open Neural Network Exchange*)
+2. tflite(*TensorFlow Lite Model Format*)
 
 ### 2.2 Runtime Scheduler
 
