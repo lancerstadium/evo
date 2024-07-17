@@ -7,7 +7,7 @@
 |  Item  |  Type  | Lang |  Company  | Platform |  Targets  |  Main Func  |  Main Opt  |
 |:------:|:------:|:----:|:---------:|:----:|:---------:|:-----------:|:----------:|
 | [TinyMaix](https://github.com/sipeed/TinyMaix) | Infer | C | Sipeed | **MCU** | SSE NEON CSKYV2 RV32P |  | Inline Asm, |
-| [CMSIS-NN]() |
+| [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN) |
 | [TinyEngine](https://github.com/mit-han-lab/tinyengine.git) | Infer | C |  | **MCU** |
 | [ORT](https://github.com/microsoft/onnxruntime.git) | Infer | C++ | Microsoft | **PC, Server** | SSE AVX NEON CUDA |  | Inline Asm, |
 | [microTVM](https://xinetzone.github.io/tvm/docs/arch/microtvm_design.html) | Infer | C++ | Apache | **Paper** |
@@ -202,4 +202,10 @@ make
 ---
 
 #### 3.5 CMSIS-NN
+
+
+> 参考：
+>
+> - [官方文档](https://arm-software.github.io/CMSIS-NN/latest)
+> - [Image recognition 示例](https://github.com/ARM-software/ML-examples/tree/main/tflm-cmsisnn-mbed-image-recognition)
 

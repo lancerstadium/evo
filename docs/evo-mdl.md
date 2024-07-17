@@ -37,6 +37,7 @@
 1. GPU：显存（vRAM）大小、显存带宽、计算核心数、计算速度（FLOPS）。
 2. CPU：内存大小、内存带宽、计算核心数、计算速度（FLOPS）。
 
+---
 
 ### 2 Model Format
 
@@ -52,6 +53,8 @@
 | Load  |   Normal  |   Fast    |
 | Size  |   Normal  |   Small   |
 
+---
+
 #### 2.2 ONNX
 
 - ONNX(*Open Neural Network Exchange*): 使用 `ProtoBuf` 进行序列化的二进制模型文件格式，十分通用，主流框架（如：Pytorch, TensorFlow）对该格式导出都有相关支持：
@@ -64,6 +67,8 @@
 ![netron-onnx](asserts/evo-mdl2.png)
 
 
+---
+
 #### 2.3 tflite
 
 - tflite 是 TensorFlow Lite 的模型文件格式，使用 `FlatBuffer` 进行序列化，较为轻量级，适用于移动端设备.
@@ -73,6 +78,8 @@
 
 
 
+---
+
 ### 3 EVO Tiny Model
 
 `.etm`是 EVO 小型模型的格式
@@ -81,5 +88,11 @@
 - 使用如下 unix 命令会将`.etm`模型转换为 C 源文件（`unsigned char`类型）：
 
 ```shell
-xxd -i converted_model.etm > model_data.c
+xxd -i model.etm > model_data.c
+```
+
+- 使用如下 unix 命令会将`.c`源文件转换为`.etm`模型文件：
+
+```shell
+grep -E "(0x[0-9a-f]{2}(,|)){1,16}" model_data.c | xxd -r -p > model.etm
 ```
