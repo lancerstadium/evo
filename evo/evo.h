@@ -136,6 +136,7 @@ struct tensor {
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API void tensor_free(tensor_t*);
+EVO_API void tensor_copy(tensor_t*, tensor_t*);
 EVO_API bool tensor_equal(tensor_t*, tensor_t*);
 EVO_API char* tensor_dump_shape(tensor_t*);
 EVO_API void tensor_dump(tensor_t*);

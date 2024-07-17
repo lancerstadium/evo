@@ -386,6 +386,12 @@ void tensor_apply(tensor_t *ts, void *buf, size_t len) {
     }
 }
 
+void tensor_copy(tensor_t *a, tensor_t *b) {
+    if(a && b) {
+        tensor_apply(a, b->datas, b->ndata * tensor_type_sizeof(b->type));
+    }
+}
+
 char *tensor_set_name_by_index(graph_t *g, int index) {
     char *name = (char *)sys_malloc(EVO_ALIGN_SIZE * 2);
     if (name) sprintf(name, "tensor_%d", index);
