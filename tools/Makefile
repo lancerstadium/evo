@@ -11,10 +11,14 @@ endif
 all: $(SUBDIRS)
 
 $(SUBDIRS):
-	@$(MAKE) -s -C $@
+	@if [ -f $@/Makefile ]; then \
+		$(MAKE) -s -C $@; \
+	fi
 
 
 clean:
 	@for dir in $(SUBDIRS); do \
-		$(MAKE) -s -C $$dir clean; \
+		if [ -f $$dir/Makefile ]; then \
+			$(MAKE) -s -C $$dir clean; \
+		fi \
 	done

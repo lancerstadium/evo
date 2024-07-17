@@ -42,3 +42,17 @@ Socket is a way of connecting two nodes on a network with each other:
     └────────────┘      └────────────┘
 
 ```
+
+
+
+### 2 cv-tools
+
+In dir `tools/cv` contain many tools for cv, such as:
+1. `img2c`: convert image to c array
+2. `imgsz`: resize image
+
+To use these tools, you need to install required python packages:
+
+```shell
+pip install pillow numpy
+```

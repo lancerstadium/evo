@@ -7,10 +7,10 @@
 |  Item  |  Type  | Lang |  Company  | Platform |  Targets  |  Main Func  |  Main Opt  |
 |:------:|:------:|:----:|:---------:|:----:|:---------:|:-----------:|:----------:|
 | [TinyMaix](https://github.com/sipeed/TinyMaix) | Infer | C | Sipeed | **MCU** | SSE NEON CSKYV2 RV32P |  | Inline Asm, |
+| [CMSIS-NN]() |
 | [TinyEngine](https://github.com/mit-han-lab/tinyengine.git) | Infer | C |  | **MCU** |
 | [ORT](https://github.com/microsoft/onnxruntime.git) | Infer | C++ | Microsoft | **PC, Server** | SSE AVX NEON CUDA |  | Inline Asm, |
 | [microTVM](https://xinetzone.github.io/tvm/docs/arch/microtvm_design.html) | Infer | C++ | Apache | **Paper** |
-| [CMSIS-NN]() |
 | [TFLM](https://github.com/tensorflow/tflite-micro) | Infer | C++ | Google | **MCU** Arm(Cortex-M), Hexagon, RISC-V, Xtensa | ??? | ??? | ??? |
 | [NCNN](https://github.com/Tencent/ncnn) | Infer | C/C++ | Tencent | **Phone** | 
 | [CoreML](https://github.com/apple/coremltools) | Train & Infer | Swift | Apple | **IPhone** Arm(Cortex-M) | Metal | ??? | ??? |
@@ -63,6 +63,8 @@ AI部署平台细分：
 4. 计算加载与卸载：需要搭建模型数据库，针对模型选取推理网络类型（边缘独立推理、边缘集群推理、云边协同推理），在指定网络下，尽量降低推理时延和内存占用；
 
 
+---
+
 ### 3 部署实验
 
 #### 3.1 实验环境
@@ -77,6 +79,8 @@ AI部署平台细分：
 | CPU | ARM Cortex A9 |        |
 
 
+---
+
 #### 3.2 TFLM
 
 TFLM(*TensorFlow Lite for Microcontrollers*)自称其运行时（runtime）在 Cortex M3 上仅需 16KB，可以直接在“裸机”上运行，不需要操作系统支持。
@@ -90,7 +94,7 @@ TFLM(*TensorFlow Lite for Microcontrollers*)自称其运行时（runtime）在 C
 
 ##### 3.2.1 构建
 
-TFLM 使用 Bazel 构筑工具（Google很喜欢这玩意，基于JRM的，有些难用）
+TFLM 使用 Bazel 构筑工具（Google的构筑工具，基于JRM的，较难用）
 
 1. 在[Bazel仓库](https://github.com/bazelbuild/bazel/releases)去选择适合版本下载，这里是x86_64：
 ```shell
@@ -115,18 +119,28 @@ bazel --version
 ```shell
 git clone https://github.com/tensorflow/tflite-micro.git
 cd tflite-micro
-# 查看构建规则，笑死看不懂
+# 查看构建规则
 cat BUILD
-# 构筑 micro 工具链 ???
+# 构筑 micro 工具链：无效
 bazel build
 # 这个管用
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite
+```
+
+#### 3.2.2 示例
+
+在`qemu`进行模拟测试：
+
+```shell
+./tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh
 ```
 
 ##### 3.2.x 综合评估
 
 
 
+
+---
 
 #### 3.3 TinyEngine
 
@@ -145,4 +159,47 @@ pip install -r requirements.txt
 ```
 
 ##### 3.3.2 示例
+
+
+
+---
+
+#### 3.4 TinyMaix
+
+##### 3.4.1 构建
+
+```shell
+git clone https://github.com/sipeed/TinyMaix.git
+cd TinyMaix
+mkdir build
+cd build
+cmake ..
+make
+```
+
+
+##### 3.4.2 示例
+
+```shell
+cd examples/cifar10
+mkdir build
+cd build
+cmake ..
+make
+./cifar10
+```
+
+##### 3.4.x 综合评估
+
+|  model  |  cifar10 |  total  |
+|:-------:|:--------:|:-------:|
+|  Mem    |          |         |
+|  Time   |          |         |
+|  Deploy |   easy   |         |
+
+
+
+---
+
+#### 3.5 CMSIS-NN
 
