@@ -863,7 +863,6 @@ graph_t *load_graph_onnx(context_t *ctx) {
         Onnx__NodeProto *node_proto = graph->node[i];
         if (!node_proto) break;
         g->nodes[i] = node_new(g, node_proto->name, op_map_onnx(node_proto->op_type));
-        LOG_INFO("++ op ty: %-12s, name %s\n", node_proto->op_type, node_proto->name);
         n = g->nodes[i];
         n->node_proto = node_proto;
         domain = node_proto->domain;

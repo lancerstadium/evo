@@ -14,7 +14,7 @@ UnitTest_fn_def(test_model_load) {
     tensor_t * t1 = context_get_tensor(ctx, "Input3");
     tensor_dump(t1);
     tensor_t * t2 = context_get_tensor(ctx, "Plus214_Output_0");
-    tensor_dump(t2);
+    tensor_dump2(t2);
 
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
     tensor_dump(t3);
@@ -26,6 +26,8 @@ UnitTest_fn_def(test_model_load) {
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);
     graph_dump(ctx->graph); // Exec dump
+
+    tensor_dump2(t2);
 
     ctx->sez->unload(ctx);
     UnitTest_msg("unload: %u", ctx->model_size);

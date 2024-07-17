@@ -129,13 +129,16 @@ struct tensor {
     uint8_t is_input : 1;                               /* Tensor is input              */
     uint8_t is_output : 1;                              /* Tensor is output             */
     uint8_t is_iallocated: 1;                           /* Tensor is iallocated         */
-    uint8_t layout : 1;                                 /* Tensor is layout 0NCHW1NHWC  */
+    uint8_t layout : 1;                                 /* Tensor is layout 0NCHW/1NHWC */
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API void tensor_free(tensor_t*);
+EVO_API bool tensor_equal(tensor_t*, tensor_t*);
+EVO_API char* tensor_dump_shape(tensor_t*);
 EVO_API void tensor_dump(tensor_t*);
+EVO_API void tensor_dump2(tensor_t*);
 EVO_API int tensor_index2offset(tensor_t*, int*);
 EVO_API void tensor_offset2index(tensor_t*, int, int*);
 EVO_API int tensor_reshape(tensor_t*, int, int*);
@@ -539,6 +542,7 @@ EVO_API void graph_run(graph_t*);
 EVO_API void graph_wait(graph_t*);
 EVO_API void graph_posrun(graph_t*);
 EVO_API void graph_dump(graph_t*);
+EVO_API void graph_dump2(graph_t*);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //

@@ -1,8 +1,10 @@
+#include <math.h>
+#include <string.h>
+
 #include "../evo.h"
-#include "../util/sys.h"
 #include "../util/log.h"
 #include "../util/math.h"
-#include <string.h>
+#include "../util/sys.h"
 
 // ==================================================================================== //
 //                                   tensor type API
@@ -58,13 +60,11 @@ int tensor_type_sizeof(tensor_type_t type) {
     return typesz[0];
 }
 
-
-
 // ==================================================================================== //
 //                                   tensor API
 // ==================================================================================== //
 
-static inline const char* tensor_layout_tostring(uint8_t layout) {
+static inline const char *tensor_layout_tostring(uint8_t layout) {
     return (layout == 0) ? "NCHW" : "NHWC";
 }
 
@@ -82,7 +82,7 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->is_iallocated = 1;  // ts is internal allocated
     ts->layout = 0;         // ts is layout NCHW
     // dim
-    for(int i = 0; i < EVO_DIM_MAX; i++) {
+    for (int i = 0; i < EVO_DIM_MAX; i++) {
         ts->dims[i] = 1;
         ts->strides[i] = 1;
     }
@@ -97,10 +97,10 @@ tensor_t *tensor_new(const char *name, tensor_type_t type) {
     if (!ts) return NULL;
     tensor_init(ts, -1, type);
     // name
-    if(name) {
+    if (name) {
         const int str_len = align(strlen(name) + 1, EVO_ALIGN_SIZE);
         ts->name = (char *)sys_malloc(str_len);
-        if(!ts->name) {
+        if (!ts->name) {
             sys_free(ts);
             return NULL;
         }
@@ -110,27 +110,26 @@ tensor_t *tensor_new(const char *name, tensor_type_t type) {
     return ts;
 }
 
-
-void tensor_free(tensor_t* ts) {
-    if(!ts) return;
-    if(ts->name) sys_free(ts->name);
-    if(ts->datas) sys_free(ts->datas);
+void tensor_free(tensor_t *ts) {
+    if (!ts) return;
+    if (ts->name) sys_free(ts->name);
+    if (ts->datas) sys_free(ts->datas);
     sys_free(ts);
     ts = NULL;
 }
 
-tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) {
-    char ** str;
+tensor_t *tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) {
+    char **str;
     int n;
     int sz, i;
-    if(ts) {
+    if (ts) {
         // release dim & data
         ts->ndim = 0;
-        if((ts->ndata > 0) && ts->datas) {
-            if(ts->type == TENSOR_TYPE_STRING) {
-                str = (char**)ts->datas;
-                for(int idx = 0; idx < ts->ndata; idx++) {
-                    if(str[idx]) {
+        if ((ts->ndata > 0) && ts->datas) {
+            if (ts->type == TENSOR_TYPE_STRING) {
+                str = (char **)ts->datas;
+                for (int idx = 0; idx < ts->ndata; idx++) {
+                    if (str[idx]) {
                         free(str[idx]);
                         str[idx] = NULL;
                     }
@@ -141,11 +140,11 @@ tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) 
         }
     }
     // reinit
-    if(type != TENSOR_TYPE_UNDEFINED) {
-        if((ndim > 0) && dims) {
+    if (type != TENSOR_TYPE_UNDEFINED) {
+        if ((ndim > 0) && dims) {
             // check size
-            for(i = 0, n = 1; i < ndim; i++) {
-                if(dims[i] <= 0)
+            for (i = 0, n = 1; i < ndim; i++) {
+                if (dims[i] <= 0)
                     return ts;
                 n *= dims[i];
             }
@@ -153,30 +152,30 @@ tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) 
             ts->type = type;
             ts->ndim = ndim;
             sz = tensor_type_sizeof(ts->type);
-            if(n > 0 && sz > 0) {
+            if (n > 0 && sz > 0) {
                 // ndim     = 3
                 // dims     = [2,2,4]
                 // strides  = [0,0,1]
                 //          = [8,4,1]
-                for(i = ts->ndim - 1; i >= 0; i--) {
+                for (i = ts->ndim - 1; i >= 0; i--) {
                     ts->dims[i] = dims[i];
-                    if(i == ts->ndim - 1) {
+                    if (i == ts->ndim - 1) {
                         ts->strides[i] = 1;
                     } else {
-                        ts->strides[i] = ts->dims[i+1] * ts->strides[i+1];
+                        ts->strides[i] = ts->dims[i + 1] * ts->strides[i + 1];
                     }
                 }
                 ts->datas = sys_malloc(n * sz);
-                if(ts->datas) {
+                if (ts->datas) {
                     memset(ts->datas, 0, n * sz);
                     ts->ndata = n;
                 }
             }
         } else {
             sz = tensor_type_sizeof(ts->type);
-            if(sz > 0) {
+            if (sz > 0) {
                 ts->datas = sys_malloc(sz);
-                if(ts->datas) {
+                if (ts->datas) {
                     memset(ts->datas, 0, sz);
                     ts->ndata = 1;
                 }
@@ -186,25 +185,114 @@ tensor_t * tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) 
     return ts;
 }
 
+bool tensor_equal(tensor_t *a, tensor_t *b) {
+    size_t i;
+
+    if (!a || !b)
+        return 0;
+    if (a->type != b->type)
+        return 0;
+    if (a->ndim != b->ndim)
+        return 0;
+    if (a->ndata != b->ndata)
+        return 0;
+    if (a->ndim > 0) {
+        if (memcmp(a->dims, b->dims, sizeof(int) * a->ndim) != 0)
+            return 0;
+    }
+    switch (a->type) {
+        case TENSOR_TYPE_BOOL:
+        case TENSOR_TYPE_INT8:
+        case TENSOR_TYPE_INT16:
+        case TENSOR_TYPE_INT32:
+        case TENSOR_TYPE_INT64:
+        case TENSOR_TYPE_UINT8:
+        case TENSOR_TYPE_UINT16:
+        case TENSOR_TYPE_UINT32:
+        case TENSOR_TYPE_UINT64:
+            if (memcmp(a->datas, b->datas, a->ndata * tensor_type_sizeof(a->type)) != 0)
+                return 0;
+            break;
+        case TENSOR_TYPE_BFLOAT16: {
+            uint16_t *p = (uint16_t *)a->datas;
+            uint16_t *q = (uint16_t *)b->datas;
+            for (i = 0; i < a->ndata; i++) {
+                if (fabsf(bfloat16_to_float32(p[i]) - bfloat16_to_float32(q[i])) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_FLOAT16: {
+            uint16_t *p = (uint16_t *)a->datas;
+            uint16_t *q = (uint16_t *)b->datas;
+            for (i = 0; i < a->ndata; i++) {
+                if (fabsf(float16_to_float32(p[i]) - float16_to_float32(q[i])) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_FLOAT32: {
+            float *p = (float *)a->datas;
+            float *q = (float *)b->datas;
+            for (i = 0; i < a->ndata; i++) {
+                if (fabsf(p[i] - q[i]) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_FLOAT64: {
+            double *p = (double *)a->datas;
+            double *q = (double *)b->datas;
+            for (i = 0; i < a->ndata; i++) {
+                if (fabs(p[i] - q[i]) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_COMPLEX64: {
+            float *p = (float *)a->datas;
+            float *q = (float *)b->datas;
+            for (i = 0; i < a->ndata * 2; i++) {
+                if (fabsf(p[i] - q[i]) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_COMPLEX128: {
+            double *p = (double *)a->datas;
+            double *q = (double *)b->datas;
+            for (i = 0; i < a->ndata * 2; i++) {
+                if (fabs(p[i] - q[i]) > 1e-3)
+                    return 0;
+            }
+        } break;
+        case TENSOR_TYPE_STRING: {
+            char **p = (char **)a->datas;
+            char **q = (char **)b->datas;
+            for (i = 0; i < a->ndata; i++) {
+                if (p[i] && q[i] && (strcmp(p[i], q[i]) != 0))
+                    return 0;
+            }
+        } break;
+        default:
+            break;
+    }
+    return 1;
+}
 
 int tensor_reshape(tensor_t *ts, int ndim, int *dims) {
-    if(ndim > EVO_DIM_MAX) return -1;
+    if (ndim > EVO_DIM_MAX) return -1;
     const int old_nelem = ts->nelem;
     int new_nelem = 1;
-    for(int i = 0; i < ndim; i++) {
+    for (int i = 0; i < ndim; i++) {
         ts->dims[i] = dims[i];
         new_nelem *= dims[i];
     }
     ts->ndim = ndim;
     ts->nelem = new_nelem;
-    if(old_nelem != new_nelem) {
+    if (old_nelem != new_nelem) {
         tensor_reinit(ts, ts->type, ndim, dims);
     }
     return 0;
 }
 
 int tensor_reshape_ident(tensor_t *y, tensor_t *x, tensor_type_t type) {
-    if((y->ndim != x->ndim) || (memcmp(y->dims, x->dims, sizeof(int) * y->ndim) != 0) || (y->type != type))
+    if ((y->ndim != x->ndim) || (memcmp(y->dims, x->dims, sizeof(int) * y->ndim) != 0) || (y->type != type))
         tensor_reinit(y, type, x->ndim, x->dims);
     return 1;
 }
@@ -213,39 +301,39 @@ int tensor_reshape_multi_broadcast(tensor_t *y, tensor_t *a, tensor_t *b, tensor
     int ndim = MAX(a->ndim, b->ndim);
     int dims[ndim];
     int i, j, k;
-    if(ndim > 0) {
-        for(i = a->ndim - 1, j = b->ndim - 1, k = ndim - 1; k >= 0; k--) {
-            if(i < 0)
+    if (ndim > 0) {
+        for (i = a->ndim - 1, j = b->ndim - 1, k = ndim - 1; k >= 0; k--) {
+            if (i < 0)
                 dims[k] = b->dims[j--];
-            else if(j < 0)
+            else if (j < 0)
                 dims[k] = a->dims[i--];
             else {
-                if(a->dims[i] == b->dims[j])
+                if (a->dims[i] == b->dims[j])
                     dims[k] = a->dims[i];
-                else if((a->dims[i] == 1) || (b->dims[j] == 1))
+                else if ((a->dims[i] == 1) || (b->dims[j] == 1))
                     dims[k] = (a->dims[i] > b->dims[j]) ? a->dims[i] : b->dims[j];
-                else 
+                else
                     return 0;
                 i--;
                 j--;
             }
         }
     }
-    if((y->type != type) || (y->ndim != ndim) || (memcmp(y->dims, dims, sizeof(int) * ndim != 0)))
+    if ((y->type != type) || (y->ndim != ndim) || (memcmp(y->dims, dims, sizeof(int) * ndim != 0)))
         tensor_reinit(y, type, ndim, dims);
     return 1;
 }
 
-void* tensor_broadcast_map_address(tensor_t *x, tensor_t *y, int offset) {
+void *tensor_broadcast_map_address(tensor_t *x, tensor_t *y, int offset) {
     int xndim = x->ndim;
     int yndim = y->ndim;
-    if((x->ndim > 0) && (y->ndim > 0)) {
+    if ((x->ndim > 0) && (y->ndim > 0)) {
         int dndim = yndim - xndim;
         int ix[xndim];
         int iy[yndim];
         int i;
         tensor_offset2index(y, offset, iy);
-        for(i = 0; i < xndim; i++)
+        for (i = 0; i < xndim; i++)
             ix[i] = iy[dndim + i] % x->dims[i];
         return x->datas + tensor_index2offset(x, ix) * tensor_type_sizeof(x->type);
     }
@@ -254,14 +342,14 @@ void* tensor_broadcast_map_address(tensor_t *x, tensor_t *y, int offset) {
 
 int tensor_index2offset(tensor_t *ts, int *idxs) {
     int offset, i;
-    for(i = 0, offset = 0; i < ts->ndim; i++)
+    for (i = 0, offset = 0; i < ts->ndim; i++)
         offset += idxs[i] * ts->strides[i];
     return offset;
 }
 
 void tensor_offset2index(tensor_t *ts, int offset, int *idxs) {
     int i;
-    for(i = ts->ndim - 1; i >= 0; i--){
+    for (i = ts->ndim - 1; i >= 0; i--) {
         idxs[i] = offset % ts->dims[i];
         offset /= ts->dims[i];
     }
@@ -270,26 +358,26 @@ void tensor_offset2index(tensor_t *ts, int offset, int *idxs) {
 void tensor_apply(tensor_t *ts, void *buf, size_t len) {
     size_t l;
     int sz;
-    if(ts) {
-        if(ts->datas && buf && (len > 0)) {
+    if (ts) {
+        if (ts->datas && buf && (len > 0)) {
             sz = tensor_type_sizeof(ts->type);
-            if(sz > 0) {
-                if(ts->type == TENSOR_TYPE_STRING) {
-                    char ** p = (char**)ts->datas;
-                    char ** q = (char**)buf;
-                    for(int idx = 0; idx < ts->ndata; idx++) {
-                        if(p[idx]) {
+            if (sz > 0) {
+                if (ts->type == TENSOR_TYPE_STRING) {
+                    char **p = (char **)ts->datas;
+                    char **q = (char **)buf;
+                    for (int idx = 0; idx < ts->ndata; idx++) {
+                        if (p[idx]) {
                             free(p[idx]);
                             p[idx] = NULL;
                         }
                     }
                     l = MIN(ts->ndata, (size_t)len);
-                    for(int idx = 0; idx < l; idx++) {
+                    for (int idx = 0; idx < l; idx++) {
                         p[idx] = sys_strdup(q[idx]);
                     }
-                }else {
+                } else {
                     l = ts->ndata * sz;
-                    if(l < 0)
+                    if (l < 0)
                         memcpy(ts->datas, buf, MIN(l, len));
                 }
             }
@@ -297,49 +385,259 @@ void tensor_apply(tensor_t *ts, void *buf, size_t len) {
     }
 }
 
-char* tensor_set_name_by_index(graph_t *g, int index) {
-    char* name = (char*)sys_malloc(EVO_ALIGN_SIZE * 2);
-    if(name) sprintf(name, "tensor_%d", index);
+char *tensor_set_name_by_index(graph_t *g, int index) {
+    char *name = (char *)sys_malloc(EVO_ALIGN_SIZE * 2);
+    if (name) sprintf(name, "tensor_%d", index);
     return name;
 }
 
 int tensor_get_index_by_name(graph_t *g, const char *name) {
-    const char* last_symbol_ptr = strrchr(name, '_');
-    if(last_symbol_ptr) {
+    const char *last_symbol_ptr = strrchr(name, '_');
+    if (last_symbol_ptr) {
         const int index = atoi(last_symbol_ptr + 1);
-        if(index >= 0 && index < g->ntensor) {
-            const tensor_t* ts = g->tensors[index];
-            if(ts && ts->name && strcmp(ts->name, name) == 0) {
+        if (index >= 0 && index < g->ntensor) {
+            const tensor_t *ts = g->tensors[index];
+            if (ts && ts->name && strcmp(ts->name, name) == 0) {
                 return index;
             }
         }
     }
     // search all names
-    for(int i = 0; i < g->ntensor; i++) {
-        if(g->tensors[i]->name && strcmp(g->tensors[i]->name, name) == 0) {
+    for (int i = 0; i < g->ntensor; i++) {
+        if (g->tensors[i]->name && strcmp(g->tensors[i]->name, name) == 0) {
             return i;
         }
     }
     return -1;
 }
 
-void tensor_dump(tensor_t *ts) {
-    if(!ts) return;
-    if(ts->name) {
-        LOG_INFO("%s type: %s/%s", strcmp(ts->name, "") == 0 ? "Tensor" : ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));
+char* tensor_dump_shape(tensor_t *ts) {
+    if (!ts) return NULL;
+    char* shape_buf = malloc(64 * sizeof(char));
+    shape_buf[0] = '\0';
+    if (ts->ndim > 0) {
+        sprintf(shape_buf, "[");
+        for (int i = 0; i < ts->ndim - 1; i++) {
+            sprintf(shape_buf + strlen(shape_buf), "%d,", ts->dims[i]);
+        }
+        sprintf(shape_buf + strlen(shape_buf), "%d]", ts->dims[ts->ndim - 1]);
+    } else {
+        sprintf(shape_buf, "[]");
     }
-    if(ts->ndim > 0) {
+    return shape_buf;
+}
+
+void tensor_dump(tensor_t *ts) {
+    if (!ts) return;
+    if (ts->name) {
+        LOG_INFO("%s <%s>", strcmp(ts->name, "") == 0 ? "Tensor" : ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));
+    }
+    if (ts->ndim > 0) {
         char shape_buf[64];
-        sprintf(shape_buf, " shape: [");
-        for(int i = 0; i < ts->ndim - 1; i++) {
+        sprintf(shape_buf, " [");
+        for (int i = 0; i < ts->ndim - 1; i++) {
             sprintf(shape_buf + strlen(shape_buf), "%d,", ts->dims[i]);
         }
         sprintf(shape_buf + strlen(shape_buf), "%d]", ts->dims[ts->ndim - 1]);
         LOG_INFO("%s", shape_buf);
     } else {
-        LOG_INFO(" shape: []");
+        LOG_INFO(" []");
     }
-    if(ts->pnode >= 0) {
+    LOG_INFO("\n");
+}
+
+void tensor_dump2(tensor_t *ts) {
+    if (!ts) return;
+    int *sizes, *levels;
+    char *lbuf, *rbuf;
+    char *lp, *rp;
+    void *p;
+    int i, j, k;
+    if (ts->name) {
+        LOG_INFO("%s <%s/%s>", strcmp(ts->name, "") == 0 ? "Tensor" : ts->name, tensor_type_tostring(ts->type), tensor_layout_tostring(ts->layout));
+    }
+    if (ts->ndim > 0) {
+        char shape_buf[64];
+        sprintf(shape_buf, " [");
+        for (int i = 0; i < ts->ndim - 1; i++) {
+            sprintf(shape_buf + strlen(shape_buf), "%d,", ts->dims[i]);
+        }
+        sprintf(shape_buf + strlen(shape_buf), "%d]", ts->dims[ts->ndim - 1]);
+        LOG_INFO("%s", shape_buf);
+    } else {
+        LOG_INFO(" []");
+    }
+    if (ts->ndata > 1 && ts->datas) {
+        LOG_INFO(" = \n");
+        for (i = 0; i < ts->ndim; i++) {
+            if (ts->dims[i] <= 0)
+                return;
+        }
+        sizes = malloc(sizeof(int) * ts->ndim);
+        levels = malloc(sizeof(int) * ts->ndim);
+        sizes[ts->ndim - 1] = ts->dims[ts->ndim - 1];
+        levels[ts->ndim - 1] = 0;
+        lbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        rbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        lp = lbuf;
+        rp = rbuf;
+        for (i = ts->ndim - 2; i >= 0; i--) {
+            sizes[i] = ts->dims[i] * sizes[i + 1];
+            levels[i] = 0;
+        }
+        for (size_t idx = 0; idx < ts->ndata; idx++) {
+            for (j = 0; j < ts->ndim; j++) {
+                if ((idx % sizes[j]) == 0)
+                    levels[j]++;
+                if (levels[j] == 1) {
+                    *lp++ = '[';
+                    levels[j]++;
+                }
+                if (levels[j] == 3) {
+                    *rp++ = ']';
+                    if ((j != 0) && (levels[j] > levels[j - 1])) {
+                        *lp++ = '[';
+                        levels[j] = 2;
+                    } else {
+                        levels[j] = 0;
+                    }
+                }
+            }
+            *lp = *rp = '\0';
+            LOG_INFO("%s", rbuf);
+            if (*rbuf != '\0') {
+                LOG_INFO("\r\n");
+                for (k = ts->ndim - strlen(rbuf); k > 0; k--)
+                    LOG_INFO(" ");
+            }
+            LOG_INFO("%s", lbuf);
+            if (*lbuf == '\0')
+                LOG_INFO(" ");
+            p = (void *)(ts->datas + tensor_type_sizeof(ts->type) * idx);
+            switch (ts->type) {
+                case TENSOR_TYPE_BOOL:
+                    LOG_INFO("%s,", *((uint8_t *)p) ? "true" : "false");
+                    break;
+                case TENSOR_TYPE_INT8:
+                    LOG_INFO("%d,", *((int8_t *)p));
+                    break;
+                case TENSOR_TYPE_INT16:
+                    LOG_INFO("%d,", *((int16_t *)p));
+                    break;
+                case TENSOR_TYPE_INT32:
+                    LOG_INFO("%d,", *((int32_t *)p));
+                    break;
+                case TENSOR_TYPE_INT64:
+                    LOG_INFO("%ld,", *((int64_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT8:
+                    LOG_INFO("%u,", *((uint8_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT16:
+                    LOG_INFO("%u,", *((uint16_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT32:
+                    LOG_INFO("%u,", *((uint32_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT64:
+                    LOG_INFO("%lu,", *((uint64_t *)p));
+                    break;
+                case TENSOR_TYPE_BFLOAT16:
+                    LOG_INFO("%g,", bfloat16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT16:
+                    LOG_INFO("%g,", float16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT32:
+                    LOG_INFO("%g,", *((float *)p));
+                    break;
+                case TENSOR_TYPE_FLOAT64:
+                    LOG_INFO("%g,", *((double *)p));
+                    break;
+                case TENSOR_TYPE_COMPLEX64:
+                    LOG_INFO("%g + %gi,", *((float *)p), *((float *)(p + sizeof(float))));
+                    break;
+                case TENSOR_TYPE_COMPLEX128:
+                    LOG_INFO("%g + %gi,", *((double *)p), *((double *)(p + sizeof(double))));
+                    break;
+                case TENSOR_TYPE_STRING:
+                    LOG_INFO("%s,", (char *)(((char **)p)[0]));
+                    break;
+                default:
+                    LOG_INFO("?,");
+                    break;
+            }
+            lp = lbuf;
+            rp = rbuf;
+        }
+        for (j = 0; j < ts->ndim; j++)
+            LOG_INFO("]");
+        free(sizes);
+        free(levels);
+        free(lbuf);
+        free(rbuf);
+        LOG_INFO("\n");
+    } else if (ts->ndata == 1 && ts->datas) {
+        LOG_INFO(" = ");
+        p = (void *)(ts->datas);
+        switch (ts->type) {
+            case TENSOR_TYPE_BOOL:
+                LOG_INFO("%s", *((uint8_t *)p) ? "true" : "false");
+                break;
+            case TENSOR_TYPE_INT8:
+                LOG_INFO("%d", *((int8_t *)p));
+                break;
+            case TENSOR_TYPE_INT16:
+                LOG_INFO("%d", *((int16_t *)p));
+                break;
+            case TENSOR_TYPE_INT32:
+                LOG_INFO("%d", *((int32_t *)p));
+                break;
+            case TENSOR_TYPE_INT64:
+                LOG_INFO("%ld", *((int64_t *)p));
+                break;
+            case TENSOR_TYPE_UINT8:
+                LOG_INFO("%u", *((uint8_t *)p));
+                break;
+            case TENSOR_TYPE_UINT16:
+                LOG_INFO("%u", *((uint16_t *)p));
+                break;
+            case TENSOR_TYPE_UINT32:
+                LOG_INFO("%u", *((uint32_t *)p));
+                break;
+            case TENSOR_TYPE_UINT64:
+                LOG_INFO("%lu", *((uint64_t *)p));
+                break;
+            case TENSOR_TYPE_BFLOAT16:
+                LOG_INFO("%g", bfloat16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT16:
+                LOG_INFO("%g", float16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT32:
+                LOG_INFO("%g", *((float *)p));
+                break;
+            case TENSOR_TYPE_FLOAT64:
+                LOG_INFO("%g", *((double *)p));
+                break;
+            case TENSOR_TYPE_COMPLEX64:
+                LOG_INFO("%g + %gi", *((float *)p), *((float *)(p + sizeof(float))));
+                break;
+            case TENSOR_TYPE_COMPLEX128:
+                LOG_INFO("%g + %gi", *((double *)p), *((double *)(p + sizeof(double))));
+                break;
+            case TENSOR_TYPE_STRING:
+                LOG_INFO("%s", (char *)(((char **)p)[0]));
+                break;
+            default:
+                LOG_INFO("?");
+                break;
+        }
+        LOG_INFO("\r\n");
+    } else {
+        LOG_INFO(" = []\n");
+    }
+    if (ts->pnode >= 0) {
         LOG_INFO(" from node: %d", ts->pnode);
     }
     LOG_INFO("\n");

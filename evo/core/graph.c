@@ -151,8 +151,21 @@ void graph_posrun(graph_t *g) {
     ctx->scd->posrun(ctx->scd, g);
 }
 
-// Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
 void graph_dump(graph_t* g) {
+    if(!g) return;
+    LOG_INFO("|   Layers   |     Input     |     Output     |\n");
+    LOG_INFO("| ---------- | ------------- | -------------- |\n");
+    for(int i=0; i < g->nnode; i++) {
+        char* in = tensor_dump_shape(g->nodes[i]->in[0]);
+        char* out = tensor_dump_shape(g->nodes[i]->out[0]);
+        LOG_INFO("| %10s | %13s | %14s |\n", g->nodes[i]->op->name, in ? in : "", out ? out : "");
+        free(in);
+        free(out);
+    }
+}
+
+// Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
+void graph_dump2(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph]\n");
     for(int i=0; i < g->nnode; i++) {

@@ -250,64 +250,61 @@ void op_MaxPool_dft(node_t *nd) {
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     int64_t *ints;
     int i, l;
-    if ((nd->nin == 1) && (nd->nout >= 1)) {
-        pdat = malloc(sizeof(operator_pdata_t));
-        if (pdat) {
-            memset(pdat, 0, sizeof(operator_pdata_t));
-            switch (shash(node_get_attr_string(nd, "auto_pad", "NOTSET"))) {
-                case 0xc3966fc2: /* "NOTSET" */
-                    pdat->auto_pad = AUTO_PAD_NOTSET;
-                    break;
-                case 0xcbbc7856: /* "SAME_UPPER" */
-                    pdat->auto_pad = AUTO_PAD_SAME_UPPER;
-                    break;
-                case 0xcb192d33: /* "SAME_LOWER" */
-                    pdat->auto_pad = AUTO_PAD_SAME_LOWER;
-                    break;
-                case 0x0e382d15: /* "VALID" */
-                    pdat->auto_pad = AUTO_PAD_VALID;
-                    break;
-                default:
-                    pdat->auto_pad = AUTO_PAD_NOTSET;
-                    break;
-            }
-            pdat->ceil_mode = node_get_attr_int(nd, "ceil_mode", 0);
-            pdat->storage_order = node_get_attr_int(nd, "storage_order", 0);
-            pdat->nkernel = node_get_attr_ints(nd, "kernel_shape", &ints);
-            if (pdat->nkernel > 0) {
-                pdat->kernels = malloc(sizeof(int) * pdat->nkernel);
-                for (i = 0; i < pdat->nkernel; i++)
-                    pdat->kernels[i] = ints[i];
-            }
-            pdat->ndilation = pdat->nkernel;
-            pdat->dilations = malloc(sizeof(int) * pdat->ndilation);
-            if (pdat->dilations) {
-                l = node_get_attr_ints(nd, "dilations", &ints);
-                for (i = 0; i < l; i++)
-                    pdat->dilations[i] = ints[i];
-                for (; i < pdat->ndilation; i++)
-                    pdat->dilations[i] = 1;
-            }
-            pdat->npad = pdat->nkernel * 2;
-            pdat->pads = malloc(sizeof(int) * pdat->npad);
-            if (pdat->pads) {
-                l = node_get_attr_ints(nd, "pads", &ints);
-                for (i = 0; i < l; i++)
-                    pdat->pads[i] = ints[i];
-                for (; i < pdat->npad; i++)
-                    pdat->pads[i] = 0;
-            }
-            pdat->nstride = pdat->nkernel;
-            pdat->strides = malloc(sizeof(int) * pdat->nstride);
-            if (pdat->strides) {
-                l = node_get_attr_ints(nd, "strides", &ints);
-                for (i = 0; i < l; i++)
-                    pdat->strides[i] = ints[i];
-                for (; i < pdat->nstride; i++)
-                    pdat->strides[i] = 1;
-            }
-            nd->priv = pdat;
+    if (pdat) {
+        memset(pdat, 0, sizeof(operator_pdata_t));
+        switch (shash(node_get_attr_string(nd, "auto_pad", "NOTSET"))) {
+            case 0xc3966fc2: /* "NOTSET" */
+                pdat->auto_pad = AUTO_PAD_NOTSET;
+                break;
+            case 0xcbbc7856: /* "SAME_UPPER" */
+                pdat->auto_pad = AUTO_PAD_SAME_UPPER;
+                break;
+            case 0xcb192d33: /* "SAME_LOWER" */
+                pdat->auto_pad = AUTO_PAD_SAME_LOWER;
+                break;
+            case 0x0e382d15: /* "VALID" */
+                pdat->auto_pad = AUTO_PAD_VALID;
+                break;
+            default:
+                pdat->auto_pad = AUTO_PAD_NOTSET;
+                break;
         }
+        pdat->ceil_mode = node_get_attr_int(nd, "ceil_mode", 0);
+        pdat->storage_order = node_get_attr_int(nd, "storage_order", 0);
+        pdat->nkernel = node_get_attr_ints(nd, "kernel_shape", &ints);
+        if (pdat->nkernel > 0) {
+            pdat->kernels = malloc(sizeof(int) * pdat->nkernel);
+            for (i = 0; i < pdat->nkernel; i++)
+                pdat->kernels[i] = ints[i];
+        }
+        pdat->ndilation = pdat->nkernel;
+        pdat->dilations = malloc(sizeof(int) * pdat->ndilation);
+        if (pdat->dilations) {
+            l = node_get_attr_ints(nd, "dilations", &ints);
+            for (i = 0; i < l; i++)
+                pdat->dilations[i] = ints[i];
+            for (; i < pdat->ndilation; i++)
+                pdat->dilations[i] = 1;
+        }
+        pdat->npad = pdat->nkernel * 2;
+        pdat->pads = malloc(sizeof(int) * pdat->npad);
+        if (pdat->pads) {
+            l = node_get_attr_ints(nd, "pads", &ints);
+            for (i = 0; i < l; i++)
+                pdat->pads[i] = ints[i];
+            for (; i < pdat->npad; i++)
+                pdat->pads[i] = 0;
+        }
+        pdat->nstride = pdat->nkernel;
+        pdat->strides = malloc(sizeof(int) * pdat->nstride);
+        if (pdat->strides) {
+            l = node_get_attr_ints(nd, "strides", &ints);
+            for (i = 0; i < l; i++)
+                pdat->strides[i] = ints[i];
+            for (; i < pdat->nstride; i++)
+                pdat->strides[i] = 1;
+        }
+        nd->priv = pdat;
     }
     // 2. MaxPool reshape
     tensor_t *x = nd->in[0];
@@ -360,6 +357,7 @@ void op_MaxPool_dft(node_t *nd) {
                 break;
         }
     }
+    y->type = x->type;
     tensor_reshape(y, ndim, dims);
     // 3. MaxPool run
     switch (nd->in[0]->type) {
