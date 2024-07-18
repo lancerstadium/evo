@@ -76,6 +76,9 @@ tool: $(LIBTRG)
 line:
 	@wc -l `find ./ -name "*.c";find -name "*.h"`
 
+head:
+	@grep -h '#include' $(SRCDIRS) | awk '{print $2}' | sort | uniq -c
+
 commit:
 	git add .
 	git commit -m '$(CUR_TIME)'

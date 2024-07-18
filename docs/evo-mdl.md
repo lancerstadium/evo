@@ -96,3 +96,18 @@ xxd -i model.etm > model_data.c
 ```shell
 grep -E "(0x[0-9a-f]{2}(,|)){1,16}" model_data.c | xxd -r -p > model.etm
 ```
+
+### 4 flatbuffer
+
+#### 4.1 构筑
+
+```shell
+git clone https://github.com/google/flatbuffers
+cd flatbuffers
+mkdir build
+cd build
+cmake .. && cmake --build . --target flatc -- -j4
+```
+
+#### 4.2 使用
+
