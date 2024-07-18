@@ -576,7 +576,7 @@ EVO_API void context_free(context_t*);
 struct serializer {
     const char* fmt;                                    /* Serializer format name       */
 
-    context_t * (*load) (struct serializer*, const void *, int);
+    context_t * (*load) (struct serializer*, const void *, size_t);
     context_t * (*load_model) (struct serializer*, const char*);
     tensor_t * (*load_tensor) (const char*);
     graph_t* (*load_graph) (context_t*);                /* Serializer load ctx to graph */

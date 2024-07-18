@@ -357,7 +357,7 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
     }
 }
 
-context_t *load_onnx(struct serializer *s, const void *buf, int len) {
+context_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
     context_t *ctx = NULL;
     if (!buf || len <= 0)
         return NULL;
