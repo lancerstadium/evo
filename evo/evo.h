@@ -442,7 +442,7 @@ typedef enum node_type {
     NODE_TYPE_GENERIC,
     NODE_TYPE_INPUT, 
     NODE_TYPE_OUTPUT, 
-    NODE_TYPE_INTER, 
+    NODE_TYPE_HIDDEN, 
 } node_type_t;
 
 // ==================================================================================== //

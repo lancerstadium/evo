@@ -7,7 +7,7 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->index = nd_idx;
     nd->nin = 0;
     nd->nout= 0;
-    nd->type = NODE_TYPE_INTER;
+    nd->type = NODE_TYPE_HIDDEN;
     nd->in = NULL;
     nd->out = NULL;
     nd->name = NULL;
