@@ -36,6 +36,16 @@
 
 
 
+#### 1.3 NPU
+
+|  Name  |   ISA   |  Company  |
+|:------:|:-------:|:---------:|
+| CoreML |    |        |
+|  HIAI  |    |        |
+|  NNAPI |    |        |
+
+
+
 
 
 ### 2 Hign Perfermance Operator Lib
