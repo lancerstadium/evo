@@ -82,8 +82,10 @@
 
 ### 3 EVO Tiny Model
 
-`.etm`是 EVO 小型模型的格式
+`.etm`是 EVO 小型模型的格式，参考[etm.fbs](../3rd/flatcc/metas/etm/etm.fbs)
 
+
+#### 3.1 `.etm` 与 `.c` 转换
 
 - 使用如下 unix 命令会将`.etm`模型转换为 C 源文件（`unsigned char`类型）：
 
@@ -97,16 +99,17 @@ xxd -i model.etm > model_data.c
 grep -E "(0x[0-9a-f]{2}(,|)){1,16}" model_data.c | xxd -r -p > model.etm
 ```
 
-### 4 flatbuffer
+### 4 flatcc
 
 #### 4.1 构筑
 
 ```shell
-git clone https://github.com/google/flatbuffers
-cd flatbuffers
+git clone https://github.com/dvidelabs/flatcc.git
+cd flatcc
 mkdir build
 cd build
-cmake .. && cmake --build . --target flatc -- -j4
+cmake ..
+make
 ```
 
 #### 4.2 使用
