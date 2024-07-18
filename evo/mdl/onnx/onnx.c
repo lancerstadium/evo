@@ -357,6 +357,33 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
     }
 }
 
+context_t *load_onnx(struct serializer *s, const void *buf, int len) {
+    context_t *ctx = NULL;
+    if (!buf || len <= 0)
+        return NULL;
+    ctx = context_new(NULL);
+    ctx->sez = s;
+    ctx->model = onnx__model_proto__unpack(NULL, len, buf);
+    ctx->model_size = len;
+    ctx->name = sys_strdup("onnx");
+    if (!ctx->model) {
+        if (ctx)
+            sys_free(ctx);
+        return NULL;
+    }
+    ctx->tensor_map = hashmap_create();
+    if (!ctx->tensor_map) {
+        if (ctx->model)
+            onnx__model_proto__free_unpacked(ctx->model, NULL);
+        if (ctx)
+            sys_free(ctx);
+        return NULL;
+    }
+    // graph
+    load_graph_onnx(ctx);
+    return ctx;
+}
+
 context_t *load_model_onnx(struct serializer *sez, const char *path) {
     context_t *ctx = NULL;
     FILE *fp;
@@ -896,31 +923,4 @@ graph_t *load_graph_onnx(context_t *ctx) {
     }
 
     return g;
-}
-
-context_t *load_onnx(struct serializer *s, const void *buf, int len) {
-    context_t *ctx = NULL;
-    if (!buf || len <= 0)
-        return NULL;
-    ctx = context_new(NULL);
-    ctx->sez = s;
-    ctx->model = onnx__model_proto__unpack(NULL, len, buf);
-    ctx->model_size = len;
-    ctx->name = sys_strdup("onnx");
-    if (!ctx->model) {
-        if (ctx)
-            sys_free(ctx);
-        return NULL;
-    }
-    ctx->tensor_map = hashmap_create();
-    if (!ctx->tensor_map) {
-        if (ctx->model)
-            onnx__model_proto__free_unpacked(ctx->model, NULL);
-        if (ctx)
-            sys_free(ctx);
-        return NULL;
-    }
-    // graph
-    load_graph_onnx(ctx);
-    return ctx;
 }
