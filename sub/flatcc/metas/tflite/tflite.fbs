@@ -1,4 +1,4 @@
-// Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+// Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,728 +12,1299 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Revision History
+// Version 0: Initial version.
+// Version 1: Add subgraphs to schema.
+// Version 2: Rename operators to conform to NN API.
+// Version 3: Move buffer data from Model.Subgraph.Tensors to Model.Buffers.
+// Version 3a: Add new builtin op code field. Has backward compatibility with
+//             version 3.
+// Version 3b: Rename fields in SignatureDef. Has backward compatibility with
+//             version 3 and 3a.
+
 namespace tflite;
 
-// TFLite metadata contains both human readable and machine readable information
-// about what the model does and how to use the model. It can be used as a
-// README file, which elaborates the details of the model, each input/ouput
-// tensor, and each associated file.
-//
-// An important use case of TFLite metadata is the TFLite codegen tool, which
-// automatically generates the model interface based on the properties of the
-// model and the tensors. The model interface provides high-level APIs to
-// interact with the model, such as preprocessing the input data and running
-// inferences.
-//
-// Entries marked with "<Codegen usage>" are used in TFLite codegen tool to
-// generate the model interface. It is recommended to fill in at least those
-// enties to boost the codegen performance.
-
-// The Metadata schema is versioned by the Semantic versioning number, such as
-// MAJOR.MINOR.PATCH. It tracks the schema changes according to the rules below:
-//  * Bump up the MAJOR number when making potentially backwards incompatible
-//    changes. It must be incremented if the new changes break the backwards
-//    compatibility. It may also include minor and patch level changes as
-//    needed. The true backwards compatibility is indicated by the file
-//    identifier.
-//  * Bump up the MINOR number when making backwards compatible updates for
-//    major features, such as supporting new content types or adding new
-//    processing units.
-//  * Bump up the PATCH number when making small backwards compatible changes,
-//    such as adding a new fields or deprecating certain fields (not deleting
-//    them).
-//
-// ModelMetadata.min_parser_version indicates the minimum necessary metadata
-// parser version to fully understand all fields in a given metadata flatbuffer.
-//
-// New fields and types will have associated comments with the schema version
-// for which they were added.
-//
-// LINT.IfChange
-// Schema Semantic version: 1.5.0
-// LINT.ThenChange(//tensorflow_lite_support/\
-//     metadata/java/src/java/org/tensorflow/lite/support/metadata/\
-//     MetadataParser.java)
-
-// This indicates the flatbuffer compatibility. The number will bump up when a
-// break change is applied to the schema, such as removing fields or adding new
-// fields to the middle of a table.
-file_identifier "M001";
-
-// History:
-// 1.0.1 - Added VOCABULARY type to AssociatedFileType.
-// 1.1.0 - Added BertTokenizerOptions to ProcessUnitOptions.
-//         Added SentencePieceTokenizerOptions to ProcessUnitOptions.
-//         Added input_process_units to SubGraphMetadata.
-//         Added output_process_units to SubGraphMetadata.
-// 1.2.0 - Added input_tensor_group to SubGraphMetadata.
-//         Added output_tensor_group to SubGraphMetadata.
-// 1.2.1 - Added RegexTokenizerOptions to ProcessUnitOptions.
-// 1.3.0 - Added AudioProperties to ContentProperties.
-// 1.4.0 - Added SCANN_INDEX_FILE type to AssociatedFileType.
-// 1.4.1 - Added version to AssociatedFile.
-// 1.5.0 - Added CustomMetadata in SubGraphMetadata.
-
+// This corresponds to the version.
+file_identifier "TFL3";
 // File extension of any written files.
-file_extension "tflitemeta";
+file_extension "tflite";
+
+// IMPORTANT: All new members of tables, enums and unions must be added at the
+// end to ensure backwards compatibility.
+
+// The type of data stored in a tensor.
+enum TensorType : byte {
+  FLOAT32 = 0,
+  FLOAT16 = 1,
+  INT32 = 2,
+  UINT8 = 3,
+  INT64 = 4,
+  STRING = 5,
+  BOOL = 6,
+  INT16 = 7,
+  COMPLEX64 = 8,
+  INT8 = 9,
+  FLOAT64 = 10,
+  COMPLEX128 = 11,
+  UINT64 = 12,
+  // Experimental: Resource and variant types are experimental, that are subject
+  // to change. Do not implement custom kernels using resource & variant types
+  // now.
+  RESOURCE = 13,
+  VARIANT = 14,
+  UINT32 = 15,
+  UINT16 = 16
+}
+
+// Custom quantization parameters for experimenting with new quantization
+// techniques.
+table CustomQuantization {
+//   custom:[ubyte] (force_align: 16);
+  custom:[ubyte];
+}
+
+// Represents a specific quantization technique's parameters.
+union QuantizationDetails {
+  CustomQuantization,
+}
+
+// Parameters for converting a quantized tensor back to float.
+table QuantizationParameters {
+  // These four parameters are the asymmetric linear quantization parameters.
+  // Given a quantized value q, the corresponding float value f should be:
+  //   f = scale * (q - zero_point)
+  // For other quantization types, the QuantizationDetails below is used.
+  min:[float];  // For importing back into tensorflow.
+  max:[float];  // For importing back into tensorflow.
+  scale:[float];  // For dequantizing the tensor's values.
+  zero_point:[long];
+
+  // If this is not none, the other quantization parameters (i.e. min, max,
+  // scale, zero_point fields above) are ignored and the value of the
+  // QuantizationDetails union should be used.
+  details:QuantizationDetails;
+
+  // Specifies the dimension of the Tensor's shape that the scales and
+  // zero_points correspond to. For example, a tensor t, with dims=[4, 3, 2, 1]
+  // with quantization params:
+  //   scale=[1.0, 2.0, 3.0], zero_point=[1, 2, 3], quantization_dimension=1
+  // will be quantized across the second dimension of t.
+  //   t[:, 0, :, :] will have scale[0]=1.0, zero_point[0]=1
+  //   t[:, 1, :, :] will have scale[1]=2.0, zero_point[0]=2
+  //   t[:, 2, :, :] will have scale[2]=3.0, zero_point[0]=3
+  quantized_dimension:int;
+}
+
+// Sparse tensors.
+// We use a modification of the TACO format.
+// Reference: http://tensor-compiler.org/kjolstad-oopsla17-tensor-compiler.pdf
+//
+// To encode a conceptual n-dimensional dense tensor with dims (d0, ..., dn-1),
+// potentially with a k-dimensional block (0 <= k <= n) with dims
+// (dn, ..., dn+k-1), the format needs to specify:
+//   1. In what order to traverse these dimensions. For example, to store a 2-D
+//      matrix in row major order, the traversal order would be (d0, d1),
+//      whereas to store it in column major order, the traversal order would be
+//      (d1, d0). If the 2-D matrix has a 2-D inner block, the traversal order
+//      could be (d0, d1, d2, d3).
+//   2. How each block dimension in (dn, ..., dn+k-1) maps to the original
+//      tensor dimension in (d0, ..., dn-1).
+//   3. In the traversal order defined above, the format (dense vs. sparse) and
+//      index metadata for each dimension. For a dense dimension, this is just
+//      the size of that dimension. For a sparse dimension, it's the same as
+//      the compressed index defined in the Compressed Sparse Row (CSR) format.
+//      (http://scipy-lectures.org/advanced/scipy_sparse/csr_matrix.html)
+
+// The storage type for a dimension. Currently we support:
+//   1. DENSE: each coordinate in this dimension is stored implicitly.
+//   2. SPARSE_CSR: only the coordinates with non-zero elements are stored. The
+//      compression technique is the same what CSR uses.
+// More types like a sparse dimension with a different compression technique
+// could be added to the list in the future.
+enum DimensionType : byte {
+  DENSE = 0,
+  SPARSE_CSR = 1,
+}
+
+table Int32Vector {
+  values:[int];
+}
+
+table Uint16Vector {
+    // values:[ushort] (force_align: 4);
+  values:[ushort];
+}
+
+table Uint8Vector {
+    // values:[ubyte] (force_align: 4);
+  values:[ubyte];
+}
+
+// Variable-typed buffer to store the index metadata for a sparse dimension.
+// The widest type is Int32 instead of UInt32 because tensor's shape is a int32
+// vector. We don't want the per-dimensional index to overflow that range.
+union SparseIndexVector {
+  Int32Vector,
+  Uint16Vector,
+  Uint8Vector
+}
+
+table DimensionMetadata {
+  // Whether a dimension is dense or sparse.
+  format:DimensionType;
+  // Index metadata used for a dimension.
+  //   - If format is DimensionType.DENSE then we use the dense_size field to
+  //     store the size of that dimension. Each index in that dimension is
+  //     stored implicitly.
+  //   - If format is DimensionType.SPARSE_CSR then we use array_segments and
+  //     array_indices to encode that dimension. array_segments represents how
+  //     to segment the indices array, each segment corresponds to one element
+  //     in the previous dimension. array_indices represents the index of the
+  //     non-zero elements within this dimension (as those in the CSR matrix
+  //     format, where the first array is row pointers and the second array is
+  //     column indices).
+  dense_size:int;
+  array_segments:SparseIndexVector;
+  array_indices:SparseIndexVector;
+}
+
+// Parameters to encode a sparse TfLite tensor.
+table SparsityParameters {
+  // The traversal order of the dimensions defined in the `shape` field of the
+  // conceptual dense tensor. For a n-dimensional tensors with dims (d0, d1,
+  // ..., dn-1),
+  //   - if not block sparse, the traversal_order is just a permutation of (d0,
+  //     ..., dn-1). For example, a 2-D matrix stored in row-major order would
+  //     have traversal_order = (d0, d1).
+  //   - if block sparse with a k-dimensional block (0 <= k <= n), the
+  //     traversal_order has n + k elements. The first n elements are still a
+  //     permutation of (d0, ..., dn-1). The lask k elements are a permutation
+  //     of (dn, ..., dn+k-1), defining how to traverse a block internally. For
+  //     example, a 2-D matrix with 2-D blocks, both stored in row-major order
+  //     would have traversal_order = (d0, d1, d2, d3).
+  traversal_order:[int];
+  // For an n-dimensional tensor with a k-dimensional block (0 <= k <= n),
+  // stores how a block dimension in (dn, ..., dn+k-1) maps to the original
+  // tensor dimension in (d0, ..., dn).
+  // It's stored in the order of (dn, ..., dn+k-1).
+  // If not block-sparse, this field is NULL.
+  block_map:[int];
+  // In the traversal order defined above, the metadata needed for
+  // each dimension to locate the non-zero values in the original dense tensor.
+  // The size of the dim_metadata array = the size of the traversal_order array
+  // = n + k.
+  dim_metadata:[DimensionMetadata];
+}
+
+table Tensor {
+  // The tensor shape. The meaning of each entry is operator-specific but
+  // builtin ops use: [batch size, height, width, number of channels] (That's
+  // Tensorflow's NHWC).
+  shape:[int];
+  type:TensorType;
+  // An index that refers to the buffers table at the root of the model. Or,
+  // if there is no data buffer associated (i.e. intermediate results), then
+  // this is 0 (which refers to an always existent empty buffer).
+  //
+  // The data_buffer itself is an opaque container, with the assumption that the
+  // target device is little-endian. In addition, all builtin operators assume
+  // the memory is ordered such that if `shape` is [4, 3, 2], then index
+  // [i, j, k] maps to data_buffer[i*3*2 + j*2 + k].
+  buffer:uint;
+  name:string;  // For debugging and importing back into tensorflow.
+  quantization:QuantizationParameters;  // Optional.
+
+  is_variable:bool = false;
+
+  // Parameters to encode a sparse tensor. See the example in
+  // tensorflow/lite/testdata/sparse_tensor.json.
+  sparsity:SparsityParameters;  // Optional.
+
+  // Encodes `shape` with unknown dimensions. Unknown dimensions are
+  // represented with -1.
+  shape_signature:[int]; // Optional.
+
+  // If false, the rank or the number of tensor dimensions is unknown.
+  // If false, "shape" must be [].
+  has_rank: bool = false;
+}
+
+// A list of builtin operators. Builtin operators are slightly faster than custom
+// ones, but not by much. Moreover, while custom operators accept an opaque
+// object containing configuration parameters, builtins have a predetermined
+// set of acceptable options.
+// LINT.IfChange
+enum BuiltinOperator : int32 {
+  ADD = 0,
+  AVERAGE_POOL_2D = 1,
+  CONCATENATION = 2,
+  CONV_2D = 3,
+  DEPTHWISE_CONV_2D = 4,
+  DEPTH_TO_SPACE = 5,
+  DEQUANTIZE = 6,
+  EMBEDDING_LOOKUP = 7,
+  FLOOR = 8,
+  FULLY_CONNECTED = 9,
+  HASHTABLE_LOOKUP = 10,
+  L2_NORMALIZATION = 11,
+  L2_POOL_2D = 12,
+  LOCAL_RESPONSE_NORMALIZATION = 13,
+  LOGISTIC = 14,
+  LSH_PROJECTION = 15,
+  LSTM = 16,
+  MAX_POOL_2D = 17,
+  MUL = 18,
+  RELU = 19,
+  // NOTE(aselle): RELU_N1_TO_1 used to be called RELU1, but it was renamed
+  // since different model developers use RELU1 in different ways. Never
+  // create another op called RELU1.
+  RELU_N1_TO_1 = 20,
+  RELU6 = 21,
+  RESHAPE = 22,
+  RESIZE_BILINEAR = 23,
+  RNN = 24,
+  SOFTMAX = 25,
+  SPACE_TO_DEPTH = 26,
+  SVDF = 27,
+  TANH = 28,
+  CONCAT_EMBEDDINGS = 29,
+  SKIP_GRAM = 30,
+  CALL = 31,
+  CUSTOM = 32,
+  EMBEDDING_LOOKUP_SPARSE = 33,
+  PAD = 34,
+  UNIDIRECTIONAL_SEQUENCE_RNN = 35,
+  GATHER = 36,
+  BATCH_TO_SPACE_ND = 37,
+  SPACE_TO_BATCH_ND = 38,
+  TRANSPOSE = 39,
+  MEAN = 40,
+  SUB = 41,
+  DIV = 42,
+  SQUEEZE = 43,
+  UNIDIRECTIONAL_SEQUENCE_LSTM = 44,
+  STRIDED_SLICE = 45,
+  BIDIRECTIONAL_SEQUENCE_RNN = 46,
+  EXP = 47,
+  TOPK_V2 = 48,
+  SPLIT = 49,
+  LOG_SOFTMAX = 50,
+  // DELEGATE is a special op type for the operations which are delegated to
+  // other backends.
+  // WARNING: Experimental interface, subject to change
+  DELEGATE = 51,
+  BIDIRECTIONAL_SEQUENCE_LSTM = 52,
+  CAST = 53,
+  PRELU = 54,
+  MAXIMUM = 55,
+  ARG_MAX = 56,
+  MINIMUM = 57,
+  LESS = 58,
+  NEG = 59,
+  PADV2 = 60,
+  GREATER = 61,
+  GREATER_EQUAL = 62,
+  LESS_EQUAL = 63,
+  SELECT = 64,
+  SLICE = 65,
+  SIN = 66,
+  TRANSPOSE_CONV = 67,
+  SPARSE_TO_DENSE = 68,
+  TILE = 69,
+  EXPAND_DIMS = 70,
+  EQUAL = 71,
+  NOT_EQUAL = 72,
+  LOG = 73,
+  SUM = 74,
+  SQRT = 75,
+  RSQRT = 76,
+  SHAPE = 77,
+  POW = 78,
+  ARG_MIN = 79,
+  FAKE_QUANT = 80,
+  REDUCE_PROD = 81,
+  REDUCE_MAX = 82,
+  PACK = 83,
+  LOGICAL_OR = 84,
+  ONE_HOT = 85,
+  LOGICAL_AND = 86,
+  LOGICAL_NOT = 87,
+  UNPACK = 88,
+  REDUCE_MIN = 89,
+  FLOOR_DIV = 90,
+  REDUCE_ANY = 91,
+  SQUARE = 92,
+  ZEROS_LIKE = 93,
+  FILL = 94,
+  FLOOR_MOD = 95,
+  RANGE = 96,
+  RESIZE_NEAREST_NEIGHBOR = 97,
+  LEAKY_RELU = 98,
+  SQUARED_DIFFERENCE = 99,
+  MIRROR_PAD = 100,
+  ABS = 101,
+  SPLIT_V = 102,
+  UNIQUE = 103,
+  CEIL = 104,
+  REVERSE_V2 = 105,
+  ADD_N = 106,
+  GATHER_ND = 107,
+  COS = 108,
+  WHERE = 109,
+  RANK = 110,
+  ELU = 111,
+  REVERSE_SEQUENCE = 112,
+  MATRIX_DIAG = 113,
+  QUANTIZE = 114,
+  MATRIX_SET_DIAG = 115,
+  ROUND = 116,
+  HARD_SWISH = 117,
+  IF = 118,
+  WHILE = 119,
+  NON_MAX_SUPPRESSION_V4 = 120,
+  NON_MAX_SUPPRESSION_V5 = 121,
+  SCATTER_ND = 122,
+  SELECT_V2 = 123,
+  DENSIFY = 124,
+  SEGMENT_SUM = 125,
+  BATCH_MATMUL = 126,
+  PLACEHOLDER_FOR_GREATER_OP_CODES = 127,
+  CUMSUM = 128,
+  CALL_ONCE = 129,
+  BROADCAST_TO = 130,
+  RFFT2D = 131,
+  CONV_3D = 132,
+  IMAG=133,
+  REAL=134,
+  COMPLEX_ABS=135,
+  HASHTABLE = 136,
+  HASHTABLE_FIND = 137,
+  HASHTABLE_IMPORT = 138,
+  HASHTABLE_SIZE = 139,
+  REDUCE_ALL = 140,
+  CONV_3D_TRANSPOSE = 141,
+  VAR_HANDLE = 142,
+  READ_VARIABLE = 143,
+  ASSIGN_VARIABLE = 144,
+  BROADCAST_ARGS = 145,
+  RANDOM_STANDARD_NORMAL = 146,
+  BUCKETIZE = 147,
+  RANDOM_UNIFORM = 148,
+  MULTINOMIAL = 149,
+  GELU = 150,
+  DYNAMIC_UPDATE_SLICE = 151,
+  RELU_0_TO_1 = 152,
+  UNSORTED_SEGMENT_PROD = 153,
+  UNSORTED_SEGMENT_MAX = 154,
+  UNSORTED_SEGMENT_SUM = 155,
+  ATAN2 = 156
+}
+// LINT.ThenChange(nnapi_linter/linter.proto)
+
+// Options for the builtin operators.
+union BuiltinOptions {
+  Conv2DOptions,
+  DepthwiseConv2DOptions,
+  ConcatEmbeddingsOptions,
+  LSHProjectionOptions,
+  Pool2DOptions,
+  SVDFOptions,
+  RNNOptions,
+  FullyConnectedOptions,
+  SoftmaxOptions,
+  ConcatenationOptions,
+  AddOptions,
+  L2NormOptions,
+  LocalResponseNormalizationOptions,
+  LSTMOptions,
+  ResizeBilinearOptions,
+  CallOptions,
+  ReshapeOptions,
+  SkipGramOptions,
+  SpaceToDepthOptions,
+  EmbeddingLookupSparseOptions,
+  MulOptions,
+  PadOptions,
+  GatherOptions,
+  BatchToSpaceNDOptions,
+  SpaceToBatchNDOptions,
+  TransposeOptions,
+  ReducerOptions,
+  SubOptions,
+  DivOptions,
+  SqueezeOptions,
+  SequenceRNNOptions,
+  StridedSliceOptions,
+  ExpOptions,
+  TopKV2Options,
+  SplitOptions,
+  LogSoftmaxOptions,
+  CastOptions,
+  DequantizeOptions,
+  MaximumMinimumOptions,
+  ArgMaxOptions,
+  LessOptions,
+  NegOptions,
+  PadV2Options,
+  GreaterOptions,
+  GreaterEqualOptions,
+  LessEqualOptions,
+  SelectOptions,
+  SliceOptions,
+  TransposeConvOptions,
+  SparseToDenseOptions,
+  TileOptions,
+  ExpandDimsOptions,
+  EqualOptions,
+  NotEqualOptions,
+  ShapeOptions,
+  PowOptions,
+  ArgMinOptions,
+  FakeQuantOptions,
+  PackOptions,
+  LogicalOrOptions,
+  OneHotOptions,
+  LogicalAndOptions,
+  LogicalNotOptions,
+  UnpackOptions,
+  FloorDivOptions,
+  SquareOptions,
+  ZerosLikeOptions,
+  FillOptions,
+  BidirectionalSequenceLSTMOptions,
+  BidirectionalSequenceRNNOptions,
+  UnidirectionalSequenceLSTMOptions,
+  FloorModOptions,
+  RangeOptions,
+  ResizeNearestNeighborOptions,
+  LeakyReluOptions,
+  SquaredDifferenceOptions,
+  MirrorPadOptions,
+  AbsOptions,
+  SplitVOptions,
+  UniqueOptions,
+  ReverseV2Options,
+  AddNOptions,
+  GatherNdOptions,
+  CosOptions,
+  WhereOptions,
+  RankOptions,
+  ReverseSequenceOptions,
+  MatrixDiagOptions,
+  QuantizeOptions,
+  MatrixSetDiagOptions,
+  HardSwishOptions,
+  IfOptions,
+  WhileOptions,
+  DepthToSpaceOptions,
+  NonMaxSuppressionV4Options,
+  NonMaxSuppressionV5Options,
+  ScatterNdOptions,
+  SelectV2Options,
+  DensifyOptions,
+  SegmentSumOptions,
+  BatchMatMulOptions,
+  CumsumOptions,
+  CallOnceOptions,
+  BroadcastToOptions,
+  Rfft2dOptions,
+  Conv3DOptions,
+  HashtableOptions,
+  HashtableFindOptions,
+  HashtableImportOptions,
+  HashtableSizeOptions,
+  VarHandleOptions,
+  ReadVariableOptions,
+  AssignVariableOptions,
+  RandomOptions,
+  BucketizeOptions,
+  GeluOptions,
+  DynamicUpdateSliceOptions,
+  UnsortedSegmentProdOptions,
+  UnsortedSegmentMaxOptions,
+  UnsortedSegmentSumOptions,
+  ATan2Options
+}
 
 // LINT.IfChange
-enum AssociatedFileType : byte {
+enum Padding : byte { SAME, VALID }
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
+
+// LINT.IfChange
+enum ActivationFunctionType : byte {
+  NONE = 0,
+  RELU = 1,
+  RELU_N1_TO_1 = 2,
+  RELU6 = 3,
+  TANH = 4,
+  SIGN_BIT = 5,
+}
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
+
+table Conv2DOptions {
+  padding:Padding;
+  stride_w:int;
+  stride_h:int;
+  fused_activation_function:ActivationFunctionType;
+  dilation_w_factor:int = 1;
+  dilation_h_factor:int = 1;
+}
+
+// Options for both Conv3D and Conv3DTranspose.
+table Conv3DOptions {
+  padding:Padding;
+  stride_d:int;
+  stride_w:int;
+  stride_h:int;
+  fused_activation_function:ActivationFunctionType;
+  dilation_d_factor:int = 1;
+  dilation_w_factor:int = 1;
+  dilation_h_factor:int = 1;
+}
+
+table Pool2DOptions {
+  padding:Padding;
+  stride_w:int;
+  stride_h:int;
+  filter_width:int;
+  filter_height:int;
+  fused_activation_function:ActivationFunctionType;
+}
+
+table DepthwiseConv2DOptions {
+  // Parameters for DepthwiseConv version 1 or above.
+  padding:Padding;
+  stride_w:int;
+  stride_h:int;
+  // `depth_multiplier` is redundant. It's used by CPU kernels in
+  // TensorFlow 2.0 or below, but ignored in versions above.
+  // See comments in lite/c/builtin_op_data.h for more details.
+  depth_multiplier:int;
+  fused_activation_function:ActivationFunctionType;
+  // Parameters for DepthwiseConv version 2 or above.
+  dilation_w_factor:int = 1;
+  dilation_h_factor:int = 1;
+}
+
+table ConcatEmbeddingsOptions {
+  num_channels:int;
+  num_columns_per_channel:[int];
+  embedding_dim_per_channel:[int]; // This could be inferred from parameters.
+}
+
+enum LSHProjectionType: byte {
   UNKNOWN = 0,
-
-  // Files such as readme.txt.
-  DESCRIPTIONS = 1,
-
-  // Contains a list of labels (characters separated by "\n" or in lines) that
-  // annotate certain axis of the tensor. For example,
-  // the label file in image classification. Those labels annotate the
-  // the output tensor, such that each value in the output tensor is the
-  // probability of that corresponding category specified by the label. See the
-  // example label file used in image classification [1].
-  //
-  // <Codegen usage>:
-  // If an output tensor has an associated file as TENSOR_AXIS_LABELS, return
-  // the output as a mapping between the labels and probability in the model
-  // interface.
-  // If multiple files of the same type are present, the first one is used by
-  // default; additional ones are to be distinguished from one another by their
-  // specified locale.
-  //
-  // [1]: https://github.com/tensorflow/tflite-support/blob/master/tensorflow_lite_support/metadata/python/tests/testdata/image_classifier/labels.txt
-  TENSOR_AXIS_LABELS = 2,
-
-  // Contains a list of labels (characters separated by "\n" or in lines) that
-  // tensor values correspond to. For example, in
-  // the object detection model, one of the output tensors is the detected
-  // classes. And each value in the tensor refers to the index of label in the
-  // category label file. See the example label file used in object detection
-  // [1].
-  //
-  // <Codegen usage>:
-  // If an output tensor has an associated file as TENSOR_VALUE_LABELS, convert
-  // the tensor values into labels, and return a list of string as the output.
-  // If multiple files of the same type are present, the first one is used by
-  // default; additional ones are to be distinguished from one another by their
-  // specified locale.
-  //
-  // [1]: https://github.com/tensorflow/tflite-support/blob/master/tensorflow_lite_support/metadata/python/tests/testdata/object_detector/labelmap.txt
-  TENSOR_VALUE_LABELS = 3,
-
-  // Contains sigmoid-based score calibration parameters, formatted as CSV.
-  // Lines contain for each index of an output tensor the scale, slope, offset
-  // and (optional) min_score parameters to be used for sigmoid fitting (in this
-  // order and in `strtof`-compatible [1] format). Scale should be a
-  // non-negative value.
-  // A line may be left empty to default calibrated scores for this index to
-  // default_score.
-  // In summary, each line should thus contain 0, 3 or 4 comma-separated values.
-  //
-  // See the example score calibration file used in image classification [2].
-  //
-  // See documentation for ScoreCalibrationOptions for details.
-  //
-  // [1]: https://en.cppreference.com/w/c/string/byte/strtof
-  // [2]: https://github.com/tensorflow/tflite-support/blob/master/tensorflow_lite_support/metadata/python/tests/testdata/image_classifier/score_calibration.txt
-  TENSOR_AXIS_SCORE_CALIBRATION = 4,
-
-  // Contains a list of unique words (characters separated by "\n" or in lines)
-  // that help to convert natural language words to embedding vectors.
-  //
-  // See the example vocab file used in text classification [1].
-  //
-  // [1]: https://github.com/tensorflow/tflite-support/blob/master/tensorflow_lite_support/metadata/python/tests/testdata/nl_classifier/vocab.txt
-  // Added in: 1.0.1
-  VOCABULARY = 5,
-
-  // TODO(b/222351186): introduce the ScaNN index file with links once the code
-  // is released.
-  // Contains on-devide ScaNN index file with LevelDB format.
-  // Added in: 1.4.0
-  SCANN_INDEX_FILE = 6,
+  SPARSE = 1,
+  DENSE = 2,
 }
 
-table AssociatedFile {
-  // Name of this file. Need to be exact the same as the name of the actual file
-  // packed into the TFLite model as a zip file.
+table LSHProjectionOptions {
+  type: LSHProjectionType;
+}
+
+table SVDFOptions {
+  rank:int;
+  fused_activation_function:ActivationFunctionType;
+  // For weights-only quantization, use asymmetric quantization for non
+  // constant inputs at evaluation time.
+  asymmetric_quantize_inputs:bool;
+}
+
+// An implementation of TensorFlow RNNCell.
+table RNNOptions {
+  fused_activation_function:ActivationFunctionType;
+  asymmetric_quantize_inputs:bool;
+}
+
+// An implementation of TensorFlow dynamic_rnn with RNNCell.
+table SequenceRNNOptions {
+  time_major:bool;
+  fused_activation_function:ActivationFunctionType;
+  asymmetric_quantize_inputs:bool;
+}
+
+// An implementation of TensorFlow bidrectional_dynamic_rnn with RNNCell.
+table BidirectionalSequenceRNNOptions {
+  time_major:bool;
+  fused_activation_function:ActivationFunctionType;
+  merge_outputs: bool;
+  asymmetric_quantize_inputs:bool;
+}
+
+// LINT.IfChange
+enum FullyConnectedOptionsWeightsFormat: byte {
+  DEFAULT = 0,
+  SHUFFLED4x16INT8 = 1,
+}
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
+
+// An implementation of TensorFlow fully_connected (a.k.a Dense) layer.
+table FullyConnectedOptions {
+  // Parameters for FullyConnected version 1 or above.
+  fused_activation_function:ActivationFunctionType;
+
+  // Parameters for FullyConnected version 2 or above.
+  weights_format:FullyConnectedOptionsWeightsFormat = DEFAULT;
+
+  // Parameters for FullyConnected version 5 or above.
+  // If set to true, then the number of dimension is preserved. Furthermore,
+  // all but the last dimension of the input and output shapes will be equal.
+  keep_num_dims: bool;
+
+  // Parameters for FullyConnected version 7 or above.
+  // If set to true, then weights-only op will use asymmetric quantization for
+  // inputs.
+  asymmetric_quantize_inputs: bool;
+}
+
+table SoftmaxOptions {
+  beta: float;
+}
+
+// An implementation of TensorFlow concat.
+table ConcatenationOptions {
+  axis:int;
+  fused_activation_function:ActivationFunctionType;
+}
+
+table AddOptions {
+  fused_activation_function:ActivationFunctionType;
+  // Parameters supported by version 3.
+  pot_scale_int16:bool = true;
+}
+
+table MulOptions {
+  fused_activation_function:ActivationFunctionType;
+}
+
+table L2NormOptions {
+  // This field is currently ignored in the L2 Norm Op.
+  fused_activation_function:ActivationFunctionType;
+}
+
+table LocalResponseNormalizationOptions {
+  radius:int;
+  bias:float;
+  alpha:float;
+  beta:float;
+}
+
+// LINT.IfChange
+enum LSTMKernelType : byte {
+  // Full LSTM kernel which supports peephole and projection.
+  FULL = 0,
+  // Basic LSTM kernels. Equivalent to TensorFlow BasicLSTMCell.
+  BASIC = 1,
+}
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
+
+// An implementation of TensorFlow LSTMCell and CoupledInputForgetGateLSTMCell
+table LSTMOptions {
+  // Parameters for LSTM version 1 or above.
+  fused_activation_function:ActivationFunctionType;
+  cell_clip: float; // Optional, 0.0 means no clipping
+  proj_clip: float; // Optional, 0.0 means no clipping
+
+  // Parameters for LSTM version 2 or above.
+  // Basic kernel is only supported in version 2 or above.
+  kernel_type: LSTMKernelType = FULL;
+
+  // Parameters for LSTM version 4 or above.
+  asymmetric_quantize_inputs: bool;
+}
+
+// An implementation of TensorFlow dynamic_rnn with LSTMCell.
+table UnidirectionalSequenceLSTMOptions {
+  fused_activation_function:ActivationFunctionType;
+  cell_clip: float; // Optional, 0.0 means no clipping
+  proj_clip: float; // Optional, 0.0 means no clipping
+
+  // If true then first dimension is sequence, otherwise batch.
+  time_major:bool;
+
+  // Parameter for Unidirectional Sequence LSTM version 4.
+  asymmetric_quantize_inputs:bool;
+}
+
+table BidirectionalSequenceLSTMOptions {
+  // Parameters supported by version 1:
+  fused_activation_function:ActivationFunctionType;
+  cell_clip: float; // Optional, 0.0 means no clipping
+  proj_clip: float; // Optional, 0.0 means no clipping
+
+  // If true, store the outputs of both directions into the first output.
+  merge_outputs: bool;
+
+  // Parameters supported by version 2:
+  // If true then first dimension is sequence, otherwise batch.
+  // Version 1 implementations assumed time_major to be true, so this default
+  // value should never change.
+  time_major: bool = true;
+
+  // Parameters for version 3 or above.
+  asymmetric_quantize_inputs:bool;
+}
+
+table ResizeBilinearOptions {
+  new_height: int (deprecated);
+  new_width: int (deprecated);
+  align_corners: bool;
+  half_pixel_centers: bool;
+}
+
+table ResizeNearestNeighborOptions {
+  align_corners: bool;
+  half_pixel_centers: bool;
+}
+
+// A call operation options
+table CallOptions {
+  // The subgraph index that needs to be called.
+  subgraph:uint;
+}
+
+table PadOptions {
+}
+
+table PadV2Options {
+}
+
+table ReshapeOptions {
+  new_shape:[int];
+}
+
+table SpaceToBatchNDOptions {
+}
+
+table BatchToSpaceNDOptions {
+}
+
+table SkipGramOptions {
+  ngram_size: int;
+  max_skip_size: int;
+  include_all_ngrams: bool;
+}
+
+table SpaceToDepthOptions {
+  block_size: int;
+}
+
+table DepthToSpaceOptions {
+  block_size: int;
+}
+
+table SubOptions {
+  fused_activation_function:ActivationFunctionType;
+  // Parameters supported by version 5
+  pot_scale_int16:bool = true;
+}
+
+table DivOptions {
+  fused_activation_function:ActivationFunctionType;
+}
+
+table TopKV2Options {
+}
+
+enum CombinerType : byte {
+  SUM = 0,
+  MEAN = 1,
+  SQRTN = 2,
+}
+
+table EmbeddingLookupSparseOptions {
+  combiner:CombinerType;
+}
+
+table GatherOptions {
+  axis: int;
+  // Parameters for Gather version 5 or above.
+  batch_dims: int = 0;
+}
+
+table TransposeOptions {
+}
+
+table ExpOptions {
+}
+
+table CosOptions {
+}
+
+table ReducerOptions {
+  keep_dims: bool;
+}
+
+table SqueezeOptions {
+  squeeze_dims:[int];
+}
+
+table SplitOptions {
+  num_splits: int;
+}
+
+table SplitVOptions {
+  num_splits: int;
+}
+
+table StridedSliceOptions {
+  begin_mask: int;
+  end_mask: int;
+  ellipsis_mask: int;
+  new_axis_mask: int;
+  shrink_axis_mask: int;
+}
+
+table LogSoftmaxOptions {
+}
+
+table CastOptions {
+  in_data_type: TensorType;
+  out_data_type: TensorType;
+}
+
+table DequantizeOptions {
+}
+
+table MaximumMinimumOptions {
+}
+
+table TileOptions {
+}
+
+table ArgMaxOptions {
+  output_type : TensorType;
+}
+
+table ArgMinOptions {
+  output_type : TensorType;
+}
+
+table GreaterOptions {
+}
+
+table GreaterEqualOptions {
+}
+
+table LessOptions {
+}
+
+table LessEqualOptions {
+}
+
+table NegOptions {
+}
+
+table SelectOptions {
+}
+
+table SliceOptions {
+}
+
+table TransposeConvOptions {
+  padding:Padding;
+  stride_w:int;
+  stride_h:int;
+}
+
+table ExpandDimsOptions {
+}
+
+table SparseToDenseOptions {
+  validate_indices:bool;
+}
+
+table EqualOptions {
+}
+
+table NotEqualOptions {
+}
+
+table ShapeOptions {
+  // Optional output type of the operation (int32 or int64). Defaults to int32.
+  out_type : TensorType;
+}
+
+table RankOptions {
+}
+
+table PowOptions {
+}
+
+table FakeQuantOptions {
+  // Parameters supported by version 1:
+  min:float;
+  max:float;
+  num_bits:int;
+
+  // Parameters supported by version 2:
+  narrow_range:bool;
+}
+
+table PackOptions {
+  values_count:int;
+  axis:int;
+}
+
+table LogicalOrOptions {
+}
+
+table OneHotOptions {
+  axis:int;
+}
+
+table AbsOptions {
+}
+
+
+table HardSwishOptions {
+}
+
+table LogicalAndOptions {
+}
+
+table LogicalNotOptions {
+}
+
+table UnpackOptions {
+  num:int;
+  axis:int;
+}
+
+table FloorDivOptions {
+}
+
+table SquareOptions {
+}
+
+table ZerosLikeOptions {
+}
+
+table FillOptions {
+}
+
+table FloorModOptions {
+}
+
+table RangeOptions {
+}
+
+table LeakyReluOptions {
+  alpha:float;
+}
+
+table SquaredDifferenceOptions {
+}
+
+// LINT.IfChange
+enum MirrorPadMode : byte {
+  // Doesn't include borders.
+  REFLECT = 0,
+  // Includes borders.
+  SYMMETRIC = 1,
+}
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
+
+table MirrorPadOptions {
+  mode:MirrorPadMode;
+}
+
+table UniqueOptions {
+  idx_out_type:TensorType = INT32;
+}
+
+table ReverseV2Options {
+}
+
+table AddNOptions {
+}
+
+table GatherNdOptions {
+}
+
+table WhereOptions {
+}
+
+table ReverseSequenceOptions {
+  seq_dim:int;
+  batch_dim:int = 0;
+}
+
+table MatrixDiagOptions {
+}
+
+table QuantizeOptions {
+}
+
+table MatrixSetDiagOptions {
+}
+
+table IfOptions {
+  then_subgraph_index:int;
+  else_subgraph_index:int;
+}
+
+table CallOnceOptions {
+  init_subgraph_index:int;
+}
+
+table WhileOptions {
+  cond_subgraph_index:int;
+  body_subgraph_index:int;
+}
+
+table NonMaxSuppressionV4Options {
+}
+
+table NonMaxSuppressionV5Options {
+}
+
+table ScatterNdOptions {
+}
+
+table SelectV2Options {
+}
+
+table DensifyOptions {
+}
+
+table SegmentSumOptions {
+}
+
+table BatchMatMulOptions {
+  adj_x:bool;
+  adj_y:bool;
+  // Parameters for BatchMatMul version 4 or above.
+  // If set to true, then weights-only op will use asymmetric quantization for
+  // inputs.
+  asymmetric_quantize_inputs: bool;
+}
+
+table CumsumOptions {
+  exclusive:bool;
+  reverse:bool;
+}
+
+table BroadcastToOptions {
+}
+
+table Rfft2dOptions {
+}
+
+table HashtableOptions {
+  // The identity of hash tables. This identity will be used across different
+  // subgraphs in the same interpreter instance.
+  table_id:int;
+  key_dtype:TensorType;
+  value_dtype:TensorType;
+}
+
+table HashtableFindOptions {
+}
+
+table HashtableImportOptions {
+}
+
+table HashtableSizeOptions {
+}
+
+table VarHandleOptions {
+  container:string;
+  shared_name:string;
+}
+
+table ReadVariableOptions {
+}
+
+table AssignVariableOptions {
+}
+
+table RandomOptions {
+  seed: long;
+  seed2: long;
+}
+
+table BucketizeOptions {
+  boundaries: [float];  // The bucket boundaries.
+}
+
+table GeluOptions {
+  approximate: bool;
+}
+
+table DynamicUpdateSliceOptions {
+}
+
+table UnsortedSegmentProdOptions {
+}
+
+table UnsortedSegmentMaxOptions {
+}
+
+table UnsortedSegmentSumOptions {
+}
+
+table ATan2Options {
+}
+
+
+// An OperatorCode can be an enum value (BuiltinOperator) if the operator is a
+// builtin, or a string if the operator is custom.
+table OperatorCode {
+  // This field is for backward compatibility. This field will be used when
+  // the value of the extended builtin_code field has less than
+  // BulitinOperator_PLACEHOLDER_FOR_GREATER_OP_CODES.
+  deprecated_builtin_code:byte;
+  custom_code:string;
+
+  // The version of the operator. The version need to be bumped whenever new
+  // parameters are introduced into an op.
+  version:int = 1;
+
+  // This field is introduced for resolving op builtin code shortage problem
+  // (the original BuiltinOperator enum field was represented as a byte).
+  // This field will be used when the value of the extended builtin_code field
+  // has greater than BulitinOperator_PLACEHOLDER_FOR_GREATER_OP_CODES.
+  builtin_code:BuiltinOperator;
+}
+
+enum CustomOptionsFormat : byte {
+  FLEXBUFFERS = 0,
+}
+
+// An operator takes tensors as inputs and outputs. The type of operation being
+// performed is determined by an index into the list of valid OperatorCodes,
+// while the specifics of each operations is configured using builtin_options
+// or custom_options.
+table Operator {
+  // Index into the operator_codes array. Using an integer here avoids
+  // complicate map lookups.
+  opcode_index:uint;
+
+  // Optional input are indicated by -1.
+  inputs:[int];
+  outputs:[int];
+
+  builtin_options:BuiltinOptions;
+  custom_options:[ubyte];
+  custom_options_format:CustomOptionsFormat;
+
+  // A list of booleans indicating the input tensors which are being mutated by
+  // this operator.(e.g. used by RNN and LSTM).
+  // For example, if the "inputs" array refers to 5 tensors and the second and
+  // fifth are mutable variables, then this list will contain
+  // [false, true, false, false, true].
   //
-  // <Codegen usage>:
-  // Locates to the actual file in the TFLite model.
+  // If the list is empty, no variable is mutated in this operator.
+  // The list either has the same length as `inputs`, or is empty.
+  mutating_variable_inputs:[bool];
+
+  // A list of indices to the subgraph's "tensors" that are internal to an Op.
+  // Internal tensors are those that do not flow in or out of the operation,
+  // but instead are part of internal computation. As such, the operation's
+  // implementation may manage its memory more efficiently. They are needed
+  // however (i.e. not just an implementation detail) since they are part of the
+  // computation, which may require relevant metadata such as quantization
+  // parameters.
+  intermediates:[int];
+}
+
+// The root type, defining a subgraph, which typically represents an entire
+// model.
+table SubGraph {
+  // A list of all tensors used in this subgraph.
+  tensors:[Tensor];
+
+  // Indices of the tensors that are inputs into this subgraph. Note this is
+  // the list of non-static tensors that feed into the subgraph for inference.
+  inputs:[int];
+
+  // Indices of the tensors that are outputs out of this subgraph. Note this is
+  // the list of output tensors that are considered the product of the
+  // subgraph's inference.
+  outputs:[int];
+
+  // All operators, in execution order.
+  operators:[Operator];
+
+  // Name of this subgraph (used for debugging).
+  name:string;
+}
+
+// Table of raw data buffers (used for constant tensors). Referenced by tensors
+// by index. The generous alignment accommodates mmap-friendly data structures.
+table Buffer {
+    // data:[ubyte] (force_align: 16);
+  data:[ubyte];
+}
+
+table Metadata {
+  // A human readable string to uniquely identify a Metadata.
+  name:string;
+  // An index to the buffers table.
+  buffer:uint;
+}
+
+// Map from an alias name of tensor to tensor index in the graph.
+// This is used in Signature def.
+table TensorMap {
+  // Represents the alias to use for this tensor.
   name:string;
 
-  // A description of what the file is.
+  // The actual tensor index in the primary graph, that 'name' corresponds to.
+  tensor_index:uint;
+}
+
+// This corresponds to SignatureDef in Tensorflow SavedModel.
+// The SignatureDef will be part of the SavedModel provided for conversion.
+table SignatureDef {
+  // Named inputs for this signature.
+  inputs:[TensorMap];
+
+  // Named outputs for this signature.
+  outputs:[TensorMap];
+
+  // Key value which was in the Tensorflow SavedModel SignatureDef map.
+  signature_key:string;
+
+  // Model tag, deprecated.
+  deprecated_tag:string (deprecated);
+
+  // Index of subgraphs that corresponds to the exported method.
+  subgraph_index:uint;
+}
+
+table Model {
+  // Version of the schema.
+  version:uint;
+
+  // A list of all operator codes used in this model. This is
+  // kept in order because operators carry an index into this
+  // vector.
+  operator_codes:[OperatorCode];
+
+  // All the subgraphs of the model. The 0th is assumed to be the main
+  // model.
+  subgraphs:[SubGraph];
+
+  // A description of the model.
   description:string;
 
-  // Type of the associated file. There may be special pre/post processing for
-  // some types. For example in image classification, a label file of the output
-  // will be used to convert object index into string.
-  //
-  // <Codegen usage>:
-  // Determines how to process the corresponding tensor.
-  type:AssociatedFileType;
+  // Buffers of the model.
+  // Note the 0th entry of this array must be an empty buffer (sentinel).
+  // This is a convention so that tensors without a buffer can provide 0 as
+  // their buffer.
+  buffers:[Buffer];
 
-  // An optional locale for this associated file (if applicable). It is
-  // recommended to use an ISO 639-1 letter code (e.g. "en" for English),
-  // optionally completed by a two letter region code (e.g. "en-US" for US
-  // English and "en-CA" for Canadian English).
-  // Leverage this in order to specify e.g multiple label files translated in
-  // different languages.
-  locale:string;
+  // Metadata about the model. Indirects into the existings buffers list.
+  // Deprecated, prefer to use metadata field.
+  metadata_buffer:[int];
 
-  // Version of the file specified by model creators.
-  // Added in: 1.4.1
-  version:string;
+  // Metadata about the model.
+  metadata:[Metadata];
+
+  // Optional SignatureDefs for the model.
+  signature_defs:[SignatureDef];
 }
 
-// The basic content type for all tensors.
-//
-// <Codegen usage>:
-// Input feature tensors:
-// 1. Generates the method to load data from a TensorBuffer.
-// 2. Creates the preprocessing logic. The default processing pipeline is:
-// [NormalizeOp, QuantizeOp].
-// Output feature tensors:
-// 1. Generates the method to return the output data to a TensorBuffer.
-// 2. Creates the post-processing logic. The default processing pipeline is:
-// [DeQuantizeOp].
-table FeatureProperties {
-}
-
-// The type of color space of an image.
-enum ColorSpaceType : byte {
-  UNKNOWN = 0,
-  RGB = 1,
-  GRAYSCALE = 2,
-}
-
-table ImageSize {
-  width:uint;
-  height:uint;
-}
-
-// The properties for image tensors.
-//
-// <Codegen usage>:
-// Input image tensors:
-// 1. Generates the method to load an image from a TensorImage.
-// 2. Creates the preprocessing logic. The default processing pipeline is:
-// [ResizeOp, NormalizeOp, QuantizeOp].
-// Output image tensors:
-// 1. Generates the method to return the output data to a TensorImage.
-// 2. Creates the post-processing logic. The default processing pipeline is:
-// [DeQuantizeOp].
-table ImageProperties {
-  // The color space of the image.
-  //
-  // <Codegen usage>:
-  // Determines how to convert the color space of a given image from users.
-  color_space:ColorSpaceType;
-
-  // Indicates the default value of image width and height if the tensor shape
-  // is dynamic. For fixed-size tensor, this size will be consistent with the
-  // expected size.
-  default_size:ImageSize;
-}
-
-// The properties for tensors representing bounding boxes.
-//
-// <Codegen usage>:
-// Input image tensors: NA.
-// Output image tensors: parses the values into a data stucture that represents
-// bounding boxes. For example, in the generated wrapper for Android, it returns
-// the output as android.graphics.Rect objects.
-enum BoundingBoxType : byte {
-  UNKNOWN = 0,
-  // Represents the bounding box by using the combination of boundaries,
-  // {left, top, right, bottom}.
-  // The default order is {left, top, right, bottom}. Other orders can be
-  // indicated by BoundingBoxProperties.index.
-  BOUNDARIES = 1,
-
-  // Represents the bounding box by using the upper_left corner, width and
-  // height.
-  // The default order is {upper_left_x, upper_left_y, width, height}. Other
-  // orders can be indicated by BoundingBoxProperties.index.
-  UPPER_LEFT = 2,
-
-  // Represents the bounding box by using the center of the box, width and
-  // height. The default order is {center_x, center_y, width, height}. Other
-  // orders can be indicated by BoundingBoxProperties.index.
-  CENTER = 3,
-
-}
-
-// The properties for audio tensors.
-// Added in: 1.3.0
-table AudioProperties {
-  // The sample rate in Hz when the audio was captured.
-  sample_rate:uint;
-
-  // The channel count of the audio.
-  channels:uint;
-}
-
-enum CoordinateType : byte {
-  // The coordinates are float values from 0 to 1.
-  RATIO = 0,
-  // The coordinates are integers.
-  PIXEL = 1,
-}
-
-table BoundingBoxProperties {
-  // Denotes the order of the elements defined in each bounding box type. An
-  // empty index array represent the default order of each bounding box type.
-  // For example, to denote the default order of BOUNDARIES, {left, top, right,
-  // bottom}, the index should be {0, 1, 2, 3}. To denote the order {left,
-  // right, top, bottom}, the order should be {0, 2, 1, 3}.
-  //
-  // The index array can be applied to all bounding box types to adjust the
-  // order of their corresponding underlying elements.
-  //
-  // <Codegen usage>:
-  // Indicates how to parse the bounding box values.
-  index:[uint];
-
-  // <Codegen usage>:
-  // Indicates how to parse the bounding box values.
-  type:BoundingBoxType;
-
-  // <Codegen usage>:
-  // Indicates how to convert the bounding box back to the original image in
-  // pixels.
-  coordinate_type:CoordinateType;
-}
-
-union ContentProperties {
-  FeatureProperties,
-  ImageProperties,
-  BoundingBoxProperties,
-  // Added in: 1.3.0
-  AudioProperties,
-}
-
-table ValueRange {
-  min:int;
-  max:int;
-}
-
-table Content {
-  // The properties that the content may have, indicating the type of the
-  // Content.
-  //
-  // <Codegen usage>:
-  // Indicates how to process the tensor.
-  content_properties:ContentProperties;
-
-  // The range of dimensions that the content corresponds to. A NULL
-  // "range" indicates that the content uses up all dimensions,
-  // except the batch axis if applied.
-  //
-  // Here are all the possible situations of how a tensor is composed.
-  // Case 1: The tensor is a single object, such as an image.
-  // For example, the input of an image classifier
-  // (https://www.tensorflow.org/lite/models/image_classification/overview),
-  // a tensor of shape [1, 224, 224, 3]. Dimensions 1 to 3 correspond to the
-  // image. Since dimension 0 is a batch axis, which can be ignored,
-  // "range" can be left as NULL.
-  //
-  // Case 2: The tensor contains multiple instances of the same object.
-  // For example, the output tensor of detected bounding boxes of an object
-  // detection model
-  // (https://www.tensorflow.org/lite/models/object_detection/overview).
-  // The tensor shape is [1, 10, 4]. Here is the what the three dimensions
-  // represent for:
-  // dimension 0: the batch axis.
-  // dimension 1: the 10 objects detected with the highest confidence.
-  // dimension 2: the bounding boxes of the 10 detected objects.
-  // The tensor is essentially 10 bounding boxes. In this case,
-  // "range" should be {min=2; max=2;}.
-  //
-  // The output tensor of scores of the above object detection model has shape
-  // [1, 10], where
-  // dimension 0: the batch axis;
-  // dimension 1: the scores of the 10 detected objects.
-  // Set "range" to the number of dimensions which is {min=2; max=2;} to denote
-  // that every element in the tensor is an individual content object, i.e. a
-  // score in this example.
-  //
-  // Another example is the pose estimation model
-  // (https://www.tensorflow.org/lite/models/pose_estimation/overview).
-  // The output tensor of heatmaps is in the shape of [1, 9, 9, 17].
-  // Here is the what the four dimensions represent for:
-  // dimension 0: the batch axis.
-  // dimension 1/2: the heatmap image.
-  // dimension 3: 17 body parts of a person.
-  // Even though the last axis is body part, the real content of this tensor is
-  // the heatmap. "range" should be [min=1; max=2].
-  //
-  // Case 3: The tensor contains multiple different objects. (Not supported by
-  // Content at this point).
-  // Sometimes a tensor may contain multiple different objects, thus different
-  // contents. It is very common for regression models. For example, a model
-  // to predict the fuel efficiency
-  // (https://www.tensorflow.org/tutorials/keras/regression).
-  // The input tensor has shape [1, 9], consisting of 9 features, such as
-  // "Cylinders", "Displacement", "Weight", etc. In this case, dimension 1
-  // contains 9 different contents. However, since these sub-dimension objects
-  // barely need to be specifically processed, their contents are not recorded
-  // in the metadata. Through, the name of each dimension can be set through
-  // TensorMetadata.dimension_names.
-  //
-  // Note that if it is not case 3, a tensor can only have one content type.
-  //
-  // <Codegen usage>:
-  // Case 1: return a processed single object of certain content type.
-  // Case 2: return a list of processed objects of certain content type. The
-  // generated model interface have API to random access those objects from
-  // the output.
-  range:ValueRange;
-}
-
-// Parameters that are used when normalizing the tensor.
-table NormalizationOptions{
-  // mean and std are normalization parameters. Tensor values are normalized
-  // on a per-channel basis, by the formula
-  //   (x - mean) / std.
-  // If there is only one value in mean or std, we'll propogate the value to
-  // all channels.
-  //
-  // Quantized models share the same normalization parameters as their
-  // corresponding float models. For example, an image input tensor may have
-  // the normalization parameter of
-  //   mean = 127.5f and std = 127.5f.
-  // The image value will be normalized from [0, 255] to [-1, 1].
-  // Then, for quantized models, the image data should be further quantized
-  // according to the quantization parameters. In the case of uint8, the image
-  // data will be scaled back to [0, 255], while for int8, the image data will
-  // be scaled to [-128, 127].
-  //
-  // Both the normalization parameters and quantization parameters can be
-  // retrieved through the metadata extractor library.
-  // TODO(b/156644598): add link for the metadata extractor library.
-
-  // Per-channel mean of the possible values used in normalization.
-  //
-  // <Codegen usage>:
-  // Apply normalization to input tensors accordingly.
-  mean:[float];
-
-  // Per-channel standard dev. of the possible values used in normalization.
-  //
-  // <Codegen usage>:
-  // Apply normalization to input tensors accordingly.
-  std:[float];
-}
-
-// The different possible score transforms to apply to uncalibrated scores
-// before applying score calibration.
-enum ScoreTransformationType : byte {
-  // Identity function: g(x) = x.
-  IDENTITY = 0,
-  // Log function: g(x) = log(x).
-  LOG = 1,
-  // Inverse logistic function: g(x) = log(x) - log(1-x).
-  INVERSE_LOGISTIC = 2,
-}
-
-// Options to perform score calibration on an output tensor through sigmoid
-// functions. One of the main purposes of score calibration is to make scores
-// across classes comparable, so that a common threshold can be used for all
-// output classes. This is meant for models producing class predictions as
-// output, e.g. image classification or detection models.
-//
-// For each index in the output tensor, this applies:
-// * `f(x) = scale / (1 + e^-(slope*g(x)+offset))` if `x > min_score` or if no
-//   `min_score` has been specified,
-// * `f(x) = default_score` otherwise or if no scale, slope and offset have been
-//   specified.
-// Where:
-// * scale, slope, offset and (optional) min_score are index-specific parameters
-// * g(x) is an index-independent transform among those defined in
-//   ScoreTransformationType
-// * default_score is an index-independent parameter.
-// An AssociatedFile with type TANSOR_AXIS_SCORE_CALIBRATION specifying the
-// index-specific parameters must be associated with the corresponding
-// TensorMetadata for score calibration be applied.
-//
-// See the example score calibration file used in image classification [1].
-// [1]: https://github.com/tensorflow/tflite-support/blob/master/tensorflow_lite_support/metadata/python/tests/testdata/image_classifier/score_calibration.txt
-table ScoreCalibrationOptions {
-  // The function to use for transforming the uncalibrated score before
-  // applying score calibration.
-  score_transformation:ScoreTransformationType;
-
-  // The default calibrated score to apply if the uncalibrated score is
-  // below min_score or if no parameters were specified for a given index.
-  default_score:float;
-}
-
-// Performs thresholding on output tensor values, in order to filter out
-// low-confidence results.
-table ScoreThresholdingOptions {
-  // The recommended global threshold below which results are considered
-  // low-confidence and should be filtered out.
-  global_score_threshold:float;
-}
-
-// Performs Bert tokenization as in tf.text.BertTokenizer
-// (https://github.com/tensorflow/text/blob/3599f6fcd2b780a2dc413b90fb9315464f10b314/docs/api_docs/python/text/BertTokenizer.md)
-// Added in: 1.1.0
-table BertTokenizerOptions {
-  // The vocabulary files used in the BertTokenizer.
-  vocab_file:[AssociatedFile];
-}
-
-// Performs SentencePiece tokenization as in tf.text.SentencepieceTokenizer
-// (https://github.com/tensorflow/text/blob/3599f6fcd2b780a2dc413b90fb9315464f10b314/docs/api_docs/python/text/SentencepieceTokenizer.md).
-// Added in: 1.1.0
-table SentencePieceTokenizerOptions {
-  // The SentencePiece model files used in the SentencePieceTokenizer.
-  sentencePiece_model:[AssociatedFile];
-
-  // The optional vocabulary model files used in the SentencePieceTokenizer.
-  vocab_file:[AssociatedFile];
-}
-
-// Splits strings by the occurrences of delim_regex_pattern and converts the
-// tokens into ids. For example, given
-//   delim_regex_pattern: "\W+",
-//   string: "Words, words, words.",
-// the tokens after split are: "Words", "words", "words", "".
-// And then the tokens can be converted into ids according to the vocab_file.
-// Added in: 1.2.1
-table RegexTokenizerOptions {
-  delim_regex_pattern:string;
-  // The vocabulary files used to convert this tokens into ids.
-  vocab_file:[AssociatedFile];
-}
-
-// Options that are used when processing the tensor.
-union ProcessUnitOptions {
-  NormalizationOptions,
-  ScoreCalibrationOptions,
-  ScoreThresholdingOptions,
-  // Added in: 1.1.0
-  BertTokenizerOptions,
-  // Added in: 1.1.0
-  SentencePieceTokenizerOptions,
-  // Added in: 1.2.1
-  RegexTokenizerOptions
-}
-
-// A process unit that is used to process the tensor out-of-graph.
-table ProcessUnit {
-  options:ProcessUnitOptions;
-}
-
-
-// Statistics to describe a tensor.
-table Stats {
-  // Max and min are not currently used in tflite.support codegen. They mainly
-  // serve as references for users to better understand the model. They can also
-  // be used to validate model pre/post processing results.
-  // If there is only one value in max or min, we'll propogate the value to
-  // all channels.
-
-  // Per-channel maximum value of the tensor.
-  max:[float];
-
-  // Per-channel minimum value of the tensor.
-  min:[float];
-}
-
-// Metadata of a group of tensors. It may contain several tensors that will be
-// grouped together in codegen. For example, the TFLite object detection model
-// example (https://www.tensorflow.org/lite/models/object_detection/overview)
-// has four outputs: classes, scores, bounding boxes, and number of detections.
-// If the four outputs are bundled together using TensorGroup (for example,
-// named as "detection result"), the codegen tool will generate the class,
-// `DetectionResult`, which contains the class, score, and bouding box. And the
-// outputs of the model will be converted to a list of `DetectionResults` and
-// the number of detection. Note that the number of detection is a single
-// number, therefore is inappropriate for the list of `DetectionResult`.
-// Added in: 1.2.0
-table TensorGroup {
-  // Name of tensor group.
-  //
-  // <codegen usage>:
-  // Name of the joint class of the tensor group.
-  name:string;
-
-  // Names of the tensors to group together, corresponding to
-  // TensorMetadata.name.
-  //
-  // <codegen usage>:
-  // Determines which tensors will be added to this group. All tensors in the
-  // group should have the same number of elements specified by Content.range.
-  tensor_names:[string];
-}
-
-// Detailed information of an input or output tensor.
-table TensorMetadata {
-  // Name of the tensor.
-  //
-  // <Codegen usage>:
-  // The name of this tensor in the generated model interface.
-  name:string;
-
-  // A description of the tensor.
-  description:string;
-
-  // A list of names of the dimensions in this tensor. The length of
-  // dimension_names need to match the number of dimensions in this tensor.
-  //
-  // <Codegen usage>:
-  // The name of each dimension in the generated model interface. See "Case 2"
-  // in the comments of Content.range.
-  dimension_names:[string];
-
-  // The content that represents this tensor.
-  //
-  // <Codegen usage>:
-  // Determines how to process this tensor. See each item in ContentProperties
-  // for the default process units that will be applied to the tensor.
-  content:Content;
-
-  // The process units that are used to process the tensor out-of-graph.
-  //
-  // <Codegen usage>:
-  // Contains the parameters of the default processing pipeline for each content
-  // type, such as the normalization parameters in all content types. See the
-  // items under ContentProperties for the details of the default processing
-  // pipeline.
-  process_units:[ProcessUnit];
-
-  // The statistics of the tensor values.
-  stats:Stats;
-
-  // A list of associated files of this tensor.
-  //
-  // <Codegen usage>:
-  // Contains processing parameters of this tensor, such as normalization.
-  associated_files:[AssociatedFile];
-}
-
-table CustomMetadata {
-  name:string;
-//   data:[ubyte] (force_align: 16);    # flatcc unsupport force_align
-}
-
-table SubGraphMetadata {
-  // Name of the subgraph.
-  //
-  // Note that, since TFLite only support one subgraph at this moment, the
-  // Codegen tool will use the name in ModelMetadata in the generated model
-  // interface.
-  name:string;
-
-  // A description explains details about what the subgraph does.
-  description:string;
-
-  // Metadata of all input tensors used in this subgraph. It matches extactly
-  // the input tensors specified by `SubGraph.inputs` in the TFLite
-  // schema.fbs file[2]. The number of `TensorMetadata` in the array should
-  // equal to the number of indices in `SubGraph.inputs`.
-  //
-  // [2]: tensorflow/lite/schema/schema.fbs
-  // <Codegen usage>:
-  // Determines how to process the inputs.
-  input_tensor_metadata:[TensorMetadata];
-
-  // Metadata of all output tensors used in this subgraph. It matches extactly
-  // the output tensors specified by `SubGraph.outputs` in the TFLite
-  // schema.fbs file[2]. The number of `TensorMetadata` in the array should
-  // equal to the number of indices in `SubGraph.outputs`.
-  //
-  // <Codegen usage>:
-  // Determines how to process the outputs.
-  output_tensor_metadata:[TensorMetadata];
-
-  // A list of associated files of this subgraph.
-  associated_files:[AssociatedFile];
-
-  // Input process units of the subgraph. Some models may have complex pre and
-  // post processing logics where the process units do not work on one tensor at
-  // a time, but in a similar way of a TFLite graph. For example, in the
-  // MobileBert model (https://www.tensorflow.org/lite/models/bert_qa/overview),
-  // the inputs are: ids / mask / segment ids;
-  // the outputs are: end logits / start logits.
-  // The preprocessing converts the query string and the context string to the
-  // model inputs, and the post-processing converts the model outputs to the
-  // answer string.
-  // Added in: 1.1.0
-  input_process_units:[ProcessUnit];
-
-  // Output process units of the subgraph.
-  // Added in: 1.1.0
-  output_process_units:[ProcessUnit];
-
-  // Metadata of all input tensor groups used in this subgraph.
-  //
-  // <codegen usage>:
-  // Bundles the corresponding elements of the underlying input tensors together
-  // into a class, and converts those individual tensors into a list of the
-  // class objects.
-  // Added in: 1.2.0
-  input_tensor_groups:[TensorGroup];
-
-  // Metadata of all output tensor groups used in this subgraph.
-  //
-  // <codegen usage>:
-  // Bundles the corresponding elements of the underlying output tensors
-  // together into a class, and converts those individual tensors into a list of
-  // the class objects.
-  // Added in: 1.2.0
-  output_tensor_groups:[TensorGroup];
-
-  // A list of custom metadata.
-  // Added in: 1.5.0.
-  custom_metadata:[CustomMetadata];
-}
-
-table ModelMetadata {
-  // Name of the model.
-  //
-  // <Codegen usage>:
-  // The name of the model in the generated model interface.
-  name:string;
-
-  // Model description in schema.
-  description:string;
-
-  // Version of the model that specified by model creators.
-  version:string;
-
-  // Noted that, the minimum required TFLite runtime version that the model is
-  // compatible with, has already been added as a metadata entry in tflite
-  // schema. We'll decide later if we want to move it here, and keep it with
-  // other metadata entries.
-
-  // Metadata of all the subgraphs of the model. The 0th is assumed to be the
-  // main subgraph.
-  //
-  // <Codegen usage>:
-  // Determines how to process the inputs and outputs.
-  subgraph_metadata:[SubGraphMetadata];
-
-  // The person who creates this model.
-  author:string;
-
-  // Licenses that may apply to this model.
-  license:string;
-
-  // A list of associated files of this model.
-  associated_files:[AssociatedFile];
-
-  // The minimum metadata parser version that can fully understand the fields in
-  // the metadata flatbuffer. The version is effectively the largest version
-  // number among the versions of all the fields populated and the smallest
-  // compatible version indicated by the file identifier.
-  //
-  // This field is automaticaly populated by the MetadataPopulator when
-  // the metadata is populated into a TFLite model.
-  min_parser_version:string;
-}
-// LINT.ThenChange(//tensorflow_lite_support/\
-//     metadata/cc/metadata_version.cc)
-
-root_type ModelMetadata;
+root_type Model;

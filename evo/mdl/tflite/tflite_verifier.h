@@ -9,1074 +9,6731 @@
 #include "flatcc/flatcc_verifier.h"
 #include "flatcc/flatcc_prologue.h"
 
-static int tflite_AssociatedFile_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_FeatureProperties_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ImageSize_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ImageProperties_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_AudioProperties_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_BoundingBoxProperties_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ValueRange_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_Content_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_NormalizationOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ScoreCalibrationOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ScoreThresholdingOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_BertTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_SentencePieceTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_RegexTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ProcessUnit_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_Stats_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_TensorGroup_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_TensorMetadata_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_CustomMetadata_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_SubGraphMetadata_verify_table(flatcc_table_verifier_descriptor_t *td);
-static int tflite_ModelMetadata_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CustomQuantization_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_QuantizationParameters_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Int32Vector_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Uint16Vector_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Uint8Vector_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DimensionMetadata_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SparsityParameters_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Tensor_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Conv2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Conv3DOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Pool2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DepthwiseConv2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ConcatEmbeddingsOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LSHProjectionOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SVDFOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_RNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SequenceRNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BidirectionalSequenceRNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_FullyConnectedOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SoftmaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ConcatenationOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_AddOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_MulOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_L2NormOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LocalResponseNormalizationOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UnidirectionalSequenceLSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BidirectionalSequenceLSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ResizeBilinearOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ResizeNearestNeighborOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CallOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_PadOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_PadV2Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ReshapeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SpaceToBatchNDOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BatchToSpaceNDOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SkipGramOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SpaceToDepthOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DepthToSpaceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SubOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DivOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_TopKV2Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_EmbeddingLookupSparseOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_GatherOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_TransposeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ExpOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CosOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ReducerOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SqueezeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SplitOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SplitVOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_StridedSliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LogSoftmaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CastOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DequantizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_MaximumMinimumOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_TileOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ArgMaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ArgMinOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_GreaterOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_GreaterEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LessOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LessEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_NegOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SelectOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_TransposeConvOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ExpandDimsOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SparseToDenseOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_EqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_NotEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ShapeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_RankOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_PowOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_FakeQuantOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_PackOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LogicalOrOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_OneHotOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_AbsOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_HardSwishOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LogicalAndOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LogicalNotOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UnpackOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_FloorDivOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SquareOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ZerosLikeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_FillOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_FloorModOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_RangeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_LeakyReluOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SquaredDifferenceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_MirrorPadOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UniqueOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ReverseV2Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_AddNOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_GatherNdOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_WhereOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ReverseSequenceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_MatrixDiagOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_QuantizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_MatrixSetDiagOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_IfOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CallOnceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_WhileOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_NonMaxSuppressionV4Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_NonMaxSuppressionV5Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ScatterNdOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SelectV2Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DensifyOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SegmentSumOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BatchMatMulOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_CumsumOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BroadcastToOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Rfft2dOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_HashtableOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_HashtableFindOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_HashtableImportOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_HashtableSizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_VarHandleOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ReadVariableOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_AssignVariableOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_RandomOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_BucketizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_GeluOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_DynamicUpdateSliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UnsortedSegmentProdOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UnsortedSegmentMaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_UnsortedSegmentSumOptions_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_ATan2Options_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_OperatorCode_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Operator_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SubGraph_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Buffer_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Metadata_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_TensorMap_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_SignatureDef_verify_table(flatcc_table_verifier_descriptor_t *td);
+static int tflite_Model_verify_table(flatcc_table_verifier_descriptor_t *td);
 
-static int tflite_ContentProperties_union_verifier(flatcc_union_verifier_descriptor_t *ud)
+static int tflite_QuantizationDetails_union_verifier(flatcc_union_verifier_descriptor_t *ud)
 {
     switch (ud->type) {
-    case 1: return flatcc_verify_union_table(ud, tflite_FeatureProperties_verify_table); /* FeatureProperties */
-    case 2: return flatcc_verify_union_table(ud, tflite_ImageProperties_verify_table); /* ImageProperties */
-    case 3: return flatcc_verify_union_table(ud, tflite_BoundingBoxProperties_verify_table); /* BoundingBoxProperties */
-    case 4: return flatcc_verify_union_table(ud, tflite_AudioProperties_verify_table); /* AudioProperties */
+    case 1: return flatcc_verify_union_table(ud, tflite_CustomQuantization_verify_table); /* CustomQuantization */
     default: return flatcc_verify_ok;
     }
 }
 
-static int tflite_ProcessUnitOptions_union_verifier(flatcc_union_verifier_descriptor_t *ud)
+static int tflite_SparseIndexVector_union_verifier(flatcc_union_verifier_descriptor_t *ud)
 {
     switch (ud->type) {
-    case 1: return flatcc_verify_union_table(ud, tflite_NormalizationOptions_verify_table); /* NormalizationOptions */
-    case 2: return flatcc_verify_union_table(ud, tflite_ScoreCalibrationOptions_verify_table); /* ScoreCalibrationOptions */
-    case 3: return flatcc_verify_union_table(ud, tflite_ScoreThresholdingOptions_verify_table); /* ScoreThresholdingOptions */
-    case 4: return flatcc_verify_union_table(ud, tflite_BertTokenizerOptions_verify_table); /* BertTokenizerOptions */
-    case 5: return flatcc_verify_union_table(ud, tflite_SentencePieceTokenizerOptions_verify_table); /* SentencePieceTokenizerOptions */
-    case 6: return flatcc_verify_union_table(ud, tflite_RegexTokenizerOptions_verify_table); /* RegexTokenizerOptions */
+    case 1: return flatcc_verify_union_table(ud, tflite_Int32Vector_verify_table); /* Int32Vector */
+    case 2: return flatcc_verify_union_table(ud, tflite_Uint16Vector_verify_table); /* Uint16Vector */
+    case 3: return flatcc_verify_union_table(ud, tflite_Uint8Vector_verify_table); /* Uint8Vector */
     default: return flatcc_verify_ok;
     }
 }
 
-static int tflite_AssociatedFile_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_BuiltinOptions_union_verifier(flatcc_union_verifier_descriptor_t *ud)
+{
+    switch (ud->type) {
+    case 1: return flatcc_verify_union_table(ud, tflite_Conv2DOptions_verify_table); /* Conv2DOptions */
+    case 2: return flatcc_verify_union_table(ud, tflite_DepthwiseConv2DOptions_verify_table); /* DepthwiseConv2DOptions */
+    case 3: return flatcc_verify_union_table(ud, tflite_ConcatEmbeddingsOptions_verify_table); /* ConcatEmbeddingsOptions */
+    case 4: return flatcc_verify_union_table(ud, tflite_LSHProjectionOptions_verify_table); /* LSHProjectionOptions */
+    case 5: return flatcc_verify_union_table(ud, tflite_Pool2DOptions_verify_table); /* Pool2DOptions */
+    case 6: return flatcc_verify_union_table(ud, tflite_SVDFOptions_verify_table); /* SVDFOptions */
+    case 7: return flatcc_verify_union_table(ud, tflite_RNNOptions_verify_table); /* RNNOptions */
+    case 8: return flatcc_verify_union_table(ud, tflite_FullyConnectedOptions_verify_table); /* FullyConnectedOptions */
+    case 9: return flatcc_verify_union_table(ud, tflite_SoftmaxOptions_verify_table); /* SoftmaxOptions */
+    case 10: return flatcc_verify_union_table(ud, tflite_ConcatenationOptions_verify_table); /* ConcatenationOptions */
+    case 11: return flatcc_verify_union_table(ud, tflite_AddOptions_verify_table); /* AddOptions */
+    case 12: return flatcc_verify_union_table(ud, tflite_L2NormOptions_verify_table); /* L2NormOptions */
+    case 13: return flatcc_verify_union_table(ud, tflite_LocalResponseNormalizationOptions_verify_table); /* LocalResponseNormalizationOptions */
+    case 14: return flatcc_verify_union_table(ud, tflite_LSTMOptions_verify_table); /* LSTMOptions */
+    case 15: return flatcc_verify_union_table(ud, tflite_ResizeBilinearOptions_verify_table); /* ResizeBilinearOptions */
+    case 16: return flatcc_verify_union_table(ud, tflite_CallOptions_verify_table); /* CallOptions */
+    case 17: return flatcc_verify_union_table(ud, tflite_ReshapeOptions_verify_table); /* ReshapeOptions */
+    case 18: return flatcc_verify_union_table(ud, tflite_SkipGramOptions_verify_table); /* SkipGramOptions */
+    case 19: return flatcc_verify_union_table(ud, tflite_SpaceToDepthOptions_verify_table); /* SpaceToDepthOptions */
+    case 20: return flatcc_verify_union_table(ud, tflite_EmbeddingLookupSparseOptions_verify_table); /* EmbeddingLookupSparseOptions */
+    case 21: return flatcc_verify_union_table(ud, tflite_MulOptions_verify_table); /* MulOptions */
+    case 22: return flatcc_verify_union_table(ud, tflite_PadOptions_verify_table); /* PadOptions */
+    case 23: return flatcc_verify_union_table(ud, tflite_GatherOptions_verify_table); /* GatherOptions */
+    case 24: return flatcc_verify_union_table(ud, tflite_BatchToSpaceNDOptions_verify_table); /* BatchToSpaceNDOptions */
+    case 25: return flatcc_verify_union_table(ud, tflite_SpaceToBatchNDOptions_verify_table); /* SpaceToBatchNDOptions */
+    case 26: return flatcc_verify_union_table(ud, tflite_TransposeOptions_verify_table); /* TransposeOptions */
+    case 27: return flatcc_verify_union_table(ud, tflite_ReducerOptions_verify_table); /* ReducerOptions */
+    case 28: return flatcc_verify_union_table(ud, tflite_SubOptions_verify_table); /* SubOptions */
+    case 29: return flatcc_verify_union_table(ud, tflite_DivOptions_verify_table); /* DivOptions */
+    case 30: return flatcc_verify_union_table(ud, tflite_SqueezeOptions_verify_table); /* SqueezeOptions */
+    case 31: return flatcc_verify_union_table(ud, tflite_SequenceRNNOptions_verify_table); /* SequenceRNNOptions */
+    case 32: return flatcc_verify_union_table(ud, tflite_StridedSliceOptions_verify_table); /* StridedSliceOptions */
+    case 33: return flatcc_verify_union_table(ud, tflite_ExpOptions_verify_table); /* ExpOptions */
+    case 34: return flatcc_verify_union_table(ud, tflite_TopKV2Options_verify_table); /* TopKV2Options */
+    case 35: return flatcc_verify_union_table(ud, tflite_SplitOptions_verify_table); /* SplitOptions */
+    case 36: return flatcc_verify_union_table(ud, tflite_LogSoftmaxOptions_verify_table); /* LogSoftmaxOptions */
+    case 37: return flatcc_verify_union_table(ud, tflite_CastOptions_verify_table); /* CastOptions */
+    case 38: return flatcc_verify_union_table(ud, tflite_DequantizeOptions_verify_table); /* DequantizeOptions */
+    case 39: return flatcc_verify_union_table(ud, tflite_MaximumMinimumOptions_verify_table); /* MaximumMinimumOptions */
+    case 40: return flatcc_verify_union_table(ud, tflite_ArgMaxOptions_verify_table); /* ArgMaxOptions */
+    case 41: return flatcc_verify_union_table(ud, tflite_LessOptions_verify_table); /* LessOptions */
+    case 42: return flatcc_verify_union_table(ud, tflite_NegOptions_verify_table); /* NegOptions */
+    case 43: return flatcc_verify_union_table(ud, tflite_PadV2Options_verify_table); /* PadV2Options */
+    case 44: return flatcc_verify_union_table(ud, tflite_GreaterOptions_verify_table); /* GreaterOptions */
+    case 45: return flatcc_verify_union_table(ud, tflite_GreaterEqualOptions_verify_table); /* GreaterEqualOptions */
+    case 46: return flatcc_verify_union_table(ud, tflite_LessEqualOptions_verify_table); /* LessEqualOptions */
+    case 47: return flatcc_verify_union_table(ud, tflite_SelectOptions_verify_table); /* SelectOptions */
+    case 48: return flatcc_verify_union_table(ud, tflite_SliceOptions_verify_table); /* SliceOptions */
+    case 49: return flatcc_verify_union_table(ud, tflite_TransposeConvOptions_verify_table); /* TransposeConvOptions */
+    case 50: return flatcc_verify_union_table(ud, tflite_SparseToDenseOptions_verify_table); /* SparseToDenseOptions */
+    case 51: return flatcc_verify_union_table(ud, tflite_TileOptions_verify_table); /* TileOptions */
+    case 52: return flatcc_verify_union_table(ud, tflite_ExpandDimsOptions_verify_table); /* ExpandDimsOptions */
+    case 53: return flatcc_verify_union_table(ud, tflite_EqualOptions_verify_table); /* EqualOptions */
+    case 54: return flatcc_verify_union_table(ud, tflite_NotEqualOptions_verify_table); /* NotEqualOptions */
+    case 55: return flatcc_verify_union_table(ud, tflite_ShapeOptions_verify_table); /* ShapeOptions */
+    case 56: return flatcc_verify_union_table(ud, tflite_PowOptions_verify_table); /* PowOptions */
+    case 57: return flatcc_verify_union_table(ud, tflite_ArgMinOptions_verify_table); /* ArgMinOptions */
+    case 58: return flatcc_verify_union_table(ud, tflite_FakeQuantOptions_verify_table); /* FakeQuantOptions */
+    case 59: return flatcc_verify_union_table(ud, tflite_PackOptions_verify_table); /* PackOptions */
+    case 60: return flatcc_verify_union_table(ud, tflite_LogicalOrOptions_verify_table); /* LogicalOrOptions */
+    case 61: return flatcc_verify_union_table(ud, tflite_OneHotOptions_verify_table); /* OneHotOptions */
+    case 62: return flatcc_verify_union_table(ud, tflite_LogicalAndOptions_verify_table); /* LogicalAndOptions */
+    case 63: return flatcc_verify_union_table(ud, tflite_LogicalNotOptions_verify_table); /* LogicalNotOptions */
+    case 64: return flatcc_verify_union_table(ud, tflite_UnpackOptions_verify_table); /* UnpackOptions */
+    case 65: return flatcc_verify_union_table(ud, tflite_FloorDivOptions_verify_table); /* FloorDivOptions */
+    case 66: return flatcc_verify_union_table(ud, tflite_SquareOptions_verify_table); /* SquareOptions */
+    case 67: return flatcc_verify_union_table(ud, tflite_ZerosLikeOptions_verify_table); /* ZerosLikeOptions */
+    case 68: return flatcc_verify_union_table(ud, tflite_FillOptions_verify_table); /* FillOptions */
+    case 69: return flatcc_verify_union_table(ud, tflite_BidirectionalSequenceLSTMOptions_verify_table); /* BidirectionalSequenceLSTMOptions */
+    case 70: return flatcc_verify_union_table(ud, tflite_BidirectionalSequenceRNNOptions_verify_table); /* BidirectionalSequenceRNNOptions */
+    case 71: return flatcc_verify_union_table(ud, tflite_UnidirectionalSequenceLSTMOptions_verify_table); /* UnidirectionalSequenceLSTMOptions */
+    case 72: return flatcc_verify_union_table(ud, tflite_FloorModOptions_verify_table); /* FloorModOptions */
+    case 73: return flatcc_verify_union_table(ud, tflite_RangeOptions_verify_table); /* RangeOptions */
+    case 74: return flatcc_verify_union_table(ud, tflite_ResizeNearestNeighborOptions_verify_table); /* ResizeNearestNeighborOptions */
+    case 75: return flatcc_verify_union_table(ud, tflite_LeakyReluOptions_verify_table); /* LeakyReluOptions */
+    case 76: return flatcc_verify_union_table(ud, tflite_SquaredDifferenceOptions_verify_table); /* SquaredDifferenceOptions */
+    case 77: return flatcc_verify_union_table(ud, tflite_MirrorPadOptions_verify_table); /* MirrorPadOptions */
+    case 78: return flatcc_verify_union_table(ud, tflite_AbsOptions_verify_table); /* AbsOptions */
+    case 79: return flatcc_verify_union_table(ud, tflite_SplitVOptions_verify_table); /* SplitVOptions */
+    case 80: return flatcc_verify_union_table(ud, tflite_UniqueOptions_verify_table); /* UniqueOptions */
+    case 81: return flatcc_verify_union_table(ud, tflite_ReverseV2Options_verify_table); /* ReverseV2Options */
+    case 82: return flatcc_verify_union_table(ud, tflite_AddNOptions_verify_table); /* AddNOptions */
+    case 83: return flatcc_verify_union_table(ud, tflite_GatherNdOptions_verify_table); /* GatherNdOptions */
+    case 84: return flatcc_verify_union_table(ud, tflite_CosOptions_verify_table); /* CosOptions */
+    case 85: return flatcc_verify_union_table(ud, tflite_WhereOptions_verify_table); /* WhereOptions */
+    case 86: return flatcc_verify_union_table(ud, tflite_RankOptions_verify_table); /* RankOptions */
+    case 87: return flatcc_verify_union_table(ud, tflite_ReverseSequenceOptions_verify_table); /* ReverseSequenceOptions */
+    case 88: return flatcc_verify_union_table(ud, tflite_MatrixDiagOptions_verify_table); /* MatrixDiagOptions */
+    case 89: return flatcc_verify_union_table(ud, tflite_QuantizeOptions_verify_table); /* QuantizeOptions */
+    case 90: return flatcc_verify_union_table(ud, tflite_MatrixSetDiagOptions_verify_table); /* MatrixSetDiagOptions */
+    case 91: return flatcc_verify_union_table(ud, tflite_HardSwishOptions_verify_table); /* HardSwishOptions */
+    case 92: return flatcc_verify_union_table(ud, tflite_IfOptions_verify_table); /* IfOptions */
+    case 93: return flatcc_verify_union_table(ud, tflite_WhileOptions_verify_table); /* WhileOptions */
+    case 94: return flatcc_verify_union_table(ud, tflite_DepthToSpaceOptions_verify_table); /* DepthToSpaceOptions */
+    case 95: return flatcc_verify_union_table(ud, tflite_NonMaxSuppressionV4Options_verify_table); /* NonMaxSuppressionV4Options */
+    case 96: return flatcc_verify_union_table(ud, tflite_NonMaxSuppressionV5Options_verify_table); /* NonMaxSuppressionV5Options */
+    case 97: return flatcc_verify_union_table(ud, tflite_ScatterNdOptions_verify_table); /* ScatterNdOptions */
+    case 98: return flatcc_verify_union_table(ud, tflite_SelectV2Options_verify_table); /* SelectV2Options */
+    case 99: return flatcc_verify_union_table(ud, tflite_DensifyOptions_verify_table); /* DensifyOptions */
+    case 100: return flatcc_verify_union_table(ud, tflite_SegmentSumOptions_verify_table); /* SegmentSumOptions */
+    case 101: return flatcc_verify_union_table(ud, tflite_BatchMatMulOptions_verify_table); /* BatchMatMulOptions */
+    case 102: return flatcc_verify_union_table(ud, tflite_CumsumOptions_verify_table); /* CumsumOptions */
+    case 103: return flatcc_verify_union_table(ud, tflite_CallOnceOptions_verify_table); /* CallOnceOptions */
+    case 104: return flatcc_verify_union_table(ud, tflite_BroadcastToOptions_verify_table); /* BroadcastToOptions */
+    case 105: return flatcc_verify_union_table(ud, tflite_Rfft2dOptions_verify_table); /* Rfft2dOptions */
+    case 106: return flatcc_verify_union_table(ud, tflite_Conv3DOptions_verify_table); /* Conv3DOptions */
+    case 107: return flatcc_verify_union_table(ud, tflite_HashtableOptions_verify_table); /* HashtableOptions */
+    case 108: return flatcc_verify_union_table(ud, tflite_HashtableFindOptions_verify_table); /* HashtableFindOptions */
+    case 109: return flatcc_verify_union_table(ud, tflite_HashtableImportOptions_verify_table); /* HashtableImportOptions */
+    case 110: return flatcc_verify_union_table(ud, tflite_HashtableSizeOptions_verify_table); /* HashtableSizeOptions */
+    case 111: return flatcc_verify_union_table(ud, tflite_VarHandleOptions_verify_table); /* VarHandleOptions */
+    case 112: return flatcc_verify_union_table(ud, tflite_ReadVariableOptions_verify_table); /* ReadVariableOptions */
+    case 113: return flatcc_verify_union_table(ud, tflite_AssignVariableOptions_verify_table); /* AssignVariableOptions */
+    case 114: return flatcc_verify_union_table(ud, tflite_RandomOptions_verify_table); /* RandomOptions */
+    case 115: return flatcc_verify_union_table(ud, tflite_BucketizeOptions_verify_table); /* BucketizeOptions */
+    case 116: return flatcc_verify_union_table(ud, tflite_GeluOptions_verify_table); /* GeluOptions */
+    case 117: return flatcc_verify_union_table(ud, tflite_DynamicUpdateSliceOptions_verify_table); /* DynamicUpdateSliceOptions */
+    case 118: return flatcc_verify_union_table(ud, tflite_UnsortedSegmentProdOptions_verify_table); /* UnsortedSegmentProdOptions */
+    case 119: return flatcc_verify_union_table(ud, tflite_UnsortedSegmentMaxOptions_verify_table); /* UnsortedSegmentMaxOptions */
+    case 120: return flatcc_verify_union_table(ud, tflite_UnsortedSegmentSumOptions_verify_table); /* UnsortedSegmentSumOptions */
+    case 121: return flatcc_verify_union_table(ud, tflite_ATan2Options_verify_table); /* ATan2Options */
+    default: return flatcc_verify_ok;
+    }
+}
+
+static int tflite_CustomQuantization_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 1, 0) /* description */)) return ret;
-    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* type */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 3, 0) /* locale */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 4, 0) /* version */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 1, 1, INT64_C(4294967295)) /* custom */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_AssociatedFile_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_CustomQuantization_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AssociatedFile_identifier, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CustomQuantization_identifier, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_CustomQuantization_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AssociatedFile_identifier, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CustomQuantization_identifier, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_CustomQuantization_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AssociatedFile_type_identifier, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CustomQuantization_type_identifier, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_CustomQuantization_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AssociatedFile_type_identifier, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CustomQuantization_type_identifier, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_CustomQuantization_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_CustomQuantization_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_CustomQuantization_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CustomQuantization_verify_table);
 }
 
-static inline int tflite_AssociatedFile_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_CustomQuantization_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AssociatedFile_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CustomQuantization_verify_table);
 }
 
-static int tflite_FeatureProperties_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_QuantizationParameters_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* min */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* max */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 2, 0, 4, 4, INT64_C(1073741823)) /* scale */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 3, 0, 8, 8, INT64_C(536870911)) /* zero_point */)) return ret;
+    if ((ret = flatcc_verify_union_field(td, 5, 0, &tflite_QuantizationDetails_union_verifier) /* details */)) return ret;
+    if ((ret = flatcc_verify_field(td, 6, 4, 4) /* quantized_dimension */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_FeatureProperties_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_QuantizationParameters_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FeatureProperties_identifier, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_QuantizationParameters_identifier, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_QuantizationParameters_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FeatureProperties_identifier, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_QuantizationParameters_identifier, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_QuantizationParameters_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FeatureProperties_type_identifier, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_QuantizationParameters_type_identifier, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_QuantizationParameters_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FeatureProperties_type_identifier, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_QuantizationParameters_type_identifier, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_QuantizationParameters_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_QuantizationParameters_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_QuantizationParameters_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_QuantizationParameters_verify_table);
 }
 
-static inline int tflite_FeatureProperties_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_QuantizationParameters_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FeatureProperties_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_QuantizationParameters_verify_table);
 }
 
-static int tflite_ImageSize_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_Int32Vector_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* width */)) return ret;
-    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* height */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* values */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ImageSize_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Int32Vector_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ImageSize_identifier, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Int32Vector_identifier, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Int32Vector_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ImageSize_identifier, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Int32Vector_identifier, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Int32Vector_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ImageSize_type_identifier, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Int32Vector_type_identifier, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Int32Vector_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ImageSize_type_identifier, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Int32Vector_type_identifier, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Int32Vector_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Int32Vector_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Int32Vector_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Int32Vector_verify_table);
 }
 
-static inline int tflite_ImageSize_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Int32Vector_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ImageSize_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Int32Vector_verify_table);
 }
 
-static int tflite_ImageProperties_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_Uint16Vector_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* color_space */)) return ret;
-    if ((ret = flatcc_verify_table_field(td, 1, 0, &tflite_ImageSize_verify_table) /* default_size */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 2, 2, INT64_C(2147483647)) /* values */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ImageProperties_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Uint16Vector_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ImageProperties_identifier, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Uint16Vector_identifier, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Uint16Vector_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ImageProperties_identifier, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Uint16Vector_identifier, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Uint16Vector_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ImageProperties_type_identifier, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Uint16Vector_type_identifier, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Uint16Vector_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ImageProperties_type_identifier, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Uint16Vector_type_identifier, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Uint16Vector_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Uint16Vector_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Uint16Vector_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Uint16Vector_verify_table);
 }
 
-static inline int tflite_ImageProperties_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Uint16Vector_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ImageProperties_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Uint16Vector_verify_table);
 }
 
-static int tflite_AudioProperties_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_Uint8Vector_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* sample_rate */)) return ret;
-    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* channels */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 1, 1, INT64_C(4294967295)) /* values */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_AudioProperties_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Uint8Vector_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AudioProperties_identifier, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Uint8Vector_identifier, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Uint8Vector_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AudioProperties_identifier, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Uint8Vector_identifier, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Uint8Vector_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AudioProperties_type_identifier, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Uint8Vector_type_identifier, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Uint8Vector_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AudioProperties_type_identifier, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Uint8Vector_type_identifier, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Uint8Vector_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Uint8Vector_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Uint8Vector_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Uint8Vector_verify_table);
 }
 
-static inline int tflite_AudioProperties_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Uint8Vector_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AudioProperties_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Uint8Vector_verify_table);
 }
 
-static int tflite_BoundingBoxProperties_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_DimensionMetadata_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* index */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* format */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* dense_size */)) return ret;
+    if ((ret = flatcc_verify_union_field(td, 3, 0, &tflite_SparseIndexVector_union_verifier) /* array_segments */)) return ret;
+    if ((ret = flatcc_verify_union_field(td, 5, 0, &tflite_SparseIndexVector_union_verifier) /* array_indices */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DimensionMetadata_identifier, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DimensionMetadata_identifier, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DimensionMetadata_type_identifier, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DimensionMetadata_type_identifier, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DimensionMetadata_verify_table);
+}
+
+static inline int tflite_DimensionMetadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DimensionMetadata_verify_table);
+}
+
+static int tflite_SparsityParameters_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* traversal_order */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* block_map */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 2, 0, &tflite_DimensionMetadata_verify_table) /* dim_metadata */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SparsityParameters_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SparsityParameters_identifier, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SparsityParameters_identifier, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SparsityParameters_type_identifier, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SparsityParameters_type_identifier, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SparsityParameters_verify_table);
+}
+
+static inline int tflite_SparsityParameters_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SparsityParameters_verify_table);
+}
+
+static int tflite_Tensor_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* shape */)) return ret;
     if ((ret = flatcc_verify_field(td, 1, 1, 1) /* type */)) return ret;
-    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* coordinate_type */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* buffer */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 3, 0) /* name */)) return ret;
+    if ((ret = flatcc_verify_table_field(td, 4, 0, &tflite_QuantizationParameters_verify_table) /* quantization */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 1, 1) /* is_variable */)) return ret;
+    if ((ret = flatcc_verify_table_field(td, 6, 0, &tflite_SparsityParameters_verify_table) /* sparsity */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 7, 0, 4, 4, INT64_C(1073741823)) /* shape_signature */)) return ret;
+    if ((ret = flatcc_verify_field(td, 8, 1, 1) /* has_rank */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Tensor_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BoundingBoxProperties_identifier, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Tensor_identifier, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Tensor_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BoundingBoxProperties_identifier, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Tensor_identifier, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Tensor_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BoundingBoxProperties_type_identifier, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Tensor_type_identifier, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Tensor_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BoundingBoxProperties_type_identifier, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Tensor_type_identifier, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Tensor_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Tensor_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Tensor_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Tensor_verify_table);
 }
 
-static inline int tflite_BoundingBoxProperties_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Tensor_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BoundingBoxProperties_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Tensor_verify_table);
 }
 
-static int tflite_ValueRange_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_Conv2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* padding */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* stride_w */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* stride_h */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 4, 4) /* dilation_w_factor */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 4, 4) /* dilation_h_factor */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Conv2DOptions_identifier, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Conv2DOptions_identifier, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Conv2DOptions_type_identifier, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Conv2DOptions_type_identifier, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Conv2DOptions_verify_table);
+}
+
+static inline int tflite_Conv2DOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Conv2DOptions_verify_table);
+}
+
+static int tflite_Conv3DOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* padding */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* stride_d */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* stride_w */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* stride_h */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 4, 4) /* dilation_d_factor */)) return ret;
+    if ((ret = flatcc_verify_field(td, 6, 4, 4) /* dilation_w_factor */)) return ret;
+    if ((ret = flatcc_verify_field(td, 7, 4, 4) /* dilation_h_factor */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Conv3DOptions_identifier, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Conv3DOptions_identifier, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Conv3DOptions_type_identifier, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Conv3DOptions_type_identifier, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Conv3DOptions_verify_table);
+}
+
+static inline int tflite_Conv3DOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Conv3DOptions_verify_table);
+}
+
+static int tflite_Pool2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* padding */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* stride_w */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* stride_h */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* filter_width */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 4, 4) /* filter_height */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 1, 1) /* fused_activation_function */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Pool2DOptions_identifier, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Pool2DOptions_identifier, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Pool2DOptions_type_identifier, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Pool2DOptions_type_identifier, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Pool2DOptions_verify_table);
+}
+
+static inline int tflite_Pool2DOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Pool2DOptions_verify_table);
+}
+
+static int tflite_DepthwiseConv2DOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* padding */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* stride_w */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* stride_h */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* depth_multiplier */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 4, 4) /* dilation_w_factor */)) return ret;
+    if ((ret = flatcc_verify_field(td, 6, 4, 4) /* dilation_h_factor */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DepthwiseConv2DOptions_identifier, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DepthwiseConv2DOptions_identifier, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DepthwiseConv2DOptions_type_identifier, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DepthwiseConv2DOptions_type_identifier, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static inline int tflite_DepthwiseConv2DOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DepthwiseConv2DOptions_verify_table);
+}
+
+static int tflite_ConcatEmbeddingsOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* num_channels */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* num_columns_per_channel */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 2, 0, 4, 4, INT64_C(1073741823)) /* embedding_dim_per_channel */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ConcatEmbeddingsOptions_identifier, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ConcatEmbeddingsOptions_identifier, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ConcatEmbeddingsOptions_type_identifier, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ConcatEmbeddingsOptions_type_identifier, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static inline int tflite_ConcatEmbeddingsOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ConcatEmbeddingsOptions_verify_table);
+}
+
+static int tflite_LSHProjectionOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* type */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LSHProjectionOptions_identifier, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LSHProjectionOptions_identifier, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LSHProjectionOptions_type_identifier, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LSHProjectionOptions_type_identifier, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static inline int tflite_LSHProjectionOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LSHProjectionOptions_verify_table);
+}
+
+static int tflite_SVDFOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* rank */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SVDFOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SVDFOptions_identifier, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SVDFOptions_identifier, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SVDFOptions_type_identifier, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SVDFOptions_type_identifier, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SVDFOptions_verify_table);
+}
+
+static inline int tflite_SVDFOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SVDFOptions_verify_table);
+}
+
+static int tflite_RNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_RNNOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RNNOptions_identifier, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RNNOptions_identifier, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RNNOptions_type_identifier, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RNNOptions_type_identifier, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_RNNOptions_verify_table);
+}
+
+static inline int tflite_RNNOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_RNNOptions_verify_table);
+}
+
+static int tflite_SequenceRNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* time_major */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SequenceRNNOptions_identifier, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SequenceRNNOptions_identifier, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SequenceRNNOptions_type_identifier, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SequenceRNNOptions_type_identifier, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_SequenceRNNOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SequenceRNNOptions_verify_table);
+}
+
+static int tflite_BidirectionalSequenceRNNOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* time_major */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* merge_outputs */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BidirectionalSequenceRNNOptions_identifier, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BidirectionalSequenceRNNOptions_identifier, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BidirectionalSequenceRNNOptions_type_identifier, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BidirectionalSequenceRNNOptions_type_identifier, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceRNNOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BidirectionalSequenceRNNOptions_verify_table);
+}
+
+static int tflite_FullyConnectedOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* weights_format */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* keep_num_dims */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FullyConnectedOptions_identifier, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FullyConnectedOptions_identifier, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FullyConnectedOptions_type_identifier, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FullyConnectedOptions_type_identifier, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static inline int tflite_FullyConnectedOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FullyConnectedOptions_verify_table);
+}
+
+static int tflite_SoftmaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* beta */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SoftmaxOptions_identifier, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SoftmaxOptions_identifier, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SoftmaxOptions_type_identifier, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SoftmaxOptions_type_identifier, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SoftmaxOptions_verify_table);
+}
+
+static inline int tflite_SoftmaxOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SoftmaxOptions_verify_table);
+}
+
+static int tflite_ConcatenationOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* axis */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* fused_activation_function */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ConcatenationOptions_identifier, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ConcatenationOptions_identifier, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ConcatenationOptions_type_identifier, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ConcatenationOptions_type_identifier, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ConcatenationOptions_verify_table);
+}
+
+static inline int tflite_ConcatenationOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ConcatenationOptions_verify_table);
+}
+
+static int tflite_AddOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* pot_scale_int16 */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_AddOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AddOptions_identifier, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AddOptions_identifier, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AddOptions_type_identifier, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AddOptions_type_identifier, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AddOptions_verify_table);
+}
+
+static inline int tflite_AddOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AddOptions_verify_table);
+}
+
+static int tflite_MulOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_MulOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MulOptions_identifier, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MulOptions_identifier, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MulOptions_type_identifier, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MulOptions_type_identifier, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_MulOptions_verify_table);
+}
+
+static inline int tflite_MulOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_MulOptions_verify_table);
+}
+
+static int tflite_L2NormOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_L2NormOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_L2NormOptions_identifier, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_L2NormOptions_identifier, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_L2NormOptions_type_identifier, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_L2NormOptions_type_identifier, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_L2NormOptions_verify_table);
+}
+
+static inline int tflite_L2NormOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_L2NormOptions_verify_table);
+}
+
+static int tflite_LocalResponseNormalizationOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* radius */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* bias */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* alpha */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* beta */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LocalResponseNormalizationOptions_identifier, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LocalResponseNormalizationOptions_identifier, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LocalResponseNormalizationOptions_type_identifier, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LocalResponseNormalizationOptions_type_identifier, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static inline int tflite_LocalResponseNormalizationOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LocalResponseNormalizationOptions_verify_table);
+}
+
+static int tflite_LSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* cell_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* proj_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* kernel_type */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LSTMOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LSTMOptions_identifier, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LSTMOptions_identifier, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LSTMOptions_type_identifier, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LSTMOptions_type_identifier, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LSTMOptions_verify_table);
+}
+
+static inline int tflite_LSTMOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LSTMOptions_verify_table);
+}
+
+static int tflite_UnidirectionalSequenceLSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* cell_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* proj_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* time_major */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnidirectionalSequenceLSTMOptions_identifier, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnidirectionalSequenceLSTMOptions_identifier, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnidirectionalSequenceLSTMOptions_type_identifier, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnidirectionalSequenceLSTMOptions_type_identifier, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_UnidirectionalSequenceLSTMOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UnidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static int tflite_BidirectionalSequenceLSTMOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* cell_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* proj_clip */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* merge_outputs */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 1, 1) /* time_major */)) return ret;
+    if ((ret = flatcc_verify_field(td, 5, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BidirectionalSequenceLSTMOptions_identifier, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BidirectionalSequenceLSTMOptions_identifier, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BidirectionalSequenceLSTMOptions_type_identifier, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BidirectionalSequenceLSTMOptions_type_identifier, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static inline int tflite_BidirectionalSequenceLSTMOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BidirectionalSequenceLSTMOptions_verify_table);
+}
+
+static int tflite_ResizeBilinearOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* align_corners */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* half_pixel_centers */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ResizeBilinearOptions_identifier, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ResizeBilinearOptions_identifier, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ResizeBilinearOptions_type_identifier, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ResizeBilinearOptions_type_identifier, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static inline int tflite_ResizeBilinearOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ResizeBilinearOptions_verify_table);
+}
+
+static int tflite_ResizeNearestNeighborOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* align_corners */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* half_pixel_centers */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ResizeNearestNeighborOptions_identifier, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ResizeNearestNeighborOptions_identifier, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ResizeNearestNeighborOptions_type_identifier, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ResizeNearestNeighborOptions_type_identifier, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static inline int tflite_ResizeNearestNeighborOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ResizeNearestNeighborOptions_verify_table);
+}
+
+static int tflite_CallOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* subgraph */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_CallOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CallOptions_identifier, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CallOptions_identifier, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CallOptions_type_identifier, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CallOptions_type_identifier, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CallOptions_verify_table);
+}
+
+static inline int tflite_CallOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CallOptions_verify_table);
+}
+
+static int tflite_PadOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_PadOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PadOptions_identifier, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PadOptions_identifier, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PadOptions_type_identifier, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PadOptions_type_identifier, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_PadOptions_verify_table);
+}
+
+static inline int tflite_PadOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_PadOptions_verify_table);
+}
+
+static int tflite_PadV2Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_PadV2Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PadV2Options_identifier, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PadV2Options_identifier, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PadV2Options_type_identifier, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PadV2Options_type_identifier, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_PadV2Options_verify_table);
+}
+
+static inline int tflite_PadV2Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_PadV2Options_verify_table);
+}
+
+static int tflite_ReshapeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* new_shape */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReshapeOptions_identifier, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReshapeOptions_identifier, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReshapeOptions_type_identifier, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReshapeOptions_type_identifier, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ReshapeOptions_verify_table);
+}
+
+static inline int tflite_ReshapeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ReshapeOptions_verify_table);
+}
+
+static int tflite_SpaceToBatchNDOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SpaceToBatchNDOptions_identifier, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SpaceToBatchNDOptions_identifier, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SpaceToBatchNDOptions_type_identifier, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SpaceToBatchNDOptions_type_identifier, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static inline int tflite_SpaceToBatchNDOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SpaceToBatchNDOptions_verify_table);
+}
+
+static int tflite_BatchToSpaceNDOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BatchToSpaceNDOptions_identifier, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BatchToSpaceNDOptions_identifier, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BatchToSpaceNDOptions_type_identifier, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BatchToSpaceNDOptions_type_identifier, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static inline int tflite_BatchToSpaceNDOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BatchToSpaceNDOptions_verify_table);
+}
+
+static int tflite_SkipGramOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* ngram_size */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* max_skip_size */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* include_all_ngrams */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SkipGramOptions_identifier, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SkipGramOptions_identifier, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SkipGramOptions_type_identifier, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SkipGramOptions_type_identifier, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SkipGramOptions_verify_table);
+}
+
+static inline int tflite_SkipGramOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SkipGramOptions_verify_table);
+}
+
+static int tflite_SpaceToDepthOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* block_size */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SpaceToDepthOptions_identifier, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SpaceToDepthOptions_identifier, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SpaceToDepthOptions_type_identifier, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SpaceToDepthOptions_type_identifier, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static inline int tflite_SpaceToDepthOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SpaceToDepthOptions_verify_table);
+}
+
+static int tflite_DepthToSpaceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* block_size */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DepthToSpaceOptions_identifier, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DepthToSpaceOptions_identifier, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DepthToSpaceOptions_type_identifier, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DepthToSpaceOptions_type_identifier, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static inline int tflite_DepthToSpaceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DepthToSpaceOptions_verify_table);
+}
+
+static int tflite_SubOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* pot_scale_int16 */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SubOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubOptions_identifier, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubOptions_identifier, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubOptions_type_identifier, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubOptions_type_identifier, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SubOptions_verify_table);
+}
+
+static inline int tflite_SubOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SubOptions_verify_table);
+}
+
+static int tflite_DivOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* fused_activation_function */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DivOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DivOptions_identifier, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DivOptions_identifier, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DivOptions_type_identifier, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DivOptions_type_identifier, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DivOptions_verify_table);
+}
+
+static inline int tflite_DivOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DivOptions_verify_table);
+}
+
+static int tflite_TopKV2Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_TopKV2Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TopKV2Options_identifier, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TopKV2Options_identifier, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TopKV2Options_type_identifier, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TopKV2Options_type_identifier, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TopKV2Options_verify_table);
+}
+
+static inline int tflite_TopKV2Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TopKV2Options_verify_table);
+}
+
+static int tflite_EmbeddingLookupSparseOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* combiner */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_EmbeddingLookupSparseOptions_identifier, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_EmbeddingLookupSparseOptions_identifier, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_EmbeddingLookupSparseOptions_type_identifier, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_EmbeddingLookupSparseOptions_type_identifier, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static inline int tflite_EmbeddingLookupSparseOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_EmbeddingLookupSparseOptions_verify_table);
+}
+
+static int tflite_GatherOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* axis */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* batch_dims */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_GatherOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GatherOptions_identifier, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GatherOptions_identifier, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GatherOptions_type_identifier, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GatherOptions_type_identifier, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_GatherOptions_verify_table);
+}
+
+static inline int tflite_GatherOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_GatherOptions_verify_table);
+}
+
+static int tflite_TransposeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_TransposeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TransposeOptions_identifier, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TransposeOptions_identifier, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TransposeOptions_type_identifier, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TransposeOptions_type_identifier, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TransposeOptions_verify_table);
+}
+
+static inline int tflite_TransposeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TransposeOptions_verify_table);
+}
+
+static int tflite_ExpOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ExpOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ExpOptions_identifier, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ExpOptions_identifier, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ExpOptions_type_identifier, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ExpOptions_type_identifier, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ExpOptions_verify_table);
+}
+
+static inline int tflite_ExpOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ExpOptions_verify_table);
+}
+
+static int tflite_CosOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_CosOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CosOptions_identifier, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CosOptions_identifier, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CosOptions_type_identifier, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CosOptions_type_identifier, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CosOptions_verify_table);
+}
+
+static inline int tflite_CosOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CosOptions_verify_table);
+}
+
+static int tflite_ReducerOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* keep_dims */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ReducerOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReducerOptions_identifier, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReducerOptions_identifier, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReducerOptions_type_identifier, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReducerOptions_type_identifier, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ReducerOptions_verify_table);
+}
+
+static inline int tflite_ReducerOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ReducerOptions_verify_table);
+}
+
+static int tflite_SqueezeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* squeeze_dims */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SqueezeOptions_identifier, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SqueezeOptions_identifier, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SqueezeOptions_type_identifier, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SqueezeOptions_type_identifier, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SqueezeOptions_verify_table);
+}
+
+static inline int tflite_SqueezeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SqueezeOptions_verify_table);
+}
+
+static int tflite_SplitOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* num_splits */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SplitOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SplitOptions_identifier, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SplitOptions_identifier, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SplitOptions_type_identifier, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SplitOptions_type_identifier, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SplitOptions_verify_table);
+}
+
+static inline int tflite_SplitOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SplitOptions_verify_table);
+}
+
+static int tflite_SplitVOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* num_splits */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SplitVOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SplitVOptions_identifier, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SplitVOptions_identifier, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SplitVOptions_type_identifier, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SplitVOptions_type_identifier, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SplitVOptions_verify_table);
+}
+
+static inline int tflite_SplitVOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SplitVOptions_verify_table);
+}
+
+static int tflite_StridedSliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* begin_mask */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* end_mask */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* ellipsis_mask */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* new_axis_mask */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 4, 4) /* shrink_axis_mask */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_StridedSliceOptions_identifier, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_StridedSliceOptions_identifier, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_StridedSliceOptions_type_identifier, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_StridedSliceOptions_type_identifier, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_StridedSliceOptions_verify_table);
+}
+
+static inline int tflite_StridedSliceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_StridedSliceOptions_verify_table);
+}
+
+static int tflite_LogSoftmaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogSoftmaxOptions_identifier, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogSoftmaxOptions_identifier, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogSoftmaxOptions_type_identifier, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogSoftmaxOptions_type_identifier, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static inline int tflite_LogSoftmaxOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LogSoftmaxOptions_verify_table);
+}
+
+static int tflite_CastOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* in_data_type */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* out_data_type */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_CastOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CastOptions_identifier, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CastOptions_identifier, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CastOptions_type_identifier, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CastOptions_type_identifier, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CastOptions_verify_table);
+}
+
+static inline int tflite_CastOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CastOptions_verify_table);
+}
+
+static int tflite_DequantizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DequantizeOptions_identifier, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DequantizeOptions_identifier, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DequantizeOptions_type_identifier, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DequantizeOptions_type_identifier, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DequantizeOptions_verify_table);
+}
+
+static inline int tflite_DequantizeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DequantizeOptions_verify_table);
+}
+
+static int tflite_MaximumMinimumOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MaximumMinimumOptions_identifier, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MaximumMinimumOptions_identifier, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MaximumMinimumOptions_type_identifier, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MaximumMinimumOptions_type_identifier, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static inline int tflite_MaximumMinimumOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_MaximumMinimumOptions_verify_table);
+}
+
+static int tflite_TileOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_TileOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TileOptions_identifier, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TileOptions_identifier, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TileOptions_type_identifier, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TileOptions_type_identifier, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TileOptions_verify_table);
+}
+
+static inline int tflite_TileOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TileOptions_verify_table);
+}
+
+static int tflite_ArgMaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* output_type */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ArgMaxOptions_identifier, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ArgMaxOptions_identifier, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ArgMaxOptions_type_identifier, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ArgMaxOptions_type_identifier, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ArgMaxOptions_verify_table);
+}
+
+static inline int tflite_ArgMaxOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ArgMaxOptions_verify_table);
+}
+
+static int tflite_ArgMinOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* output_type */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ArgMinOptions_identifier, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ArgMinOptions_identifier, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ArgMinOptions_type_identifier, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ArgMinOptions_type_identifier, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ArgMinOptions_verify_table);
+}
+
+static inline int tflite_ArgMinOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ArgMinOptions_verify_table);
+}
+
+static int tflite_GreaterOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_GreaterOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GreaterOptions_identifier, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GreaterOptions_identifier, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GreaterOptions_type_identifier, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GreaterOptions_type_identifier, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_GreaterOptions_verify_table);
+}
+
+static inline int tflite_GreaterOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_GreaterOptions_verify_table);
+}
+
+static int tflite_GreaterEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GreaterEqualOptions_identifier, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GreaterEqualOptions_identifier, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GreaterEqualOptions_type_identifier, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GreaterEqualOptions_type_identifier, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static inline int tflite_GreaterEqualOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_GreaterEqualOptions_verify_table);
+}
+
+static int tflite_LessOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LessOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LessOptions_identifier, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LessOptions_identifier, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LessOptions_type_identifier, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LessOptions_type_identifier, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LessOptions_verify_table);
+}
+
+static inline int tflite_LessOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LessOptions_verify_table);
+}
+
+static int tflite_LessEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LessEqualOptions_identifier, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LessEqualOptions_identifier, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LessEqualOptions_type_identifier, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LessEqualOptions_type_identifier, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LessEqualOptions_verify_table);
+}
+
+static inline int tflite_LessEqualOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LessEqualOptions_verify_table);
+}
+
+static int tflite_NegOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_NegOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NegOptions_identifier, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NegOptions_identifier, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NegOptions_type_identifier, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NegOptions_type_identifier, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_NegOptions_verify_table);
+}
+
+static inline int tflite_NegOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_NegOptions_verify_table);
+}
+
+static int tflite_SelectOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SelectOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SelectOptions_identifier, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SelectOptions_identifier, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SelectOptions_type_identifier, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SelectOptions_type_identifier, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SelectOptions_verify_table);
+}
+
+static inline int tflite_SelectOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SelectOptions_verify_table);
+}
+
+static int tflite_SliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SliceOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SliceOptions_identifier, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SliceOptions_identifier, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SliceOptions_type_identifier, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SliceOptions_type_identifier, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SliceOptions_verify_table);
+}
+
+static inline int tflite_SliceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SliceOptions_verify_table);
+}
+
+static int tflite_TransposeConvOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* padding */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* stride_w */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* stride_h */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TransposeConvOptions_identifier, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TransposeConvOptions_identifier, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TransposeConvOptions_type_identifier, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TransposeConvOptions_type_identifier, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TransposeConvOptions_verify_table);
+}
+
+static inline int tflite_TransposeConvOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TransposeConvOptions_verify_table);
+}
+
+static int tflite_ExpandDimsOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ExpandDimsOptions_identifier, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ExpandDimsOptions_identifier, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ExpandDimsOptions_type_identifier, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ExpandDimsOptions_type_identifier, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static inline int tflite_ExpandDimsOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ExpandDimsOptions_verify_table);
+}
+
+static int tflite_SparseToDenseOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* validate_indices */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SparseToDenseOptions_identifier, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SparseToDenseOptions_identifier, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SparseToDenseOptions_type_identifier, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SparseToDenseOptions_type_identifier, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static inline int tflite_SparseToDenseOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SparseToDenseOptions_verify_table);
+}
+
+static int tflite_EqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_EqualOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_EqualOptions_identifier, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_EqualOptions_identifier, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_EqualOptions_type_identifier, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_EqualOptions_type_identifier, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_EqualOptions_verify_table);
+}
+
+static inline int tflite_EqualOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_EqualOptions_verify_table);
+}
+
+static int tflite_NotEqualOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NotEqualOptions_identifier, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NotEqualOptions_identifier, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NotEqualOptions_type_identifier, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NotEqualOptions_type_identifier, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_NotEqualOptions_verify_table);
+}
+
+static inline int tflite_NotEqualOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_NotEqualOptions_verify_table);
+}
+
+static int tflite_ShapeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* out_type */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ShapeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ShapeOptions_identifier, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ShapeOptions_identifier, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ShapeOptions_type_identifier, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ShapeOptions_type_identifier, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ShapeOptions_verify_table);
+}
+
+static inline int tflite_ShapeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ShapeOptions_verify_table);
+}
+
+static int tflite_RankOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_RankOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RankOptions_identifier, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RankOptions_identifier, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RankOptions_type_identifier, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RankOptions_type_identifier, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_RankOptions_verify_table);
+}
+
+static inline int tflite_RankOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_RankOptions_verify_table);
+}
+
+static int tflite_PowOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_PowOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PowOptions_identifier, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PowOptions_identifier, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PowOptions_type_identifier, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PowOptions_type_identifier, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_PowOptions_verify_table);
+}
+
+static inline int tflite_PowOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_PowOptions_verify_table);
+}
+
+static int tflite_FakeQuantOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
     if ((ret = flatcc_verify_field(td, 0, 4, 4) /* min */)) return ret;
     if ((ret = flatcc_verify_field(td, 1, 4, 4) /* max */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* num_bits */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 1, 1) /* narrow_range */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ValueRange_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_FakeQuantOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ValueRange_identifier, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FakeQuantOptions_identifier, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_FakeQuantOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ValueRange_identifier, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FakeQuantOptions_identifier, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_FakeQuantOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ValueRange_type_identifier, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FakeQuantOptions_type_identifier, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_FakeQuantOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ValueRange_type_identifier, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FakeQuantOptions_type_identifier, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_FakeQuantOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_FakeQuantOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_FakeQuantOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FakeQuantOptions_verify_table);
 }
 
-static inline int tflite_ValueRange_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_FakeQuantOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ValueRange_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FakeQuantOptions_verify_table);
 }
 
-static int tflite_Content_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_PackOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_union_field(td, 1, 0, &tflite_ContentProperties_union_verifier) /* content_properties */)) return ret;
-    if ((ret = flatcc_verify_table_field(td, 2, 0, &tflite_ValueRange_verify_table) /* range */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* values_count */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* axis */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_Content_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_PackOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Content_identifier, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PackOptions_identifier, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_PackOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Content_identifier, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PackOptions_identifier, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_PackOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Content_type_identifier, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_PackOptions_type_identifier, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_PackOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Content_type_identifier, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_PackOptions_type_identifier, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_PackOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_PackOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_PackOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_PackOptions_verify_table);
 }
 
-static inline int tflite_Content_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_PackOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Content_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_PackOptions_verify_table);
 }
 
-static int tflite_NormalizationOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_LogicalOrOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalOrOptions_identifier, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalOrOptions_identifier, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalOrOptions_type_identifier, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalOrOptions_type_identifier, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LogicalOrOptions_verify_table);
+}
+
+static inline int tflite_LogicalOrOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LogicalOrOptions_verify_table);
+}
+
+static int tflite_OneHotOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* mean */)) return ret;
-    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* std */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* axis */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_OneHotOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NormalizationOptions_identifier, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_OneHotOptions_identifier, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_OneHotOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NormalizationOptions_identifier, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_OneHotOptions_identifier, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_OneHotOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NormalizationOptions_type_identifier, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_OneHotOptions_type_identifier, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_OneHotOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NormalizationOptions_type_identifier, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_OneHotOptions_type_identifier, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_OneHotOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_OneHotOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_OneHotOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_OneHotOptions_verify_table);
 }
 
-static inline int tflite_NormalizationOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_OneHotOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_NormalizationOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_OneHotOptions_verify_table);
 }
 
-static int tflite_ScoreCalibrationOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_AbsOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_AbsOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AbsOptions_identifier, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AbsOptions_identifier, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AbsOptions_type_identifier, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AbsOptions_type_identifier, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AbsOptions_verify_table);
+}
+
+static inline int tflite_AbsOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AbsOptions_verify_table);
+}
+
+static int tflite_HardSwishOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HardSwishOptions_identifier, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HardSwishOptions_identifier, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HardSwishOptions_type_identifier, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HardSwishOptions_type_identifier, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_HardSwishOptions_verify_table);
+}
+
+static inline int tflite_HardSwishOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_HardSwishOptions_verify_table);
+}
+
+static int tflite_LogicalAndOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalAndOptions_identifier, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalAndOptions_identifier, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalAndOptions_type_identifier, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalAndOptions_type_identifier, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LogicalAndOptions_verify_table);
+}
+
+static inline int tflite_LogicalAndOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LogicalAndOptions_verify_table);
+}
+
+static int tflite_LogicalNotOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalNotOptions_identifier, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalNotOptions_identifier, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LogicalNotOptions_type_identifier, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LogicalNotOptions_type_identifier, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LogicalNotOptions_verify_table);
+}
+
+static inline int tflite_LogicalNotOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LogicalNotOptions_verify_table);
+}
+
+static int tflite_UnpackOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* score_transformation */)) return ret;
-    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* default_score */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* num */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* axis */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_UnpackOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScoreCalibrationOptions_identifier, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnpackOptions_identifier, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_UnpackOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScoreCalibrationOptions_identifier, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnpackOptions_identifier, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_UnpackOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScoreCalibrationOptions_type_identifier, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnpackOptions_type_identifier, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_UnpackOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScoreCalibrationOptions_type_identifier, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnpackOptions_type_identifier, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_UnpackOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_UnpackOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_UnpackOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UnpackOptions_verify_table);
 }
 
-static inline int tflite_ScoreCalibrationOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_UnpackOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ScoreCalibrationOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UnpackOptions_verify_table);
 }
 
-static int tflite_ScoreThresholdingOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_FloorDivOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FloorDivOptions_identifier, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FloorDivOptions_identifier, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FloorDivOptions_type_identifier, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FloorDivOptions_type_identifier, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FloorDivOptions_verify_table);
+}
+
+static inline int tflite_FloorDivOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FloorDivOptions_verify_table);
+}
+
+static int tflite_SquareOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SquareOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SquareOptions_identifier, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SquareOptions_identifier, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SquareOptions_type_identifier, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SquareOptions_type_identifier, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SquareOptions_verify_table);
+}
+
+static inline int tflite_SquareOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SquareOptions_verify_table);
+}
+
+static int tflite_ZerosLikeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ZerosLikeOptions_identifier, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ZerosLikeOptions_identifier, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ZerosLikeOptions_type_identifier, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ZerosLikeOptions_type_identifier, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static inline int tflite_ZerosLikeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ZerosLikeOptions_verify_table);
+}
+
+static int tflite_FillOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_FillOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FillOptions_identifier, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FillOptions_identifier, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FillOptions_type_identifier, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FillOptions_type_identifier, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FillOptions_verify_table);
+}
+
+static inline int tflite_FillOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FillOptions_verify_table);
+}
+
+static int tflite_FloorModOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_FloorModOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FloorModOptions_identifier, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FloorModOptions_identifier, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_FloorModOptions_type_identifier, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_FloorModOptions_type_identifier, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_FloorModOptions_verify_table);
+}
+
+static inline int tflite_FloorModOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_FloorModOptions_verify_table);
+}
+
+static int tflite_RangeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_RangeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RangeOptions_identifier, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RangeOptions_identifier, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RangeOptions_type_identifier, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RangeOptions_type_identifier, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_RangeOptions_verify_table);
+}
+
+static inline int tflite_RangeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_RangeOptions_verify_table);
+}
+
+static int tflite_LeakyReluOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* global_score_threshold */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* alpha */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_LeakyReluOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScoreThresholdingOptions_identifier, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LeakyReluOptions_identifier, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_LeakyReluOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScoreThresholdingOptions_identifier, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LeakyReluOptions_identifier, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_LeakyReluOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScoreThresholdingOptions_type_identifier, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_LeakyReluOptions_type_identifier, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_LeakyReluOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScoreThresholdingOptions_type_identifier, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_LeakyReluOptions_type_identifier, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_LeakyReluOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_LeakyReluOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_LeakyReluOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_LeakyReluOptions_verify_table);
 }
 
-static inline int tflite_ScoreThresholdingOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_LeakyReluOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ScoreThresholdingOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_LeakyReluOptions_verify_table);
 }
 
-static int tflite_BertTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_SquaredDifferenceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SquaredDifferenceOptions_identifier, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SquaredDifferenceOptions_identifier, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SquaredDifferenceOptions_type_identifier, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SquaredDifferenceOptions_type_identifier, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static inline int tflite_SquaredDifferenceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SquaredDifferenceOptions_verify_table);
+}
+
+static int tflite_MirrorPadOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 0, 0, &tflite_AssociatedFile_verify_table) /* vocab_file */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* mode */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_MirrorPadOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BertTokenizerOptions_identifier, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MirrorPadOptions_identifier, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_MirrorPadOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BertTokenizerOptions_identifier, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MirrorPadOptions_identifier, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_MirrorPadOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BertTokenizerOptions_type_identifier, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MirrorPadOptions_type_identifier, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_MirrorPadOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BertTokenizerOptions_type_identifier, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MirrorPadOptions_type_identifier, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_MirrorPadOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_MirrorPadOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_MirrorPadOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_MirrorPadOptions_verify_table);
 }
 
-static inline int tflite_BertTokenizerOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_MirrorPadOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BertTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_MirrorPadOptions_verify_table);
 }
 
-static int tflite_SentencePieceTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_UniqueOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 0, 0, &tflite_AssociatedFile_verify_table) /* sentencePiece_model */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 1, 0, &tflite_AssociatedFile_verify_table) /* vocab_file */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* idx_out_type */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_UniqueOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SentencePieceTokenizerOptions_identifier, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UniqueOptions_identifier, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_UniqueOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SentencePieceTokenizerOptions_identifier, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UniqueOptions_identifier, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_UniqueOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SentencePieceTokenizerOptions_type_identifier, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UniqueOptions_type_identifier, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_UniqueOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SentencePieceTokenizerOptions_type_identifier, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UniqueOptions_type_identifier, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_UniqueOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_UniqueOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_UniqueOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UniqueOptions_verify_table);
 }
 
-static inline int tflite_SentencePieceTokenizerOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_UniqueOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SentencePieceTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UniqueOptions_verify_table);
 }
 
-static int tflite_RegexTokenizerOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_ReverseV2Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReverseV2Options_identifier, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReverseV2Options_identifier, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReverseV2Options_type_identifier, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReverseV2Options_type_identifier, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ReverseV2Options_verify_table);
+}
+
+static inline int tflite_ReverseV2Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ReverseV2Options_verify_table);
+}
+
+static int tflite_AddNOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_AddNOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AddNOptions_identifier, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AddNOptions_identifier, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AddNOptions_type_identifier, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AddNOptions_type_identifier, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AddNOptions_verify_table);
+}
+
+static inline int tflite_AddNOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AddNOptions_verify_table);
+}
+
+static int tflite_GatherNdOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GatherNdOptions_identifier, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GatherNdOptions_identifier, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GatherNdOptions_type_identifier, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GatherNdOptions_type_identifier, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_GatherNdOptions_verify_table);
+}
+
+static inline int tflite_GatherNdOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_GatherNdOptions_verify_table);
+}
+
+static int tflite_WhereOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_WhereOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_WhereOptions_identifier, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_WhereOptions_identifier, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_WhereOptions_type_identifier, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_WhereOptions_type_identifier, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_WhereOptions_verify_table);
+}
+
+static inline int tflite_WhereOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_WhereOptions_verify_table);
+}
+
+static int tflite_ReverseSequenceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_string_field(td, 0, 0) /* delim_regex_pattern */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 1, 0, &tflite_AssociatedFile_verify_table) /* vocab_file */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* seq_dim */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* batch_dim */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_ReverseSequenceOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RegexTokenizerOptions_identifier, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReverseSequenceOptions_identifier, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_ReverseSequenceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RegexTokenizerOptions_identifier, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReverseSequenceOptions_identifier, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_ReverseSequenceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RegexTokenizerOptions_type_identifier, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReverseSequenceOptions_type_identifier, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_ReverseSequenceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RegexTokenizerOptions_type_identifier, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReverseSequenceOptions_type_identifier, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_ReverseSequenceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_ReverseSequenceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_ReverseSequenceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static inline int tflite_RegexTokenizerOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_ReverseSequenceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_RegexTokenizerOptions_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ReverseSequenceOptions_verify_table);
 }
 
-static int tflite_ProcessUnit_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_MatrixDiagOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MatrixDiagOptions_identifier, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MatrixDiagOptions_identifier, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MatrixDiagOptions_type_identifier, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MatrixDiagOptions_type_identifier, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixDiagOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_MatrixDiagOptions_verify_table);
+}
+
+static int tflite_QuantizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_QuantizeOptions_identifier, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_QuantizeOptions_identifier, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_QuantizeOptions_type_identifier, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_QuantizeOptions_type_identifier, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_QuantizeOptions_verify_table);
+}
+
+static inline int tflite_QuantizeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_QuantizeOptions_verify_table);
+}
+
+static int tflite_MatrixSetDiagOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MatrixSetDiagOptions_identifier, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MatrixSetDiagOptions_identifier, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_MatrixSetDiagOptions_type_identifier, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_MatrixSetDiagOptions_type_identifier, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static inline int tflite_MatrixSetDiagOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_MatrixSetDiagOptions_verify_table);
+}
+
+static int tflite_IfOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_union_field(td, 1, 0, &tflite_ProcessUnitOptions_union_verifier) /* options */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* then_subgraph_index */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* else_subgraph_index */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_ProcessUnit_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_IfOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ProcessUnit_identifier, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_IfOptions_identifier, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_IfOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ProcessUnit_identifier, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_IfOptions_identifier, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_IfOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ProcessUnit_type_identifier, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_IfOptions_type_identifier, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_IfOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ProcessUnit_type_identifier, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_IfOptions_type_identifier, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_IfOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_IfOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_IfOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_IfOptions_verify_table);
 }
 
-static inline int tflite_ProcessUnit_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_IfOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ProcessUnit_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_IfOptions_verify_table);
 }
 
-static int tflite_Stats_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_CallOnceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* max */)) return ret;
-    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* min */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* init_subgraph_index */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_Stats_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_CallOnceOptions_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Stats_identifier, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CallOnceOptions_identifier, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_CallOnceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Stats_identifier, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CallOnceOptions_identifier, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_CallOnceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Stats_type_identifier, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CallOnceOptions_type_identifier, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_CallOnceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Stats_type_identifier, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CallOnceOptions_type_identifier, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_CallOnceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_CallOnceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_CallOnceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CallOnceOptions_verify_table);
 }
 
-static inline int tflite_Stats_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_CallOnceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Stats_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CallOnceOptions_verify_table);
 }
 
-static int tflite_TensorGroup_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_WhileOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* cond_subgraph_index */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* body_subgraph_index */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_WhileOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_WhileOptions_identifier, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_WhileOptions_identifier, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_WhileOptions_type_identifier, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_WhileOptions_type_identifier, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_WhileOptions_verify_table);
+}
+
+static inline int tflite_WhileOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_WhileOptions_verify_table);
+}
+
+static int tflite_NonMaxSuppressionV4Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NonMaxSuppressionV4Options_identifier, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NonMaxSuppressionV4Options_identifier, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NonMaxSuppressionV4Options_type_identifier, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NonMaxSuppressionV4Options_type_identifier, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV4Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_NonMaxSuppressionV4Options_verify_table);
+}
+
+static int tflite_NonMaxSuppressionV5Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NonMaxSuppressionV5Options_identifier, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NonMaxSuppressionV5Options_identifier, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_NonMaxSuppressionV5Options_type_identifier, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_NonMaxSuppressionV5Options_type_identifier, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static inline int tflite_NonMaxSuppressionV5Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_NonMaxSuppressionV5Options_verify_table);
+}
+
+static int tflite_ScatterNdOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScatterNdOptions_identifier, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScatterNdOptions_identifier, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ScatterNdOptions_type_identifier, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ScatterNdOptions_type_identifier, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ScatterNdOptions_verify_table);
+}
+
+static inline int tflite_ScatterNdOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ScatterNdOptions_verify_table);
+}
+
+static int tflite_SelectV2Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SelectV2Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SelectV2Options_identifier, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SelectV2Options_identifier, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SelectV2Options_type_identifier, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SelectV2Options_type_identifier, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SelectV2Options_verify_table);
+}
+
+static inline int tflite_SelectV2Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SelectV2Options_verify_table);
+}
+
+static int tflite_DensifyOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DensifyOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DensifyOptions_identifier, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DensifyOptions_identifier, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DensifyOptions_type_identifier, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DensifyOptions_type_identifier, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DensifyOptions_verify_table);
+}
+
+static inline int tflite_DensifyOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DensifyOptions_verify_table);
+}
+
+static int tflite_SegmentSumOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SegmentSumOptions_identifier, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SegmentSumOptions_identifier, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SegmentSumOptions_type_identifier, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SegmentSumOptions_type_identifier, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SegmentSumOptions_verify_table);
+}
+
+static inline int tflite_SegmentSumOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SegmentSumOptions_verify_table);
+}
+
+static int tflite_BatchMatMulOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* adj_x */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* adj_y */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* asymmetric_quantize_inputs */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BatchMatMulOptions_identifier, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BatchMatMulOptions_identifier, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BatchMatMulOptions_type_identifier, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BatchMatMulOptions_type_identifier, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static inline int tflite_BatchMatMulOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BatchMatMulOptions_verify_table);
+}
+
+static int tflite_CumsumOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* exclusive */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* reverse */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_CumsumOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CumsumOptions_identifier, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CumsumOptions_identifier, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CumsumOptions_type_identifier, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CumsumOptions_type_identifier, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CumsumOptions_verify_table);
+}
+
+static inline int tflite_CumsumOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CumsumOptions_verify_table);
+}
+
+static int tflite_BroadcastToOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BroadcastToOptions_identifier, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BroadcastToOptions_identifier, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BroadcastToOptions_type_identifier, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BroadcastToOptions_type_identifier, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BroadcastToOptions_verify_table);
+}
+
+static inline int tflite_BroadcastToOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BroadcastToOptions_verify_table);
+}
+
+static int tflite_Rfft2dOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Rfft2dOptions_identifier, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Rfft2dOptions_identifier, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Rfft2dOptions_type_identifier, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Rfft2dOptions_type_identifier, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Rfft2dOptions_verify_table);
+}
+
+static inline int tflite_Rfft2dOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Rfft2dOptions_verify_table);
+}
+
+static int tflite_HashtableOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* table_id */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 1, 1) /* key_dtype */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 1, 1) /* value_dtype */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_HashtableOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableOptions_identifier, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableOptions_identifier, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableOptions_type_identifier, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableOptions_type_identifier, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_HashtableOptions_verify_table);
+}
+
+static inline int tflite_HashtableOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_HashtableOptions_verify_table);
+}
+
+static int tflite_HashtableFindOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableFindOptions_identifier, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableFindOptions_identifier, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableFindOptions_type_identifier, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableFindOptions_type_identifier, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_HashtableFindOptions_verify_table);
+}
+
+static inline int tflite_HashtableFindOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_HashtableFindOptions_verify_table);
+}
+
+static int tflite_HashtableImportOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableImportOptions_identifier, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableImportOptions_identifier, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableImportOptions_type_identifier, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableImportOptions_type_identifier, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_HashtableImportOptions_verify_table);
+}
+
+static inline int tflite_HashtableImportOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_HashtableImportOptions_verify_table);
+}
+
+static int tflite_HashtableSizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableSizeOptions_identifier, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableSizeOptions_identifier, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_HashtableSizeOptions_type_identifier, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_HashtableSizeOptions_type_identifier, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static inline int tflite_HashtableSizeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_HashtableSizeOptions_verify_table);
+}
+
+static int tflite_VarHandleOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_string_field(td, 0, 0) /* container */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 1, 0) /* shared_name */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_VarHandleOptions_identifier, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_VarHandleOptions_identifier, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_VarHandleOptions_type_identifier, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_VarHandleOptions_type_identifier, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_VarHandleOptions_verify_table);
+}
+
+static inline int tflite_VarHandleOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_VarHandleOptions_verify_table);
+}
+
+static int tflite_ReadVariableOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReadVariableOptions_identifier, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReadVariableOptions_identifier, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ReadVariableOptions_type_identifier, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ReadVariableOptions_type_identifier, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ReadVariableOptions_verify_table);
+}
+
+static inline int tflite_ReadVariableOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ReadVariableOptions_verify_table);
+}
+
+static int tflite_AssignVariableOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AssignVariableOptions_identifier, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AssignVariableOptions_identifier, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_AssignVariableOptions_type_identifier, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_AssignVariableOptions_type_identifier, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_AssignVariableOptions_verify_table);
+}
+
+static inline int tflite_AssignVariableOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_AssignVariableOptions_verify_table);
+}
+
+static int tflite_RandomOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 8, 8) /* seed */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 8, 8) /* seed2 */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_RandomOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RandomOptions_identifier, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RandomOptions_identifier, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_RandomOptions_type_identifier, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_RandomOptions_type_identifier, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_RandomOptions_verify_table);
+}
+
+static inline int tflite_RandomOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_RandomOptions_verify_table);
+}
+
+static int tflite_BucketizeOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 4, 4, INT64_C(1073741823)) /* boundaries */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BucketizeOptions_identifier, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BucketizeOptions_identifier, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_BucketizeOptions_type_identifier, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_BucketizeOptions_type_identifier, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_BucketizeOptions_verify_table);
+}
+
+static inline int tflite_BucketizeOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_BucketizeOptions_verify_table);
+}
+
+static int tflite_GeluOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* approximate */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_GeluOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GeluOptions_identifier, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GeluOptions_identifier, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_GeluOptions_type_identifier, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_GeluOptions_type_identifier, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_GeluOptions_verify_table);
+}
+
+static inline int tflite_GeluOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_GeluOptions_verify_table);
+}
+
+static int tflite_DynamicUpdateSliceOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DynamicUpdateSliceOptions_identifier, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DynamicUpdateSliceOptions_identifier, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_DynamicUpdateSliceOptions_type_identifier, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_DynamicUpdateSliceOptions_type_identifier, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static inline int tflite_DynamicUpdateSliceOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_DynamicUpdateSliceOptions_verify_table);
+}
+
+static int tflite_UnsortedSegmentProdOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentProdOptions_identifier, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentProdOptions_identifier, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentProdOptions_type_identifier, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentProdOptions_type_identifier, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentProdOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UnsortedSegmentProdOptions_verify_table);
+}
+
+static int tflite_UnsortedSegmentMaxOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentMaxOptions_identifier, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentMaxOptions_identifier, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentMaxOptions_type_identifier, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentMaxOptions_type_identifier, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentMaxOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UnsortedSegmentMaxOptions_verify_table);
+}
+
+static int tflite_UnsortedSegmentSumOptions_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentSumOptions_identifier, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentSumOptions_identifier, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_UnsortedSegmentSumOptions_type_identifier, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_UnsortedSegmentSumOptions_type_identifier, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static inline int tflite_UnsortedSegmentSumOptions_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_UnsortedSegmentSumOptions_verify_table);
+}
+
+static int tflite_ATan2Options_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_ATan2Options_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ATan2Options_identifier, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ATan2Options_identifier, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ATan2Options_type_identifier, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ATan2Options_type_identifier, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ATan2Options_verify_table);
+}
+
+static inline int tflite_ATan2Options_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ATan2Options_verify_table);
+}
+
+static int tflite_OperatorCode_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 1, 1) /* deprecated_builtin_code */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 1, 0) /* custom_code */)) return ret;
+    if ((ret = flatcc_verify_field(td, 2, 4, 4) /* version */)) return ret;
+    if ((ret = flatcc_verify_field(td, 3, 4, 4) /* builtin_code */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_OperatorCode_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_OperatorCode_identifier, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_OperatorCode_identifier, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_OperatorCode_type_identifier, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_OperatorCode_type_identifier, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_OperatorCode_verify_table);
+}
+
+static inline int tflite_OperatorCode_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_OperatorCode_verify_table);
+}
+
+static int tflite_Operator_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* opcode_index */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* inputs */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 2, 0, 4, 4, INT64_C(1073741823)) /* outputs */)) return ret;
+    if ((ret = flatcc_verify_union_field(td, 4, 0, &tflite_BuiltinOptions_union_verifier) /* builtin_options */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 5, 0, 1, 1, INT64_C(4294967295)) /* custom_options */)) return ret;
+    if ((ret = flatcc_verify_field(td, 6, 1, 1) /* custom_options_format */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 7, 0, 1, 1, INT64_C(4294967295)) /* mutating_variable_inputs */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 8, 0, 4, 4, INT64_C(1073741823)) /* intermediates */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Operator_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Operator_identifier, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Operator_identifier, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Operator_type_identifier, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Operator_type_identifier, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Operator_verify_table);
+}
+
+static inline int tflite_Operator_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Operator_verify_table);
+}
+
+static int tflite_SubGraph_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 0, 0, &tflite_Tensor_verify_table) /* tensors */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 1, 0, 4, 4, INT64_C(1073741823)) /* inputs */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 2, 0, 4, 4, INT64_C(1073741823)) /* outputs */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 3, 0, &tflite_Operator_verify_table) /* operators */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 4, 0) /* name */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_SubGraph_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubGraph_identifier, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubGraph_identifier, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubGraph_type_identifier, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubGraph_type_identifier, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SubGraph_verify_table);
+}
+
+static inline int tflite_SubGraph_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SubGraph_verify_table);
+}
+
+static int tflite_Buffer_verify_table(flatcc_table_verifier_descriptor_t *td)
+{
+    int ret;
+    if ((ret = flatcc_verify_vector_field(td, 0, 0, 1, 1, INT64_C(4294967295)) /* data */)) return ret;
+    return flatcc_verify_ok;
+}
+
+static inline int tflite_Buffer_verify_as_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Buffer_identifier, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Buffer_identifier, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_typed_root(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Buffer_type_identifier, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Buffer_type_identifier, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+{
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Buffer_verify_table);
+}
+
+static inline int tflite_Buffer_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+{
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Buffer_verify_table);
+}
+
+static int tflite_Metadata_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
     if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
-    if ((ret = flatcc_verify_string_vector_field(td, 1, 0) /* tensor_names */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* buffer */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_TensorGroup_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Metadata_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorGroup_identifier, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Metadata_identifier, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Metadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorGroup_identifier, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Metadata_identifier, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Metadata_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorGroup_type_identifier, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Metadata_type_identifier, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Metadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorGroup_type_identifier, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Metadata_type_identifier, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Metadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Metadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Metadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Metadata_verify_table);
 }
 
-static inline int tflite_TensorGroup_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Metadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TensorGroup_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Metadata_verify_table);
 }
 
-static int tflite_TensorMetadata_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_TensorMap_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
     if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 1, 0) /* description */)) return ret;
-    if ((ret = flatcc_verify_string_vector_field(td, 2, 0) /* dimension_names */)) return ret;
-    if ((ret = flatcc_verify_table_field(td, 3, 0, &tflite_Content_verify_table) /* content */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 4, 0, &tflite_ProcessUnit_verify_table) /* process_units */)) return ret;
-    if ((ret = flatcc_verify_table_field(td, 5, 0, &tflite_Stats_verify_table) /* stats */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 6, 0, &tflite_AssociatedFile_verify_table) /* associated_files */)) return ret;
+    if ((ret = flatcc_verify_field(td, 1, 4, 4) /* tensor_index */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_TensorMetadata_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_TensorMap_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorMetadata_identifier, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorMap_identifier, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_TensorMap_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorMetadata_identifier, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorMap_identifier, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_TensorMap_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorMetadata_type_identifier, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_TensorMap_type_identifier, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_TensorMap_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorMetadata_type_identifier, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_TensorMap_type_identifier, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_TensorMap_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_TensorMap_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_TensorMap_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_TensorMap_verify_table);
 }
 
-static inline int tflite_TensorMetadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_TensorMap_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TensorMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_TensorMap_verify_table);
 }
 
-static int tflite_CustomMetadata_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_SignatureDef_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 0, 0, &tflite_TensorMap_verify_table) /* inputs */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 1, 0, &tflite_TensorMap_verify_table) /* outputs */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 2, 0) /* signature_key */)) return ret;
+    if ((ret = flatcc_verify_field(td, 4, 4, 4) /* subgraph_index */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_CustomMetadata_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_SignatureDef_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CustomMetadata_identifier, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SignatureDef_identifier, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_SignatureDef_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CustomMetadata_identifier, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SignatureDef_identifier, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_SignatureDef_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_CustomMetadata_type_identifier, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SignatureDef_type_identifier, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_SignatureDef_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_CustomMetadata_type_identifier, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SignatureDef_type_identifier, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_SignatureDef_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_SignatureDef_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_SignatureDef_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SignatureDef_verify_table);
 }
 
-static inline int tflite_CustomMetadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_SignatureDef_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_CustomMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SignatureDef_verify_table);
 }
 
-static int tflite_SubGraphMetadata_verify_table(flatcc_table_verifier_descriptor_t *td)
+static int tflite_Model_verify_table(flatcc_table_verifier_descriptor_t *td)
 {
     int ret;
-    if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 1, 0) /* description */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 2, 0, &tflite_TensorMetadata_verify_table) /* input_tensor_metadata */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 3, 0, &tflite_TensorMetadata_verify_table) /* output_tensor_metadata */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 4, 0, &tflite_AssociatedFile_verify_table) /* associated_files */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 5, 0, &tflite_ProcessUnit_verify_table) /* input_process_units */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 6, 0, &tflite_ProcessUnit_verify_table) /* output_process_units */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 7, 0, &tflite_TensorGroup_verify_table) /* input_tensor_groups */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 8, 0, &tflite_TensorGroup_verify_table) /* output_tensor_groups */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 9, 0, &tflite_CustomMetadata_verify_table) /* custom_metadata */)) return ret;
+    if ((ret = flatcc_verify_field(td, 0, 4, 4) /* version */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 1, 0, &tflite_OperatorCode_verify_table) /* operator_codes */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 2, 0, &tflite_SubGraph_verify_table) /* subgraphs */)) return ret;
+    if ((ret = flatcc_verify_string_field(td, 3, 0) /* description */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 4, 0, &tflite_Buffer_verify_table) /* buffers */)) return ret;
+    if ((ret = flatcc_verify_vector_field(td, 5, 0, 4, 4, INT64_C(1073741823)) /* metadata_buffer */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 6, 0, &tflite_Metadata_verify_table) /* metadata */)) return ret;
+    if ((ret = flatcc_verify_table_vector_field(td, 7, 0, &tflite_SignatureDef_verify_table) /* signature_defs */)) return ret;
     return flatcc_verify_ok;
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root(const void *buf, size_t bufsiz)
+static inline int tflite_Model_verify_as_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubGraphMetadata_identifier, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Model_identifier, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Model_verify_as_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubGraphMetadata_identifier, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Model_identifier, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_typed_root(const void *buf, size_t bufsiz)
+static inline int tflite_Model_verify_as_typed_root(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_SubGraphMetadata_type_identifier, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, tflite_Model_type_identifier, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
+static inline int tflite_Model_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_SubGraphMetadata_type_identifier, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_Model_type_identifier, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Model_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
+static inline int tflite_Model_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
 {
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Model_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_SubGraphMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_Model_verify_table);
 }
 
-static inline int tflite_SubGraphMetadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
+static inline int tflite_Model_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
 {
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_SubGraphMetadata_verify_table);
-}
-
-static int tflite_ModelMetadata_verify_table(flatcc_table_verifier_descriptor_t *td)
-{
-    int ret;
-    if ((ret = flatcc_verify_string_field(td, 0, 0) /* name */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 1, 0) /* description */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 2, 0) /* version */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 3, 0, &tflite_SubGraphMetadata_verify_table) /* subgraph_metadata */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 4, 0) /* author */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 5, 0) /* license */)) return ret;
-    if ((ret = flatcc_verify_table_vector_field(td, 6, 0, &tflite_AssociatedFile_verify_table) /* associated_files */)) return ret;
-    if ((ret = flatcc_verify_string_field(td, 7, 0) /* min_parser_version */)) return ret;
-    return flatcc_verify_ok;
-}
-
-static inline int tflite_ModelMetadata_verify_as_root(const void *buf, size_t bufsiz)
-{
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ModelMetadata_identifier, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_root_with_size(const void *buf, size_t bufsiz)
-{
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ModelMetadata_identifier, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_typed_root(const void *buf, size_t bufsiz)
-{
-    return flatcc_verify_table_as_root(buf, bufsiz, tflite_ModelMetadata_type_identifier, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_typed_root_with_size(const void *buf, size_t bufsiz)
-{
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, tflite_ModelMetadata_type_identifier, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_root_with_identifier(const void *buf, size_t bufsiz, const char *fid)
-{
-    return flatcc_verify_table_as_root(buf, bufsiz, fid, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_root_with_identifier_and_size(const void *buf, size_t bufsiz, const char *fid)
-{
-    return flatcc_verify_table_as_root_with_size(buf, bufsiz, fid, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_root_with_type_hash(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
-{
-    return flatcc_verify_table_as_typed_root(buf, bufsiz, thash, &tflite_ModelMetadata_verify_table);
-}
-
-static inline int tflite_ModelMetadata_verify_as_root_with_type_hash_and_size(const void *buf, size_t bufsiz, flatbuffers_thash_t thash)
-{
-    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_ModelMetadata_verify_table);
+    return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Model_verify_table);
 }
 
 #include "flatcc/flatcc_epilogue.h"

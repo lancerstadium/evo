@@ -39,7 +39,8 @@ context_t *load_tflite(struct serializer *s, const void *buf, size_t len) {
             sys_free(ctx);
         return NULL;
     }
-
+    // graph
+    load_graph_tflite(ctx);
     return ctx;
 }
 
@@ -67,20 +68,32 @@ context_t *load_model_tflite(struct serializer *sez, const char *path) {
     } else {
         LOG_ERR("No such file: %s\n", path);
     }
-    // graph
     return ctx;
 }
 
 void unload_tflite(context_t *ctx) {
     if (ctx && ctx->model) {
+        flatcc_builder_aligned_free(ctx->model);
         flatcc_builder_clear(&builder);
         sys_free(ctx->model);
         ctx->model_size = 0;
     }
 }
+
 EVO_UNUSED tensor_t *load_tensor_tflite(const char *path);
 
-EVO_UNUSED graph_t *load_graph_tflite(context_t *ctx);
+graph_t *load_graph_tflite(context_t *ctx) {
+    if (!ctx || !ctx->model) {
+        return NULL;
+    }
+    graph_t *g;
+
+    g = graph_new(ctx);
+    if (!g)
+        return NULL;
+
+    return g;
+}
 
 
 
