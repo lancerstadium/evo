@@ -12,12 +12,14 @@ OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
 NAME		:= evo
-OPTIONS		:= 
+LIBS		:= -l flatccrt
+LIBDIRS     := -L ./sub/flatcc/lib
+INCDIRS		:= -I .
+SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
+OPTIONS		:= $(LIBS) $(LIBDIRS)
 ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
-INCDIRS		:= -I .
-SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
 TRGDIR 		:= build
 OBJDIR		:= $(TRGDIR)/obj
 LIBTRG		:= $(TRGDIR)/lib$(NAME).a
@@ -35,8 +37,6 @@ SOBJS       := $(patsubst %, %, $(SFILES:$(NAME)/%.S=$(OBJDIR)/%.o))
 COBJS       := $(patsubst %, %, $(CFILES:$(NAME)/%.c=$(OBJDIR)/%.o))
 CPPOBJS     := $(patsubst %, %, $(CPPFILES:$(NAME)/%.cpp=$(OBJDIR)/%.o)) 
 OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
-
-
 
 CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
