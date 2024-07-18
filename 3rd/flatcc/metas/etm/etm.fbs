@@ -1,0 +1,148 @@
+namespace etm;
+
+
+enum TensorType: int {
+    Undefined = 0,
+    Bool = 9,
+    Int8 = 3,
+    Int16 = 5,
+    Int32 = 6,
+    Int64 = 7,
+    Uint8 = 2,
+    Uint16 = 4,
+    Uint32 = 12,
+    Uint64 = 13,
+    Bfloat16 = 16,
+    Float16 = 10,
+    Float32 = 1,
+    Float64 = 11,
+    Complex64 = 14,
+    Complex128 = 15,
+    String = 8,
+}
+
+table Tensor {
+    type: TensorType;            // Tensor data type
+    name: string;                // Tensor name
+    index: int;                  // Tensor index
+    dims: [int];                 // Shape of dim array
+    datas: [ubyte];              // Tensor data addr (byte array to represent raw data)
+    ndata: ulong;                // Tensor data size
+    szElem: uint8;               // Tensor element size
+    nElem: uint;                 // Tensor element number
+    pNode: short;                // Tensor parent node index
+    isReshaped: bool;            // Tensor is reshaped
+    isConstant: bool;            // Tensor is constant
+    isInput: bool;               // Tensor is input
+    isOutput: bool;              // Tensor is output
+    isIallocated: bool;          // Tensor is iallocated
+    layout: ushort;              // Tensor is layout 0NCHW/1NHWC
+}
+
+enum AttributeType: int {
+    Float,
+    Int,
+    String,
+    Tensor,
+    Graph,
+    Floats,
+    Int64s,
+    Tensors,
+    Graphs
+}
+
+table Attribute {
+    name: string;
+    type: AttributeType;
+    f: float;                     // When type is Float
+    i: long;                      // When type is Int
+    s: string;                    // When type is String
+    t: Tensor (deprecated);       // When type is Tensor
+    g: Graph (deprecated);        // When type is Graph
+    fs: [float];                  // When type is Floats
+    is: [long];                   // When type is Ints
+    ts: [Tensor] (deprecated);    // When type is Tensors
+    gs: [Graph] (deprecated);     // When type is Graphs
+}
+
+
+enum NodeType: int {
+    Generic,
+    Input,
+    Output,
+    Hidden,
+    // add more types as needed
+}
+
+table Node {
+    name: string;                // Node name
+    index: ushort;               // Index of Node in Graph
+    type: NodeType;              // Type of Node
+
+    in: [Tensor] (deprecated);   // Input Tensor List
+    out: [Tensor] (deprecated);  // Output Tensor List
+
+    op: Op (deprecated);         // Operator
+    graph: Graph (deprecated);   // Owner Graph
+
+    attrVec: [Attribute];        // Attribute Vec of node
+}
+
+union GraphInfo {
+    PGraphInfo,
+    SGraphInfo
+}
+
+table PGraphInfo {
+    subVec: [Graph];              // Vector of sub graphs
+    inputInodesVec: [ushort];     // Input nodes index Vector
+    outputInodesVec: [ushort];    // Output nodes index Vector
+    ninputNode: ushort;           // Input nodes number
+    noutputNode: ushort;          // Output nodes number
+}
+
+table SGraphInfo {
+    idx: int;                     // Index in sub vector
+    nodesVec: [ushort];           // Node index Vec from parents
+    inputItensorsVec: [ushort];   // Input tensors index Vector
+    outputItensorsVec: [ushort];  // Output tensors index Vector
+    pgraph: Graph (deprecated);   // Parent graph of this sub
+}
+
+table Graph {
+    tensors: [Tensor];            // Graph tensors list
+    nodes: [Node];                // Graph nodes list
+
+    dataLayout: ushort;           // Data layout: 0NCHW/1NHWC
+    isSub: bool;                  // Graph is sub graph
+
+    // Union for different graph types
+    more: GraphInfo;
+}
+
+enum OpType: int {
+    Undefined,
+    Conv,
+    Pool,
+    // Add more
+}
+
+table Op {
+    type: OpType;                   // Operator type
+    // isSameShape: bool;           // Operator same shape
+    // parameter: OpParameter;
+    name: string;                   // Operator name
+    inputIndexes: [int];
+    outputIndexs: [int];
+}
+
+// Evo Tiny Model
+table Model {
+    name: string;
+    oplists: [Op];
+    tensorName: [string];
+    // graph: Graph;
+    // tensorMap: map<string, Tensor>;  // Context tensor map
+}
+
+root_type Model;
