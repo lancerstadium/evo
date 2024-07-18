@@ -534,7 +534,8 @@ struct graph {
 };
 
 EVO_API graph_t * graph_new(context_t*);
-EVO_API graph_t * graph_sub(graph_t*);
+EVO_API graph_t * graph_sub_new(graph_t*);
+EVO_API graph_t * graph_as_sub(graph_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
@@ -559,7 +560,11 @@ struct context {
     serializer_t *sez;                                  /* Serializer of contex         */
     device_t *dev;                                      /* Context device               */
 
-    void* model;                                        /* Context model proto          */
+    union {
+        void* model;                                    /* Context model proto          */
+        const void* cmodel;                             /* Context const model proto    */
+    };
+
     uint32_t model_size;                                /* Context model size           */
 
     hashmap_t *tensor_map;                              /* Context tensor map           */

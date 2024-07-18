@@ -53,9 +53,6 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->pgraph = pg;
     g->info = NULL;
 
-    for(int i = 0; i < g->nnode; i++) {             // Copy nodes from parent
-        vector_add(&(g->nodes_vec), i);
-    }
     vector_add(&pg->sub_vec, g);                    // Append sub graph to sub_vec[0]
 }
 
@@ -69,12 +66,25 @@ graph_t * graph_new(context_t *ctx) {
     return g;
 }
 
-graph_t * graph_sub(graph_t* g) {
+graph_t * graph_sub_new(graph_t* g) {
+    graph_t *sg = (graph_t*)sys_malloc(sizeof(graph_t));
+    if(!g || !sg) {
+        return NULL;
+    }
+    graph_sub_init(sg, g);
+    return sg;
+}
+
+graph_t * graph_as_sub(graph_t* g) {
+    if(!g || g->is_sub) return g;
     graph_t *sg = (graph_t*)sys_malloc(sizeof(graph_t));
     if(!sg) {
         return NULL;
     }
     graph_sub_init(sg, g);
+    for(int i = 0; i < sg->nnode; i++) {             // Copy All nodes from parent
+        vector_add(&(sg->nodes_vec), i);
+    }
     return sg;
 }
 
@@ -118,7 +128,7 @@ void graph_prerun(graph_t *g) {
     context_t *ctx = g->ctx;
     if(ctx->scd) {
         if(!g->is_sub && vector_size(g->sub_vec) == 0 ) {
-            graph_sub(g);
+            graph_as_sub(g);
         }
         ctx->scd->prerun(ctx->scd, g);
     }

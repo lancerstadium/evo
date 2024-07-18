@@ -364,13 +364,14 @@ context_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
     ctx = context_new(NULL);
     ctx->sez = s;
     ctx->model = onnx__model_proto__unpack(NULL, len, buf);
-    ctx->model_size = len;
-    ctx->name = sys_strdup("onnx");
     if (!ctx->model) {
         if (ctx)
             sys_free(ctx);
         return NULL;
     }
+    ctx->model_size = len;
+    ctx->name = sys_strdup(((Onnx__ModelProto*)(ctx->model))->base.descriptor->name);
+
     ctx->tensor_map = hashmap_create();
     if (!ctx->tensor_map) {
         if (ctx->model)

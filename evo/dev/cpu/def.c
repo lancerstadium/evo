@@ -168,7 +168,7 @@ void cpu_alloc(device_t *dev, graph_t *sg) {
 // ==================================================================================== //
 
 void cpu_graph_spilte(graph_t *g) {
-    graph_t *sg = graph_sub(g);
+    graph_t *sg = graph_as_sub(g);
     sg->dev = device_registry_get_default();
     /// TODO: spilte graphs
 }

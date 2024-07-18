@@ -5,7 +5,7 @@ int map_print(const void* key, size_t ksize, uintptr_t value, void* usr) {
     Log_info("name: %s", (char*)key);
 }
 
-UnitTest_fn_def(test_model_load) {
+UnitTest_fn_def(test_onnx_model_load) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
     context_t * ctx = sez->load_model(sez, "model/mnist_8/model.onnx");
@@ -37,8 +37,19 @@ UnitTest_fn_def(test_model_load) {
     return NULL;
 }
 
+UnitTest_fn_def(test_tflite_model_load) {
+    device_reg("cpu");
+    serializer_t * sez = serializer_new("tflite");
+    context_t * ctx = sez->load_model(sez, "model/mnist_8/mnist_dw_f.tflite");
+
+    ctx->sez->unload(ctx);
+    serializer_free(sez);
+    device_unreg("cpu");
+}
+
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_model_load);
+    UnitTest_add(test_onnx_model_load);
+    UnitTest_add(test_tflite_model_load);
     return NULL;
 }
 

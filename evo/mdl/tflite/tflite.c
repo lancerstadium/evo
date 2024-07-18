@@ -7,34 +7,27 @@
 
 
 #undef ns
-#define ns(x) FLATBUFFERS_WRAP_NAMESPACE(etm, x)  // Specified in the schema.
+#define ns(x) FLATBUFFERS_WRAP_NAMESPACE(tflite, x)  // Specified in the schema.
 
-static flatcc_builder_t builder;
-
-static int model_create(flatcc_builder_t *B) {
-    return 0;
-}
+EVO_UNUSED static flatcc_builder_t builder;
 
 context_t *load_tflite(struct serializer *s, const void *buf, size_t len) {
-    flatcc_builder_init(&builder);
+    // flatcc_builder_init(&builder);
     context_t *ctx = NULL;
     if (!buf || len <= 0)
         return NULL;
     ctx = context_new(NULL);
     ctx->sez = s;
-    model_create(&builder);
-    ctx->model = flatcc_builder_finalize_aligned_buffer(&builder, &len);
-    ctx->model_size = len;
-    ctx->name = sys_strdup("tflite");
-    if (!ctx->model) {
+    ctx->cmodel = ns(Model_as_root(buf));
+    if (!ctx->cmodel) {
         if (ctx)
             sys_free(ctx);
         return NULL;
     }
+    ctx->model_size = len;
+    ctx->name = sys_strdup(ns(Model_description(ctx->cmodel)));
     ctx->tensor_map = hashmap_create();
     if (!ctx->tensor_map) {
-        if (ctx->model)
-            sys_free(ctx->model);
         if (ctx)
             sys_free(ctx);
         return NULL;
@@ -43,7 +36,6 @@ context_t *load_tflite(struct serializer *s, const void *buf, size_t len) {
     load_graph_tflite(ctx);
     return ctx;
 }
-
 
 context_t *load_model_tflite(struct serializer *sez, const char *path) {
     context_t *ctx = NULL;
@@ -72,10 +64,8 @@ context_t *load_model_tflite(struct serializer *sez, const char *path) {
 }
 
 void unload_tflite(context_t *ctx) {
-    if (ctx && ctx->model) {
-        flatcc_builder_aligned_free(ctx->model);
-        flatcc_builder_clear(&builder);
-        sys_free(ctx->model);
+    if (ctx && ctx->cmodel) {
+        // flatcc_builder_clear(&builder);
         ctx->model_size = 0;
     }
 }
@@ -83,21 +73,41 @@ void unload_tflite(context_t *ctx) {
 EVO_UNUSED tensor_t *load_tensor_tflite(const char *path);
 
 graph_t *load_graph_tflite(context_t *ctx) {
-    if (!ctx || !ctx->model) {
+    if (!ctx || !ctx->cmodel) {
         return NULL;
     }
     graph_t *g;
-
+    ns(SubGraph_vec_t) subgraphs = ns(Model_subgraphs(ctx->cmodel));
+    if (!subgraphs)
+        return NULL;
     g = graph_new(ctx);
     if (!g)
         return NULL;
-
+    // Print cur Operator codes
+    ns(OperatorCode_vec_t) opcodes = ns(Model_operator_codes(ctx->cmodel));
+    for(size_t i = 0; i < ns(OperatorCode_vec_len(opcodes)); i++) {
+        ns(OperatorCode_table_t) opcode = ns(OperatorCode_vec_at(opcodes, i));
+        printf("opcode: %d\n", ns(OperatorCode_builtin_code(opcode)));
+    }
+    // New Subgraph: subgraph <== tflite subgraph
+    for(size_t i = 0; i < ns(SubGraph_vec_len(subgraphs)); i++) {
+        ns(SubGraph_table_t) subgraph = ns(SubGraph_vec_at(subgraphs, i));
+        graph_t *sg = graph_sub_new(g);
+        printf("subgraph: %s\n", ns(SubGraph_name(subgraph)));
+        // Add Tensors
+        ns(Tensor_vec_t) tensors = ns(SubGraph_tensors(subgraph));
+        sg->ntensor = ns(Tensor_vec_len(tensors));
+        for(size_t j = 0; j < sg->ntensor; j++) {
+            ns(Tensor_table_t) tensor = ns(Tensor_vec_at(tensors, j));
+        }
+        vector_add(&(g->sub_vec), sg);
+    }
     return g;
 }
 
-
-
-
+EVO_UNUSED int save_tflite() {
+    return 0;
+}
 
 
 #undef ns
