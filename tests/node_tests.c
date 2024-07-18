@@ -16,9 +16,10 @@ UnitTest_fn_def(test_matmul_2d) {
     context_t * ctx = sez->load_model(sez, "node/test_matmul_2d/model.onnx");
 
     tensor_t * t0 = sez->load_tensor("node/test_matmul_2d/test_data_set_0/input_0.pb");
-    tensor_dump(t0);
+    tensor_dump2(t0);
     tensor_t * t1 = sez->load_tensor("node/test_matmul_2d/test_data_set_0/input_1.pb");
-    tensor_dump(t1);
+    tensor_dump2(t1);
+
 
     ctx->sez->unload(ctx);
     serializer_free(sez);
