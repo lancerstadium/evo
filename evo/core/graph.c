@@ -163,13 +163,12 @@ void graph_posrun(graph_t *g) {
 
 void graph_dump(graph_t* g) {
     if(!g) return;
-    LOG_INFO("|   Layers   |     Input     |     Output     |\n");
-    LOG_INFO("| ---------- | ------------- | -------------- |\n");
-    LOG_INFO("nnode: %d\n", g->nnode);
+    LOG_INFO("|   Layers(%3d)   |      Input      |      Output      |\n", g->nnode);
+    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
         char* in = tensor_dump_shape(g->nodes[i]->in[0]);
         char* out = tensor_dump_shape(g->nodes[i]->out[0]);
-        LOG_INFO("| %10s | %13s | %14s |\n", g->nodes[i]->op->name, in ? in : "", out ? out : "");
+        LOG_INFO("| %15s | %15s | %16s |\n", g->nodes[i]->op->name, in ? in : "", out ? out : "");
         free(in);
         free(out);
     }
