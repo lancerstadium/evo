@@ -1,11 +1,11 @@
-
-
 #include "../evo.h"
 #include "../util/log.h"
 #include "../util/sys.h"
+#include <string.h>
 
 
 static void graph_init(graph_t *g, context_t *ctx) {
+    g->name = NULL;
     g->tensors = NULL;
     g->nodes = NULL;
     g->input_inodes_vec = vector_create();
@@ -49,9 +49,17 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->is_sub = 1;                                  /* Default: yes  */
     g->status = GRAPH_STATUS_INIT;                  /* Default: INIT */
 
-    g->idx = 0;                                     /* Need to modify */
+    g->idx = vector_size(pg->sub_vec);
     g->pgraph = pg;
     g->info = NULL;
+
+    if(pg->name) {
+        char num[12];
+        sprintf(num, "_%d", g->idx);
+        g->name = strcat(sys_strdup(pg->name), num);
+    } else {
+        g->name = NULL;
+    }
 
     vector_add(&pg->sub_vec, g);                    // Append sub graph to sub_vec[0]
 }
@@ -163,6 +171,7 @@ void graph_posrun(graph_t *g) {
 
 void graph_dump(graph_t* g) {
     if(!g) return;
+    LOG_INFO("[Graph: %s]\n", g->name);
     LOG_INFO("|   Layers(%3d)   |      Input      |      Output      |\n", g->nnode);
     LOG_INFO("| --------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
@@ -177,7 +186,7 @@ void graph_dump(graph_t* g) {
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
 void graph_dump2(graph_t* g) {
     if(!g) return;
-    LOG_INFO("[Graph]\n");
+    LOG_INFO("[Graph: %s]\n", g->name);
     for(int i=0; i < g->nnode; i++) {
         node_dump(g->nodes[i]);
     }
@@ -186,15 +195,20 @@ void graph_dump2(graph_t* g) {
 void graph_free(graph_t *g) {
     if(!g) return;
     // free tensors
-    for(int i = 0; i < g->ntensor; i++) {
-        tensor_free(g->tensors[i]);
+    if(g->tensors) {
+        for(int i = 0; i < g->ntensor; i++) {
+            tensor_free(g->tensors[i]);
+        }
+        sys_free(g->tensors);
     }
     // free nodes
-    for(int i = 0; i < g->nnode; i++) {
-        node_free(g->nodes[i], g);
+    if(g->nodes) {
+        for(int i = 0; i < g->nnode; i++) {
+            node_free(g->nodes[i], g);
+        }
+        sys_free(g->nodes);
     }
-    sys_free(g->tensors);
-    sys_free(g->nodes);
+    if(g->name) sys_free(g->name);
 
     if(g->is_sub) {
         if(g->info) sys_free(g->info);

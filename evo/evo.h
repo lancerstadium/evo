@@ -498,7 +498,7 @@ enum graph_status {
 // ==================================================================================== //
 
 struct graph {
-
+    char *name;                                         /* Graph name                   */
     tensor_t **tensors;                                 /* Graph tensors list           */
     node_t **nodes;                                     /* Graph nodes list             */
     uint16_t ntensor;                                   /* Count of all tensor          */

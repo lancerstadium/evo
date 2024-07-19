@@ -370,7 +370,7 @@ context_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
         return NULL;
     }
     ctx->model_size = len;
-    ctx->name = sys_strdup(((Onnx__ModelProto*)(ctx->model))->base.descriptor->name);
+    ctx->name = sys_strdup(((Onnx__ModelProto*)(ctx->model))->domain);
 
     ctx->tensor_map = hashmap_create();
     if (!ctx->tensor_map) {
@@ -784,6 +784,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
     if (!g)
         return NULL;
 
+    g->name = sys_strdup(graph->name);
     g->nnode = graph->n_node;
     g->nodes = (node_t **)sys_malloc(sizeof(node_t *) * g->nnode);
     if (!g->nodes) {

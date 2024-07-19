@@ -5,7 +5,7 @@ serializer_t * sez;
 
 UnitTest_fn_def(test_model_init) {
     device_reg("cpu");
-    serializer_t * sez = serializer_new("onnx");
+    sez = serializer_new("onnx");
     return NULL;
 }
 
@@ -16,9 +16,9 @@ UnitTest_fn_def(test_mnist_8) {
     tensor_t * t0 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
 
     tensor_copy(x, t0);
-    graph_dump(ctx->graph);
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);
+    graph_dump(ctx->graph);
 
     tensor_dump2(y);
     ctx->sez->unload(ctx);
