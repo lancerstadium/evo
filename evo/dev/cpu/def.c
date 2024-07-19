@@ -87,7 +87,7 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
     for(int i = 0; (i < n) && (g_info->exec_node_idx < g_info->exec_nnode); i++, g_info->exec_node_idx++) {
         node_t* nd = g_info->exec_node_vec[g_info->exec_node_idx];
         if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Step Fail: Node %s no operator %s !\n", nd->name, nd->op->name ? nd->op->name : "");
+            LOG_ERR("CPU Step Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
             return -1;
         }
         // ==== Clock up ====== //
@@ -99,7 +99,7 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         if(g_info->exec_time_vec) {
             g_info->exec_time_vec[g_info->exec_node_idx] = time_ed - time_st;
             g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
-            LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, nd->op->name, g_info->exec_time_vec[g_info->exec_node_idx]);
+            LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, op_name(nd->op->type), g_info->exec_time_vec[g_info->exec_node_idx]);
         }
     }
     return 0;
@@ -119,9 +119,9 @@ static int cpu_run(device_t *dev, graph_t *g) {
     for(int i = 0; i < g_info->exec_nnode; i++) {
         g_info->exec_node_idx = i;
         node_t* nd = g_info->exec_node_vec[i];
-        LOG_INFO("+ op_type: %s\n", nd->op->name);
+        LOG_INFO("+ op_type: %s\n", op_name(nd->op->type));
         if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Run Fail: Node %s no operator %s !\n", nd->name, nd->op->name ? nd->op->name : "");
+            LOG_ERR("CPU Run Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
             return -1;
         }
         // ==== Clock up ====== //

@@ -23,9 +23,11 @@ UnitTest_fn_def(test_onnx_load) {
     tensor_copy(t1, t3);
     // tensor_dump2(t1);
 
+    graph_dump(ctx->graph); // Exec dump
+
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);
-    graph_dump(ctx->graph); // Exec dump
+    
 
     tensor_dump2(t2);
 

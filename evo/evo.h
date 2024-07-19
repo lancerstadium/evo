@@ -352,14 +352,12 @@ typedef enum op_type {
 
 struct op {
     op_type_t type;                                     /* Operator type                */
-    const char* name;                                   /* Operator name                */
     void (*run)(node_t*);                               /* Operator run fn              */
 
     uint8_t is_same_shape : 1;                          /* Operator same shape          */
-
-    uint16_t param_size;                                /* Size of param mem buf        */
-    void* param_mem;                                    /* Param mem buffer             */
 };
+
+EVO_API const char* op_name(op_type_t);
 
 // ==================================================================================== //
 //                                       evo: resolver

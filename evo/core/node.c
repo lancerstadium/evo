@@ -16,8 +16,6 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
     nd->op->type = op_ty;
     nd->op->is_same_shape = 1;
-    nd->op->param_size = 0;
-    nd->op->param_mem = NULL;
     // attribute
     nd->attr_vec = vector_create();
 }
@@ -99,7 +97,7 @@ void node_dump(node_t *nd) {
     if(!nd) return;
     int i;
     if(nd) {
-        LOG_INFO("%s-%d: %s\r\n", nd->op->name ? nd->op->name : "Uninit" , nd->opset, nd->name);
+        LOG_INFO("%s-%d: %s\r\n", op_name(nd->op->type) ? op_name(nd->op->type) : "Uninit" , nd->opset, nd->name);
         if(nd->nin > 0) {
             LOG_INFO("  - Inputs: \n");
             for(i = 0; i < nd->nin; i++) {

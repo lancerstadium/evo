@@ -168,7 +168,7 @@ void graph_dump(graph_t* g) {
     for(int i=0; i < g->nnode; i++) {
         char* in = tensor_dump_shape(g->nodes[i]->in[0]);
         char* out = tensor_dump_shape(g->nodes[i]->out[0]);
-        LOG_INFO("| %15s | %15s | %16s |\n", g->nodes[i]->op->name, in ? in : "", out ? out : "");
+        LOG_INFO("| %15s | %15s | %16s |\n", op_name(g->nodes[i]->op->type), in ? in : "", out ? out : "");
         free(in);
         free(out);
     }
