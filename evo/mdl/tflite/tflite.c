@@ -87,13 +87,13 @@ graph_t *load_graph_tflite(context_t *ctx) {
     ns(OperatorCode_vec_t) opcodes = ns(Model_operator_codes(ctx->cmodel));
     for(size_t i = 0; i < ns(OperatorCode_vec_len(opcodes)); i++) {
         ns(OperatorCode_table_t) opcode = ns(OperatorCode_vec_at(opcodes, i));
-        printf("opcode: %d\n", ns(OperatorCode_builtin_code(opcode)));
+        LOG_INFO("opcode: %d\n", ns(OperatorCode_builtin_code(opcode)));
     }
     // New Subgraph: subgraph <== tflite subgraph
     for(size_t i = 0; i < ns(SubGraph_vec_len(subgraphs)); i++) {
         ns(SubGraph_table_t) subgraph = ns(SubGraph_vec_at(subgraphs, i));
         graph_t *sg = graph_sub_new(g);
-        printf("subgraph: %s\n", ns(SubGraph_name(subgraph)));
+        LOG_INFO("subgraph: %s\n", ns(SubGraph_name(subgraph)));
         // Add Tensors
         ns(Tensor_vec_t) tensors = ns(SubGraph_tensors(subgraph));
         sg->ntensor = ns(Tensor_vec_len(tensors));

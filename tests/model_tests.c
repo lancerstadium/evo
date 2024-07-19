@@ -5,7 +5,7 @@ int map_print(const void* key, size_t ksize, uintptr_t value, void* usr) {
     Log_info("name: %s", (char*)key);
 }
 
-UnitTest_fn_def(test_onnx_model_load) {
+UnitTest_fn_def(test_onnx_load) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
     context_t * ctx = sez->load_model(sez, "model/mnist_8/model.onnx");
@@ -17,12 +17,11 @@ UnitTest_fn_def(test_onnx_model_load) {
     tensor_dump(t2);
 
     tensor_t * t3 = sez->load_tensor("model/mnist_8/test_data_set_0/input_0.pb");
-    tensor_dump2(t3);
+    // tensor_dump2(t3);
     // hashmap_iterate(ctx->tensor_map, map_print, NULL);
 
     tensor_copy(t1, t3);
-    printf("ndata1: %ld, ndata3: %ld\n", t1->ndata, t3->ndata);
-    tensor_dump2(t1);
+    // tensor_dump2(t1);
 
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);
@@ -37,7 +36,7 @@ UnitTest_fn_def(test_onnx_model_load) {
     return NULL;
 }
 
-UnitTest_fn_def(test_tflite_model_load) {
+UnitTest_fn_def(test_tflite_load) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("tflite");
     context_t * ctx = sez->load_model(sez, "model/mnist_8/mnist_dw_f.tflite");
@@ -48,8 +47,8 @@ UnitTest_fn_def(test_tflite_model_load) {
 }
 
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_onnx_model_load);
-    UnitTest_add(test_tflite_model_load);
+    UnitTest_add(test_onnx_load);
+    UnitTest_add(test_tflite_load);
     return NULL;
 }
 

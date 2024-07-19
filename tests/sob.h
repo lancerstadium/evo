@@ -606,7 +606,7 @@ UNUSED static UnitTest sob_ut = {
         } else {                                                                                                                                                                                                      \
             printf("│ " _CYAN("%-3s ") _BLUE("%-37s ") "%s │\n", "Res", argv[0], _RED("FAIL"));                                                                                                                       \
             printf("│ " _CYAN("%-3s ") _RED("%-42s") " │\n", "Msg", result);                                                                                                                                          \
-            printf("│ %-3s %-51s │\n", _CYAN("Log"), _YELLOW("test/tests.log"));                                                                                                                                      \
+            printf("│ %-3s %-51s │\n", _CYAN("Log"), _YELLOW("tests/tests.log"));                                                                                                                                      \
         }                                                                                                                                                                                                             \
         printf("└────────────────────────────────────────────────┘\n");                                                                                                                                               \
         exit(result != 0);                                                                                                                                                                                            \
