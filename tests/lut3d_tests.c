@@ -19,7 +19,6 @@ UnitTest_fn_def(test_lut3d) {
     return NULL;
 }
 
-
 UnitTest_fn_def(test_all) {
     UnitTest_add(test_lut3d);
     return NULL;
