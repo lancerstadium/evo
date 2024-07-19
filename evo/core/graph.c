@@ -165,6 +165,7 @@ void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("|   Layers   |     Input     |     Output     |\n");
     LOG_INFO("| ---------- | ------------- | -------------- |\n");
+    LOG_INFO("nnode: %d\n", g->nnode);
     for(int i=0; i < g->nnode; i++) {
         char* in = tensor_dump_shape(g->nodes[i]->in[0]);
         char* out = tensor_dump_shape(g->nodes[i]->out[0]);

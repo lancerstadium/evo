@@ -866,8 +866,10 @@ graph_t *load_graph_onnx(context_t *ctx) {
                 }
                 if (!context_get_tensor(ctx, name)) {
                     LOG_ERR("Get Tensor: %s fail!\n", name);
-                    if (g->nodes)
+                    if (g->nodes) {
                         free(g->nodes);
+                        g->nnode = 0;
+                    }
                     free(g);
                     g = NULL;
                     return NULL;
