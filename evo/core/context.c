@@ -36,6 +36,15 @@ tensor_t* context_get_tensor(context_t *ctx, const char *name) {
     return NULL;
 }
 
+static int tensor_map_print(const void* key, size_t ksize, uintptr_t value, void* usr) {
+    LOG_INFO("%s,", (char*)key);
+}
+
+void context_dump_tensor(context_t *ctx) {
+    LOG_INFO("[");
+    hashmap_iterate(ctx->tensor_map, tensor_map_print, NULL);
+    LOG_INFO("]\n");
+}
 
 void context_free(context_t *ctx) {
     if(ctx) {
