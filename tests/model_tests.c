@@ -20,6 +20,8 @@ UnitTest_fn_def(test_mnist_8) {
     graph_run(ctx->graph);
     graph_dump(ctx->graph);
 
+    graph_exec_report(ctx->graph->sub_vec[0]);
+
     tensor_dump2(y);
     ctx->sez->unload(ctx);
     return NULL;

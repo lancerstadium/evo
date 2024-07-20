@@ -35,13 +35,15 @@ extern "C" {
 
 #if defined(__GNUC__) || defined(__clang__)
 #define EVO_API     __attribute__((visibility("default")))
+#define EVO_UNUSED  __attribute__((unused))
 #elif defined(_MSC_VER)
 #define EVO_API     __declspec(dllexport)
+#define EVO_UNUSED  __pragma(warning(suppress:4100))
 #elif  // __GNUC__ || __clang__
 #define EVO_API
+#define EVO_UNUSED
 #endif  // __GNUC__ || __clang__
 
-#define EVO_UNUSED      __attribute__((unused))
 #define EVO_DIM_MAX     8
 #define EVO_ALIGN_SIZE 16
 
@@ -56,6 +58,7 @@ typedef struct tensor tensor_t;
 typedef struct device device_t;
 typedef struct context context_t;
 typedef struct resolver resolver_t;
+typedef struct profiler profiler_t;
 typedef struct scheduler scheduler_t;
 typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
@@ -526,7 +529,7 @@ struct graph {
             uint16_t *input_itensors_vec;               /* S|Input tensors index Vector */
             uint16_t *output_itensors_vec;              /* S|Output tensors index Vector*/
             struct graph * pgraph;                      /* S|Parent graph of this sub   */
-            void *info;                                 /* S|RunTime Info on device     */
+            profiler_t *prof;                           /* S|RunTime Profile on device  */
         };
     };
 };
@@ -544,6 +547,7 @@ EVO_API void graph_wait(graph_t*);
 EVO_API void graph_posrun(graph_t*);
 EVO_API void graph_dump(graph_t*);
 EVO_API void graph_dump2(graph_t*);
+EVO_API void graph_exec_report(graph_t*);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //
@@ -572,6 +576,37 @@ EVO_API context_t * context_new(const char*);
 EVO_API tensor_t* context_get_tensor(context_t*, const char*);
 EVO_API void context_dump_tensor(context_t*);
 EVO_API void context_free(context_t*);
+
+// ==================================================================================== //
+//                                       evo: profiler type
+// ==================================================================================== //
+
+typedef enum profiler_type {
+    PROFILER_TYPE_CUSTOM = 0,
+    PROFILER_TYPE_EXEC = 1,
+} profiler_type_t;
+
+// ==================================================================================== //
+//                                       evo: profiler
+// ==================================================================================== //
+
+struct profiler {
+    profiler_type_t type;                               /* Profiler Type                */
+    void (*report)(profiler_t*);                        /* Profiler Report func         */
+    union {
+        struct {                                        /* when type == EXEC            */
+            int exec_node_idx;                          /* EXEC|Node Index of exec      */
+            int exec_nnode;                             /* EXEC|Node Number of exec     */
+            node_vec_t exec_node_vec;                   /* EXEC|Node vector of exec     */
+            double * exec_time_vec;                     /* EXEC|0..nnode-1 + nnode:sum  */
+        };
+        void * custom;                                  /* when type == CUSTOM          */
+    };
+};
+
+EVO_API profiler_t * profiler_new(profiler_type_t);
+EVO_API void profiler_report(profiler_t*);
+EVO_API void profiler_free(profiler_t*);
 
 // ==================================================================================== //
 //                                       evo: serializer

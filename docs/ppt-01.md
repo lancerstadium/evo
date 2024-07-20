@@ -4,7 +4,7 @@ _class: invert
 paginate: true
 ---
 <!-- _header: 'Compute InkJet Lab' -->
-<!-- _footer: footer: evo | [Github](https://github.com/lancerstadium/evo/tree/ml) | [Docs](https://lancerstadium.github.io/evo/docs) -->
+<!-- _footer: evo | [Github](https://github.com/lancerstadium/evo/tree/ml) | [Docs](https://lancerstadium.github.io/evo/docs) -->
 
 # 01 TinyML 推理引擎概述
 

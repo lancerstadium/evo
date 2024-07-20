@@ -51,7 +51,7 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
 
     g->idx = vector_size(pg->sub_vec);
     g->pgraph = pg;
-    g->info = NULL;
+    g->prof = NULL;
 
     if(pg->name) {
         char num[12];
@@ -172,7 +172,7 @@ void graph_posrun(graph_t *g) {
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s]\n", g->name);
-    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
+    LOG_INFO("| ---------------------------------------------------- |\n");
     LOG_INFO("|   Layers(%3d)   |      Input      |      Output      |\n", g->nnode);
     LOG_INFO("| --------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
@@ -182,7 +182,7 @@ void graph_dump(graph_t* g) {
         free(in);
         free(out);
     }
-    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
+    LOG_INFO("| ---------------------------------------------------- |\n");
 }
 
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
@@ -191,6 +191,12 @@ void graph_dump2(graph_t* g) {
     LOG_INFO("[Graph: %s]\n", g->name);
     for(int i=0; i < g->nnode; i++) {
         node_dump(g->nodes[i]);
+    }
+}
+
+void graph_exec_report(graph_t *g) {
+    if(g->is_sub && g->prof) {
+        profiler_report(g->prof);
     }
 }
 
@@ -213,7 +219,7 @@ void graph_free(graph_t *g) {
     if(g->name) sys_free(g->name);
 
     if(g->is_sub) {
-        if(g->info) sys_free(g->info);
+        if(g->prof) profiler_free(g->prof);
         if(g->nodes_vec) vector_free(g->nodes_vec);
         if(g->input_itensors_vec) vector_free(g->input_itensors_vec);
         if(g->output_itensors_vec) vector_free(g->output_itensors_vec);

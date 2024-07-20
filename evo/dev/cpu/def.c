@@ -4,39 +4,6 @@
 
 
 // ==================================================================================== //
-//                                       cpu: graph info
-// ==================================================================================== //
-
-static cpu_graph_info_t* cpu_graph_info_new(graph_t *g) {
-    cpu_graph_info_t* g_info = (cpu_graph_info_t*)sys_malloc(sizeof(cpu_graph_info_t));
-    if(!g_info) return NULL;
-    // Init info record vector
-    g_info->exec_node_idx = 0;
-    g_info->exec_nnode = 0;
-    g_info->exec_node_vec = vector_create();
-    g_info->exec_time_vec = vector_create();
-    // Update graph
-    g->info = g_info;
-    return g_info;
-}
-
-static cpu_graph_info_t* cpu_graph_info_get(graph_t *g) {
-    if(g && g->info) {
-        return (cpu_graph_info_t*)(g->info);
-    }
-    return NULL;
-}
-
-static void cpu_graph_info_free(cpu_graph_info_t *g_info) {
-    if(g_info) {
-        if(g_info->exec_node_vec) vector_free(g_info->exec_node_vec);
-        if(g_info->exec_time_vec) vector_free(g_info->exec_time_vec);
-        sys_free(g_info);
-        g_info = NULL;
-    }
-}
-
-// ==================================================================================== //
 //                                       cpu: interface
 // ==================================================================================== //
 
@@ -49,24 +16,25 @@ static int cpu_init(device_t* dev) {
 }
 
 static int cpu_prerun(device_t *dev, graph_t *g) {
-    /// TODO: Init exec graph info and load device mem?
     if(!dev || !g)
         return -1;
-    cpu_graph_info_t* g_info = cpu_graph_info_new(g);
-    /// TODO: Foreach Node in graph should be found
+    g->prof = profiler_new(PROFILER_TYPE_EXEC);
+    if(!g->prof) {
+        LOG_ERR("CPU Prerun Fail: No profiler!\n");
+    }
     for(int i = 0; i < g->nnode; i++) {
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
         if(nd) {
             op_t* trg_op = device_find_op(dev, nd->op->type);
             if(trg_op) {
                 nd->op = trg_op;
-                vector_add(&(g_info->exec_node_vec), nd);
-                vector_add(&(g_info->exec_time_vec), 0.0);
-                g_info->exec_nnode++;
+                vector_add(&(g->prof->exec_node_vec), nd);
+                vector_add(&(g->prof->exec_time_vec), 0.0);
+                g->prof->exec_nnode++;
             }
         }
     }
-    vector_add(&(g_info->exec_time_vec), 0.0); // Sum Time
+    vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time
     return 0;
 }
 
@@ -75,17 +43,16 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         LOG_ERR("CPU Step Fail: No device or graph!\n");
         return -1;
     }
-    cpu_graph_info_t* g_info = cpu_graph_info_get(g);
-    if(!g_info) {
-        LOG_ERR("CPU Step Fail: No device graph info!\n");
+    if(!g->prof) {
+        LOG_ERR("CPU Step Fail: No device graph profiler!\n");
         return -1;
     }
-    if(g_info->exec_node_idx >= g_info->exec_nnode) {
+    if(g->prof->exec_node_idx >= g->prof->exec_nnode) {
         LOG_WARN("CPU Step End: No more node to run!\n");
         return 0;
     }
-    for(int i = 0; (i < n) && (g_info->exec_node_idx < g_info->exec_nnode); i++, g_info->exec_node_idx++) {
-        node_t* nd = g_info->exec_node_vec[g_info->exec_node_idx];
+    for(int i = 0; (i < n) && (g->prof->exec_node_idx < g->prof->exec_nnode); i++, g->prof->exec_node_idx++) {
+        node_t* nd = g->prof->exec_node_vec[g->prof->exec_node_idx];
         if(!nd->op || !nd->op->run) {
             LOG_ERR("CPU Step Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
             return -1;
@@ -96,10 +63,10 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         nd->op->run(nd);
         time_ed = sys_time();
         // ==== Clock down ==== //
-        if(g_info->exec_time_vec) {
-            g_info->exec_time_vec[g_info->exec_node_idx] = time_ed - time_st;
-            g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
-            LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, op_name(nd->op->type), g_info->exec_time_vec[g_info->exec_node_idx]);
+        if(g->prof->exec_time_vec) {
+            g->prof->exec_time_vec[g->prof->exec_node_idx] = time_ed - time_st;
+            g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);
+            LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, op_name(nd->op->type), g->prof->exec_time_vec[g->prof->exec_node_idx]);
         }
     }
     return 0;
@@ -111,14 +78,13 @@ static int cpu_run(device_t *dev, graph_t *g) {
         LOG_ERR("CPU Run Fail: No device or graph!\n");
         return -1;
     }
-    cpu_graph_info_t* g_info = cpu_graph_info_get(g);
-    if(!g_info) {
+    if(!g->prof) {
         LOG_ERR("CPU Run Fail: No device graph info!\n");
         return -1;
     }
-    for(int i = 0; i < g_info->exec_nnode; i++) {
-        g_info->exec_node_idx = i;
-        node_t* nd = g_info->exec_node_vec[i];
+    for(int i = 0; i < g->prof->exec_nnode; i++) {
+        g->prof->exec_node_idx = i;
+        node_t* nd = g->prof->exec_node_vec[i];
         LOG_INFO("+ op_type: %s\n", op_name(nd->op->type));
         if(!nd->op || !nd->op->run) {
             LOG_ERR("CPU Run Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
@@ -130,9 +96,9 @@ static int cpu_run(device_t *dev, graph_t *g) {
         nd->op->run(nd);
         time_ed = sys_time();
         // ==== Clock down ==== //
-        if(g_info->exec_time_vec) {
-            g_info->exec_time_vec[i] = time_ed - time_st;
-            g_info->exec_time_vec[g_info->exec_nnode] += (time_ed - time_st);
+        if(g->prof->exec_time_vec) {
+            g->prof->exec_time_vec[i] = time_ed - time_st;
+            g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);
         }
     }
     return 0;
@@ -140,8 +106,6 @@ static int cpu_run(device_t *dev, graph_t *g) {
 
 static int cpu_posrun(device_t *dev, graph_t *g) {
     /// TODO: Foreach Node in graph should postrun
-    /// TODO: Release exec graph info: for more mem
-    cpu_graph_info_free((cpu_graph_info_t*)g->info);
     return 0;
 }
 
