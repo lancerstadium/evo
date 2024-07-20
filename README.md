@@ -3,6 +3,7 @@
 <img src="./docs/public/logo.svg" width="320" align="center">
 
 - Docs: [evo-docs](https://lancerstadium.github.io/evo/docs/)
+- Server: [evo-server](https://lancerstadium.github.io/evo/docs/server)
 
 ## 1 Build & Test
 
