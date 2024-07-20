@@ -180,10 +180,6 @@ const char* op_name(op_type_t type) {
     return NULL;
 }
 
-static void op_Nop(node_t* nd) {
-    LOG_WARN("Nop\n");
-}
-
 // ==================================================================================== //
 //                                  resolver: default
 // ==================================================================================== //
@@ -195,24 +191,36 @@ static void* resolver_init_dft() {
 static void resolver_release_dft(void* rctx) {
 }
 
+#define OP_REG(T, S, R) [OP_TYPE_##T] = {.type = OP_TYPE_##T, .run = op_##S##_##R}
+#define OP_REG_DFT(T, S) OP_REG(T, S, dft)
+
 static resolver_t default_resolver = {
     .name = "default",
     .init = resolver_init_dft,
     .release = resolver_release_dft,
 
     .op_tbl = (op_t[]){
-        [OP_TYPE_NOP]                   = { .type = OP_TYPE_NOP                     , .run = op_Nop                         },
-        [OP_TYPE_ABS]                   = { .type = OP_TYPE_ABS                     , .run = op_Abs_dft                     },
-        [OP_TYPE_ADD]                   = { .type = OP_TYPE_ADD                     , .run = op_Add_dft                     },
-        [OP_TYPE_BATCH_NORMALIZATION]   = { .type = OP_TYPE_BATCH_NORMALIZATION     , .run = op_BatchNormalization_dft      },
-        [OP_TYPE_CONV]                  = { .type = OP_TYPE_CONV                    , .run = op_Conv_dft                    },
-        [OP_TYPE_GLOBAL_AVERAGEPOOL]    = { .type = OP_TYPE_GLOBAL_AVERAGEPOOL      , .run = NULL                           },
-        [OP_TYPE_MAT_MUL]               = { .type = OP_TYPE_MAT_MUL                 , .run = op_MatMul_dft                  },
-        [OP_TYPE_MAX_POOL]              = { .type = OP_TYPE_MAX_POOL                , .run = op_MaxPool_dft                 },
-        [OP_TYPE_RELU]                  = { .type = OP_TYPE_RELU                    , .run = op_Relu_dft                    },
-        [OP_TYPE_RESHAPE]               = { .type = OP_TYPE_RESHAPE                 , .run = op_Reshape_dft                 },
+        OP_REG_DFT(NOP                  , Nop                   ),
+        OP_REG_DFT(ABS                  , Abs                   ),
+        OP_REG_DFT(ADD                  , Add                   ),
+        OP_REG_DFT(AVERAGE_POOL         , AveragePool           ),
+        OP_REG_DFT(BATCH_NORMALIZATION  , BatchNormalization    ),
+        OP_REG_DFT(CONCAT               , Concat                ),
+        OP_REG_DFT(CONV                 , Conv                  ),
+        OP_REG_DFT(DROPOUT              , Dropout               ),
+        OP_REG_DFT(GLOBAL_AVERAGEPOOL   , GlobalAveragePool     ),
+        OP_REG_DFT(LEAKY_RELU           , LeakyRelu             ),
+        OP_REG_DFT(MAT_MUL              , MatMul                ),
+        OP_REG_DFT(MAX_POOL             , MaxPool               ),
+        OP_REG_DFT(MUL                  , Mul                   ),
+        OP_REG_DFT(RELU                 , Relu                  ),
+        OP_REG_DFT(RESHAPE              , Reshape               ),
+        [OP_TYPE_LAST] = {0}
     }
 };
+
+#undef OP_REG_DFT
+#undef OP_REG
 
 
 // ==================================================================================== //

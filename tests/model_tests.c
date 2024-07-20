@@ -12,9 +12,9 @@
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0)); \
     tensor_t* t1 = sez->load_tensor(TO(s, I, 0)); \
     tensor_copy(a, t0);                           \
+    graph_dump(ctx->graph);                       \
     graph_prerun(ctx->graph);                     \
     graph_run(ctx->graph);                        \
-    graph_exec_report(ctx->graph);                \
     tensor_dump2(b);                              \
     tensor_dump2(t1);                             \
     ctx->sez->unload(ctx);
@@ -82,17 +82,30 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    // TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0);
+    // TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
     return NULL;
 }
 
 // ---------------------- ShuffleNet -----------------
 
 UnitTest_fn_def(test_shufflenet_v1_9) {
-    TESTD_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);
+    TESTD_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);       // Segment fault
     return NULL;
 }
 
+// ---------------------- SqueezeNet -----------------
+
+UnitTest_fn_def(test_squeezenet_v11_7) {
+    // TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flat0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
+    return NULL;
+}
+
+// ---------------------- TinyYolo -------------------
+
+UnitTest_fn_def(test_tinyyolo_v2_8) {
+    // TESTD_1I("tinyyolo_v2_8", "image", "grid", 0);                              // 33: Segment fault
+    return NULL;
+}
 
 // ---------------------- Exit  ----------------------
 
@@ -108,6 +121,8 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_mnist_8);
     UnitTest_add(test_mobilenet_v2_7);
     UnitTest_add(test_shufflenet_v1_9);
+    UnitTest_add(test_squeezenet_v11_7);
+    UnitTest_add(test_tinyyolo_v2_8);
     UnitTest_add(test_model_exit);
     return NULL;
 }
