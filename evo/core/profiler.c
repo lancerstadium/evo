@@ -11,6 +11,8 @@ static void profiler_exec_report(profiler_t *p) {
     for(int i = 0; i < p->exec_nnode; i++) {
         LOG_INFO("| %20s | %9.3f ms | %6.2f% |\n", p->exec_node_vec[i]->name, p->exec_time_vec[i], p->exec_time_vec[i] /  p->exec_time_vec[p->exec_nnode] * 100);
     }
+    LOG_INFO("| -------------------- | ------------ | ------- |\n");
+    LOG_INFO("| %20s | %9.3f ms | %6.2f% |\n", "Exec Total", p->exec_time_vec[p->exec_nnode], 100.0);
     LOG_INFO("| --------------------------------------------- |\n");
 }
 
