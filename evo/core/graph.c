@@ -172,6 +172,7 @@ void graph_posrun(graph_t *g) {
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s]\n", g->name);
+    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
     LOG_INFO("|   Layers(%3d)   |      Input      |      Output      |\n", g->nnode);
     LOG_INFO("| --------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
@@ -181,6 +182,7 @@ void graph_dump(graph_t* g) {
         free(in);
         free(out);
     }
+    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
 }
 
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
