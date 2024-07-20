@@ -41,8 +41,23 @@ TinyML框架：
 
 #### 2.3 推理优化
 
+推理引擎指标：
+1. 推理速度（Inference Speed）
+2. 吞吐量（Throughput）
+3. 结果质量（Results Quality）
+4. 内存占用（Mem Usage）
+5. 可拓展（Extensibility）
+6. 易用性（）
 
-##### 2.3.1 model-level 模型级优化
+
+##### 2.3.1 data-level 数据级优化
+
+1. 输入压缩（Input Compression）
+2. 输出组织（Output Organization）
+
+##### 2.3.2 model-level 模型级优化
+
+高效结构设计（Efficient Structure Design）
 
 模型压缩四件套：
 1. 量化（Quantization）
@@ -50,22 +65,22 @@ TinyML框架：
 3. 知识蒸馏（Knowledge Distillation）
 4. 约束神经架构搜索（Constrained Neural Architecture Search）
 
-##### 2.3.2 card-level (graph-level) 图优化
+##### 2.3.3 card-level (graph-level) 图优化
 
 图拆分
-资源分配
 跨核并行
 数据布局
+算子融合
 批处理（提高内存重用）
 
-##### 2.3.3 op-level 算子优化
+##### 2.3.4 op-level 算子优化
 
-算子融合
 内联汇编
 硬件加速
 
-##### 2.3.4 system-level 系统级优化
+##### 2.3.5 system-level 系统级优化
 
+资源分配
 加速器通信优化
 提高CPU利用率和PCIe流量优化
 
@@ -127,3 +142,5 @@ BBQFC:
 
 ### Reference 参考文献
 
+[First-Generation Inference Accelerator Deployment at Facebook](https://arxiv.org/pdf/2107.04140)
+[A Survey on Efficient Inference for Large Language Models](https://arxiv.org/pdf/2404.14294)
