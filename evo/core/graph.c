@@ -222,6 +222,5 @@ void graph_free(graph_t *g) {
         if(g->input_inodes_vec) vector_free(g->input_inodes_vec);
         if(g->output_inodes_vec) vector_free(g->output_inodes_vec);
     }
-
     g = NULL;
 }
