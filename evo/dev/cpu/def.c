@@ -53,14 +53,18 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
     }
     for(int i = 0; (i < n) && (g->prof->exec_node_idx < g->prof->exec_nnode); i++, g->prof->exec_node_idx++) {
         node_t* nd = g->prof->exec_node_vec[g->prof->exec_node_idx];
-        if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Step Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
+        if(!nd->op) {
+            LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
         // ==== Clock up ====== //
         double time_st, time_ed;
         time_st = sys_time();
-        nd->op->run(nd);
+        if(!nd->op->run) {
+            LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
+        } else {
+            nd->op->run(nd);
+        }
         time_ed = sys_time();
         // ==== Clock down ==== //
         if(g->prof->exec_time_vec) {
@@ -85,15 +89,18 @@ static int cpu_run(device_t *dev, graph_t *g) {
     for(int i = 0; i < g->prof->exec_nnode; i++) {
         g->prof->exec_node_idx = i;
         node_t* nd = g->prof->exec_node_vec[i];
-        LOG_INFO("+ op_type: %s\n", op_name(nd->op->type));
-        if(!nd->op || !nd->op->run) {
-            LOG_ERR("CPU Run Fail: Node %s no operator %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
+        if(!nd->op) {
+            LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
         // ==== Clock up ====== //
         double time_st, time_ed;
         time_st = sys_time();
-        nd->op->run(nd);
+        if(!nd->op->run) {
+            LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
+        } else {
+            nd->op->run(nd);
+        }
         time_ed = sys_time();
         // ==== Clock down ==== //
         if(g->prof->exec_time_vec) {

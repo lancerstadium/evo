@@ -34,6 +34,9 @@ device_t* device_reg(const char* name) {
 op_t * device_find_op(device_t *dev, op_type_t t) {
     if(dev && dev->rsv) {
         op_t *trg_op = &dev->rsv->op_tbl[t];
+        if(t != OP_TYPE_NOP && trg_op->type == OP_TYPE_NOP) {
+            LOG_WARN("Resovler %s of %s not support op type: %s!\n", dev->rsv->name, dev->name, op_name(t));
+        }
         return trg_op;
     }
     return NULL;

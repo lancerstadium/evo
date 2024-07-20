@@ -201,14 +201,16 @@ static resolver_t default_resolver = {
     .release = resolver_release_dft,
 
     .op_tbl = (op_t[]){
-        [OP_TYPE_NOP]       = { .type = OP_TYPE_NOP         , .run = op_Nop             },
-        [OP_TYPE_ABS]       = { .type = OP_TYPE_ABS         , .run = op_Abs_dft         },
-        [OP_TYPE_ADD]       = { .type = OP_TYPE_ADD         , .run = op_Add_dft         },
-        [OP_TYPE_CONV]      = { .type = OP_TYPE_CONV        , .run = op_Conv_dft        },
-        [OP_TYPE_MAT_MUL]   = { .type = OP_TYPE_MAT_MUL     , .run = op_MatMul_dft      },
-        [OP_TYPE_MAX_POOL]  = { .type = OP_TYPE_MAX_POOL    , .run = op_MaxPool_dft     },
-        [OP_TYPE_RELU]      = { .type = OP_TYPE_RELU        , .run = op_Relu_dft        },
-        [OP_TYPE_RESHAPE]   = { .type = OP_TYPE_RESHAPE     , .run = op_Reshape_dft     },
+        [OP_TYPE_NOP]                   = { .type = OP_TYPE_NOP                     , .run = op_Nop                         },
+        [OP_TYPE_ABS]                   = { .type = OP_TYPE_ABS                     , .run = op_Abs_dft                     },
+        [OP_TYPE_ADD]                   = { .type = OP_TYPE_ADD                     , .run = op_Add_dft                     },
+        [OP_TYPE_BATCH_NORMALIZATION]   = { .type = OP_TYPE_BATCH_NORMALIZATION     , .run = op_BatchNormalization_dft      },
+        [OP_TYPE_CONV]                  = { .type = OP_TYPE_CONV                    , .run = op_Conv_dft                    },
+        [OP_TYPE_GLOBAL_AVERAGEPOOL]    = { .type = OP_TYPE_GLOBAL_AVERAGEPOOL      , .run = NULL                           },
+        [OP_TYPE_MAT_MUL]               = { .type = OP_TYPE_MAT_MUL                 , .run = op_MatMul_dft                  },
+        [OP_TYPE_MAX_POOL]              = { .type = OP_TYPE_MAX_POOL                , .run = op_MaxPool_dft                 },
+        [OP_TYPE_RELU]                  = { .type = OP_TYPE_RELU                    , .run = op_Relu_dft                    },
+        [OP_TYPE_RESHAPE]               = { .type = OP_TYPE_RESHAPE                 , .run = op_Reshape_dft                 },
     }
 };
 

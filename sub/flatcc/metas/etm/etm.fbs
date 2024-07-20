@@ -151,8 +151,6 @@ enum OpType: int {
 
 table Op {
     type: OpType;                   // Operator type
-    // isSameShape: bool;           // Operator same shape
-    // parameter: OpParameter;
     name: string;                   // Operator name
     inputIndexes: [int];
     outputIndexs: [int];

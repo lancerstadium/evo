@@ -172,17 +172,17 @@ void graph_posrun(graph_t *g) {
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s]\n", g->name);
-    LOG_INFO("| ---------------------------------------------------- |\n");
-    LOG_INFO("|   Layers(%3d)   |      Input      |      Output      |\n", g->nnode);
-    LOG_INFO("| --------------- | --------------- | ---------------- |\n");
+    LOG_INFO("| --------------------------------------------------------- |\n");
+    LOG_INFO("|     Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
+    LOG_INFO("| -------------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
         char* in = tensor_dump_shape(g->nodes[i]->in[0]);
         char* out = tensor_dump_shape(g->nodes[i]->out[0]);
-        LOG_INFO("| %15s | %15s | %16s |\n", op_name(g->nodes[i]->op->type), in ? in : "", out ? out : "");
+        LOG_INFO("| %20s | %15s | %16s |\n", op_name(g->nodes[i]->op->type), in ? in : "", out ? out : "");
         free(in);
         free(out);
     }
-    LOG_INFO("| ---------------------------------------------------- |\n");
+    LOG_INFO("| --------------------------------------------------------- |\n");
 }
 
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
@@ -197,6 +197,10 @@ void graph_dump2(graph_t* g) {
 void graph_exec_report(graph_t *g) {
     if(g->is_sub && g->prof) {
         profiler_report(g->prof);
+    } else if(!g->is_sub) {
+        for(int i = 0; i < vector_size(g->sub_vec); i++) {
+            graph_exec_report(g->sub_vec[i]);
+        }
     }
 }
 

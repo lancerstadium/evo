@@ -570,12 +570,12 @@ UNUSED static UnitTest sob_ut = {
     do {                                                                           \
         char message[64];                                                          \
         snprintf(message, 64, VA_ARG_FIRST(__VA_ARGS__) VA_ARG_REST(__VA_ARGS__)); \
-        printf("│  │ " _YELLOW("msg: ") _GREY("%-38s") " │\n", message);           \
+        printf("│  │ " _YELLOW("msg: ") _GREY("%-44s") " │\n", message);           \
     } while (0)
 
 #define UnitTest_ast(test, message)                                   \
     if (!(test)) {                                                    \
-        printf("│  │ " _YELLOW("ast: ") _RED("%-38s") " │\n", #test); \
+        printf("│  │ " _YELLOW("ast: ") _RED("%-44s") " │\n", #test); \
         UnitTest_msg(message);                                        \
         Log_err(message);                                             \
         return message;                                               \
@@ -588,7 +588,7 @@ UNUSED static UnitTest sob_ut = {
         sob_ut.msg = test();                                                                                                                                     \
         _UT_TEND();                                                                                                                                              \
         _UT_NRES(sob_ut.msg);                                                                                                                                    \
-        printf("│  ├── " _MAGENTA("%-2d ") _BLUE("%-18s") _CYAN("%12.4f %2s") " %s │\n", sob_ut.n_test, #test, sob_ut.t_tak, sob_ut.t_sc, _UT_SRES(sob_ut.msg)); \
+        printf("│  ├── " _MAGENTA("%-2d ") _BLUE("%-24s") _CYAN("%12.4f %2s") " %s │\n", sob_ut.n_test, #test, sob_ut.t_tak, sob_ut.t_sc, _UT_SRES(sob_ut.msg)); \
         Log_dbg("total exec %.3f %2s", sob_ut.t_tak, sob_ut.t_sc);                                                                                               \
         if (sob_ut.msg) return sob_ut.msg;                                                                                                                       \
     } while (0)
@@ -596,19 +596,19 @@ UNUSED static UnitTest sob_ut = {
 #define UnitTest_run(name)                                                                                                                                                                                            \
     int main(int, char* argv[]) {                                                                                                                                                                                     \
         Log_dbg("\n\n───── Run: " _BLUE("%s"), argv[0]);                                                                                                                                                              \
-        printf("┌────────────────────────────────────────────────┐\n");                                                                                                                                               \
-        printf("│ Test: " _BLUE("%-40s") " │\n", argv[0]);                                                                                                                                                            \
+        printf("┌──────────────────────────────────────────────────────┐\n");                                                                                                                                               \
+        printf("│ Test: " _BLUE("%-46s") " │\n", argv[0]);                                                                                                                                                            \
         char* result = name();                                                                                                                                                                                        \
-        printf("│ Sum: " _MAGENTA("%-2d ") "[%2d " _GREEN("PASS") " %2d " _RED("FAIL") "] " _CYAN("%12.4f %2s") " %s │\n", sob_ut.n_test, sob_ut.n_pass, sob_ut.n_fail, sob_ut.t_tot, sob_ut.t_sc, _UT_SRES(result)); \
-        printf("├────────────────────────────────────────────────┤\n");                                                                                                                                               \
+        printf("│ Sum: " _MAGENTA("%-2d ") "[%2d " _GREEN("PASS") " %2d " _RED("FAIL") "] " _CYAN("%18.4f %2s") " %s │\n", sob_ut.n_test, sob_ut.n_pass, sob_ut.n_fail, sob_ut.t_tot, sob_ut.t_sc, _UT_SRES(result)); \
+        printf("├──────────────────────────────────────────────────────┤\n");                                                                                                                                               \
         if (result == NULL) {                                                                                                                                                                                         \
-            printf("│ " _CYAN("%-3s ") _BLUE("%-37s ") "%s │\n", "Res", argv[0], _GREEN("PASS"));                                                                                                                     \
+            printf("│ " _CYAN("%-3s ") _BLUE("%-43s ") "%s │\n", "Res", argv[0], _GREEN("PASS"));                                                                                                                     \
         } else {                                                                                                                                                                                                      \
-            printf("│ " _CYAN("%-3s ") _BLUE("%-37s ") "%s │\n", "Res", argv[0], _RED("FAIL"));                                                                                                                       \
-            printf("│ " _CYAN("%-3s ") _RED("%-42s") " │\n", "Msg", result);                                                                                                                                          \
-            printf("│ %-3s %-51s │\n", _CYAN("Log"), _YELLOW("tests/tests.log"));                                                                                                                                      \
+            printf("│ " _CYAN("%-3s ") _BLUE("%-43s ") "%s │\n", "Res", argv[0], _RED("FAIL"));                                                                                                                       \
+            printf("│ " _CYAN("%-3s ") _RED("%-48s") " │\n", "Msg", result);                                                                                                                                          \
+            printf("│ %-3s %-57s │\n", _CYAN("Log"), _YELLOW("tests/tests.log"));                                                                                                                                      \
         }                                                                                                                                                                                                             \
-        printf("└────────────────────────────────────────────────┘\n");                                                                                                                                               \
+        printf("└──────────────────────────────────────────────────────┘\n");                                                                                                                                               \
         exit(result != 0);                                                                                                                                                                                            \
     }
 
