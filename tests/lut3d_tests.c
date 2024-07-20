@@ -4,13 +4,12 @@
 UnitTest_fn_def(test_lut3d) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("onnx");
-    context_t * ctx = sez->load_model(sez, "model/resnet_18_v1_7/model.onnx");
+    context_t * ctx = sez->load_model(sez, "model/lut3d_96/model.onnx");
     UnitTest_msg("load: %u", ctx->model_size);
 
     graph_prerun(ctx->graph);
     graph_run(ctx->graph);
-    if(ctx->graph)
-        graph_dump(ctx->graph); // Exec dump
+    graph_exec_report_level(ctx->graph, 1); // Exec dump
 
     ctx->sez->unload(ctx);
     UnitTest_msg("unload: %u", ctx->model_size);

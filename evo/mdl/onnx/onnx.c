@@ -805,6 +805,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
                     }
                 }
                 hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+                LOG_INFO("%s  : %d\n", t->name, hashmap_size(ctx->tensor_map));
             }
         }
     }
@@ -815,6 +816,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
             t = tensor_from_value_info(v);
             if (t) {
                 hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+                LOG_INFO("%s  : %d\n", t->name, hashmap_size(ctx->tensor_map));
             }
         }
     }
@@ -825,6 +827,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
             t = tensor_from_value_info(v);
             if (t) {
                 hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+                LOG_INFO("%s  : %d\n", t->name, hashmap_size(ctx->tensor_map));
             }
         }
     }
@@ -836,6 +839,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
                 t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                 if (t) {
                     hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+                    LOG_INFO("%s  : %d\n", name, hashmap_size(ctx->tensor_map));
                 }
             }
         }
@@ -846,6 +850,9 @@ graph_t *load_graph_onnx(context_t *ctx) {
         for (j = 0; j < graph->node[i]->n_input; j++) {
             name = graph->node[i]->input[j];
             if (!context_get_tensor(ctx, name)) {
+                if(strcmp(name, "") == 0) {
+                    break;
+                }
                 for (k = 0; k < graph->n_initializer; k++) {
                     if (strcmp(graph->initializer[k]->name, name) == 0) {
                         o = graph->initializer[k];
@@ -860,6 +867,7 @@ graph_t *load_graph_onnx(context_t *ctx) {
                                 tensor_reshape(t, ndim, dims);
                                 tensor_copy_proto(t, o);
                                 hashmap_set(ctx->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
+                                LOG_INFO("%s  : %d\n", name, hashmap_size(ctx->tensor_map));
                             }
                             break;
                         }

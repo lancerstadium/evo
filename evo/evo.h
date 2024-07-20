@@ -548,6 +548,7 @@ EVO_API void graph_posrun(graph_t*);
 EVO_API void graph_dump(graph_t*);
 EVO_API void graph_dump2(graph_t*);
 EVO_API void graph_exec_report(graph_t*);
+EVO_API void graph_exec_report_level(graph_t*, int);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //
@@ -592,7 +593,7 @@ typedef enum profiler_type {
 
 struct profiler {
     profiler_type_t type;                               /* Profiler Type                */
-    void (*report)(profiler_t*);                        /* Profiler Report func         */
+    void (*report)(profiler_t*, int);                   /* Profiler Report func         */
     union {
         struct {                                        /* when type == EXEC            */
             int exec_node_idx;                          /* EXEC|Node Index of exec      */
@@ -605,7 +606,7 @@ struct profiler {
 };
 
 EVO_API profiler_t * profiler_new(profiler_type_t);
-EVO_API void profiler_report(profiler_t*);
+EVO_API void profiler_report(profiler_t*, int);
 EVO_API void profiler_free(profiler_t*);
 
 // ==================================================================================== //

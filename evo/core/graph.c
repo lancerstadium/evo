@@ -195,11 +195,15 @@ void graph_dump2(graph_t* g) {
 }
 
 void graph_exec_report(graph_t *g) {
+    graph_exec_report_level(g, 0);
+}
+
+void graph_exec_report_level(graph_t *g, int l) {
     if(g->is_sub && g->prof) {
-        profiler_report(g->prof);
+        profiler_report(g->prof, l);
     } else if(!g->is_sub) {
         for(int i = 0; i < vector_size(g->sub_vec); i++) {
-            graph_exec_report(g->sub_vec[i]);
+            graph_exec_report_level(g->sub_vec[i], l);
         }
     }
 }
