@@ -3,8 +3,10 @@
 
 - `libevo` is a Inference engine used in TinyML write by pure C.
 - **Keyword**: Lite > High Performance > Easy to Use > Compatibility
+- Try [online](./server)
 
 ![evo](./public/evo.svg)
+
 
 ### 1 Docs & PPT
 
