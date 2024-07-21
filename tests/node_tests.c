@@ -5,70 +5,70 @@
 #define TI(s, i)    "node/"s"/test_data_set_0/input_"#i".pb"
 #define TO(s, i)    "node/"s"/test_data_set_0/output_"#i".pb"
 
-#define TESTD_1I(s, i, o)                         \
-    context_t* ctx = sez->load_model(sez, MD(s)); \
-    tensor_t* i = context_get_tensor(ctx, #i);    \
-    tensor_t* o = context_get_tensor(ctx, #o);    \
-    tensor_t* t0 = sez->load_tensor(TI(s, 0));    \
-    tensor_t* t1 = sez->load_tensor(TO(s, 0));    \
-    tensor_copy(i, t0);                           \
-    graph_prerun(ctx->graph);                     \
-    graph_run(ctx->graph);                        \
-    tensor_dump2(o);                              \
-    tensor_dump2(t1);                             \
-    ctx->sez->unload(ctx);
+#define TESTD_1I(s, i, o)                       \
+    model_t* mdl = sez->load_model(sez, MD(s)); \
+    tensor_t* i = model_get_tensor(mdl, #i);    \
+    tensor_t* o = model_get_tensor(mdl, #o);    \
+    tensor_t* t0 = sez->load_tensor(TI(s, 0));  \
+    tensor_t* t1 = sez->load_tensor(TO(s, 0));  \
+    tensor_copy(i, t0);                         \
+    graph_prerun(mdl->graph);                   \
+    graph_run(mdl->graph);                      \
+    tensor_dump2(o);                            \
+    tensor_dump2(t1);                           \
+    mdl->sez->unload(mdl);
 
 #define TEST_1I(s, i, o)                            \
-    context_t* ctx = sez->load_model(sez, MD(s));   \
-    tensor_t* i = context_get_tensor(ctx, #i);      \
-    tensor_t* o = context_get_tensor(ctx, #o);      \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* i = model_get_tensor(mdl, #i);        \
+    tensor_t* o = model_get_tensor(mdl, #o);        \
     tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
     tensor_t* t1 = sez->load_tensor(TO(s, 0));      \
     tensor_copy(i, t0);                             \
-    graph_prerun(ctx->graph);                       \
-    graph_run(ctx->graph);                          \
+    graph_prerun(mdl->graph);                       \
+    graph_run(mdl->graph);                          \
     UnitTest_ast(tensor_equal(o, t1), s " failed"); \
-    ctx->sez->unload(ctx);
+    mdl->sez->unload(mdl);
 
-#define TESTD_2I(s, i0, i1, o)                    \
-    context_t* ctx = sez->load_model(sez, MD(s)); \
-    tensor_t* i0 = context_get_tensor(ctx, #i0);  \
-    tensor_t* i1 = context_get_tensor(ctx, #i1);  \
-    tensor_t* o = context_get_tensor(ctx, #o);    \
-    tensor_t* t0 = sez->load_tensor(TI(s, 0));    \
-    tensor_t* t1 = sez->load_tensor(TI(s, 1));    \
-    tensor_t* t2 = sez->load_tensor(TO(s, 0));    \
-    tensor_copy(i0, t0);                          \
-    tensor_copy(i1, t1);                          \
-    graph_prerun(ctx->graph);                     \
-    graph_run(ctx->graph);                        \
-    tensor_dump2(o);                              \
-    tensor_dump2(t2);                             \
-    ctx->sez->unload(ctx);
+#define TESTD_2I(s, i0, i1, o)                  \
+    model_t* mdl = sez->load_model(sez, MD(s)); \
+    tensor_t* i0 = model_get_tensor(mdl, #i0);  \
+    tensor_t* i1 = model_get_tensor(mdl, #i1);  \
+    tensor_t* o = model_get_tensor(mdl, #o);    \
+    tensor_t* t0 = sez->load_tensor(TI(s, 0));  \
+    tensor_t* t1 = sez->load_tensor(TI(s, 1));  \
+    tensor_t* t2 = sez->load_tensor(TO(s, 0));  \
+    tensor_copy(i0, t0);                        \
+    tensor_copy(i1, t1);                        \
+    graph_prerun(mdl->graph);                   \
+    graph_run(mdl->graph);                      \
+    tensor_dump2(o);                            \
+    tensor_dump2(t2);                           \
+    mdl->sez->unload(mdl);
 
 #define TEST_2I(s, i0, i1, o)                       \
-    context_t* ctx = sez->load_model(sez, MD(s));   \
-    tensor_t* i0 = context_get_tensor(ctx, #i0);    \
-    tensor_t* i1 = context_get_tensor(ctx, #i1);    \
-    tensor_t* o = context_get_tensor(ctx, #o);      \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* i0 = model_get_tensor(mdl, #i0);      \
+    tensor_t* i1 = model_get_tensor(mdl, #i1);      \
+    tensor_t* o = model_get_tensor(mdl, #o);        \
     tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
     tensor_t* t1 = sez->load_tensor(TI(s, 1));      \
     tensor_t* t2 = sez->load_tensor(TO(s, 0));      \
     tensor_copy(i0, t0);                            \
     tensor_copy(i1, t1);                            \
-    graph_prerun(ctx->graph);                       \
-    graph_run(ctx->graph);                          \
+    graph_prerun(mdl->graph);                       \
+    graph_run(mdl->graph);                          \
     UnitTest_ast(tensor_equal(o, t2), s " failed"); \
-    ctx->sez->unload(ctx);
+    mdl->sez->unload(mdl);
 
 #define TEST_5I(s, i0, i1, i2, i3, i4, o)           \
-    context_t* ctx = sez->load_model(sez, MD(s));   \
-    tensor_t* i0 = context_get_tensor(ctx, #i0);    \
-    tensor_t* i1 = context_get_tensor(ctx, #i1);    \
-    tensor_t* i2 = context_get_tensor(ctx, #i2);    \
-    tensor_t* i3 = context_get_tensor(ctx, #i3);    \
-    tensor_t* i4 = context_get_tensor(ctx, #i4);    \
-    tensor_t* o = context_get_tensor(ctx, #o);      \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* i0 = model_get_tensor(mdl, #i0);      \
+    tensor_t* i1 = model_get_tensor(mdl, #i1);      \
+    tensor_t* i2 = model_get_tensor(mdl, #i2);      \
+    tensor_t* i3 = model_get_tensor(mdl, #i3);      \
+    tensor_t* i4 = model_get_tensor(mdl, #i4);      \
+    tensor_t* o = model_get_tensor(mdl, #o);        \
     tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
     tensor_t* t1 = sez->load_tensor(TI(s, 1));      \
     tensor_t* t2 = sez->load_tensor(TI(s, 2));      \
@@ -80,10 +80,10 @@
     tensor_copy(i2, t2);                            \
     tensor_copy(i3, t3);                            \
     tensor_copy(i4, t4);                            \
-    graph_prerun(ctx->graph);                       \
-    graph_run(ctx->graph);                          \
+    graph_prerun(mdl->graph);                       \
+    graph_run(mdl->graph);                          \
     UnitTest_ast(tensor_equal(o, t5), s " failed"); \
-    ctx->sez->unload(ctx);
+    mdl->sez->unload(mdl);
 
 serializer_t * sez;
 

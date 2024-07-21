@@ -5,11 +5,11 @@
 UnitTest_fn_def(test_tflite_load) {
     device_reg("cpu");
     serializer_t * sez = serializer_new("tflite");
-    context_t * ctx = sez->load_model(sez, "model/mnist_8/mnist_dw_f.tflite");
+    model_t * mdl = sez->load_model(sez, "model/mnist_8/mnist_dw_f.tflite");
 
-    graph_dump(ctx->graph->sub_vec[0]);
+    graph_dump(mdl->graph->sub_vec[0]);
 
-    ctx->sez->unload(ctx);
+    mdl->sez->unload(mdl);
     serializer_free(sez);
     device_unreg("cpu");
     return NULL;

@@ -28,7 +28,7 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     node_init(nd, op_ty, g->nnode);
     nd->opset = 0;
     nd->graph = g;
-    nd->ctx = g->ctx;
+    nd->mdl = g->mdl;
     nd->node_proto = NULL;
     if(name) {
         nd->name = sys_strdup(name);

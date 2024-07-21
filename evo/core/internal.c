@@ -48,7 +48,7 @@ device_t* device_registry_get(int idx) {
     }
 }
 device_t* device_registry_get_default() {
-    return device_registry_find("cpu");
+    return device_registry_find(EVO_DFT_DEV);
 }
 
 void device_registry_release() {

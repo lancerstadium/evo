@@ -48,7 +48,7 @@ typedef struct {
     bool  is_batch_mode;
     // evo var
     serializer_t * sez;
-    context_t * ctx;
+    model_t * mdl;
     tensor_t * in;
     tensor_t * out;
 } edb_t;
@@ -61,7 +61,7 @@ static edb_t edb = {
     .listen = 0,
     .connect = 0,
     .sez = NULL,
-    .ctx = NULL,
+    .mdl = NULL,
     .in = NULL,
     .out = NULL,
 };
@@ -135,11 +135,11 @@ static size_t edb_model_init() {
         edb.model_file = "../../tests/model/mnist_8/model.onnx";
         edb.in = edb.sez->load_tensor("../../tests/model/mnist_8/test_data_set_0/input_0.pb");
     }
-    edb.ctx = edb.sez->load_model(edb.sez, edb.model_file);
-    if(edb.ctx && edb.ctx->model_size > 0) {
-        printf("Load model: %s(%u Byte) success!\n", edb.model_file, edb.ctx->model_size);
-        if(edb.ctx->graph) {
-            graph_prerun(edb.ctx->graph);
+    edb.mdl = edb.sez->load_model(edb.sez, edb.model_file);
+    if(edb.mdl && edb.mdl->model_size > 0) {
+        printf("Load model: %s(%u Byte) success!\n", edb.model_file, edb.mdl->model_size);
+        if(edb.mdl->graph) {
+            graph_prerun(edb.mdl->graph);
             printf("Graph Pre-run success!\n");
         }else{
             printf("Graph Pre-run fail!\n");
@@ -155,11 +155,11 @@ static size_t edb_model_init() {
 // ==================================================================================== //
 
 void graph_display() {
-    graph_dump(edb.ctx->graph);
+    graph_dump(edb.mdl->graph);
 }
 
 uint64_t tensor_display(char *s, bool *success) {
-    tensor_t * ts = context_get_tensor(edb.ctx, s);
+    tensor_t * ts = model_get_tensor(edb.mdl, s);
     tensor_dump(ts);
     *success = true;
     return 0;
@@ -608,7 +608,7 @@ static bool edb_trace(uint64_t* dnpc) {
 }
 
 static int cmd_c(UNUSED char *args) {
-    graph_run(edb.ctx->graph);
+    graph_run(edb.mdl->graph);
     return 0;
 }
 
@@ -618,7 +618,7 @@ static int cmd_si(char *args) {
     if (sub != NULL) {
         n = strtol(sub, NULL, 10);   
     }
-    graph_step(edb.ctx->graph, n);
+    graph_step(edb.mdl->graph, n);
     return 0;
 }
 
@@ -845,9 +845,9 @@ static void edb_diff_loop() {
 }
 
 void edb_exit() {
-    if(edb.ctx) {
-        printf("Unload model: %s(%u Byte) success!\n", edb.model_file, edb.ctx->model_size);
-        edb.sez->unload(edb.ctx);
+    if(edb.mdl) {
+        printf("Unload model: %s(%u Byte) success!\n", edb.model_file, edb.mdl->model_size);
+        edb.sez->unload(edb.mdl);
     }
     serializer_free(edb.sez);
     device_unreg(STR(EDB_DEVICE));

@@ -12,33 +12,33 @@
 
 EVO_UNUSED static flatcc_builder_t builder;
 
-context_t *load_tflite(struct serializer *s, const void *buf, size_t len) {
-    context_t *ctx = NULL;
+model_t *load_tflite(struct serializer *s, const void *buf, size_t len) {
+    model_t *mdl = NULL;
     if (!buf || len <= 0)
         return NULL;
-    ctx = context_new(NULL);
-    ctx->sez = s;
-    ctx->cmodel = ns(Model_as_root(buf));
-    if (!ctx->cmodel) {
-        if (ctx)
-            sys_free(ctx);
+    mdl = model_new(NULL);
+    mdl->sez = s;
+    mdl->cmodel = ns(Model_as_root(buf));
+    if (!mdl->cmodel) {
+        if (mdl)
+            sys_free(mdl);
         return NULL;
     }
-    ctx->model_size = len;
-    ctx->name = sys_strdup(ns(Model_description(ctx->cmodel)));
-    ctx->tensor_map = hashmap_create();
-    if (!ctx->tensor_map) {
-        if (ctx)
-            sys_free(ctx);
+    mdl->model_size = len;
+    mdl->name = sys_strdup(ns(Model_description(mdl->cmodel)));
+    mdl->tensor_map = hashmap_create();
+    if (!mdl->tensor_map) {
+        if (mdl)
+            sys_free(mdl);
         return NULL;
     }
     // graph
-    load_graph_tflite(ctx);
-    return ctx;
+    load_graph_tflite(mdl);
+    return mdl;
 }
 
-context_t *load_model_tflite(struct serializer *sez, const char *path) {
-    context_t *ctx = NULL;
+model_t *load_model_tflite(struct serializer *sez, const char *path) {
+    model_t *mdl = NULL;
     FILE *fp;
     uint32_t len;
     unsigned int i;
@@ -52,7 +52,7 @@ context_t *load_model_tflite(struct serializer *sez, const char *path) {
             buf = sys_malloc(len);
             if (buf) {
                 for (i = 0; i < len; i += fread(buf + i, 1, len - i, fp));
-                ctx = load_tflite(sez, buf, len);
+                mdl = load_tflite(sez, buf, len);
                 sys_free(buf);
             }
         }
@@ -60,12 +60,12 @@ context_t *load_model_tflite(struct serializer *sez, const char *path) {
     } else {
         LOG_ERR("No such file: %s\n", path);
     }
-    return ctx;
+    return mdl;
 }
 
-void unload_tflite(context_t *ctx) {
-    if (ctx && ctx->cmodel) {
-        ctx->model_size = 0;
+void unload_tflite(model_t *mdl) {
+    if (mdl && mdl->cmodel) {
+        mdl->model_size = 0;
     }
 }
 
@@ -121,19 +121,19 @@ static tensor_t * tensor_from_proto(ns(Tensor_table_t) tensor) {
     return ts;
 }
 
-graph_t *load_graph_tflite(context_t *ctx) {
-    if (!ctx || !ctx->cmodel) {
+graph_t *load_graph_tflite(model_t *mdl) {
+    if (!mdl || !mdl->cmodel) {
         return NULL;
     }
     graph_t *g;
-    ns(SubGraph_vec_t) subgraphs = ns(Model_subgraphs(ctx->cmodel));
+    ns(SubGraph_vec_t) subgraphs = ns(Model_subgraphs(mdl->cmodel));
     if (!subgraphs)
         return NULL;
-    g = graph_new(ctx);
+    g = graph_new(mdl);
     if (!g)
         return NULL;
     // Print cur Operator codes
-    ns(OperatorCode_vec_t) opcodes = ns(Model_operator_codes(ctx->cmodel));
+    ns(OperatorCode_vec_t) opcodes = ns(Model_operator_codes(mdl->cmodel));
     for(size_t i = 0; i < ns(OperatorCode_vec_len(opcodes)); i++) {
         ns(OperatorCode_table_t) opcode = ns(OperatorCode_vec_at(opcodes, i));
         LOG_INFO("opcode: %d\n", ns(OperatorCode_builtin_code(opcode)));
@@ -155,7 +155,7 @@ graph_t *load_graph_tflite(context_t *ctx) {
             ns(Tensor_table_t) tensor = ns(Tensor_vec_at(tensors, j));
             tensor_t * t = tensor_from_proto(tensor);
             sg->tensors[j] = t;
-            hashmap_set(ctx->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
+            hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
         }
         // Add Nodes: from Operator
         ns(Operator_vec_t) operators = ns(SubGraph_operators(subgraph));

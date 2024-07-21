@@ -44,8 +44,9 @@ extern "C" {
 #define EVO_UNUSED
 #endif  // __GNUC__ || __clang__
 
+#define EVO_DFT_DEV     "cpu"
 #define EVO_DIM_MAX     8
-#define EVO_ALIGN_SIZE 16
+#define EVO_ALIGN_SIZE  16
 
 // ==================================================================================== //
 //                                       typedef
@@ -54,9 +55,10 @@ extern "C" {
 typedef struct op op_t;
 typedef struct node node_t;
 typedef struct graph graph_t;
+typedef struct model model_t;
 typedef struct tensor tensor_t;
 typedef struct device device_t;
-typedef struct context context_t;
+typedef struct runtime runtime_t;
 typedef struct resolver resolver_t;
 typedef struct profiler profiler_t;
 typedef struct scheduler scheduler_t;
@@ -83,6 +85,26 @@ EVO_API device_t* device_registry_find(const char*);
 EVO_API device_t* device_registry_get(int);
 EVO_API device_t* device_registry_get_default();
 EVO_API void device_registry_release();
+
+// ==================================================================================== //
+//                                       evo: runtime
+// ==================================================================================== //
+
+struct runtime {
+    device_vec_t dev_reg_vec;                           /* Runtime Devices' Registry    */
+    serializer_t * sez;                                 /* Runtime Serializer           */
+    model_t * mdl;                                      /* Runtime Model                */
+};
+
+EVO_API runtime_t * runtime_new(const char*);
+EVO_API model_t * runtime_load(runtime_t*, const char*);
+EVO_API tensor_t* runtime_load_tensor(runtime_t*, const char*);
+EVO_API void runtime_set_tensor(runtime_t*, const char*, tensor_t*);
+EVO_API tensor_t * runtime_get_tensor(runtime_t*, const char*);
+EVO_API void runtime_unload(runtime_t*);
+EVO_API void runtime_free(runtime_t*);
+EVO_API device_t* runtime_reg_dev(runtime_t*, const char*);
+EVO_API void runtime_unreg_dev(runtime_t*, const char*);
 
 // ==================================================================================== //
 //                                       evo: tensor type
@@ -463,7 +485,7 @@ struct node {
     op_t* op;                                           /* Operator                     */
     int opset;                                          /* Operator set                 */
     graph_t *graph;                                     /* Owner Graph                  */
-    context_t *ctx;                                     /* Owner Context                */
+    model_t *mdl;                                       /* Owner model                  */
 
     attribute_vec_t attr_vec;                           /* Attribute Vec of node        */
 
@@ -509,7 +531,7 @@ struct graph {
 
     serializer_t *sez;                                  /* Serializer of graph          */
     device_t *dev;                                      /* Device of graph              */
-    context_t *ctx;                                     /* Owner Context                */
+    model_t *mdl;                                       /* Owner model                  */
 
     uint8_t data_layout : 1;                            /* Data layout: 0NCHW/1NHWC     */
     uint8_t is_sub : 1;                                 /* Graph is sub graph           */
@@ -534,7 +556,7 @@ struct graph {
     };
 };
 
-EVO_API graph_t * graph_new(context_t*);
+EVO_API graph_t * graph_new(model_t*);
 EVO_API graph_t * graph_sub_new(graph_t*);
 EVO_API graph_t * graph_as_sub(graph_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
@@ -552,31 +574,27 @@ EVO_API void graph_exec_report_level(graph_t*, int);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //
-//                                       evo: context
+//                                       evo: model
 // ==================================================================================== //
 
-struct context {
-    char *name;                                         /* Context name                 */
-    graph_t  *graph;                                    /* Context graph entry          */
-
-    scheduler_t *scd;                                   /* Context scheduler            */
-    serializer_t *sez;                                  /* Serializer of contex         */
-    device_t *dev;                                      /* Context device               */
-
+struct model {
+    char *name;                                         /* model name                   */
+    graph_t  *graph;                                    /* model graph entry            */
+    scheduler_t *scd;                                   /* model scheduler              */
+    serializer_t *sez;                                  /* Serializer of Model          */
+    device_t *dev;                                      /* model device                 */
     union {
-        void* model;                                    /* Context model proto          */
-        const void* cmodel;                             /* Context const model proto    */
+        void* model;                                    /* model model proto            */
+        const void* cmodel;                             /* model const model proto      */
     };
-
-    uint32_t model_size;                                /* Context model size           */
-
-    hashmap_t *tensor_map;                              /* Context tensor map           */
+    uint32_t model_size;                                /* model model size             */
+    hashmap_t *tensor_map;                              /* model tensor map             */
 };
 
-EVO_API context_t * context_new(const char*);
-EVO_API tensor_t* context_get_tensor(context_t*, const char*);
-EVO_API void context_dump_tensor(context_t*);
-EVO_API void context_free(context_t*);
+EVO_API model_t * model_new(const char*);
+EVO_API tensor_t* model_get_tensor(model_t*, const char*);
+EVO_API void model_dump_tensor(model_t*);
+EVO_API void model_free(model_t*);
 
 // ==================================================================================== //
 //                                       evo: profiler type
@@ -616,11 +634,11 @@ EVO_API void profiler_free(profiler_t*);
 struct serializer {
     const char* fmt;                                    /* Serializer format name       */
 
-    context_t * (*load) (struct serializer*, const void *, size_t);
-    context_t * (*load_model) (struct serializer*, const char*);
+    model_t * (*load) (struct serializer*, const void *, size_t);
+    model_t * (*load_model) (struct serializer*, const char*);
     tensor_t * (*load_tensor) (const char*);
-    graph_t* (*load_graph) (context_t*);                /* Serializer load ctx to graph */
-    void (*unload) (context_t*);                        /* Serializer unload model      */
+    graph_t* (*load_graph) (model_t*);                  /* Serializer load mdl to graph */
+    void (*unload) (model_t*);                          /* Serializer unload model      */
 };
 
 EVO_API serializer_t *serializer_new(const char*);

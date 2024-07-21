@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-static void graph_init(graph_t *g, context_t *ctx) {
+static void graph_init(graph_t *g, model_t *mdl) {
     g->name = NULL;
     g->tensors = NULL;
     g->nodes = NULL;
@@ -16,9 +16,9 @@ static void graph_init(graph_t *g, context_t *ctx) {
     g->ninput_node = 0;
     g->noutput_node = 0;
 
-    g->ctx = ctx;
-    g->sez = ctx->sez;
-    g->dev = ctx->dev;
+    g->mdl = mdl;
+    g->sez = mdl->sez;
+    g->dev = mdl->dev;
 
     g->data_layout = 0;                             /* Default: NCHW */
     g->is_sub = 0;                                  /* Default: not  */
@@ -26,9 +26,9 @@ static void graph_init(graph_t *g, context_t *ctx) {
 
     g->sub_vec = vector_create();                   /* Sub graph vec */
 
-    if(ctx) {
-        ctx->graph = g;
-        g->sez = ctx->sez;
+    if(mdl) {
+        mdl->graph = g;
+        g->sez = mdl->sez;
     }
 }
 
@@ -41,7 +41,7 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->input_itensors_vec = vector_create();
     g->output_itensors_vec = vector_create();
 
-    g->ctx = pg->ctx;
+    g->mdl = pg->mdl;
     g->sez = pg->sez;
     g->dev = pg->dev;
 
@@ -65,12 +65,12 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
 }
 
 
-graph_t * graph_new(context_t *ctx) {
+graph_t * graph_new(model_t *mdl) {
     graph_t *g = (graph_t*)sys_malloc(sizeof(graph_t));
     if(!g) {
         return NULL;
     }
-    graph_init(g, ctx);
+    graph_init(g, mdl);
     return g;
 }
 
@@ -132,41 +132,41 @@ node_t* graph_get_node(graph_t *g, int i) {
 }
 
 void graph_prerun(graph_t *g) {
-    if(!g || !g->ctx) return;
-    context_t *ctx = g->ctx;
-    if(ctx->scd) {
+    if(!g || !g->mdl) return;
+    model_t *mdl = g->mdl;
+    if(mdl->scd) {
         if(!g->is_sub && vector_size(g->sub_vec) == 0 ) {
             graph_as_sub(g);
         }
-        ctx->scd->prerun(ctx->scd, g);
+        mdl->scd->prerun(mdl->scd, g);
     }
 }
 
 void graph_step(graph_t* g, int n) {
-    if(!g || !g->ctx) return;
-    context_t *ctx = g->ctx;
+    if(!g || !g->mdl) return;
+    model_t *mdl = g->mdl;
     g->status = GRAPH_STATUS_RUN;
-    ctx->scd->step(ctx->scd, g, n);
+    mdl->scd->step(mdl->scd, g, n);
 }
 
 void graph_run(graph_t *g) {
-    if(!g || !g->ctx) return;
-    context_t *ctx = g->ctx;
+    if(!g || !g->mdl) return;
+    model_t *mdl = g->mdl;
     g->status = GRAPH_STATUS_RUN;
-    ctx->scd->run(ctx->scd, g);
+    mdl->scd->run(mdl->scd, g);
 }
 
 void graph_wait(graph_t *g) {
-    if(!g || !g->ctx) return;
-    context_t *ctx = g->ctx;
+    if(!g || !g->mdl) return;
+    model_t *mdl = g->mdl;
     g->status = GRAPH_STATUS_SUSPEND;
-    ctx->scd->wait(ctx->scd, g);
+    mdl->scd->wait(mdl->scd, g);
 }
 
 void graph_posrun(graph_t *g) {
-    if(!g || !g->ctx) return;
-    context_t *ctx = g->ctx;
-    ctx->scd->posrun(ctx->scd, g);
+    if(!g || !g->mdl) return;
+    model_t *mdl = g->mdl;
+    mdl->scd->posrun(mdl->scd, g);
 }
 
 void graph_dump(graph_t* g) {
