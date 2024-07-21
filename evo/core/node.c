@@ -115,8 +115,8 @@ void node_dump(node_t *nd) {
     }
 }
 
-void node_free(node_t* nd, graph_t* g) {
-    if(!nd || !g) {
+void node_free(node_t* nd) {
+    if(!nd) {
         return;
     }
     if(nd->name) {

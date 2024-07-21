@@ -176,11 +176,13 @@ void graph_dump(graph_t* g) {
     LOG_INFO("|     Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
     LOG_INFO("| -------------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
-        char* in = tensor_dump_shape(g->nodes[i]->in[0]);
-        char* out = tensor_dump_shape(g->nodes[i]->out[0]);
-        LOG_INFO("| %20s | %15s | %16s |\n", op_name(g->nodes[i]->op->type), in ? in : "", out ? out : "");
-        free(in);
-        free(out);
+        if(g->nodes[i]) {
+            char* in = g->nodes[i]->in ? tensor_dump_shape(g->nodes[i]->in[0]) : sys_strdup("[]");
+            char* out = g->nodes[i]->out ? tensor_dump_shape(g->nodes[i]->out[0]) : sys_strdup("[]");
+            LOG_INFO("| %20s | %15s | %16s |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out);
+            free(in);
+            free(out);
+        }
     }
     LOG_INFO("| --------------------------------------------------------- |\n");
 }
@@ -220,7 +222,7 @@ void graph_free(graph_t *g) {
     // free nodes
     if(g->nodes) {
         for(int i = 0; i < g->nnode; i++) {
-            node_free(g->nodes[i], g);
+            node_free(g->nodes[i]);
         }
         sys_free(g->nodes);
     }

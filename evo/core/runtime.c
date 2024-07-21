@@ -45,6 +45,22 @@ tensor_t* runtime_get_tensor(runtime_t *rt, const char *name) {
     return NULL;
 }
 
+void runtime_run(runtime_t *rt) {
+    if(!rt) return;
+    if(rt->mdl && rt->mdl->graph) {
+        graph_prerun(rt->mdl->graph);
+        graph_run(rt->mdl->graph);
+        graph_posrun(rt->mdl->graph);
+    }
+}
+
+void runtime_dump_graph(runtime_t *rt) {
+    if(!rt) return;
+    if(rt->mdl && rt->mdl->graph) {
+        graph_dump(rt->mdl->graph);
+    }
+}
+
 void runtime_unload(runtime_t *rt) {
     if(!rt) return;
     if(rt->mdl && rt->mdl->sez && rt->mdl->sez->unload) {

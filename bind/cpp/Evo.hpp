@@ -1,54 +1,133 @@
 #include <evo.h>
+#include <vector>
 #include <string>
 
-class Evo {
-    const char *model_path;
-    serializer_t *sez;
-    model_t *mdl;
+
+namespace Evo {
+
+typedef op_type_t OpType;
+typedef tensor_type_t TensorType;
+
+class Tensor;
+class Node;
+class Graph;
+class Model;
+class RunTime;
+
+class Tensor {
+private:
+    tensor_t *_ts;
+
 public:
-    Evo() {
-        device_reg("cpu");
-        this->model_path = NULL;
-        this->sez = NULL;
-        this->mdl = NULL;
+    Tensor(tensor_t *ts) {
+        this->_ts = ts;
     }
-    Evo(const char* model_format) {
-        device_reg("cpu");
-        this->model_path = model_path;
-        this->sez = serializer_new(model_format);
-        this->mdl = NULL;
+    Tensor(const char *name, TensorType type) {
+        this->_ts = tensor_new(name, type);
     }
-    Evo(const char *model_format, const char *model_path) {
-        device_reg("cpu");
-        this->model_path = model_path;
-        this->sez = serializer_new(model_format);
-        this->mdl = this->load(model_path);
-    }
-    ~Evo() {
-        serializer_free(this->sez);
-        device_unreg("cpu");
+    ~Tensor() {
+        tensor_free(this->_ts);
     }
 
-    model_t * load(const char *model_path) {
-        this->model_path = model_path;
-        this->mdl = this->sez->load_model(this->sez, model_path);
-        return this->mdl;
+    tensor_t* proto() {
+        return this->_ts;
     }
-
-    void unload() {
-        if(this->mdl) {
-            this->sez->unload(this->mdl);
-        }
+    void dump() {
+        tensor_dump(this->_ts);
     }
-
-    void run() {
-        graph_prerun(this->mdl->graph);
-        graph_run(this->mdl->graph);
-        graph_posrun(this->mdl->graph);
-    }
-
-    void display() {
-        graph_dump(this->mdl->graph);
-    }
-
 };
+
+class Model {
+private:
+    model_t* _mdl;
+
+public:
+    Model(model_t* mdl) {
+        this->_mdl = mdl;
+    }
+    Model(const char *name) {
+        this->_mdl = model_new(name);
+    }
+    ~Model() {
+        model_free(this->_mdl);
+    }
+
+    model_t* proto() {
+        return this->_mdl;
+    }
+};
+
+class Graph {
+private:
+    graph_t* _g;
+
+public:
+    Graph(Model &m) {
+        this->_g = graph_new(m.proto());
+    }
+    ~Graph() {
+        graph_free(this->_g);
+    }
+
+    graph_t* proto() {
+        return this->_g;
+    }
+};
+
+class Node {
+private:
+    node_t *_nd;
+
+public:
+    Node(Graph &g, const char* name, OpType type) {
+        this->_nd = node_new(g.proto(), name, type);
+    }
+    ~Node() {
+        node_free(this->_nd);
+    }
+
+    node_t* proto() {
+        return this->_nd;
+    }
+};
+
+class RunTime {
+private:
+    runtime_t* _rt;
+
+public:
+    RunTime(const char* fmt) {
+        this->_rt  = runtime_new(fmt);
+    }
+    ~RunTime() {
+        runtime_free(this->_rt);
+    }
+
+    runtime_t* proto() {
+        return this->_rt;
+    }
+    Model load(const char *path) {
+        return Model(runtime_load(this->_rt, path));
+    }
+    void unload() {
+        runtime_unload(this->_rt);
+    }
+    Tensor load_tensor(const char *path) {
+        return Tensor(runtime_load_tensor(this->_rt, path));
+    }
+    void set_tensor(const char *name, Tensor &ts) {
+        runtime_set_tensor(this->_rt, name, ts.proto());
+    }
+    Tensor get_tensor(const char* name) {
+        return Tensor(runtime_get_tensor(this->_rt, name));
+    }
+    void run() {
+        runtime_run(this->_rt);
+    }
+    void dump_graph() {
+        runtime_dump_graph(this->_rt);
+    }
+};
+
+}
+

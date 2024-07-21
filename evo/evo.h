@@ -102,6 +102,8 @@ EVO_API tensor_t* runtime_load_tensor(runtime_t*, const char*);
 EVO_API void runtime_set_tensor(runtime_t*, const char*, tensor_t*);
 EVO_API tensor_t * runtime_get_tensor(runtime_t*, const char*);
 EVO_API void runtime_unload(runtime_t*);
+EVO_API void runtime_run(runtime_t*);
+EVO_API void runtime_dump_graph(runtime_t*);
 EVO_API void runtime_free(runtime_t*);
 EVO_API device_t* runtime_reg_dev(runtime_t*, const char*);
 EVO_API void runtime_unreg_dev(runtime_t*, const char*);
@@ -501,7 +503,7 @@ EVO_API char * node_get_attr_string(node_t*, const char*, char*);
 EVO_API int node_get_attr_floats(node_t*, const char*, float**);
 EVO_API int node_get_attr_ints(node_t*, const char*, int64_t**);
 EVO_API void node_dump(node_t*);
-EVO_API void node_free(node_t*, graph_t*);
+EVO_API void node_free(node_t*);
 
 // ==================================================================================== //
 //                                       evo: graph status
@@ -584,7 +586,7 @@ struct model {
     serializer_t *sez;                                  /* Serializer of Model          */
     device_t *dev;                                      /* model device                 */
     union {
-        void* model;                                    /* model model proto            */
+        void* model_proto;                              /* model model proto            */
         const void* cmodel;                             /* model const model proto      */
     };
     uint32_t model_size;                                /* model model size             */

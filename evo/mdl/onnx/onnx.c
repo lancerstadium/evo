@@ -363,19 +363,19 @@ model_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
         return NULL;
     mdl = model_new(NULL);
     mdl->sez = s;
-    mdl->model = onnx__model_proto__unpack(NULL, len, buf);
-    if (!mdl->model) {
+    mdl->model_proto = onnx__model_proto__unpack(NULL, len, buf);
+    if (!mdl->model_proto) {
         if (mdl)
             sys_free(mdl);
         return NULL;
     }
     mdl->model_size = len;
-    mdl->name = sys_strdup(((Onnx__ModelProto*)(mdl->model))->domain);
+    mdl->name = sys_strdup(((Onnx__ModelProto*)(mdl->model_proto))->domain);
 
     mdl->tensor_map = hashmap_create();
     if (!mdl->tensor_map) {
-        if (mdl->model)
-            onnx__model_proto__free_unpacked(mdl->model, NULL);
+        if (mdl->model_proto)
+            onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
         if (mdl)
             sys_free(mdl);
         return NULL;
@@ -412,8 +412,8 @@ model_t *load_model_onnx(struct serializer *sez, const char *path) {
 }
 
 void unload_onnx(model_t *mdl) {
-    if (mdl && mdl->model) {
-        onnx__model_proto__free_unpacked(mdl->model, NULL);
+    if (mdl && mdl->model_proto) {
+        onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
         mdl->model_size = 0;
     }
 }
@@ -764,10 +764,10 @@ tensor_t *load_tensor_onnx(const char *path) {
 }
 
 graph_t *load_graph_onnx(model_t *mdl) {
-    if (!mdl || !mdl->model) {
+    if (!mdl || !mdl->model_proto) {
         return NULL;
     }
-    Onnx__GraphProto *graph = ((Onnx__ModelProto *)(mdl->model))->graph;
+    Onnx__GraphProto *graph = ((Onnx__ModelProto *)(mdl->model_proto))->graph;
     graph_t *g;
     node_t *n;
     tensor_t *t;
@@ -892,12 +892,12 @@ graph_t *load_graph_onnx(model_t *mdl) {
         domain = node_proto->domain;
         if (!domain || (strlen(domain) == 0))
             domain = "ai.onnx";
-        for (j = 0; j < ((Onnx__ModelProto *)(mdl->model))->n_opset_import; j++) {
-            p = ((Onnx__ModelProto *)(mdl->model))->opset_import[j]->domain;
+        for (j = 0; j < ((Onnx__ModelProto *)(mdl->model_proto))->n_opset_import; j++) {
+            p = ((Onnx__ModelProto *)(mdl->model_proto))->opset_import[j]->domain;
             if (!p || (strlen(p) == 0))
                 p = "ai.onnx";
             if (strcmp(domain, p) == 0) {
-                n->opset = ((Onnx__ModelProto *)(mdl->model))->opset_import[j]->version;
+                n->opset = ((Onnx__ModelProto *)(mdl->model_proto))->opset_import[j]->version;
                 break;
             }
         }
