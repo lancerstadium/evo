@@ -1,6 +1,7 @@
 #include <string.h>
-#include "../../util/sys.h"
+
 #include "../../core/resolver.h"
+#include "../../util/sys.h"
 
 typedef struct {
     int axis;
