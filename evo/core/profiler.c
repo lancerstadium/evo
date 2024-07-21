@@ -49,12 +49,12 @@ static void profiler_exec_report1(profiler_t* p) {
     for(int i = 0; i < p->exec_nnode; i++) {
         find_idx = -1;
         for(int j = 0; j < vector_size(exec_type_operator_vec); j++) {
-            if((int)p->exec_node_vec[i]->op->type == exec_type_operator_vec[j]) {
+            if(p->exec_node_vec[i]->op->type == exec_type_operator_vec[j]) {
                 find_idx = j;
                 break;
             }
         }
-        if(find_idx > 0) {
+        if(find_idx >= 0) {
             exec_time_operator_vec[find_idx] += p->exec_time_vec[i];
             exec_num_operator_vec[find_idx] += 1;
         } else {
