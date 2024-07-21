@@ -247,6 +247,7 @@ void op_MaxPool_dft(node_t *nd) {
     if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
         return;
     }
+    
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     int64_t *ints;
     int i, l;
