@@ -218,6 +218,58 @@ UnitTest_fn_def(test_conv) {
     return NULL;
 }
 
+// ---------------------- Dropout ----------------------
+
+UnitTest_fn_def(test_dropout_dft) {
+    TEST_1I("test_dropout_dft", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout_dft_m) {
+    TEST_1I("test_dropout_dft_mask", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout_dft_mr) {
+    TEST_1I("test_dropout_dft_mask_ratio", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout_dft_o) {
+    TEST_1I("test_dropout_dft_old", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout_dft_r) {
+    TEST_1I("test_dropout_dft_ratio", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout_ro) {
+    TEST_1I("test_dropout_random_old", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_dropout) {
+    UnitTest_add(test_dropout_dft);
+    UnitTest_add(test_dropout_dft_m);
+    UnitTest_add(test_dropout_dft_mr);
+    UnitTest_add(test_dropout_dft_o);
+    UnitTest_add(test_dropout_dft_r);
+    UnitTest_add(test_dropout_ro);
+    return NULL;
+}
+
+// ---------------------- GlobalAveragePool ------------
+
+UnitTest_fn_def(test_globalaveragepool_) {
+    TEST_1I("test_globalaveragepool", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_globalaveragepool_p) {
+    TEST_1I("test_globalaveragepool_precomputed", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_globalaveragepool) {
+    UnitTest_add(test_globalaveragepool_);
+    UnitTest_add(test_globalaveragepool_p);
+    return NULL;
+}
+
 // ---------------------- MatMul  ----------------------
 
 UnitTest_fn_def(test_matmul_2d) {
@@ -337,6 +389,8 @@ UnitTest_fn_def(test_all) {
     // UnitTest_add(test_batchnorm);    // Failed
     UnitTest_add(test_concat);
     UnitTest_add(test_conv);
+    UnitTest_add(test_dropout);
+    // UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
     UnitTest_add(test_relu);
