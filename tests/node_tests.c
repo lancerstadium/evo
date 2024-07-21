@@ -151,6 +151,47 @@ UnitTest_fn_def(test_batchnorm) {
     return NULL;
 }
 
+// ---------------------- Concat ----------------------
+
+UnitTest_fn_def(test_concat_1d_a0) { 
+    TEST_2I("test_concat_1d_axis_0", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_1d_an1) { 
+    TEST_2I("test_concat_1d_axis_negative_1", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_2d_a0) { 
+    TEST_2I("test_concat_2d_axis_0", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_2d_a1) { 
+    TEST_2I("test_concat_2d_axis_1", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_3d_a0) { 
+    TEST_2I("test_concat_3d_axis_0", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_3d_a1) { 
+    TEST_2I("test_concat_3d_axis_1", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat_3d_a2) { 
+    TEST_2I("test_concat_3d_axis_2", value0, value1, output);
+    return NULL; 
+}
+UnitTest_fn_def(test_concat) {
+    UnitTest_add(test_concat_1d_a0);
+    UnitTest_add(test_concat_1d_an1);
+    UnitTest_add(test_concat_2d_a0);
+    UnitTest_add(test_concat_2d_a1);
+    UnitTest_add(test_concat_3d_a0);
+    UnitTest_add(test_concat_3d_a1);
+    UnitTest_add(test_concat_3d_a2);
+    return NULL;
+}
+
 // ---------------------- Conv  -----------------------
 
 UnitTest_fn_def(test_conv_ap) {
@@ -285,7 +326,6 @@ UnitTest_fn_def(test_node_exit) {
     return NULL;
 }
 
-
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
@@ -295,6 +335,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_add);
     UnitTest_add(test_averagepool);
     // UnitTest_add(test_batchnorm);    // Failed
+    UnitTest_add(test_concat);
     UnitTest_add(test_conv);
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
