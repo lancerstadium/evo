@@ -61,6 +61,29 @@
     UnitTest_ast(tensor_equal(o, t2), s " failed"); \
     ctx->sez->unload(ctx);
 
+#define TEST_5I(s, i0, i1, i2, i3, i4, o)           \
+    context_t* ctx = sez->load_model(sez, MD(s));   \
+    tensor_t* i0 = context_get_tensor(ctx, #i0);    \
+    tensor_t* i1 = context_get_tensor(ctx, #i1);    \
+    tensor_t* i2 = context_get_tensor(ctx, #i2);    \
+    tensor_t* i3 = context_get_tensor(ctx, #i3);    \
+    tensor_t* i4 = context_get_tensor(ctx, #i4);    \
+    tensor_t* o = context_get_tensor(ctx, #o);      \
+    tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
+    tensor_t* t1 = sez->load_tensor(TI(s, 1));      \
+    tensor_t* t2 = sez->load_tensor(TI(s, 2));      \
+    tensor_t* t3 = sez->load_tensor(TI(s, 3));      \
+    tensor_t* t4 = sez->load_tensor(TI(s, 4));      \
+    tensor_t* t5 = sez->load_tensor(TO(s, 0));      \
+    tensor_copy(i0, t0);                            \
+    tensor_copy(i1, t1);                            \
+    tensor_copy(i2, t2);                            \
+    tensor_copy(i3, t3);                            \
+    tensor_copy(i4, t4);                            \
+    graph_prerun(ctx->graph);                       \
+    graph_run(ctx->graph);                          \
+    UnitTest_ast(tensor_equal(o, t5), s " failed"); \
+    ctx->sez->unload(ctx);
 
 serializer_t * sez;
 
@@ -114,6 +137,17 @@ UnitTest_fn_def(test_averagepool) {
     UnitTest_add(test_averagepool_2dc);
     UnitTest_add(test_averagepool_2dp);
     UnitTest_add(test_averagepool_3d);
+    return NULL;
+}
+
+// ---------------------- Batchnorm -------------------
+
+UnitTest_fn_def(test_batchnorm_epsilon) { 
+    TEST_5I("test_batchnorm_epsilon", x, s, bias, mean, var, y);
+    return NULL; 
+}
+UnitTest_fn_def(test_batchnorm) {
+    UnitTest_add(test_batchnorm_epsilon);
     return NULL;
 }
 
@@ -260,6 +294,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_abs);
     UnitTest_add(test_add);
     UnitTest_add(test_averagepool);
+    // UnitTest_add(test_batchnorm);    // Failed
     UnitTest_add(test_conv);
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
