@@ -92,8 +92,28 @@ UnitTest_fn_def(test_averagepool_1d) {
     TEST_1I("test_averagepool_1d", x, y);
     return NULL;
 }
+UnitTest_fn_def(test_averagepool_2d) {
+    TEST_1I("test_averagepool_2d", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_averagepool_2dc) {
+    TEST_1I("test_averagepool_2d_ceil", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_averagepool_2dp) {
+    TEST_1I("test_averagepool_2d_pads", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_averagepool_3d) {
+    TEST_1I("test_averagepool_3d", x, y);
+    return NULL;
+}
 UnitTest_fn_def(test_averagepool) {
     UnitTest_add(test_averagepool_1d);
+    UnitTest_add(test_averagepool_2d);
+    UnitTest_add(test_averagepool_2dc);
+    UnitTest_add(test_averagepool_2dp);
+    UnitTest_add(test_averagepool_3d);
     return NULL;
 }
 
