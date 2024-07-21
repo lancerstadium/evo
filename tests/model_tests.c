@@ -12,9 +12,9 @@
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0)); \
     tensor_t* t1 = sez->load_tensor(TO(s, I, 0)); \
     tensor_copy(a, t0);                           \
-    graph_dump(ctx->graph);                       \
     graph_prerun(ctx->graph);                     \
     graph_run(ctx->graph);                        \
+    graph_dump(ctx->graph);                       \
     tensor_dump2(b);                              \
     tensor_dump2(t1);                             \
     ctx->sez->unload(ctx);
@@ -82,14 +82,14 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    // TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
+    TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
     return NULL;
 }
 
 // ---------------------- ShuffleNet -----------------
 
 UnitTest_fn_def(test_shufflenet_v1_9) {
-    TESTD_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);       // Segment fault
+    // TESTD_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);       // 203 Op: Transpose Sum Gemm Softmax
     return NULL;
 }
 

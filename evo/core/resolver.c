@@ -198,7 +198,7 @@ static resolver_t default_resolver = {
     .name = "default",
     .init = resolver_init_dft,
     .release = resolver_release_dft,
-
+    // Transpose Sum Gemm Softmax
     .op_tbl = (op_t[]){
         OP_REG_DFT(NOP                  , Nop                   ),
         OP_REG_DFT(ABS                  , Abs                   ),
@@ -209,12 +209,16 @@ static resolver_t default_resolver = {
         OP_REG_DFT(CONV                 , Conv                  ),
         OP_REG_DFT(DROPOUT              , Dropout               ),
         OP_REG_DFT(GLOBAL_AVERAGEPOOL   , GlobalAveragePool     ),
+        OP_REG_DFT(GEMM                 , Gemm                  ),
         OP_REG_DFT(LEAKY_RELU           , LeakyRelu             ),
         OP_REG_DFT(MAT_MUL              , MatMul                ),
         OP_REG_DFT(MAX_POOL             , MaxPool               ),
         OP_REG_DFT(MUL                  , Mul                   ),
         OP_REG_DFT(RELU                 , Relu                  ),
         OP_REG_DFT(RESHAPE              , Reshape               ),
+        OP_REG_DFT(SOFTMAX              , Softmax               ),
+        OP_REG_DFT(SUM                  , Sum                   ),
+        OP_REG_DFT(TRANSPOSE            , Transpose             ),
         [OP_TYPE_LAST] = {0}
     }
 };
