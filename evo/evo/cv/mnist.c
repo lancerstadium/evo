@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-image_t* image_read_mnist(const char* image_filename, const char* label_filename) {
+image_t* image_load_mnist(const char* image_filename, const char* label_filename) {
   FILE* img_file = fopen(image_filename, "rb");
     if (!img_file) {
         fprintf(stderr, "Cannot open image file %s\n", image_filename);
@@ -124,9 +124,9 @@ image_t* image_read_mnist(const char* image_filename, const char* label_filename
 
     int dims[4] = {
         num_images,
+        1,
         rows,
         cols,
-        1
     };
     tensor_reshape(image->raw, 4, dims);
     tensor_apply(image->raw, img_data, img_size);

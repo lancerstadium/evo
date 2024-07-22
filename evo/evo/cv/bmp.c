@@ -31,7 +31,7 @@ EVO_PACKED(struct bmp_info_header {
 });
 
 
-image_t* image_read_bmp(const char* filename) {
+image_t* image_load_bmp(const char* filename) {
     FILE* file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Cannot open file %s\n", filename);
@@ -88,12 +88,13 @@ image_t* image_read_bmp(const char* filename) {
     }
     free(data);
 
-    int dims[3] = {
+    int dims[4] = {
+        1,
+        (bit_count / 8),
         height,
         width,
-        (bit_count / 8)
     };
-    tensor_reshape(image->raw, 3, dims);
+    tensor_reshape(image->raw, 4, dims);
     tensor_apply(image->raw, pixel_data, width * height * (bit_count / 8));
     return image;
 }
