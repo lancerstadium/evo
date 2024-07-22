@@ -76,3 +76,16 @@ attribute_t* attribute_ints(char *name, int64_t *is, size_t ni) {
     }
     return NULL;
 }
+
+attribute_t* attribute_bytes(char *name, uint8_t *bs, size_t nb) {
+    attribute_t *attr = sys_malloc(sizeof(attribute_t));
+    memset(attr, 0, sizeof(attribute_t));
+    if(attr && name) {
+        attr->name = name;
+        attr->type = ATTRIBUTE_TYPE_BYTES;
+        attr->bs = bs;
+        attr->nb = nb;
+        return attr;
+    }
+    return NULL;
+}

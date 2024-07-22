@@ -1,5 +1,6 @@
 import pyevo
 
-model = pyevo.Evo("onnx", "../../tests/model/mnist_8/model.onnx")
-model.run()
-model.display()
+rt = pyevo.RunTime("onnx")
+rt.load("../../tests/model/mnist_8/model.onnx")
+rt.run()
+rt.dump_graph()

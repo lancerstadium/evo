@@ -38,6 +38,23 @@ device_t* device_registry_find(const char* name) {
     return NULL;
 }
 
+static device_t* device_registry_find_nowarn(const char* name) {
+    if(!internal_device_registry) {
+        return NULL;
+    }
+    int cnt = vector_size(internal_device_registry);
+    if(cnt == 0) {
+        return NULL;
+    }
+    for(int i = 0; i < cnt; i++) {
+        device_t* dev = internal_device_registry[i];
+        if(strcmp(dev->name, name) == 0) {
+            return dev;
+        }
+    }
+    return NULL;
+}
+
 device_t* device_registry_get(int idx) {
     int cnt = vector_size(internal_device_registry);
     if(idx >= 0 && idx < cnt) {
@@ -61,11 +78,18 @@ void device_registry_release() {
 }
 
 int device_reg_dev(device_t* dev) {
-    if(!dev) return -1;
+    if(!dev) {
+        LOG_CRIT("Device is null, reg fail\n");
+        return -1;
+    }
     device_registry_init(dev->name);
     if(!internal_device_registry) {
         LOG_CRIT("Device %s register fail, module was not be inited.\n", dev->name);
         return -1;
+    }
+    device_t * find_dev = device_registry_find_nowarn(dev->name);
+    if(find_dev) {
+        return 0;
     }
     // interface init
     vector_add(&internal_device_registry, dev);

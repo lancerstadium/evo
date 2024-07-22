@@ -18,7 +18,7 @@ private:
     tensor_t *_ts;
 
 public:
-    Tensor() {}
+    Tensor() : _ts(nullptr) {}
     Tensor(const char *name, TensorType type) {
         this->_ts = tensor_new(name, type);
     }
@@ -39,6 +39,14 @@ public:
     void dump() {
         tensor_dump(this->_ts);
     }
+    void dump(int level) {
+        switch(level) {
+            case 1:
+            tensor_dump2(this->_ts); return;
+            case 0:
+            default: dump(); return;
+        }
+    }
 };
 
 class Model {
@@ -46,7 +54,7 @@ private:
     model_t* _mdl;
 
 public:
-    Model() {}
+    Model() : _mdl(nullptr) {}
     Model(model_t* mdl) {
         this->_mdl = mdl;
     }
@@ -74,7 +82,7 @@ private:
     graph_t* _g;
 
 public:
-    Graph() {}
+    Graph() : _g(nullptr) {}
     Graph(Model &m) {
         this->_g = graph_new(m.proto());
     }
@@ -99,7 +107,7 @@ private:
     node_t *_nd;
 
 public:
-    Node() {}
+    Node() : _nd(nullptr) {}
     Node(Graph &g, const char* name, OpType type) {
         this->_nd = node_new(g.proto(), name, type);
     }
@@ -122,6 +130,7 @@ private:
     runtime_t* _rt;
 
 public:
+    RunTime() : _rt(nullptr) {}
     RunTime(const char* fmt) {
         this->_rt  = runtime_new(fmt);
     }

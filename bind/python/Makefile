@@ -1,4 +1,4 @@
-.PHONY: all run clean
+.PHONY: all run clean install remove
 
 CXX                 := g++
 NAME                := pyevo
@@ -23,6 +23,14 @@ check:
 
 run:
 	@python3 demo.py
+
+install:
+	@echo [INSTALL] Installing $(NAME) to site-packages
+	@pip install .
+
+remove:
+	@echo [REMOVE] Uninstalling $(NAME) from site-packages
+	@pip uninstall -y $(NAME)
 
 clean:
 	@rm -f $(PYBIND_TRG)

@@ -2,3 +2,4 @@
 
 # cpythonlib
 *.so
+*.egg-info

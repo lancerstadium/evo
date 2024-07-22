@@ -34,11 +34,13 @@ extern "C" {
 // ==================================================================================== //
 
 #if defined(__GNUC__) || defined(__clang__)
-#define EVO_API     __attribute__((visibility("default")))
-#define EVO_UNUSED  __attribute__((unused))
+#define EVO_API         __attribute__((visibility("default")))
+#define EVO_UNUSED      __attribute__((unused))
+#define EVO_PACKED(D)   D __attribute__((packed))
 #elif defined(_MSC_VER)
-#define EVO_API     __declspec(dllexport)
-#define EVO_UNUSED  __pragma(warning(suppress:4100))
+#define EVO_API         __declspec(dllexport)
+#define EVO_UNUSED      __pragma(warning(suppress:4100))
+#define EVO_PACKED(D)   D __attribute__((packed))
 #elif  // __GNUC__ || __clang__
 #define EVO_API
 #define EVO_UNUSED
@@ -413,6 +415,7 @@ typedef enum attribute_type {
     ATTRIBUTE_TYPE_GRAPH,
     ATTRIBUTE_TYPE_FLOATS,
     ATTRIBUTE_TYPE_INTS,
+    ATTRIBUTE_TYPE_BYTES,
     ATTRIBUTE_TYPE_TENSORS,
     ATTRIBUTE_TYPE_GRAPHS,
 } attribute_type_t;
@@ -442,6 +445,10 @@ struct attribute {
             int64_t    *is;
         };
         struct {
+            size_t      nb;
+            uint8_t    *bs;
+        };
+        struct {
             size_t      nt;
             tensor_t ** ts;
         };
@@ -458,6 +465,7 @@ EVO_API attribute_t* attribute_int(char*, int);
 EVO_API attribute_t* attribute_string(char*, char*, size_t);
 EVO_API attribute_t* attribute_floats(char*, float*, size_t);
 EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
+EVO_API attribute_t* attribute_bytes(char*, uint8_t*, size_t);
 
 // ==================================================================================== //
 //                                       evo: node type
@@ -715,7 +723,47 @@ struct optimizer {
 };
 
 
+// ==================================================================================== //
+//                                  evo: Computer Vision (cv)
+// ==================================================================================== //
 
+#ifndef EVO_CV_OFF
+
+// ==================================================================================== //
+//                                  evo: typedef (cv)
+// ==================================================================================== //
+
+typedef struct image image_t;
+
+// ==================================================================================== //
+//                                  evo: image type (cv)
+// ==================================================================================== //
+
+typedef enum image_type {
+    IMAGE_TYPE_BMP,
+    IMAGE_TYPE_PNG,
+    IMAGE_TYPE_JPG,
+    IMAGE_TYPE_MNIST,
+} image_type_t;
+
+// ==================================================================================== //
+//                                  evo: image (cv)
+// ==================================================================================== //
+
+struct image {
+    char* name;
+    image_type_t type;
+    tensor_t *raw;
+    attribute_vec_t attr_vec;
+};
+
+EVO_API image_t* image_read_bmp(const char*);
+EVO_API image_t* image_read_mnist(const char*, const char*);
+EVO_API attribute_t* image_get_attr(image_t*, const char*);
+EVO_API void image_free(image_t*);
+
+
+#endif // EVO_CV_OFF
 
 #ifdef __cplusplus
 }
