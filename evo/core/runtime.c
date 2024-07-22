@@ -15,7 +15,9 @@ runtime_t* runtime_new(const char* fmt) {
 model_t* runtime_load(runtime_t *rt, const char *path) {
     if(!rt) return NULL;
     if(rt->sez && rt->sez->load_model) {
-        runtime_unload(rt);
+        if(rt->mdl) {
+            runtime_unload(rt);
+        }
         rt->mdl = rt->sez->load_model(rt->sez, path);
         return rt->mdl;
     }

@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 
-
 namespace Evo {
 
 typedef op_type_t OpType;
@@ -19,16 +18,21 @@ private:
     tensor_t *_ts;
 
 public:
-    Tensor(tensor_t *ts) {
-        this->_ts = ts;
-    }
+    Tensor() {}
     Tensor(const char *name, TensorType type) {
         this->_ts = tensor_new(name, type);
     }
     ~Tensor() {
-        tensor_free(this->_ts);
+        if(this->_ts) {
+            tensor_free(this->_ts);
+        }
     }
 
+    static Tensor* from(tensor_t *ts) {
+        Tensor *t = new Tensor();
+        t->_ts = ts;
+        return t;
+    }
     tensor_t* proto() {
         return this->_ts;
     }
@@ -42,6 +46,7 @@ private:
     model_t* _mdl;
 
 public:
+    Model() {}
     Model(model_t* mdl) {
         this->_mdl = mdl;
     }
@@ -49,9 +54,16 @@ public:
         this->_mdl = model_new(name);
     }
     ~Model() {
-        model_free(this->_mdl);
+        if(this->_mdl) {
+            model_free(this->_mdl);
+        }
     }
 
+    static Model* from(model_t *mdl) {
+        Model *m = new Model();
+        m->_mdl = mdl;
+        return m;
+    }
     model_t* proto() {
         return this->_mdl;
     }
@@ -62,13 +74,21 @@ private:
     graph_t* _g;
 
 public:
+    Graph() {}
     Graph(Model &m) {
         this->_g = graph_new(m.proto());
     }
     ~Graph() {
-        graph_free(this->_g);
+        if(this->_g) {
+            graph_free(this->_g);
+        }
     }
 
+    static Graph* from(graph_t *g) {
+        Graph *g_ = new Graph();
+        g_->_g = g;
+        return g_;
+    }
     graph_t* proto() {
         return this->_g;
     }
@@ -79,6 +99,7 @@ private:
     node_t *_nd;
 
 public:
+    Node() {}
     Node(Graph &g, const char* name, OpType type) {
         this->_nd = node_new(g.proto(), name, type);
     }
@@ -86,6 +107,11 @@ public:
         node_free(this->_nd);
     }
 
+    static Node* from(node_t *nd) {
+        Node *n = new Node();
+        n->_nd = nd;
+        return n;
+    }
     node_t* proto() {
         return this->_nd;
     }
@@ -106,20 +132,24 @@ public:
     runtime_t* proto() {
         return this->_rt;
     }
-    Model load(const char *path) {
-        return Model(runtime_load(this->_rt, path));
+    Model* model() {
+        return Model::from(this->_rt->mdl);
+    }
+    Model* load(const char *path) {
+        runtime_load(this->_rt, path);
+        return this->model();
     }
     void unload() {
         runtime_unload(this->_rt);
     }
-    Tensor load_tensor(const char *path) {
-        return Tensor(runtime_load_tensor(this->_rt, path));
+    Tensor* load_tensor(const char *path) {
+        return Tensor::from(runtime_load_tensor(this->_rt, path));
     }
-    void set_tensor(const char *name, Tensor &ts) {
-        runtime_set_tensor(this->_rt, name, ts.proto());
+    void set_tensor(const char *name, Tensor *ts) {
+        runtime_set_tensor(this->_rt, name, ts->proto());
     }
-    Tensor get_tensor(const char* name) {
-        return Tensor(runtime_get_tensor(this->_rt, name));
+    Tensor* get_tensor(const char* name) {
+        return Tensor::from(runtime_get_tensor(this->_rt, name));
     }
     void run() {
         runtime_run(this->_rt);

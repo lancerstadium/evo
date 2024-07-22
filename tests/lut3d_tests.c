@@ -13,8 +13,8 @@ UnitTest_fn_def(test_lut3d) {
     // runtime_run(rt);
     graph_prerun(mdl->graph);
     graph_run(mdl->graph);
-    graph_dump(mdl->graph);
-    // graph_exec_report_level(rt->mdl->graph, 1); // Exec dump
+    // graph_dump(mdl->graph);
+    graph_exec_report_level(mdl->graph, 1); // Exec dump
     
     // runtime_unload(rt);
     mdl->sez->unload(mdl);

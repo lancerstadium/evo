@@ -374,8 +374,9 @@ model_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
 
     mdl->tensor_map = hashmap_create();
     if (!mdl->tensor_map) {
-        if (mdl->model_proto)
+        if (mdl->model_proto) {
             onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
+        }
         if (mdl)
             sys_free(mdl);
         return NULL;
@@ -414,6 +415,7 @@ model_t *load_model_onnx(struct serializer *sez, const char *path) {
 void unload_onnx(model_t *mdl) {
     if (mdl && mdl->model_proto) {
         onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
+        mdl->model_proto = NULL;
         mdl->model_size = 0;
     }
 }
