@@ -415,6 +415,42 @@ UnitTest_fn_def(test_reshape) {
     return NULL;
 }
 
+// ---------------------- Softmax ---------------------
+
+UnitTest_fn_def(test_softmax_a0) {
+    TEST_1I("test_softmax_axis_0", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax_a0e) {
+    TEST_1I("test_softmax_axis_0_expanded", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax_a1) {
+    TEST_1I("test_softmax_axis_1", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax_a1e) {
+    TEST_1I("test_softmax_axis_1_expanded", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax_a2) {
+    TEST_1I("test_softmax_axis_2", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax_a2e) {
+    TEST_1I("test_softmax_axis_2_expanded", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_softmax) {
+    UnitTest_add(test_softmax_a0);
+    // UnitTest_add(test_softmax_a0e);
+    UnitTest_add(test_softmax_a1);
+    // UnitTest_add(test_softmax_a1e);
+    UnitTest_add(test_softmax_a2);
+    // UnitTest_add(test_softmax_a2e);
+    return NULL;
+}
+
 // ---------------------- Sum     ---------------------
 UnitTest_fn_def(test_sum_1i) {
     TEST_1I("test_sum_one_input", data_0, result);
@@ -502,6 +538,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_mul);
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
+    UnitTest_add(test_softmax);
     UnitTest_add(test_sum);
     UnitTest_add(test_transpose);
 
