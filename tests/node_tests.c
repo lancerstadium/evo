@@ -61,6 +61,24 @@
     UnitTest_ast(tensor_equal(o, t2), s " failed"); \
     mdl->sez->unload(mdl);
 
+#define TEST_3I(s, i0, i1, i2, o)                   \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* i0 = model_get_tensor(mdl, #i0);      \
+    tensor_t* i1 = model_get_tensor(mdl, #i1);      \
+    tensor_t* i2 = model_get_tensor(mdl, #i2);      \
+    tensor_t* o = model_get_tensor(mdl, #o);        \
+    tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
+    tensor_t* t1 = sez->load_tensor(TI(s, 1));      \
+    tensor_t* t2 = sez->load_tensor(TI(s, 2));      \
+    tensor_t* t3 = sez->load_tensor(TO(s, 0));      \
+    tensor_copy(i0, t0);                            \
+    tensor_copy(i1, t1);                            \
+    tensor_copy(i2, t2);                            \
+    graph_prerun(mdl->graph);                       \
+    graph_run(mdl->graph);                          \
+    UnitTest_ast(tensor_equal(o, t3), s " failed"); \
+    mdl->sez->unload(mdl);
+
 #define TEST_5I(s, i0, i1, i2, i3, i4, o)           \
     model_t* mdl = sez->load_model(sez, MD(s));     \
     tensor_t* i0 = model_get_tensor(mdl, #i0);      \
@@ -397,6 +415,26 @@ UnitTest_fn_def(test_reshape) {
     return NULL;
 }
 
+// ---------------------- Sum     ---------------------
+UnitTest_fn_def(test_sum_1i) {
+    TEST_1I("test_sum_one_input", data_0, result);
+    return NULL;
+}
+UnitTest_fn_def(test_sum_2i) {
+    TEST_2I("test_sum_two_input", data_0, data_1, result);
+    return NULL;
+}
+UnitTest_fn_def(test_sum_3i) {
+    TEST_3I("test_sum_three_input", data_0, data_1, data_2, result);
+    return NULL;
+}
+UnitTest_fn_def(test_sum) {
+    UnitTest_add(test_sum_1i);
+    UnitTest_add(test_sum_2i);
+    UnitTest_add(test_sum_3i);
+    return NULL;
+}
+
 // ---------------------- Transpose -------------------
 
 UnitTest_fn_def(test_transpose_dft) {
@@ -464,6 +502,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_mul);
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
+    UnitTest_add(test_sum);
     UnitTest_add(test_transpose);
 
     UnitTest_add(test_node_exit);

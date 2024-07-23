@@ -364,7 +364,7 @@ void op_Transpose_dft(node_t *nd) {
         for (i = 0; i < x->ndim; i++)
             y->dims[i] = x->dims[pdat->perm[i]];
     }
-    // 3. Transpose reshape
+    // 3. Transpose run
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BOOL:
             Transpose_bool(nd);
