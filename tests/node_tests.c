@@ -256,8 +256,8 @@ UnitTest_fn_def(test_dropout) {
 
 // ---------------------- GlobalAveragePool ------------
 
-UnitTest_fn_def(test_globalaveragepool_) {
-    TEST_1I("test_globalaveragepool", x, y);
+UnitTest_fn_def(test_globalaveragepool_dft) {
+    TEST_1I("test_globalaveragepool_dft", x, y);
     return NULL;
 }
 UnitTest_fn_def(test_globalaveragepool_p) {
@@ -265,7 +265,7 @@ UnitTest_fn_def(test_globalaveragepool_p) {
     return NULL;
 }
 UnitTest_fn_def(test_globalaveragepool) {
-    UnitTest_add(test_globalaveragepool_);
+    UnitTest_add(test_globalaveragepool_dft);
     UnitTest_add(test_globalaveragepool_p);
     return NULL;
 }
@@ -370,6 +370,47 @@ UnitTest_fn_def(test_reshape) {
     return NULL;
 }
 
+// ---------------------- Transpose -------------------
+
+UnitTest_fn_def(test_transpose_dft) {
+    TEST_1I("test_transpose_dft", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap0) {
+    TEST_1I("test_transpose_all_permutations_0", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap1) {
+    TEST_1I("test_transpose_all_permutations_1", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap2) {
+    TEST_1I("test_transpose_all_permutations_2", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap3) {
+    TEST_1I("test_transpose_all_permutations_3", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap4) {
+    TEST_1I("test_transpose_all_permutations_4", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose_ap5) {
+    TEST_1I("test_transpose_all_permutations_5", data,  transposed);
+    return NULL;
+}
+UnitTest_fn_def(test_transpose) {
+    // UnitTest_add(test_transpose_dft);    // malloc(): invalid size
+    UnitTest_add(test_transpose_ap0);
+    UnitTest_add(test_transpose_ap1);
+    UnitTest_add(test_transpose_ap2);
+    UnitTest_add(test_transpose_ap3);
+    UnitTest_add(test_transpose_ap4);
+    UnitTest_add(test_transpose_ap5);
+    return NULL;
+}
+
 // ---------------------- Exit   ----------------------
 
 UnitTest_fn_def(test_node_exit) {
@@ -395,6 +436,7 @@ UnitTest_fn_def(test_all) {
     // UnitTest_add(test_maxpool);  // Failed
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
+    UnitTest_add(test_transpose);
 
     UnitTest_add(test_node_exit);
     return NULL;

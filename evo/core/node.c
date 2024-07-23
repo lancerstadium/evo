@@ -39,7 +39,7 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
 attribute_t* node_get_attr(node_t *nd, const char *name) {
     attribute_t *attr;
     int i;
-    if(nd && name) {
+    if(nd && name && nd->attr_vec) {
         for(i = 0; i < vector_size(nd->attr_vec); i++) {
             attr = nd->attr_vec[i];
             if(strcmp(attr->name, name) == 0) {

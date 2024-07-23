@@ -11,6 +11,7 @@ attribute_t* attribute_undefined(char *name) {
         attr->type = ATTRIBUTE_TYPE_UNDEFINED;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -23,6 +24,7 @@ attribute_t* attribute_float(char *name, float f) {
         attr->f = f;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -35,6 +37,7 @@ attribute_t* attribute_int(char *name, int i) {
         attr->i = i;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -48,6 +51,7 @@ attribute_t* attribute_string(char *name, char *ss, size_t ns) {
         attr->ns = ns;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -61,6 +65,7 @@ attribute_t* attribute_floats(char *name, float *fs, size_t nf) {
         attr->nf = nf;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -74,6 +79,7 @@ attribute_t* attribute_ints(char *name, int64_t *is, size_t ni) {
         attr->ni = ni;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
 
@@ -87,5 +93,6 @@ attribute_t* attribute_bytes(char *name, uint8_t *bs, size_t nb) {
         attr->nb = nb;
         return attr;
     }
+    sys_free(attr);
     return NULL;
 }
