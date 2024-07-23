@@ -327,6 +327,33 @@ UnitTest_fn_def(test_maxpool) {
     return NULL;
 }
 
+// ---------------------- Mul    ----------------------
+
+UnitTest_fn_def(test_mul_dft) {
+    TEST_2I("test_mul", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_mul_bc) {
+    TEST_2I("test_mul_bcast", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_mul_ext) {
+    TEST_2I("test_mul_example", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_mul_u8) {
+    TEST_2I("test_mul_uint8", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_mul) {
+    UnitTest_add(test_mul_dft);
+    UnitTest_add(test_mul_bc);
+    UnitTest_add(test_mul_ext);
+    UnitTest_add(test_mul_u8);
+    return NULL;
+}
+
+
 // ---------------------- Relu   ----------------------
 
 UnitTest_fn_def(test_relu) {
@@ -434,6 +461,7 @@ UnitTest_fn_def(test_all) {
     // UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
+    UnitTest_add(test_mul);
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
     UnitTest_add(test_transpose);
