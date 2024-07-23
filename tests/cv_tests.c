@@ -36,13 +36,14 @@ UnitTest_fn_def(test_read_bmp) {
 UnitTest_fn_def(test_read_jpg) {
     const char* img_path = "model/lut3d_96/test_data_set_0/input_0.jpg";
     image_t* img = image_load_jpg(img_path);
-    tensor_dump(img->raw);
+    image_dump_shape(img);
     return NULL;
 }
 
 UnitTest_fn_def(test_all) {
     // UnitTest_add(test_read_mnist);
-    UnitTest_add(test_read_bmp);
+    // UnitTest_add(test_read_bmp);
+    UnitTest_add(test_read_jpg);
     return NULL;
 }
 

@@ -20,7 +20,7 @@ attribute_t* image_get_attr(image_t* img, const char* name) {
 
 void image_dump_shape(image_t* img) {
     if (img && img->raw) {
-        tensor_dump_shape(img->raw);
+        LOG_INFO("%s", tensor_dump_shape(img->raw));
     }
 }
 
