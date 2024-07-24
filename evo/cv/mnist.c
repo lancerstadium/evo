@@ -87,7 +87,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     image_t* image = (image_t*)malloc(sizeof(image_t));
     image->name = strdup(image_filename);
-    image->type = IMAGE_TYPE_MNIST;
+    image->type = IMAGE_TYPE_UNKNOWN;
     image->raw = tensor_new(strdup(image_filename), TENSOR_TYPE_UINT8);
     image->attr_vec = vector_create();
 

@@ -47,7 +47,14 @@ char* sys_strdup(const char* src) {
 }
 #endif // CONFIG_ARCH_CORTEX_M
 
-
+char* sys_get_file_ext(const char* path) {
+    char* trg = strrchr(path, '.');
+    return trg ? (trg + 1) : NULL;
+}
+char* sys_get_file_name(const char* path) { 
+    char* trg = strrchr(path, '/');
+    return trg ? (trg + 1) : NULL;
+}
 
 // ==================================================================================== //
 //                                       system time

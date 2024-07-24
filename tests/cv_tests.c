@@ -25,32 +25,16 @@ UnitTest_fn_def(test_read_mnist) {
     return NULL;
 }
 
-UnitTest_fn_def(test_read_bmp) {
-    const char* img_path = "picture/color.bmp";
-    image_t* img = image_load_bmp(img_path);
-    // image_dump_raw(img, 1);
-    UnitTest_msg("%s", image_dump_shape(img));
-    return NULL;
-}
-
-UnitTest_fn_def(test_read_jpg) {
-    const char* img_path = "model/lut3d_96/test_data_set_0/input_0.jpg";
-    image_t* img = image_load_jpg(img_path);
-    image_dump_shape(img);
-    return NULL;
-}
-
 UnitTest_fn_def(test_read_png) {
     const char* img_path = "picture/basn0g04.png";
-    image_t* img = image_load_png(img_path);
-    image_dump_raw(img, 0);
+    image_t* img = image_load(img_path);
+    // image_dump_raw(img, 0);
+    image_save(img, "demo.png");
     return NULL;
 }
 
 UnitTest_fn_def(test_all) {
-    // UnitTest_add(test_read_mnist);
-    UnitTest_add(test_read_bmp);
-    // UnitTest_add(test_read_jpg);
+
     UnitTest_add(test_read_png);
     return NULL;
 }

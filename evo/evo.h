@@ -741,11 +741,12 @@ typedef struct image image_t;
 // ==================================================================================== //
 
 typedef enum image_type {
-    IMAGE_TYPE_UNDEFINED,
+    IMAGE_TYPE_UNKNOWN,
     IMAGE_TYPE_BMP,
     IMAGE_TYPE_PNG,
     IMAGE_TYPE_JPG,
-    IMAGE_TYPE_MNIST,
+    IMAGE_TYPE_TGA,
+    IMAGE_TYPE_HDR,
 } image_type_t;
 
 // ==================================================================================== //
@@ -759,10 +760,9 @@ struct image {
     attribute_vec_t attr_vec;
 };
 
-EVO_API image_t* image_load_bmp(const char*);
-EVO_API image_t* image_load_jpg(const char*);
-EVO_API image_t* image_load_png(const char*);
+EVO_API image_t* image_load(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);
+EVO_API void image_save(image_t*, const char*);
 EVO_API char* image_dump_shape(image_t*);
 EVO_API void image_dump_raw(image_t*, int);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);

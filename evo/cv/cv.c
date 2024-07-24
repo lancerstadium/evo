@@ -1,7 +1,12 @@
-#include "../evo.h"
-#include "../util/log.h"
 #include <string.h>
 #include <stdio.h>
+#include "../evo.h"
+#include "../util/log.h"
+#include "../util/sys.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 attribute_t* image_get_attr(image_t* img, const char* name) {
     attribute_t* attr;
@@ -37,6 +42,67 @@ void image_dump_raw(image_t* img, int i) {
     } else {
         for(int j = 0; j < img->raw->dims[0] || j < 20; ++j) {
             image_dump_raw(img, j);
+        }
+    }
+}
+
+image_type_t image_get_type(const char* name) { 
+    char* ext = sys_get_file_ext(name);
+    if(strcmp(ext, "bmp") == 0) {
+        return IMAGE_TYPE_BMP;
+    } else if(strcmp(ext, "jpg") == 0) {
+        return IMAGE_TYPE_JPG;
+    } else if(strcmp(ext, "png") == 0) {
+        return IMAGE_TYPE_PNG;
+    } else if(strcmp(ext, "tga") == 0) {
+        return IMAGE_TYPE_TGA;
+    } else if(strcmp(ext, "hdr") == 0) {
+        return IMAGE_TYPE_HDR;
+    } else {
+        return IMAGE_TYPE_UNKNOWN;
+    }
+}
+
+image_t* image_load(const char* name) {
+    image_t* img = (image_t*)malloc(sizeof(image_t));
+    if(img) {
+        img->name = sys_strdup(name);
+        img->attr_vec = vector_create();
+        img->type = image_get_type(name);
+        img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
+        int height, width, channels;
+        uint8_t * data = stbi_load(name, &height, &width, &channels, 0);
+        tensor_reshape(img->raw, 4, (int[]){1, channels, height, width});
+        tensor_apply(img->raw, (void*)data, channels * height * width);
+        return img;
+    }
+    return NULL;
+}
+
+void image_save(image_t* img, const char* name) {
+    if(img && name && img->raw) {
+        switch(image_get_type(name)) {
+            case IMAGE_TYPE_BMP:
+                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                LOG_INFO("Image save: %s\n", name);
+                break;
+            case IMAGE_TYPE_JPG:
+                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, 100);
+                LOG_INFO("Image save: %s\n", name);
+                break;
+            case IMAGE_TYPE_PNG:
+                stbi_write_png(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, img->raw->dims[2] * img->raw->dims[1]);
+                LOG_INFO("Image save: %s\n", name);
+                break;
+            case IMAGE_TYPE_TGA:
+                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                LOG_INFO("Image save: %s\n", name);
+                break;
+            case IMAGE_TYPE_HDR:
+                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                LOG_INFO("Image save: %s\n", name);
+                break;
+            default: break;
         }
     }
 }
