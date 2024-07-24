@@ -6,9 +6,9 @@
 #define TO(s, I, i)     "model/"s"/test_data_set_"#I"/output_"#i".pb"
 
 #define TESTD_1I(s, i, o, I)                      \
-    model_t* mdl = sez->load_model(sez, MD(s)); \
-    tensor_t* a = model_get_tensor(mdl, i);     \
-    tensor_t* b = model_get_tensor(mdl, o);     \
+    model_t* mdl = sez->load_model(sez, MD(s));   \
+    tensor_t* a = model_get_tensor(mdl, i);       \
+    tensor_t* b = model_get_tensor(mdl, o);       \
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0)); \
     tensor_t* t1 = sez->load_tensor(TO(s, I, 0)); \
     tensor_copy(a, t0);                           \
@@ -20,9 +20,9 @@
     mdl->sez->unload(mdl);
 
 #define TEST_1I(s, i, o, I)                         \
-    model_t* mdl = sez->load_model(sez, MD(s));   \
-    tensor_t* a = model_get_tensor(mdl, i);       \
-    tensor_t* b = model_get_tensor(mdl, o);       \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* a = model_get_tensor(mdl, i);         \
+    tensor_t* b = model_get_tensor(mdl, o);         \
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0));   \
     tensor_t* t1 = sez->load_tensor(TO(s, I, 0));   \
     tensor_copy(a, t0);                             \
@@ -32,10 +32,10 @@
     mdl->sez->unload(mdl);
 
 #define TESTD_2I(s, i0, i1, o, I)                 \
-    model_t* mdl = sez->load_model(sez, MD(s)); \
-    tensor_t* a = model_get_tensor(mdl, i0);    \
-    tensor_t* b = model_get_tensor(mdl, i1);    \
-    tensor_t* c = model_get_tensor(mdl, o);     \
+    model_t* mdl = sez->load_model(sez, MD(s));   \
+    tensor_t* a = model_get_tensor(mdl, i0);      \
+    tensor_t* b = model_get_tensor(mdl, i1);      \
+    tensor_t* c = model_get_tensor(mdl, o);       \
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0)); \
     tensor_t* t1 = sez->load_tensor(TI(s, I, 1)); \
     tensor_t* t2 = sez->load_tensor(TO(s, I, 0)); \
@@ -48,10 +48,10 @@
     mdl->sez->unload(mdl);
 
 #define TEST_2I(s, i0, i1, o, I)                    \
-    model_t* mdl = sez->load_model(sez, MD(s));   \
-    tensor_t* a = model_get_tensor(mdl, i0);      \
-    tensor_t* b = model_get_tensor(mdl, i1);      \
-    tensor_t* c = model_get_tensor(mdl, o);       \
+    model_t* mdl = sez->load_model(sez, MD(s));     \
+    tensor_t* a = model_get_tensor(mdl, i0);        \
+    tensor_t* b = model_get_tensor(mdl, i1);        \
+    tensor_t* c = model_get_tensor(mdl, o);         \
     tensor_t* t0 = sez->load_tensor(TI(s, I, 0));   \
     tensor_t* t1 = sez->load_tensor(TI(s, I, 1));   \
     tensor_t* t2 = sez->load_tensor(TO(s, I, 0));   \
@@ -82,7 +82,7 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
+    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
     return NULL;
 }
 
@@ -96,7 +96,7 @@ UnitTest_fn_def(test_shufflenet_v1_9) {
 // ---------------------- SqueezeNet -----------------
 
 UnitTest_fn_def(test_squeezenet_v11_7) {
-    // TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flat0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
+    // TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
     return NULL;
 }
 
