@@ -176,6 +176,7 @@ EVO_API int tensor_reshape(tensor_t*, int, int*);
 EVO_API int tensor_reshape_ident(tensor_t*, tensor_t*, tensor_type_t);
 EVO_API int tensor_reshape_multi_broadcast(tensor_t*, tensor_t*, tensor_t*, tensor_type_t);
 EVO_API void* tensor_broadcast_map_address(tensor_t*, tensor_t*, int);
+EVO_API int tensor_broadcast_is_valid(tensor_t*, int*, int);
 EVO_API void tensor_apply(tensor_t*, void*, size_t);
 EVO_API char* tensor_set_name_by_index(graph_t*, int) ;
 EVO_API int tensor_get_index_by_name(graph_t *, const char *);

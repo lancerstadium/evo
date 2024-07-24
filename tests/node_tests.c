@@ -61,6 +61,25 @@
     UnitTest_ast(tensor_equal(o, t2), s " failed"); \
     mdl->sez->unload(mdl);
 
+#define TESTD_3I(s, i0, i1, i2, o)              \
+    model_t* mdl = sez->load_model(sez, MD(s)); \
+    tensor_t* i0 = model_get_tensor(mdl, #i0);  \
+    tensor_t* i1 = model_get_tensor(mdl, #i1);  \
+    tensor_t* i2 = model_get_tensor(mdl, #i2);  \
+    tensor_t* o = model_get_tensor(mdl, #o);    \
+    tensor_t* t0 = sez->load_tensor(TI(s, 0));  \
+    tensor_t* t1 = sez->load_tensor(TI(s, 1));  \
+    tensor_t* t2 = sez->load_tensor(TI(s, 2));  \
+    tensor_t* t3 = sez->load_tensor(TO(s, 0));  \
+    tensor_copy(i0, t0);                        \
+    tensor_copy(i1, t1);                        \
+    tensor_copy(i2, t2);                        \
+    graph_prerun(mdl->graph);                   \
+    graph_run(mdl->graph);                      \
+    tensor_dump2(o);                            \
+    tensor_dump2(t3);                           \
+    mdl->sez->unload(mdl);
+
 #define TEST_3I(s, i0, i1, i2, o)                   \
     model_t* mdl = sez->load_model(sez, MD(s));     \
     tensor_t* i0 = model_get_tensor(mdl, #i0);      \
@@ -272,6 +291,43 @@ UnitTest_fn_def(test_dropout) {
     return NULL;
 }
 
+// ---------------------- Gemm    ----------------------
+
+
+UnitTest_fn_def(test_gemm_aa) {
+    TEST_3I("test_gemm_all_attributes", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm_a) {
+    TEST_3I("test_gemm_alpha", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm_b) {
+    TESTD_3I("test_gemm_beta", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm_dft_mb) {
+    TEST_3I("test_gemm_default_matrix_bias", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm_dft_nb) {
+    TEST_3I("test_gemm_default_no_bias", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm_dft_sb) {
+    TEST_3I("test_gemm_default_scalar_bias", a, b, c, y);
+    return NULL;
+}
+UnitTest_fn_def(test_gemm) {
+    UnitTest_add(test_gemm_aa);
+    UnitTest_add(test_gemm_a);
+    // UnitTest_add(test_gemm_b);
+    // UnitTest_add(test_gemm_dft_mb);
+    // UnitTest_add(test_gemm_dft_nb);
+    // UnitTest_add(test_gemm_dft_sb);
+    return NULL;
+}
+
 // ---------------------- GlobalAveragePool ------------
 
 UnitTest_fn_def(test_globalaveragepool_dft) {
@@ -306,6 +362,27 @@ UnitTest_fn_def(test_matmul) {
     UnitTest_add(test_matmul_2d);
     UnitTest_add(test_matmul_3d);
     UnitTest_add(test_matmul_4d);
+    return NULL;
+}
+
+// ---------------------- LeakyRelu --------------------
+
+UnitTest_fn_def(test_leakyrelu_a) {
+    TEST_1I("test_leakyrelu_alpha", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_leakyrelu_dft) {
+    TEST_1I("test_leakyrelu_dft", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_leakyrelu_ex) {
+    TEST_1I("test_leakyrelu_example", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_leakyrelu) {
+    UnitTest_add(test_leakyrelu_a);
+    // UnitTest_add(test_leakyrelu_dft);
+    UnitTest_add(test_leakyrelu_ex);
     return NULL;
 }
 
@@ -532,7 +609,9 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_concat);
     UnitTest_add(test_conv);
     UnitTest_add(test_dropout);
+    UnitTest_add(test_gemm);
     // UnitTest_add(test_globalaveragepool);    // Failed
+    UnitTest_add(test_leakyrelu);
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
     UnitTest_add(test_mul);

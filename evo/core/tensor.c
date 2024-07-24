@@ -324,6 +324,17 @@ int tensor_reshape_multi_broadcast(tensor_t *y, tensor_t *a, tensor_t *b, tensor
     return 1;
 }
 
+int tensor_broadcast_is_valid(tensor_t *x, int *dims, int ndim) {
+    if(!x || x->ndim > ndim)
+        return 0;
+    int i;
+    for (i = 1; i <= x->ndim; i++) {
+        if ((x->dims[x->ndim - i] != 1) && (x->dims[x->ndim - i] != dims[ndim - i]))
+            return 0;
+    }
+    return 1;
+}
+
 void *tensor_broadcast_map_address(tensor_t *x, tensor_t *y, int offset) {
     int xndim = x->ndim;
     int yndim = y->ndim;
