@@ -112,7 +112,9 @@ public:
         this->_nd = node_new(g.proto(), name, type);
     }
     ~Node() {
-        node_free(this->_nd);
+        if(this->_nd) {
+            node_free(this->_nd);
+        }
     }
 
     static Node* from(node_t *nd) {
@@ -135,7 +137,9 @@ public:
         this->_rt  = runtime_new(fmt);
     }
     ~RunTime() {
-        runtime_free(this->_rt);
+        if(this->_rt) {
+            runtime_free(this->_rt);
+        }
     }
 
     runtime_t* proto() {
@@ -149,22 +153,77 @@ public:
         return this->model();
     }
     void unload() {
-        runtime_unload(this->_rt);
+        if(this->_rt)
+            runtime_unload(this->_rt);
     }
     Tensor* load_tensor(const char *path) {
-        return Tensor::from(runtime_load_tensor(this->_rt, path));
+        if(this->_rt && path)
+            return Tensor::from(runtime_load_tensor(this->_rt, path));
+        else 
+            return nullptr;
     }
     void set_tensor(const char *name, Tensor *ts) {
-        runtime_set_tensor(this->_rt, name, ts->proto());
+        if(this->_rt && name && ts)
+            runtime_set_tensor(this->_rt, name, ts->proto());
     }
     Tensor* get_tensor(const char* name) {
-        return Tensor::from(runtime_get_tensor(this->_rt, name));
+        if(this->_rt && name)
+            return Tensor::from(runtime_get_tensor(this->_rt, name));
+        else 
+            return nullptr;
     }
     void run() {
-        runtime_run(this->_rt);
+        if(this->_rt)
+            runtime_run(this->_rt);
     }
     void dump_graph() {
-        runtime_dump_graph(this->_rt);
+        if(this->_rt)
+            runtime_dump_graph(this->_rt);
+    }
+};
+
+
+class Image;
+
+class Image {
+private:
+    image_t *_img;
+
+public:
+    Image() : _img(nullptr) {}
+    Image(const char *path) : _img(image_load(path)) {}
+    ~Image() { 
+        if(this->_img) {
+            image_free(this->_img);
+        }
+    }
+
+    static Image* from(image_t *img) { 
+        Image *i = new Image();
+        i->_img = img;
+        return i;
+    }
+    image_t* proto() {
+        if(this->_img) {
+            return this->_img;
+        } else {
+            return nullptr;
+        }
+    }
+    void dump_raw(int i) {
+        if(this->_img) {
+            image_dump_raw(this->_img, i);
+        }
+    }
+    Tensor* to_tensor() {
+        if(this->_img && this->_img->raw) {
+            return Tensor::from(this->_img->raw);
+        } else {
+            return nullptr;
+        }
+    }
+    void save(const char* path) {
+        image_save(this->_img, path);
     }
 };
 

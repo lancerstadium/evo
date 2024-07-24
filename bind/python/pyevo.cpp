@@ -44,4 +44,13 @@ PYBIND11_MODULE(pyevo, m) {
         .def("get_tensor", &Evo::RunTime::get_tensor, py::return_value_policy::reference)
         .def("run", &Evo::RunTime::run)
         .def("dump_graph", &Evo::RunTime::dump_graph);
+
+    
+    py::class_<Evo::Image>(m, "Image")
+        .def(py::init<>())
+        .def(py::init<const char*>())
+        .def("proto", &Evo::Image::proto)
+        .def("dump_raw", &Evo::Image::dump_raw)
+        .def("to_tensor", &Evo::Image::to_tensor, py::return_value_policy::reference)
+        .def("save", &Evo::Image::save);
 }

@@ -33,9 +33,12 @@ void image_dump_raw(image_t* img, int i) {
     if(!img || !img->raw || !img->raw->datas) return;
     uint8_t* data = (uint8_t*)img->raw->datas;
     if(i >= 0) {
-        for (int r = 0; r < img->raw->dims[2]; ++r) {
-            for (int c = 0; c < img->raw->dims[2]; ++c) {
-                printf("%3d ", data[i * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+        for (int s = 0; s < img->raw->dims[1]; ++s) {
+            for (int r = 0; r < img->raw->dims[2]; ++r) {
+                for (int c = 0; c < img->raw->dims[3]; ++c) {
+                    printf("%3d ", data[i * img->raw->dims[s] * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+                }
+                printf("\n");
             }
             printf("\n");
         }
