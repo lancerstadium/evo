@@ -768,7 +768,6 @@ EVO_API void image_dump_raw(image_t*, int);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_free(image_t*);
 
-
 #endif // EVO_CV_OFF
 
 #ifdef __cplusplus
