@@ -17,10 +17,11 @@ attribute_t* image_get_attr(image_t* img, const char* name) {
     return NULL;
 }
 
-void image_dump_shape(image_t* img) {
+char* image_dump_shape(image_t* img) {
     if (img && img->raw) {
-        LOG_INFO("%s", tensor_dump_shape(img->raw));
+        return tensor_dump_shape(img->raw);
     }
+    return NULL;
 }
 
 void image_dump_raw(image_t* img, int i) {

@@ -763,7 +763,7 @@ EVO_API image_t* image_load_bmp(const char*);
 EVO_API image_t* image_load_jpg(const char*);
 EVO_API image_t* image_load_png(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);
-EVO_API void image_dump_shape(image_t*);
+EVO_API char* image_dump_shape(image_t*);
 EVO_API void image_dump_raw(image_t*, int);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_free(image_t*);

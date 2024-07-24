@@ -28,8 +28,8 @@ UnitTest_fn_def(test_read_mnist) {
 UnitTest_fn_def(test_read_bmp) {
     const char* img_path = "picture/color.bmp";
     image_t* img = image_load_bmp(img_path);
-    image_dump_raw(img, 1);
-    UnitTest_msg("%s", tensor_dump_shape(img->raw));
+    // image_dump_raw(img, 1);
+    UnitTest_msg("%s", image_dump_shape(img));
     return NULL;
 }
 
@@ -40,10 +40,18 @@ UnitTest_fn_def(test_read_jpg) {
     return NULL;
 }
 
+UnitTest_fn_def(test_read_png) {
+    const char* img_path = "picture/basn0g04.png";
+    image_t* img = image_load_png(img_path);
+    image_dump_raw(img, 0);
+    return NULL;
+}
+
 UnitTest_fn_def(test_all) {
     // UnitTest_add(test_read_mnist);
     UnitTest_add(test_read_bmp);
     // UnitTest_add(test_read_jpg);
+    UnitTest_add(test_read_png);
     return NULL;
 }
 
