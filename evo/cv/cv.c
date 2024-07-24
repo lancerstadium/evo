@@ -1,8 +1,7 @@
+#include "../evo.h"
+#include "../util/log.h"
 #include <string.h>
 #include <stdio.h>
-#include "../../evo.h"
-#include "../../util/log.h"
-
 
 attribute_t* image_get_attr(image_t* img, const char* name) {
     attribute_t* attr;

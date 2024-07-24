@@ -1,22 +1,19 @@
-#include "../../evo.h"
+#include "../evo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 
-typedef struct bmp_file_header bmp_file_header_t;
-typedef struct bmp_info_header bmp_info_header_t;
-
-EVO_PACKED(struct bmp_file_header {
+EVO_PACKED(typedef struct {
     uint16_t bf_type;
     uint32_t bf_size;
     uint16_t bf_reserved1;
     uint16_t bf_reserved2;
     uint32_t bf_off_bits;
-});
+}) bmp_file_header_t;
 
-EVO_PACKED(struct bmp_info_header {
+EVO_PACKED(typedef struct {
     uint32_t bi_size;
     int32_t bi_width;
     int32_t bi_height;
@@ -28,7 +25,7 @@ EVO_PACKED(struct bmp_info_header {
     int32_t bi_y_pels_per_meter;
     uint32_t bi_clr_used;
     uint32_t bi_clr_important;
-});
+}) bmp_info_header_t;
 
 
 image_t* image_load_bmp(const char* filename) {
@@ -60,6 +57,11 @@ image_t* image_load_bmp(const char* filename) {
     }
 
     image_t* image = (image_t*)malloc(sizeof(image_t));
+    if (!image) {
+        fprintf(stderr, "Failed to allocate memory for image structure\n");
+        fclose(file);
+        return NULL;
+    }
     image->name = strdup(filename);
     image->type = IMAGE_TYPE_BMP;
     image->raw = tensor_new(strdup(filename), TENSOR_TYPE_UINT8);

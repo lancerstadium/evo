@@ -1,9 +1,8 @@
+#include "../evo.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../../evo.h"
 
 typedef struct jpeg_file_header jpeg_file_header_t;
 typedef struct jpeg_frame_header jpeg_frame_header_t;

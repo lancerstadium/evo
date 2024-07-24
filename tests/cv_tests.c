@@ -42,8 +42,8 @@ UnitTest_fn_def(test_read_jpg) {
 
 UnitTest_fn_def(test_all) {
     // UnitTest_add(test_read_mnist);
-    // UnitTest_add(test_read_bmp);
-    UnitTest_add(test_read_jpg);
+    UnitTest_add(test_read_bmp);
+    // UnitTest_add(test_read_jpg);
     return NULL;
 }
 
