@@ -6,7 +6,7 @@
 runtime_t* runtime_new(const char* fmt) {
     device_reg(EVO_DFT_DEV);
     runtime_t * rt = (runtime_t*)sys_malloc(sizeof(runtime_t));
-    rt->dev_reg_vec = internal_device_registry;
+    rt->dev_reg_vec = internal_context_info.dev_vec;
     rt->sez = serializer_new(fmt);
     rt->mdl = NULL;
     return rt;

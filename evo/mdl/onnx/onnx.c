@@ -413,8 +413,13 @@ model_t *load_model_onnx(struct serializer *sez, const char *path) {
 }
 
 void unload_onnx(model_t *mdl) {
-    if (mdl && mdl->model_proto) {
-        onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
+    if (mdl) {
+        if(mdl->model_proto) {
+            onnx__model_proto__free_unpacked(mdl->model_proto, NULL);
+        }
+        if(mdl->graph) {
+            graph_free(mdl->graph);
+        }     
         mdl->model_proto = NULL;
         mdl->model_size = 0;
     }

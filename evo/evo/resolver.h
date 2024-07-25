@@ -5,6 +5,10 @@
 //                                  resolver: default
 // ==================================================================================== //
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 void op_Abs_dft(node_t*);
 void op_Add_dft(node_t*);
 void op_AveragePool_dft(node_t*);
@@ -40,3 +44,8 @@ void op_Sum_dft(node_t*);
 void op_Transpose_dft(node_t*);
 void op_Unsqueeze_dft(node_t*);
 void op_Where_dft(node_t*);
+
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus

@@ -18,10 +18,13 @@ static int cpu_init(device_t* dev) {
 static int cpu_prerun(device_t *dev, graph_t *g) {
     if(!dev || !g)
         return -1;
+    LOG_INFO("~~~~~11111111\n");
     g->prof = profiler_new(PROFILER_TYPE_EXEC);
+    LOG_INFO("~~~~~11111112\n");
     if(!g->prof) {
         LOG_ERR("CPU Prerun Fail: No profiler!\n");
     }
+    LOG_INFO("~~~~~11111113\n");
     for(int i = 0; i < g->nnode; i++) {
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
         if(nd) {
@@ -34,7 +37,9 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
             }
         }
     }
+    LOG_INFO("~~~~~11111114\n");
     vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time
+    LOG_INFO("~~~~~11111115\n");
     return 0;
 }
 
@@ -140,7 +145,7 @@ void cpu_alloc(device_t *dev, graph_t *sg) {
 
 void cpu_graph_spilte(graph_t *g) {
     graph_t *sg = graph_as_sub(g);
-    sg->dev = device_registry_get_default();
+    sg->dev = internal_device_get_default();
     /// TODO: spilte graphs
 }
 
@@ -179,5 +184,5 @@ static device_t cpu_dev = {
 
 device_t* device_reg_cpu() {
     device_reg_dev(&cpu_dev);
-    return device_registry_find("cpu");
+    return internal_device_find("cpu");
 }

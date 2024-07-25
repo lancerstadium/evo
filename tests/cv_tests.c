@@ -11,12 +11,10 @@ UnitTest_fn_def(test_read_mnist) {
         printf("Image type: %d\n", img->type);
         printf("Image dimensions: %d x %d x %d x %d\n", img->raw->dims[0], img->raw->dims[1], img->raw->dims[2], img->raw->dims[3]);
 
-        // 打印部分数据以验证
-        uint8_t* data = (uint8_t*)img->raw->datas;
         attribute_t* attr = image_get_attr(img, "label");
-        image_dump_raw(img, 1);
-        image_dump_raw(img, 3);
-        image_dump_raw(img, 5);
+        image_t* new_img = image_get_batch(img, 3, (int[]){3, 4, 6});
+        image_dump_raw(new_img, -1);
+        // tensor_dump2(new_img->raw);
         image_free(img);
     } else {
         fprintf(stderr, "Failed to read img\n");
@@ -34,7 +32,7 @@ UnitTest_fn_def(test_read_png) {
 }
 
 UnitTest_fn_def(test_all) {
-
+    UnitTest_add(test_read_mnist);
     UnitTest_add(test_read_png);
     return NULL;
 }

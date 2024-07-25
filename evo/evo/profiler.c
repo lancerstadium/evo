@@ -97,7 +97,7 @@ profiler_t* profiler_new(profiler_type_t type) {
             return p;
         }
         case PROFILER_TYPE_EXEC: {
-            profiler_t* p = (profiler_t*)sys_malloc(sizeof(profiler_t));
+            profiler_t* p = (profiler_t*)malloc(sizeof(profiler_t));
             if (!p) return NULL;
             p->type = type;
             p->report = profiler_exec_report;

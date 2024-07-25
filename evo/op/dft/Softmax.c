@@ -1,4 +1,4 @@
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
 #include <float.h>
 #include <math.h>

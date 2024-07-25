@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/sys.h"
 
 typedef struct {

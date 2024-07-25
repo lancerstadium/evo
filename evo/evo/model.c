@@ -13,7 +13,7 @@ model_t * model_new(const char *name) {
     }
     mdl->sez = NULL;
     mdl->scd = scheduler_get_default();         /* Default: sync scheduler  */
-    mdl->dev = device_registry_find("cpu");     /* Default: device cpu      */
+    mdl->dev = internal_device_find("cpu");     /* Default: device cpu      */
     // load model
     mdl->model_proto = NULL;
     mdl->model_size = 0;
@@ -52,6 +52,9 @@ void model_free(model_t *mdl) {
         if(mdl->name) free(mdl->name);
         if(mdl->model_proto) mdl->sez->unload(mdl);
         if(mdl->tensor_map) hashmap_free(mdl->tensor_map);
+        mdl->name = NULL;
+        mdl->model_proto = NULL;
+        mdl->tensor_map = NULL;
     }
     mdl = NULL;
 }

@@ -1,5 +1,4 @@
 #include <evo.h>
-#include <core/resolver.h>
 #include <vector>
 #include <string>
 
@@ -40,7 +39,10 @@ class Graph;
 class Model;
 class RunTime;
 
+static Model * internal_mdl = nullptr;
+
 static Tensor * add(Tensor *a, Tensor *b);
+static Tensor * mul(Tensor *a, Tensor *b);
 
 class Tensor {
 private:
@@ -74,7 +76,7 @@ public:
         }
         this->_ts = tensor_new("Tensor", (tensor_type_t)type);
         tensor_reshape(this->_ts, ndim, dims);
-        this->_ts->datas = datas;
+        memcpy(this->_ts->datas, datas, ndata * sizeof(T));
         this->_ts->ndata = ndata;
     }
 #endif
@@ -94,6 +96,11 @@ public:
             return this->_ts;
         return NULL;
     }
+    static Tensor* zero() {
+        Tensor *t = new Tensor();
+        t->_ts = tensor_new("Tensor", TENSOR_TYPE_INT64);
+        return t;
+    }
     void dump() {
         if(this->_ts)
             tensor_dump(this->_ts);
@@ -110,6 +117,9 @@ public:
     Tensor * operator+(Tensor * other) {
         return add(this, other);
     }
+    Tensor * operator*(Tensor * other) {
+        return mul(this, other);
+    }
 };
 
 class Model {
@@ -120,9 +130,6 @@ public:
     Model() : _mdl(nullptr) {}
     Model(model_t* mdl) {
         this->_mdl = mdl;
-    }
-    Model(const char *name) {
-        this->_mdl = model_new(name);
     }
     ~Model() {
         if(this->_mdl) {
@@ -139,8 +146,6 @@ public:
         return this->_mdl;
     }
 };
-
-static Model global_model = Model("GlobalModel");
 
 class Graph {
 private:
@@ -173,13 +178,23 @@ private:
 
 public:
     Node() : _nd(nullptr) {}
-    Node(OpType type, std::vector<Tensor*> inputs) : _nd(node_new(global_model.proto()->graph, op_name((op_type_t)type), type)) {
+    Node(OpType type, std::vector<Tensor*> inputs, std::vector<Tensor*> outputs) : _nd(node_new(internal_mdl ? internal_mdl->proto()->graph : NULL, op_name((op_type_t)type), type)) {
         Tensor** in = inputs.data();
         int nin = inputs.size();
         this->_nd->nin = nin;
         this->_nd->in = (tensor_t**)malloc(sizeof(tensor_t*) * nin);
         for(int i = 0; i < nin; i++) {
             this->_nd->in[i] = in[i]->proto();
+        }
+        Tensor** out = outputs.data();
+        int nout = outputs.size();
+        this->_nd->nout = nout;
+        this->_nd->out = (tensor_t**)malloc(sizeof(tensor_t*) * nout);
+        for(int i = 0; i < nout; i++) {
+            this->_nd->out[i] = out[i]->proto();
+        }
+        if(_nd->graph && _nd->graph->dev) {
+            this->_nd->op = device_find_op(_nd->graph->dev, (op_type_t) type);
         }
     }
     Node(Graph &g, const char* name, OpType type) {
@@ -198,6 +213,10 @@ public:
     }
     node_t* proto() {
         return this->_nd;
+    }
+    void forward() {
+        if(this->_nd && this->_nd->op && this->_nd->op->run)
+            this->_nd->op->run(this->_nd);
     }
     Tensor * in(int i) {
         if(i < 0 || i >= this->_nd->nin)
@@ -294,6 +313,11 @@ public:
             return nullptr;
         }
     }
+    void dump_raw() {
+        if(this->_img) {
+            image_dump_raw(this->_img, -1);
+        }
+    }
     void dump_raw(int i) {
         if(this->_img) {
             image_dump_raw(this->_img, i);
@@ -306,15 +330,40 @@ public:
             return nullptr;
         }
     }
+    Tensor* to_tensor(int i) {
+        if(this->_img && this->_img->raw) {
+            return Tensor::from(image_get_raw(this->_img, i));
+        } else {
+            return nullptr;
+        }
+    }
+    static Image* load_mnist(const char *pics, const char* labels) {
+        return Image::from(image_load_mnist(pics, labels));
+    }
     void save(const char* path) {
         image_save(this->_img, path);
+    }
+    Image* operator[](const int idx) {
+        return Image::from(image_get(this->_img, idx));
+    }
+    Image* operator[](const std::vector<int>& idxs) { 
+        return Image::from(image_get_batch(this->_img, idxs.size(), (int *)idxs.data()));
     }
 };
 
 static Tensor * add(Tensor *a, Tensor *b) {
     std::vector<Tensor*> inputs = {a, b};
-    Node nd = Node(OP_TYPE_ADD, inputs);
-    op_Add_dft(nd.proto());
+    std::vector<Tensor*> outputs = {Tensor::zero()};
+    Node nd = Node(OP_TYPE_ADD, inputs, outputs);
+    nd.forward();
+    return nd.out(0);
+}
+
+static Tensor * mul(Tensor *a, Tensor *b) {
+    std::vector<Tensor*> inputs = {a, b};
+    std::vector<Tensor*> outputs = {Tensor::zero()};
+    Node nd = Node(OP_TYPE_MUL, inputs, outputs);
+    nd.forward();
     return nd.out(0);
 }
 }

@@ -1,4 +1,4 @@
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 
 typedef struct {
     int *perm;

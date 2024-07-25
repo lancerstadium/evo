@@ -2,8 +2,9 @@
 #include <math.h>
 #include <string.h>
 
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
+#include "../../util/log.h"
 
 typedef enum {
     AUTO_PAD_NOTSET = 0,
@@ -240,6 +241,7 @@ static void MaxPool_float64(node_t *nd) {
 }
 
 void op_MaxPool_dft(node_t *nd) {
+    LOG_INFO("0 heeeeee!!!!\n");
     // 1. MaxPool init
     if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
@@ -313,6 +315,7 @@ void op_MaxPool_dft(node_t *nd) {
     int ndim = x->ndim;
     int dims[ndim];
     int pad;
+    LOG_INFO("1 heeeeee!!!!\n");
     switch (pdat->auto_pad) {
         case AUTO_PAD_NOTSET:
             memcpy(pdat->cpads, pdat->pads, sizeof(int) * pdat->npad);
@@ -337,6 +340,7 @@ void op_MaxPool_dft(node_t *nd) {
         default:
             break;
     }
+    LOG_INFO("2 heeeeee!!!!\n");
     dims[0] = x->dims[0];
     dims[1] = x->dims[1];
     for (i = 0; i < ndim - 2; i++) {
@@ -358,6 +362,7 @@ void op_MaxPool_dft(node_t *nd) {
                 break;
         }
     }
+    LOG_INFO("3 heeeeee!!!!\n");
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
     // 3. MaxPool run
@@ -380,6 +385,7 @@ void op_MaxPool_dft(node_t *nd) {
         default:
             break;
     }
+    LOG_INFO("4 heeeeee!!!!\n");
     // 4. MaxPool exit
     if (pdat) {
         if (pdat->kernels)

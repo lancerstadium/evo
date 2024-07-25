@@ -1,7 +1,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
 
 typedef enum {

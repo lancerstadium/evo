@@ -1,0 +1,14 @@
+#0  0x000000000046372c in pthread_kill ()
+#1  0x0000000000450406 in raise ()
+#2  0x000000000040135e in abort ()
+#3  0x000000000045d466 in __libc_message ()
+#4  0x000000000046401c in malloc_printerr ()
+#5  0x000000000046742c in _int_malloc ()
+#6  0x000000000046859a in malloc ()
+#7  0x0000000000419bbc in profiler_new (type=type@entry=PROFILER_TYPE_EXEC) at evo/evo/profiler.c:100
+#8  0x000000000041d69c in cpu_prerun (dev=0x54a7e0 <cpu_dev>, g=0x647180) at evo/dev/cpu/def.c:22
+#9  0x0000000000419ff6 in scheduler_prerun_sync (scd=<optimized out>, g=0x646820) at evo/evo/scheduler.c:18
+#10 0x000000000040d46b in test_maxpool_1d ()
+#11 0x000000000040e78b in test_maxpool ()
+#12 0x0000000000417014 in test_all ()
+#13 0x0000000000417cbc in main ()

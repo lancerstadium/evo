@@ -1,4 +1,4 @@
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
 
 static void Sum_bfloat16(node_t *nd) {

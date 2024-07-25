@@ -214,16 +214,10 @@ void graph_free(graph_t *g) {
     if(!g) return;
     // free tensors
     if(g->tensors) {
-        for(int i = 0; i < g->ntensor; i++) {
-            tensor_free(g->tensors[i]);
-        }
         sys_free(g->tensors);
     }
     // free nodes
     if(g->nodes) {
-        for(int i = 0; i < g->nnode; i++) {
-            node_free(g->nodes[i]);
-        }
         sys_free(g->nodes);
     }
     if(g->name) sys_free(g->name);

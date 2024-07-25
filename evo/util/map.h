@@ -13,6 +13,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 // hashmaps can associate keys with pointer values or integral types.
 typedef struct hashmap hashmap_t;
 
@@ -70,5 +74,9 @@ int hashmap_iterate(hashmap_t* map, hashmap_callback c, void* usr);
 // allows you to see how many collisions you are getting.
 // `0` is an empty bucket, `1` is occupied, and `x` is removed.
 // void bucket_dump(hashmap_t *m);
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 
 #endif  // __EVO_UTIL_MAP_H__

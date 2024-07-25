@@ -1,4 +1,4 @@
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
 
 static void Mul_int8(node_t *nd) {
@@ -189,7 +189,7 @@ void op_Mul_dft(node_t *nd) {
     if (!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
         return;
     }
-    // 2. Mul shape
+    // 2. Mul reshape
     tensor_t *y = nd->out[0];
     tensor_t *a = nd->in[0];
     tensor_t *b = nd->in[0];

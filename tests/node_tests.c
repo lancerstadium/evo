@@ -389,7 +389,26 @@ UnitTest_fn_def(test_leakyrelu) {
 // ---------------------- MaxPool ----------------------
 
 UnitTest_fn_def(test_maxpool_1d) {
-    TEST_1I("test_maxpool_1d", x, y);
+    // TEST_1I("test_maxpool_1d", x, y);
+    Log_info("111111");
+    model_t* mdl = sez->load_model(sez, MD("test_maxpool_1d"));   
+    Log_info("111112");  
+    tensor_t* i = model_get_tensor(mdl, "x");      
+    Log_info("111113");  
+    tensor_t* o = model_get_tensor(mdl, "y");        
+    Log_info("111114");
+    tensor_t* t0 = sez->load_tensor(TI("test_maxpool_1d", 0));      
+    Log_info("111115");
+    tensor_t* t1 = sez->load_tensor(TO("test_maxpool_1d", 0));      
+    Log_info("111116");
+    tensor_copy(i, t0);          
+    Log_info("111117");                   
+    graph_prerun(mdl->graph);     
+    Log_info("111118");                 
+    graph_run(mdl->graph);        
+    Log_info("111119");                  
+    UnitTest_ast(tensor_equal(o, t1), "test_maxpool_1d" " failed"); 
+    mdl->sez->unload(mdl);
     return NULL;
 }
 UnitTest_fn_def(test_maxpool_2d) {
@@ -613,7 +632,7 @@ UnitTest_fn_def(test_all) {
     // UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_leakyrelu);
     UnitTest_add(test_matmul);
-    // UnitTest_add(test_maxpool);  // Failed
+    UnitTest_add(test_maxpool);  // Failed
     UnitTest_add(test_mul);
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);

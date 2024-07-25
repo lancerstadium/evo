@@ -36,17 +36,80 @@ void image_dump_raw(image_t* img, int i) {
         for (int s = 0; s < img->raw->dims[1]; ++s) {
             for (int r = 0; r < img->raw->dims[2]; ++r) {
                 for (int c = 0; c < img->raw->dims[3]; ++c) {
-                    printf("%3d ", data[i * img->raw->dims[s] * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+                    printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
                 }
                 printf("\n");
             }
             printf("\n");
         }
     } else {
-        for(int j = 0; j < img->raw->dims[0] || j < 20; ++j) {
+        for(int j = 0; j < img->raw->dims[0] && j < 20; ++j) {
             image_dump_raw(img, j);
         }
     }
+}
+tensor_t* image_get_raw(image_t *img, int i) {
+    if(img && img->raw && i >= 0 && i < img->raw->dims[0]) {
+        tensor_t * ts = tensor_new(sys_strdup(img->name), TENSOR_TYPE_UINT8);
+        int dims[4] = {
+            1,
+            img->raw->dims[1],
+            img->raw->dims[2],
+            img->raw->dims[3]
+        };
+        tensor_reshape(ts, 4, dims);
+        tensor_apply(ts, (void*)(img->raw->datas + i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3]), img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3]);
+        return ts;
+    }
+    return img->raw;
+}
+
+tensor_t* image_get_raw_batch(image_t *img, int n, int *idx) {
+    if(img && img->raw) {
+        tensor_t * ts = tensor_new(sys_strdup(img->name), TENSOR_TYPE_UINT8);
+        int dims[4] = {
+            n,
+            img->raw->dims[1],
+            img->raw->dims[2],
+            img->raw->dims[3]
+        };
+        tensor_reshape(ts, 4, dims);
+        void* data = malloc(img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] * n);
+        for(int i = 0; i < n; ++i) {
+            if( idx[i] >= 0 && idx[i] < img->raw->dims[0]) {
+                memcpy(data + i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3], 
+                    img->raw->datas + idx[i] * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3], 
+                    img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3]);
+            }
+        }
+        tensor_apply(ts, data, img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] * n);
+        return ts;
+    }
+    return img->raw;
+}
+
+image_t* image_get(image_t* img, int i) {
+    if(img && img->raw && i >= 0) {
+        image_t* new_img = (image_t*)malloc(sizeof(image_t));
+        new_img->name = sys_strdup(img->name);
+        new_img->attr_vec = vector_create();
+        new_img->type = img->type;
+        new_img->raw = image_get_raw(img, i);
+        return new_img;
+    }
+    return NULL;
+}
+
+image_t* image_get_batch(image_t* img, int n, int *idx) {
+    if(img && img->raw) {
+        image_t* new_img = (image_t*)malloc(sizeof(image_t));
+        new_img->name = sys_strdup(img->name);
+        new_img->attr_vec = vector_create();
+        new_img->type = img->type;
+        new_img->raw = image_get_raw_batch(img, n, idx);
+        return new_img;
+    }
+    return NULL;
 }
 
 image_type_t image_get_type(const char* name) { 

@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "../../core/resolver.h"
+#include "../../evo/resolver.h"
 #include "../../util/math.h"
 
 static void GlobalAveragePool_float16(node_t *nd) {

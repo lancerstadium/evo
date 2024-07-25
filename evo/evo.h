@@ -69,6 +69,7 @@ typedef struct interface interface_t;
 typedef struct allocator allocator_t;
 typedef struct attribute attribute_t;
 typedef struct serializer serializer_t;
+typedef struct internal_context internal_context_t;
 
 typedef attribute_t** attribute_vec_t;
 typedef device_t** device_vec_t;
@@ -80,13 +81,25 @@ typedef node_t** node_vec_t;
 //                                       evo: internal
 // ==================================================================================== //
 
-EVO_UNUSED static device_vec_t internal_device_registry = NULL;
+struct internal_context {
+    model_t * mdl;
+    device_vec_t dev_vec;
+};
 
-EVO_API int device_registry_init(const char*);
-EVO_API device_t* device_registry_find(const char*);
-EVO_API device_t* device_registry_get(int);
-EVO_API device_t* device_registry_get_default();
-EVO_API void device_registry_release();
+EVO_UNUSED static internal_context_t internal_context_info = {
+    NULL, 
+    NULL
+};
+
+EVO_API void internal_model_set(model_t*);
+EVO_API model_t* internal_model_init();
+EVO_API model_t* internal_model_get();
+EVO_API int internal_device_init(const char*);
+EVO_API device_t* internal_device_find(const char*);
+EVO_API device_t* internal_device_find_nowarn(const char*);
+EVO_API device_t* internal_device_get(int);
+EVO_API device_t* internal_device_get_default();
+EVO_API void internal_device_release();
 
 // ==================================================================================== //
 //                                       evo: runtime
@@ -723,7 +736,6 @@ struct optimizer {
     void (*graph_optimize)(graph_t*);
 };
 
-
 // ==================================================================================== //
 //                                  evo: Computer Vision (cv)
 // ==================================================================================== //
@@ -765,6 +777,10 @@ EVO_API image_t* image_load_mnist(const char*, const char*);
 EVO_API void image_save(image_t*, const char*);
 EVO_API char* image_dump_shape(image_t*);
 EVO_API void image_dump_raw(image_t*, int);
+EVO_API image_t* image_get(image_t*, int);
+EVO_API image_t* image_get_batch(image_t*, int, int*);
+EVO_API tensor_t* image_get_raw(image_t*, int);
+EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_free(image_t*);
 
