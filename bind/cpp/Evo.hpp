@@ -1,17 +1,46 @@
 #include <evo.h>
+#include <core/resolver.h>
 #include <vector>
 #include <string>
+
+#ifdef EVO_PYBIND11
+#include<pybind11/pybind11.h>
+#include<pybind11/numpy.h>
+
+namespace py = pybind11;
+using namespace py::literals;
+#endif
 
 namespace Evo {
 
 typedef op_type_t OpType;
-typedef tensor_type_t TensorType;
+typedef enum {
+    UNDEFINED = TENSOR_TYPE_UNDEFINED,
+    BOOL = TENSOR_TYPE_BOOL,
+    INT8 = TENSOR_TYPE_INT8,
+    INT16 = TENSOR_TYPE_INT16,
+    INT32 = TENSOR_TYPE_INT32,
+    INT64 = TENSOR_TYPE_INT64,
+    UINT8 = TENSOR_TYPE_UINT8,
+    UINT16 = TENSOR_TYPE_UINT16,
+    UINT32 = TENSOR_TYPE_UINT32,
+    UINT64 = TENSOR_TYPE_UINT64,
+    BFLOAT16 = TENSOR_TYPE_BFLOAT16,
+    FLOAT16 = TENSOR_TYPE_FLOAT16,
+    FLOAT32 = TENSOR_TYPE_FLOAT32,
+    FLOAT64 = TENSOR_TYPE_FLOAT64,
+    COMPLEX64 = TENSOR_TYPE_COMPLEX64,
+    COMPLEX128 = TENSOR_TYPE_COMPLEX128,
+    STRING = TENSOR_TYPE_STRING,
+} TensorType;
 
 class Tensor;
 class Node;
 class Graph;
 class Model;
 class RunTime;
+
+static Tensor * add(Tensor *a, Tensor *b);
 
 class Tensor {
 private:
@@ -20,8 +49,35 @@ private:
 public:
     Tensor() : _ts(nullptr) {}
     Tensor(const char *name, TensorType type) {
-        this->_ts = tensor_new(name, type);
+        this->_ts = tensor_new(name, (tensor_type_t)type);
     }
+#ifdef EVO_PYBIND11
+    template<typename T>
+    Tensor(py::array_t<T> arr) {
+        py::buffer_info buf = arr.request();
+        int ndim = buf.ndim;
+        int dims[ndim];
+        for(int i = 0; i < ndim; i++) {
+            dims[i] = buf.shape[i];
+        }
+        size_t ndata = buf.size;
+        auto *datas = static_cast<T*>(buf.ptr);
+        TensorType type;
+        if (std::is_same<T, double>::value) {
+            type = TensorType::FLOAT64;
+        } else if (std::is_same<T, int>::value) {
+            type = TensorType::INT64;
+        } else if (std::is_same<T, bool>::value) {
+            type = TensorType::BOOL;
+        } else {
+            throw std::runtime_error("Unsupported type");
+        }
+        this->_ts = tensor_new("Tensor", (tensor_type_t)type);
+        tensor_reshape(this->_ts, ndim, dims);
+        this->_ts->datas = datas;
+        this->_ts->ndata = ndata;
+    }
+#endif
     ~Tensor() {
         if(this->_ts) {
             tensor_free(this->_ts);
@@ -34,18 +90,25 @@ public:
         return t;
     }
     tensor_t* proto() {
-        return this->_ts;
+        if(this->_ts)
+            return this->_ts;
+        return NULL;
     }
     void dump() {
-        tensor_dump(this->_ts);
+        if(this->_ts)
+            tensor_dump(this->_ts);
     }
     void dump(int level) {
         switch(level) {
             case 1:
-            tensor_dump2(this->_ts); return;
+            if(this->_ts) { tensor_dump2(this->_ts); } return;
             case 0:
             default: dump(); return;
         }
+    }
+
+    Tensor * operator+(Tensor * other) {
+        return add(this, other);
     }
 };
 
@@ -76,6 +139,8 @@ public:
         return this->_mdl;
     }
 };
+
+static Model global_model = Model("GlobalModel");
 
 class Graph {
 private:
@@ -108,6 +173,15 @@ private:
 
 public:
     Node() : _nd(nullptr) {}
+    Node(OpType type, std::vector<Tensor*> inputs) : _nd(node_new(global_model.proto()->graph, op_name((op_type_t)type), type)) {
+        Tensor** in = inputs.data();
+        int nin = inputs.size();
+        this->_nd->nin = nin;
+        this->_nd->in = (tensor_t**)malloc(sizeof(tensor_t*) * nin);
+        for(int i = 0; i < nin; i++) {
+            this->_nd->in[i] = in[i]->proto();
+        }
+    }
     Node(Graph &g, const char* name, OpType type) {
         this->_nd = node_new(g.proto(), name, type);
     }
@@ -124,6 +198,16 @@ public:
     }
     node_t* proto() {
         return this->_nd;
+    }
+    Tensor * in(int i) {
+        if(i < 0 || i >= this->_nd->nin)
+            return nullptr;
+        return Tensor::from(this->proto()->in[i]);
+    }
+    Tensor * out(int i) {
+        if(i < 0 || i >= this->_nd->nout)
+            return nullptr;
+        return Tensor::from(this->proto()->out[i]);
     }
 };
 
@@ -227,5 +311,11 @@ public:
     }
 };
 
+static Tensor * add(Tensor *a, Tensor *b) {
+    std::vector<Tensor*> inputs = {a, b};
+    Node nd = Node(OP_TYPE_ADD, inputs);
+    op_Add_dft(nd.proto());
+    return nd.out(0);
+}
 }
 
