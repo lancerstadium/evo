@@ -28,14 +28,11 @@ void op_Reshape_dft(node_t* nd) {
             for(int j = 0; j < x->ndim; j++)
                 total_dim *= x->dims[j];
             for(int j = 0; j < ndim; j++) {
-                // LOG_INFO("%s - DIMS(%d, %d): %d\n", nd->name, i, j, x->dims[j]);
                 if(sdata[j] > 0)
                     total_shape *= sdata[j];
                 else if(sdata[j] == 0)
                     total_shape *= x->dims[j];
             }
-            /// TODO: warning opration for reshape
-            LOG_INFO("dim: %d, shape: %d\n", total_dim, total_shape);
             dims[i] = total_dim / total_shape;
         }
     }
