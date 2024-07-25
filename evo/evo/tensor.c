@@ -73,8 +73,6 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->index = idx;
     ts->type = type;
     ts->name = NULL;
-    ts->nelem = 0;
-    ts->szelem = tensor_type_sizeof(type);
     ts->pnode = -1;
     // option
     ts->is_reshaped = 0;    // ts is not reshaped
@@ -277,15 +275,15 @@ bool tensor_equal(tensor_t *a, tensor_t *b) {
 
 int tensor_reshape(tensor_t *ts, int ndim, int *dims) {
     if (ndim > EVO_DIM_MAX) return -1;
-    const int old_nelem = ts->nelem;
-    int new_nelem = 1;
+    const int old_ndata = ts->ndata;
+    int new_ndata = 1;
     for (int i = 0; i < ndim; i++) {
         ts->dims[i] = dims[i];
-        new_nelem *= dims[i];
+        new_ndata *= dims[i];
     }
     ts->ndim = ndim;
-    ts->nelem = new_nelem;
-    if (old_nelem != new_nelem) {
+    ts->ndata = new_ndata;
+    if (old_ndata != new_ndata) {
         tensor_reinit(ts, ts->type, ndim, dims);
     }
     return 0;

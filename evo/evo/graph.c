@@ -214,23 +214,40 @@ void graph_free(graph_t *g) {
     if(!g) return;
     // free tensors
     if(g->tensors) {
-        sys_free(g->tensors);
+        for(int i = 0; i < g->ntensor; i++){
+            if(g->tensors[i]) {
+                tensor_free(g->tensors[i]);
+                g->tensors[i] = NULL;
+            }
+        }
+        if(g->tensors) sys_free(g->tensors);
+        g->tensors = NULL;
     }
     // free nodes
     if(g->nodes) {
-        sys_free(g->nodes);
+        for(int i = 0; i < g->nnode; i++){
+            if(g->nodes[i]) {
+                node_free(g->nodes[i]);
+                g->nodes[i] = NULL;
+            }
+        }
+        if(g->nodes) sys_free(g->nodes);
+        g->nodes = NULL;
     }
     if(g->name) sys_free(g->name);
-
     if(g->is_sub) {
         if(g->prof) profiler_free(g->prof);
-        if(g->nodes_vec) vector_free(g->nodes_vec);
-        if(g->input_itensors_vec) vector_free(g->input_itensors_vec);
-        if(g->output_itensors_vec) vector_free(g->output_itensors_vec);
+        if(g->nodes_vec) { vector_free(g->nodes_vec); g->nodes_vec = NULL; }
+        if(g->input_itensors_vec) { vector_free(g->input_itensors_vec); g->input_inodes_vec = NULL; }
+        if(g->output_itensors_vec) { vector_free(g->output_itensors_vec); g->output_itensors_vec = NULL; }
     } else {
-        if(g->sub_vec) vector_free(g->sub_vec);
-        if(g->input_inodes_vec) vector_free(g->input_inodes_vec);
-        if(g->output_inodes_vec) vector_free(g->output_inodes_vec);
+        if(g->sub_vec) {
+            vector_free(g->sub_vec); 
+            g->sub_vec = NULL; 
+        }
+        if(g->input_inodes_vec) { vector_free(g->input_inodes_vec); g->input_inodes_vec = NULL; }
+        if(g->output_inodes_vec) { vector_free(g->output_inodes_vec); g->output_inodes_vec = NULL; }
     }
+    if(g) sys_free(g);
     g = NULL;
 }

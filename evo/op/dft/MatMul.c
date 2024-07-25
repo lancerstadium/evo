@@ -288,5 +288,6 @@ void op_MatMul_dft(node_t *nd) {
     // 4. MatMul exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

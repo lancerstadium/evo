@@ -8,9 +8,9 @@
 device_t * device_new(const char *name) {
     device_t *dev = (device_t *)malloc(sizeof(device_t));
     if(name) {
-        dev->name = name;
+        dev->name = sys_strdup(name);
     } else {
-        dev->name = "cpu";      /* Default: cpu */
+        dev->name = sys_strdup("cpu");      /* Default: cpu */
     }
     dev->rsv = NULL;
     dev->itf = NULL;

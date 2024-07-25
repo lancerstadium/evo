@@ -946,5 +946,6 @@ void op_Gemm_dft(node_t *nd) {
     // 4. Gemm exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

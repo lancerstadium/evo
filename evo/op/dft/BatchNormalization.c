@@ -132,5 +132,6 @@ void op_BatchNormalization_dft(node_t *nd) {
     // 4. BatchNormalization exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

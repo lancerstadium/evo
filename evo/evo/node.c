@@ -123,18 +123,21 @@ void node_free(node_t* nd) {
         sys_free(nd->name);
         nd->name = NULL;
     }
-    if(nd->nin > 0) {
+    if(nd->nin > 0 && nd->in) {
         sys_free(nd->in);
         nd->in= NULL;
+        nd->nin = 0;
     }
-    if(nd->nout > 0) {
+    if(nd->nout > 0 && nd->out) {
         sys_free(nd->out);
         nd->out = NULL;
+        nd->nout = 0;
     }
-    if(nd->priv > 0) {
+    if(nd->priv) {
         sys_free(nd->priv);
         nd->priv = NULL;
     }
-    if(nd->attr_vec) vector_free(nd->attr_vec);
+    if(nd->attr_vec) { vector_free(nd->attr_vec); nd->attr_vec = NULL; }
     sys_free(nd);
+    nd = NULL;
 }

@@ -423,5 +423,6 @@ void op_Transpose_dft(node_t *nd) {
             free(pdat->perm);
         free(pdat);
     }
+    nd->priv = NULL;
     return;
 }

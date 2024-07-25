@@ -329,5 +329,6 @@ void op_AveragePool_dft(node_t* nd) {
             free(pdat->strides);
         free(pdat);
     }
+    nd->priv = NULL;
     return;
 }

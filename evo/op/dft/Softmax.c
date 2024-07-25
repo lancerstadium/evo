@@ -321,5 +321,6 @@ void op_Softmax_dft(node_t *nd) {
     // 4. Softmax exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

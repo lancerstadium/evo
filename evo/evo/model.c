@@ -55,6 +55,7 @@ void model_free(model_t *mdl) {
         mdl->name = NULL;
         mdl->model_proto = NULL;
         mdl->tensor_map = NULL;
+        sys_free(mdl);
     }
     mdl = NULL;
 }

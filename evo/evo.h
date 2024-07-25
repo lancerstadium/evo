@@ -163,8 +163,6 @@ struct tensor {
     int ndim;                                           /* Valid entry number           */
     void* datas;                                        /* Tensor data addr             */
     size_t ndata;                                       /* Tensor data size             */
-    uint8_t  szelem;                                    /* Tensor element size          */
-    uint32_t nelem;                                     /* Tensor element number        */
     int16_t pnode;                                      /* Tensor parent node index     */
 
     uint8_t is_reshaped : 1;                            /* Tensor is reshaped           */
@@ -480,6 +478,7 @@ EVO_API attribute_t* attribute_string(char*, char*, size_t);
 EVO_API attribute_t* attribute_floats(char*, float*, size_t);
 EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
 EVO_API attribute_t* attribute_bytes(char*, uint8_t*, size_t);
+EVO_API void attribute_free(attribute_t*);
 
 // ==================================================================================== //
 //                                       evo: node type

@@ -75,5 +75,6 @@ void op_LeakyRelu_dft(node_t *nd) {
     // 4. LeakyRelu exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

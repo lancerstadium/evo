@@ -73,10 +73,8 @@ void runtime_unload(runtime_t *rt) {
 
 void runtime_free(runtime_t *rt) {
     if(!rt) return;
-    if(rt->mdl && rt->mdl->sez && rt->mdl->sez->unload) {
-        rt->mdl->sez->unload(rt->mdl);
-    }
-    serializer_free(rt->sez);
+    runtime_unload(rt);
+    if(rt->sez) serializer_free(rt->sez);
     sys_free(rt);
     rt = NULL;
     device_unreg(EVO_DFT_DEV);

@@ -107,5 +107,6 @@ void op_Concat_dft(node_t *nd) {
     // 4. Concat exit
     if (pdat)
         free(pdat);
+    nd->priv = NULL;
     return;
 }

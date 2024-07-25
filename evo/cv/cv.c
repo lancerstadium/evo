@@ -66,7 +66,7 @@ tensor_t* image_get_raw(image_t *img, int i) {
 
 tensor_t* image_get_raw_batch(image_t *img, int n, int *idx) {
     if(img && img->raw) {
-        tensor_t * ts = tensor_new(sys_strdup(img->name), TENSOR_TYPE_UINT8);
+        tensor_t * ts = tensor_new(img->name, TENSOR_TYPE_UINT8);
         int dims[4] = {
             n,
             img->raw->dims[1],

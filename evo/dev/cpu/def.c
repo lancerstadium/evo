@@ -18,13 +18,10 @@ static int cpu_init(device_t* dev) {
 static int cpu_prerun(device_t *dev, graph_t *g) {
     if(!dev || !g)
         return -1;
-    LOG_INFO("~~~~~11111111\n");
     g->prof = profiler_new(PROFILER_TYPE_EXEC);
-    LOG_INFO("~~~~~11111112\n");
     if(!g->prof) {
         LOG_ERR("CPU Prerun Fail: No profiler!\n");
     }
-    LOG_INFO("~~~~~11111113\n");
     for(int i = 0; i < g->nnode; i++) {
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
         if(nd) {
@@ -37,9 +34,7 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
             }
         }
     }
-    LOG_INFO("~~~~~11111114\n");
     vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time
-    LOG_INFO("~~~~~11111115\n");
     return 0;
 }
 

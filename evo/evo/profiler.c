@@ -113,7 +113,7 @@ profiler_t* profiler_new(profiler_type_t type) {
 }
 
 void profiler_report(profiler_t* p, int l) {
-    if (p) p->report(p, l);
+    if (p && p->report) p->report(p, l);
 }
 
 void profiler_free(profiler_t* p) {
