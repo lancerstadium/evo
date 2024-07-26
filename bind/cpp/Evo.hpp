@@ -170,6 +170,7 @@ public:
     graph_t* proto() {
         return this->_g;
     }
+    
 };
 
 class Node {
