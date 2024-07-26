@@ -253,7 +253,7 @@ BBQFC:
 
 ### Reference 参考文献
 
-[Efficient Acceleration of Deep Learning Inference on Resource-Constrained Edge Devices: A Review](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9985008)
-[First-Generation Inference Accelerator Deployment at Facebook](https://arxiv.org/pdf/2107.04140)
-[A Survey on Efficient Inference for Large Language Models](https://arxiv.org/pdf/2404.14294)
-[HAQ: Hardware-Aware Automated Quantization with Mixed Precision](https://arxiv.org/pdf/1811.08886)
+1. [Efficient Acceleration of Deep Learning Inference on Resource-Constrained Edge Devices: A Review](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9985008)
+2. [First-Generation Inference Accelerator Deployment at Facebook](https://arxiv.org/pdf/2107.04140)
+3. [A Survey on Efficient Inference for Large Language Models](https://arxiv.org/pdf/2404.14294)
+4. [HAQ: Hardware-Aware Automated Quantization with Mixed Precision](https://arxiv.org/pdf/1811.08886)
