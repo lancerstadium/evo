@@ -129,6 +129,23 @@ image_type_t image_get_type(const char* name) {
     }
 }
 
+image_t* image_blank(const char* name, size_t height, size_t width) {
+    image_t* img = (image_t*)malloc(sizeof(image_t));
+    if(img) {
+        img->name = sys_strdup(name);
+        img->attr_vec = vector_create();
+        img->type = IMAGE_TYPE_UNKNOWN;
+        img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
+        tensor_reshape(img->raw, 4, (int[]){1, 4, height, width});
+        uint8_t * data = sys_malloc(4 * height * width * sizeof(uint8_t));
+        tensor_apply(img->raw, (void*)data, 4 * height * width);
+        free(data);
+        data = NULL;
+        return img;
+    }
+    return NULL;
+}
+
 image_t* image_load(const char* name) {
     image_t* img = (image_t*)malloc(sizeof(image_t));
     if(img) {
@@ -140,6 +157,8 @@ image_t* image_load(const char* name) {
         uint8_t * data = stbi_load(name, &height, &width, &channels, 0);
         tensor_reshape(img->raw, 4, (int[]){1, channels, height, width});
         tensor_apply(img->raw, (void*)data, channels * height * width);
+        free(data);
+        data = NULL;
         return img;
     }
     return NULL;

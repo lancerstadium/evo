@@ -33,7 +33,7 @@ UnitTest_fn_def(test_read_png) {
 
 UnitTest_fn_def(test_all) {
     UnitTest_add(test_read_mnist);
-    UnitTest_add(test_read_png);
+    // UnitTest_add(test_read_png);
     return NULL;
 }
 

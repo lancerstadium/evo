@@ -789,6 +789,7 @@ struct image {
     attribute_vec_t attr_vec;
 };
 
+EVO_API image_t* image_blank(const char*, size_t, size_t);
 EVO_API image_t* image_load(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);
 EVO_API void image_save(image_t*, const char*);
@@ -801,11 +802,52 @@ EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_free(image_t*);
 
+
+// ==================================================================================== //
+//                                  evo: Graph (gl)
+// ==================================================================================== //
+
+// ==================================================================================== //
+//                                  evo: typedef (gl)
+// ==================================================================================== //
+
+typedef struct font font_t;
+typedef struct canvas canvas_t;
+typedef struct rectangle rectangle_t;
+
 // ==================================================================================== //
 //                                  evo: canvas (gl)
 // ==================================================================================== //
 
+struct canvas {
+    image_t* background;
+};
 
+#define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + ((cav)->background->raw->dims[3])*(y)]
+EVO_API canvas_t* canvas_new(size_t, size_t);
+EVO_API void canvas_export(canvas_t*, const char*);
+EVO_API uint32_t* canvas_get(canvas_t*, size_t, size_t);
+EVO_API void canvas_fill(canvas_t*, uint32_t);
+EVO_API void canvas_free(canvas_t*);
+
+// ==================================================================================== //
+//                                  evo: Font (gl)
+// ==================================================================================== //
+
+struct font {
+    const char *glyphs;
+    size_t height;
+    size_t width;
+};
+
+// ==================================================================================== //
+//                                  evo: Rectangle (gl)
+// ==================================================================================== //
+
+struct rectangle {
+    int x1, x2;
+    int y1, y2;
+};
 
 
 #ifdef __cplusplus
