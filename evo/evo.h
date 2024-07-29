@@ -68,6 +68,7 @@ typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
 typedef struct allocator allocator_t;
 typedef struct attribute attribute_t;
+typedef struct predictor predictor_t;
 typedef struct serializer serializer_t;
 typedef struct internal_context internal_context_t;
 
@@ -620,6 +621,25 @@ EVO_API void model_dump_tensor(model_t*);
 EVO_API void model_free(model_t*);
 
 // ==================================================================================== //
+//                                       evo: predictor
+// ==================================================================================== //
+
+struct predictor {
+    int n_pes;                                          /* Number of Process Engine     */
+    int pe_fp32s;                                       /* FP32 Operator per PE         */
+    int fp32_cycles;                                    /* Cycles per FP32 Operator     */
+    int batch_size;                                     /* Size of Batch                */
+    double frequency;                                   /* Frequency per PE(Hz)         */
+    double mem_bandwidth;                               /* Memory Bandwidth(B/s)        */
+    double mem_fp32_bandwidth;                          /* Memory Bandwidth(FP32/s)     */
+    double l2_fp32_bandwidth;                           /* L2 Cache Bandwidth(FP32/s)   */
+    double memory_efficiency;                           /* Memory Efficiency            */
+    double mem_concurrent_fp32;                         /* Parallel Memory Bandwidth    */
+    double launch_time;                                 /* Launch Time(ms)              */
+    uint8_t is_max_mode : 1;                            /* Latency Mode: 0ADD/1MAX      */
+};
+
+// ==================================================================================== //
 //                                       evo: profiler type
 // ==================================================================================== //
 
@@ -739,8 +759,6 @@ struct optimizer {
 //                                  evo: Computer Vision (cv)
 // ==================================================================================== //
 
-#ifndef EVO_CV_OFF
-
 // ==================================================================================== //
 //                                  evo: typedef (cv)
 // ==================================================================================== //
@@ -783,7 +801,12 @@ EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_free(image_t*);
 
-#endif // EVO_CV_OFF
+// ==================================================================================== //
+//                                  evo: canvas (gl)
+// ==================================================================================== //
+
+
+
 
 #ifdef __cplusplus
 }
