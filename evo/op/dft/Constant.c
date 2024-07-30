@@ -49,6 +49,9 @@ void op_Constant_dft(node_t *nd) {
                 break;
         }
     }
+    // 2. Constant reshape
+    // 3. Constant 
+    
     // 4. Constant exit
     return;
 }
