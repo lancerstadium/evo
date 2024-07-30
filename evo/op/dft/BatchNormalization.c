@@ -111,7 +111,7 @@ void op_BatchNormalization_dft(node_t *nd) {
         pdat->momentum = node_get_attr_float(nd, "momentum", 0.9);
         nd->priv = pdat;
     }
-    // // 2. BatchNormalization reshape
+    // 2. BatchNormalization reshape
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);

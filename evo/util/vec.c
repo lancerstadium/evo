@@ -12,6 +12,9 @@ vector_header_t* vector_get_header(vector_t vec) { return &((vector_header_t*)ve
 
 vector_t vector_create(void) {
     vector_header_t* h = (vector_header_t*)malloc(sizeof(vector_header_t));
+    if (!h) {
+        return NULL;
+    }
     h->capacity = 0;
     h->size = 0;
 

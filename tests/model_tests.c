@@ -96,7 +96,7 @@ UnitTest_fn_def(test_shufflenet_v1_9) {
 // ---------------------- SqueezeNet -----------------
 
 UnitTest_fn_def(test_squeezenet_v11_7) {
-    // TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
+    TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
     return NULL;
 }
 

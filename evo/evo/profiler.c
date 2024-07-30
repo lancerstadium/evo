@@ -103,8 +103,8 @@ profiler_t* profiler_new(profiler_type_t type) {
             p->report = profiler_exec_report;
             p->exec_node_idx = 0;
             p->exec_nnode = 0;
-            p->exec_node_vec = vector_create();
             p->exec_time_vec = vector_create();
+            p->exec_node_vec = vector_create();
             return p;
         }
         default:
