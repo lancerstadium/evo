@@ -82,28 +82,28 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 1); // 66
+    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 66
     return NULL;
 }
 
 // ---------------------- ShuffleNet -----------------
 
 UnitTest_fn_def(test_shufflenet_v1_9) {
-    // TESTD_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);       // 203 Op: Transpose Sum Gemm Softmax
+    // TEST_1I("shufflenet_v1_9", "gpu_0/data_0", "gpu_0/softmax_1", 0);       // 203 Op: Transpose Sum Gemm Softmax
     return NULL;
 }
 
 // ---------------------- SqueezeNet -----------------
 
 UnitTest_fn_def(test_squeezenet_v11_7) {
-    TESTD_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
+    TEST_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
     return NULL;
 }
 
 // ---------------------- TinyYolo -------------------
 
 UnitTest_fn_def(test_tinyyolo_v2_8) {
-    // TESTD_1I("tinyyolo_v2_8", "image", "grid", 0);                              // 33: Segment fault
+    TEST_1I("tinyyolo_v2_8", "image", "grid", 0);                              // 33: Segment fault
     return NULL;
 }
 
