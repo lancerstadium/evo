@@ -824,10 +824,15 @@ struct canvas {
 };
 
 #define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + ((cav)->background->raw->dims[3])*(y)]
+#define canvas_height(cav)      (cav)->background->raw->dims[2]
+#define canvas_width(cav)       (cav)->background->raw->dims[3]
 EVO_API canvas_t* canvas_new(size_t, size_t);
 EVO_API void canvas_export(canvas_t*, const char*);
 EVO_API uint32_t* canvas_get(canvas_t*, size_t, size_t);
 EVO_API void canvas_fill(canvas_t*, uint32_t);
+EVO_API void canvas_blend(uint32_t*, uint32_t);
+EVO_API bool canvas_is_in_bound(canvas_t*, int, int);
+EVO_API void canvas_line(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_free(canvas_t*);
 
 // ==================================================================================== //
