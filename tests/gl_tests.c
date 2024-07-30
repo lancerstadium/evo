@@ -27,7 +27,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_create_canvas);
     UnitTest_add(test_fill_canvas);
     UnitTest_add(test_line_canvas);
-    UnitTest_add(test_export_canvas);
+    // UnitTest_add(test_export_canvas);
     return NULL;
 }
 

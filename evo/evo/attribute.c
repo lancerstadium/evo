@@ -97,6 +97,19 @@ attribute_t* attribute_bytes(char *name, uint8_t *bs, size_t nb) {
     return NULL;
 }
 
+attribute_t* attribute_tensor(char *name, tensor_t *t) {
+    attribute_t *attr = sys_malloc(sizeof(attribute_t));
+    memset(attr, 0, sizeof(attribute_t));
+    if(attr && name) {
+        attr->name = sys_strdup(name);
+        attr->type = ATTRIBUTE_TYPE_TENSOR;
+        attr->t = t;
+        return attr;
+    }
+    attribute_free(attr);
+    return NULL;
+}
+
 
 void attribute_free(attribute_t *attr) {
     if(!attr) return;

@@ -7,6 +7,8 @@
 #include <stdio.h>
 
 
+static void tensor_copy_proto_onnx(tensor_t *t, Onnx__TensorProto *o);
+
 static op_type_t op_map_onnx(char *op_ty) {
     if (!op_ty) return OP_TYPE_NOP;
     switch (shash(op_ty)) {
@@ -352,6 +354,18 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
             return attribute_floats(attr->name, attr->floats, attr->n_floats);
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INTS:
             return attribute_ints(attr->name, attr->ints, attr->n_ints);
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__TENSOR:
+            tensor_t *t = tensor_new(attr->t->name, TENSOR_TYPE_UNDEFINED);
+            int *dims = malloc(sizeof(int) * attr->t->n_dims);
+            int ndim;
+            if (dims) {
+                for (int i = 0; i < attr->t->n_dims; i++)
+                    dims[i] = attr->t->dims[i];
+                ndim = attr->t->n_dims;
+                tensor_reshape(t, ndim, dims);
+                tensor_copy_proto_onnx(t, attr->t);
+            }
+            free(dims);
         default: 
             return attribute_undefined(attr->name);
     }
@@ -478,7 +492,7 @@ static tensor_t *tensor_from_value_info(Onnx__ValueInfoProto *v) {
     return t;
 }
 
-static void tensor_copy_proto(tensor_t *t, Onnx__TensorProto *o) {
+static void tensor_copy_proto_onnx(tensor_t *t, Onnx__TensorProto *o) {
     size_t n, i;
     int sz;
 
@@ -758,7 +772,7 @@ tensor_t *load_tensor_onnx(const char *path) {
                     tensor_reshape(t, ndim, dims);
                     if ((ndim > 0) && dims)
                         sys_free(dims);
-                    tensor_copy_proto(t, pb);
+                    tensor_copy_proto_onnx(t, pb);
                     onnx__tensor_proto__free_unpacked(pb, NULL);
                 }
             }
@@ -807,7 +821,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
             if (t) {
                 for (j = 0; j < graph->n_initializer; j++) {
                     if (strcmp(graph->initializer[j]->name, t->name) == 0) {
-                        tensor_copy_proto(t, graph->initializer[j]);
+                        tensor_copy_proto_onnx(t, graph->initializer[j]);
                         break;
                     }
                 }
@@ -868,7 +882,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                             t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                             if (t) {
                                 tensor_reshape(t, ndim, dims);
-                                tensor_copy_proto(t, o);
+                                tensor_copy_proto_onnx(t, o);
                                 hashmap_set(mdl->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                             }
                             break;

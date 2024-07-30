@@ -93,6 +93,14 @@ int node_get_attr_ints(node_t *nd, const char *name, int64_t ** is) {
     return 0;
 }
 
+tensor_t* node_get_attr_tensor(node_t *nd, const char *name, tensor_t * t) {
+    attribute_t *attr = node_get_attr(nd, name);
+    if(attr && (attr->type == ATTRIBUTE_TYPE_TENSOR)) {
+        return attr->t;
+    }
+    return t;
+}
+
 void node_dump(node_t *nd) {
     if(!nd) return;
     int i;

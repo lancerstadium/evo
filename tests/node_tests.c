@@ -188,6 +188,27 @@ UnitTest_fn_def(test_batchnorm) {
     return NULL;
 }
 
+// ---------------------- Cast   ----------------------
+
+UnitTest_fn_def(test_cast_bf16_to_f32) { 
+    TEST_1I("test_cast_BFLOAT16_to_FLOAT", input, output);
+    return NULL;
+}
+UnitTest_fn_def(test_cast_f64_to_f32) { 
+    TEST_1I("test_cast_DOUBLE_to_FLOAT", input, output);
+    return NULL;
+}
+UnitTest_fn_def(test_cast_f64_to_f16) { 
+    TEST_1I("test_cast_DOUBLE_to_FLOAT16", input, output);
+    return NULL;
+}
+UnitTest_fn_def(test_cast) {
+    UnitTest_add(test_cast_bf16_to_f32);
+    UnitTest_add(test_cast_f64_to_f32);
+    UnitTest_add(test_cast_f64_to_f16);
+    return NULL;
+}
+
 // ---------------------- Concat ----------------------
 
 UnitTest_fn_def(test_concat_1d_a0) { 
@@ -606,6 +627,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_add);
     UnitTest_add(test_averagepool);
     // UnitTest_add(test_batchnorm);    // Failed
+    UnitTest_add(test_cast);
     UnitTest_add(test_concat);
     UnitTest_add(test_conv);
     UnitTest_add(test_dropout);

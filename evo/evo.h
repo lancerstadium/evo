@@ -479,6 +479,7 @@ EVO_API attribute_t* attribute_string(char*, char*, size_t);
 EVO_API attribute_t* attribute_floats(char*, float*, size_t);
 EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
 EVO_API attribute_t* attribute_bytes(char*, uint8_t*, size_t);
+EVO_API attribute_t* attribute_tensor(char*, tensor_t*);
 EVO_API void attribute_free(attribute_t*);
 
 // ==================================================================================== //
@@ -524,6 +525,7 @@ EVO_API int64_t node_get_attr_int(node_t*, const char*, int64_t);
 EVO_API char * node_get_attr_string(node_t*, const char*, char*); 
 EVO_API int node_get_attr_floats(node_t*, const char*, float**);
 EVO_API int node_get_attr_ints(node_t*, const char*, int64_t**);
+EVO_API tensor_t* node_get_attr_tensor(node_t*, const char*, tensor_t*);
 EVO_API void node_dump(node_t*);
 EVO_API void node_free(node_t*);
 
