@@ -14,9 +14,9 @@
     tensor_copy(a, t0);                           \
     graph_prerun(mdl->graph);                     \
     graph_run(mdl->graph);                        \
-    graph_dump(mdl->graph);                       \
     tensor_dump2(b);                              \
     tensor_dump2(t1);                             \
+    graph_dump(mdl->graph);                       \
     mdl->sez->unload(mdl);
 
 #define TEST_1I(s, i, o, I)                         \
@@ -82,7 +82,7 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 155
+    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 1); // 66
     return NULL;
 }
 
