@@ -826,10 +826,12 @@ struct canvas {
     image_t* background;
 };
 
-#define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + ((cav)->background->raw->dims[3])*(y)]
-#define canvas_height(cav)      (cav)->background->raw->dims[2]
-#define canvas_width(cav)       (cav)->background->raw->dims[3]
+#define canvas_height(cav)      (cav)->background->raw->dims[3]
+#define canvas_width(cav)       (cav)->background->raw->dims[2]
+#define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + (canvas_width(cav))*(y)]
+
 EVO_API canvas_t* canvas_new(size_t, size_t);
+EVO_API canvas_t* canvas_from_image(image_t*);
 EVO_API void canvas_export(canvas_t*, const char*);
 EVO_API uint32_t* canvas_get(canvas_t*, size_t, size_t);
 EVO_API void canvas_fill(canvas_t*, uint32_t);

@@ -4,35 +4,39 @@
 canvas_t* my_cav;
 
 UnitTest_fn_def(test_create_canvas) {
-    my_cav = canvas_new(480, 720);
+    // my_cav = canvas_new(720, 480);
+    image_t * img = image_load("picture/input_0.jpg");
+    UnitTest_msg("%s", image_dump_shape(img));
+    my_cav = canvas_from_image(img);
     return NULL;
 }
 
 UnitTest_fn_def(test_fill_canvas) {
-    canvas_fill(my_cav, 0xffffffff);
+    // canvas_fill(my_cav, 0xffffffff);
     return NULL;
 }
 
 UnitTest_fn_def(test_line_canvas) {
-    canvas_line(my_cav, 40, 60, 80, 360, 0xff000000);
-    canvas_line(my_cav, 40, 60, 20, 240, 0xff000000);
+    canvas_line(my_cav, 40, 60, 80, 360, 0xffffff00);
+    canvas_line(my_cav, 40, 60, 20, 240, 0xffffff00);
     return NULL;
 }
 
 UnitTest_fn_def(test_rect_canvas) {
-    canvas_rectangle(my_cav, 120, 30, 20, 40, 0xff000000);
-    canvas_frame(my_cav, 120, 90, 20, 40, 1, 0xff000000);
+    canvas_rectangle(my_cav, 120, 30, 20, 40, 0xff00ff00);
+    canvas_frame(my_cav, 120, 90, 20, 40, 1, 0xff00ff00);
     return NULL;
 }
 
 UnitTest_fn_def(test_circle_canvas) {
-    canvas_ellipse(my_cav, 140, 180, 40, 20, 0xff000000);
-    canvas_circle(my_cav, 140, 250, 40, 0xff000000);
+    canvas_ellipse(my_cav, 140, 180, 40, 20, 0xff00ff00);
+    canvas_circle(my_cav, 140, 250, 40, 0xff0000ff);
     return NULL;
 }
 
 UnitTest_fn_def(test_export_canvas) {
-    canvas_export(my_cav, "cav.png");
+    UnitTest_msg("%s", image_dump_shape(my_cav->background));
+    canvas_export(my_cav, "cav.jpg");
     return NULL;
 }
 

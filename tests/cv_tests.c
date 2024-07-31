@@ -12,9 +12,10 @@ UnitTest_fn_def(test_read_mnist) {
         printf("Image dimensions: %d x %d x %d x %d\n", img->raw->dims[0], img->raw->dims[1], img->raw->dims[2], img->raw->dims[3]);
 
         attribute_t* attr = image_get_attr(img, "label");
-        image_t* new_img = image_get_batch(img, 3, (int[]){3, 4, 6});
-        image_dump_raw(new_img, -1);
+        image_t* new_img = image_get_batch(img, 3, (int[]){9, 4, 7});
+        image_dump_raw(new_img, 0);
         // tensor_dump2(new_img->raw);
+        // image_save(new_img, "1.png");
         image_free(img);
     } else {
         fprintf(stderr, "Failed to read img\n");
@@ -23,16 +24,25 @@ UnitTest_fn_def(test_read_mnist) {
     return NULL;
 }
 
+UnitTest_fn_def(test_read_img) {
+    image_t* img = image_load("picture/p.png");
+    UnitTest_msg("%s", image_dump_shape(img));
+    // image_dump_raw(img, 0);
+    return NULL;
+}
+
 UnitTest_fn_def(test_read_png) {
     const char* img_path = "model/lut3d_96/test_data_set_0/input_0.jpg";
     image_t* img = image_load(img_path);
     // image_dump_raw(img, 0);
+    UnitTest_msg("%s", image_dump_shape(img));
     image_save(img, "demo.png");
     return NULL;
 }
 
 UnitTest_fn_def(test_all) {
     UnitTest_add(test_read_mnist);
+    UnitTest_add(test_read_img);
     UnitTest_add(test_read_png);
     return NULL;
 }
