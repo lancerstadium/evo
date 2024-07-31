@@ -37,6 +37,9 @@ UnitTest_fn_def(test_read_png) {
     // image_dump_raw(img, 0);
     UnitTest_msg("%s", image_dump_shape(img));
     image_save(img, "demo.png");
+    image_t* r_img = image_channel(img, 0);
+    image_save(r_img, "demo_r.png");
+    image_save_grey(img, "demo_g.png", 0);
     return NULL;
 }
 
