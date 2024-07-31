@@ -518,6 +518,7 @@ struct node {
     void* priv;
 };
 
+EVO_API node_t * node_temp(const char*, op_type_t);
 EVO_API node_t* node_new(graph_t*, const char*, op_type_t);
 EVO_API attribute_t* node_get_attr(node_t*, const char*);
 EVO_API float node_get_attr_float(node_t*, const char*, float);

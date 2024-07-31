@@ -103,7 +103,26 @@ UnitTest_fn_def(test_squeezenet_v11_7) {
 // ---------------------- TinyYolo -------------------
 
 UnitTest_fn_def(test_tinyyolo_v2_8) {
-    TEST_1I("tinyyolo_v2_8", "image", "grid", 0);                              // 33: Segment fault
+    // TEST_1I("tinyyolo_v2_8", "image", "grid", 0);                              // 33: Segment fault
+    model_t* mdl = sez->load_model(sez, MD("tinyyolo_v2_8"));   
+    tensor_t* a = model_get_tensor(mdl, "image");       
+    tensor_t* b = model_get_tensor(mdl, "grid");       
+    tensor_t* t0 = sez->load_tensor(TI("tinyyolo_v2_8", 0, 0)); 
+    tensor_t* t1 = sez->load_tensor(TO("tinyyolo_v2_8", 0, 0)); 
+    tensor_copy(a, t0);                           
+    graph_prerun(mdl->graph);                     
+    graph_run(mdl->graph);
+
+    image_t *img = image_from_tensor(t0);
+    canvas_t *cav = canvas_from_image(img);
+    canvas_export(cav, "tinyyolo.jpg");
+    UnitTest_msg("%s", image_dump_shape(cav->background));
+
+    UnitTest_ast(tensor_equal(b, t1), "tinyyolo_v2_8" " failed");
+
+    graph_dump(mdl->graph);                       
+    mdl->sez->unload(mdl);
+
     return NULL;
 }
 

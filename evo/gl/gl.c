@@ -26,15 +26,29 @@ canvas_t* canvas_from_image(image_t* img) {
     if (!img || !img->raw) return NULL;
     canvas_t* cav = canvas_new(img->raw->dims[2], img->raw->dims[3]);
     if (cav) {
-        uint8_t* data = (uint8_t*)img->raw->datas;
-        for (int r = 0; r < img->raw->dims[2]; ++r) {
-            for (int c = 0; c < img->raw->dims[3]; ++c) {
-                uint32_t color = 0;
-                for (int s = 0; s < img->raw->dims[1]; ++s) {
-                    int idx = s + (r + c * img->raw->dims[2]) * img->raw->dims[1];
-                    color |= data[idx] << (8 * s);
+        if(img->type != IMAGE_TYPE_UNKNOWN) {
+            uint8_t* data = (uint8_t*)img->raw->datas;
+            for (int r = 0; r < img->raw->dims[2]; ++r) {
+                for (int c = 0; c < img->raw->dims[3]; ++c) {
+                    uint32_t color = 0;
+                    for (int s = 0; s < img->raw->dims[1]; ++s) {
+                        int idx = s + (r + c * img->raw->dims[2]) * img->raw->dims[1];
+                        color |= data[idx] << (8 * s);
+                    }
+                    canvas_pixel(cav, r, c) = color;
                 }
-                canvas_pixel(cav, r, c) = color;
+            }
+        } else {
+            uint8_t* data = (uint8_t*)img->raw->datas;
+            for (int r = 0; r < img->raw->dims[2]; ++r) {
+                for (int c = 0; c < img->raw->dims[3]; ++c) {
+                    uint32_t color = 0;
+                    for (int s = 0; s < img->raw->dims[1]; ++s) {
+                        int idx = s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c;
+                        color |= data[idx] << (8 * s);
+                    }
+                    canvas_pixel(cav, r, c) = color;
+                }
             }
         }
         return cav;

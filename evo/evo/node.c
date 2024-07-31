@@ -20,6 +20,23 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->attr_vec = vector_create();
 }
 
+node_t * node_temp(const char* name, op_type_t op_ty) {
+    node_t * nd = (node_t*)sys_malloc(sizeof(node_t));
+    if(nd == NULL) {
+        return NULL;
+    }
+    node_init(nd, op_ty, 0);
+    nd->opset = 0;
+    nd->graph = NULL;
+    nd->mdl = NULL;
+    nd->node_proto = NULL;
+    nd->op = device_find_op(internal_device_find("cpu"), nd->op->type);
+    if(name) {
+        nd->name = sys_strdup(name);
+    }
+    return nd;
+}
+
 node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     node_t * nd = (node_t*)sys_malloc(sizeof(node_t));
     if(nd == NULL) {

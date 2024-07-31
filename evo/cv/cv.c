@@ -136,25 +136,31 @@ image_t* image_from_tensor(tensor_t *ts) {
         int ndim = 4;
         int dims[4];
         dims[0] = 1;
-        dims[1] = 4;
         if(ts->ndim <= 2) {
             return NULL;
-        } else if(ts->ndim == 3 && ts->dims[0] != 4) {
-            return NULL;
-        } else if(ts->ndim == 3 && ts->dims[0] == 4) {
+        } else if(ts->ndim == 3) {
+            dims[1] = ts->dims[0];
             dims[2] = ts->dims[1];
             dims[3] = ts->dims[2];
-        } else if(ts->ndim >= 4 && ts->dims[1] != 4) {
-            return NULL;
         }
+        dims[1] = ts->dims[1];
         dims[2] = ts->dims[2];
         dims[3] = ts->dims[3];
         tensor_reshape(new_ts, ndim, dims);
-        tensor_copy(new_ts, ts);
+        new_ts->ndata = ts->dims[1] * ts->dims[2] * ts->dims[3];
+        new_ts->datas = malloc(new_ts->ndata);
+        if(ts->type == TENSOR_TYPE_FLOAT32) {
+            float* data = ts->datas;
+            uint8_t* datas = new_ts->datas;
+            for(int i = 0; i < new_ts->ndata; i++) {
+                datas[i] = (uint8_t)data[i];
+            }
+        }
         img->name = sys_strdup(ts->name);
         img->attr_vec = vector_create();
         img->type = IMAGE_TYPE_UNKNOWN;
         img->raw = new_ts;
+        return img;
     }
     return NULL;
 }
