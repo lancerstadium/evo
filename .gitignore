@@ -25,6 +25,7 @@ expr.txt
 *.a
 *.so
 *~
+*.tar.gz
 
 # MacOS Cache
 .DS_Store

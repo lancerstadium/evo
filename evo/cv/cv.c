@@ -129,6 +129,36 @@ image_type_t image_get_type(const char* name) {
     }
 }
 
+image_t* image_from_tensor(tensor_t *ts) {
+    image_t* img = (image_t*)malloc(sizeof(image_t));
+    if(img && ts) {
+        tensor_t *new_ts = tensor_new(sys_strdup(ts->name), TENSOR_TYPE_UINT8);
+        int ndim = 4;
+        int dims[4];
+        dims[0] = 1;
+        dims[1] = 4;
+        if(ts->ndim <= 2) {
+            return NULL;
+        } else if(ts->ndim == 3 && ts->dims[0] != 4) {
+            return NULL;
+        } else if(ts->ndim == 3 && ts->dims[0] == 4) {
+            dims[2] = ts->dims[1];
+            dims[3] = ts->dims[2];
+        } else if(ts->ndim >= 4 && ts->dims[1] != 4) {
+            return NULL;
+        }
+        dims[2] = ts->dims[2];
+        dims[3] = ts->dims[3];
+        tensor_reshape(new_ts, ndim, dims);
+        tensor_copy(new_ts, ts);
+        img->name = sys_strdup(ts->name);
+        img->attr_vec = vector_create();
+        img->type = IMAGE_TYPE_UNKNOWN;
+        img->raw = new_ts;
+    }
+    return NULL;
+}
+
 image_t* image_blank(const char* name, size_t height, size_t width) {
     image_t* img = (image_t*)malloc(sizeof(image_t));
     if(img) {
@@ -154,7 +184,7 @@ image_t* image_load(const char* name) {
         img->type = image_get_type(name);
         img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
         int height, width, channels;
-        uint8_t * data = stbi_load(name, &height, &width, &channels, 0);
+        uint8_t * data = stbi_load(name, &width, &height, &channels, 0);
         tensor_reshape(img->raw, 4, (int[]){1, channels, height, width});
         tensor_apply(img->raw, (void*)data, channels * height * width);
         free(data);
@@ -168,23 +198,23 @@ void image_save(image_t* img, const char* name) {
     if(img && name && img->raw) {
         switch(image_get_type(name)) {
             case IMAGE_TYPE_BMP:
-                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_bmp(name, img->raw->dims[3], img->raw->dims[2], img->raw->dims[1], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_JPG:
-                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, 100);
+                stbi_write_jpg(name, img->raw->dims[3], img->raw->dims[2], img->raw->dims[1], img->raw->datas, 100);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_PNG:
-                stbi_write_png(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, img->raw->dims[2] * img->raw->dims[1]);
+                stbi_write_png(name, img->raw->dims[3], img->raw->dims[2], img->raw->dims[1], img->raw->datas, img->raw->dims[2] * img->raw->dims[1]);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_TGA:
-                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_tga(name, img->raw->dims[3], img->raw->dims[2], img->raw->dims[1], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_HDR:
-                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_hdr(name, img->raw->dims[3], img->raw->dims[2], img->raw->dims[1], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             default: break;

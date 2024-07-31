@@ -12,6 +12,7 @@
 #define pixel_alpha(color)      (((color)&0xFF000000)>>(8*3))
 #define pixel_rgba(r, g, b, a)  ((((r)&0xFF)<<(8*0)) | (((g)&0xFF)<<(8*1)) | (((b)&0xFF)<<(8*2)) | (((a)&0xFF)<<(8*3)))
 
+#define CANVAS_AA_RES           2
 #define CANVAS_SWAP(T, a, b) do { T t = a; a = b; b = t; } while (0)
 #define CANVAS_SIGN(T, x)       ((T)((x) > 0) - (T)((x) < 0))
 #define CANVAS_ABS(T, x)        (CANVAS_SIGN(T, x)*(x))
@@ -34,6 +35,7 @@ uint32_t* canvas_get(canvas_t* cav, size_t x, size_t y) {
 }
 
 void canvas_fill(canvas_t* cav, uint32_t color) {
+    if(!cav) return;
     for(size_t y = 0; y < canvas_height(cav); y++) {
         for(size_t x = 0; x < canvas_width(cav); x++) {
             canvas_pixel(cav, x, y) = color;
@@ -60,10 +62,12 @@ void canvas_blend(uint32_t *pixel, uint32_t color) {
 }
 
 bool canvas_is_in_bound(canvas_t *cav, int x, int y) {
+    if(!cav) return false;
     return 0 <= x && x < canvas_width(cav) && 0 <= y && y < canvas_height(cav);
 }
 
 void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) {
+    if(!cav) return;
     int dx = x2 - x1;
     int dy = y2 - y1;
     if (dx == 0 && dy == 0) {
@@ -100,6 +104,102 @@ void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) 
         }
     }
 }
+
+bool canvas_normalize_rectangle(canvas_t* cav, int x, int y, int w, int h, rectangle_t* rec) {
+    if(w == 0 || h == 0) return false;
+    int ox1 = x;
+    int oy1 = y;
+    int ox2 = ox1 + CANVAS_SIGN(int, w)*(CANVAS_ABS(int, w) - 1);
+    if(ox1 > ox2) CANVAS_SWAP(int, ox1, ox2);
+    int oy2 = oy1 + CANVAS_SIGN(int, h)*(CANVAS_ABS(int, h) - 1);
+    if(oy1 > oy2) CANVAS_SWAP(int, oy1, oy2);
+
+    if(ox1 >= canvas_width(cav) || ox2 < 0) return false;
+    if(oy1 >= canvas_height(cav) || oy2 < 0) return false;
+
+    rec->x1 = ox1;
+    rec->x2 = ox2;
+    rec->y1 = oy1;
+    rec->y2 = oy2;
+
+    if(rec->x1 < 0) rec->x1 = 0;
+    if(rec->x2 >= canvas_width(cav)) rec->x2 = canvas_width(cav) - 1;
+    if(rec->y1 < 0) rec->y1 = 0;
+    if(rec->y2 >= canvas_height(cav)) rec->y2 = canvas_height(cav) - 1;
+    return true;
+}
+
+void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color) {
+    if(!cav) return;
+    for(int i = x; i != MIN(x+w, canvas_width(cav) - 1) && i >= 0; i+=CANVAS_SIGN(int, w)) {
+        for(int j = y; j != MIN(y+h, canvas_height(cav) - 1) && j >= 0; j+=CANVAS_SIGN(int, h)) {
+            canvas_blend(&canvas_pixel(cav, i, j), color);
+        }
+    }
+}
+
+void canvas_frame(canvas_t* cav, int x, int y, int w, int h, size_t t, uint32_t color) {
+    if(!cav || t == 0) return;
+    int x1 = x;
+    int y1 = y;
+    int x2 = x1 + CANVAS_SIGN(int, w)*(CANVAS_ABS(int, w) - 1);
+    if (x1 > x2) CANVAS_SWAP(int, x1, x2);
+    int y2 = y1 + CANVAS_SIGN(int, h)*(CANVAS_ABS(int, h) - 1);
+    if (y1 > y2) CANVAS_SWAP(int, y1, y2);
+
+    canvas_rectangle(cav, x1 - t/2, y1 - t/2, (x2 - x1 + 1) + t/2*2, t, color);  // Top
+    canvas_rectangle(cav, x1 - t/2, y1 - t/2, t, (y2 - y1 + 1) + t/2*2, color);  // Left
+    canvas_rectangle(cav, x1 - t/2, y2 + t/2, (x2 - x1 + 1) + t/2*2, -t, color); // Bottom
+    canvas_rectangle(cav, x2 + t/2, y1 - t/2, -t, (y2 - y1 + 1) + t/2*2, color); // Right
+}
+
+void canvas_ellipse(canvas_t *cav, int cx, int cy, int rx, int ry, uint32_t color) {
+    if(!cav) return;
+    int rx1 = rx + CANVAS_SIGN(int, rx);
+    int ry1 = ry + CANVAS_SIGN(int, ry);
+
+    rectangle_t rec = {0};
+    if(!canvas_normalize_rectangle(cav, cx - rx1, cy - ry1, 2*rx1, 2*ry1, &rec)) return;
+
+    for(int y = rec.y1; y <= rec.y2; y++) {
+        for(int x = rec.x1; x <= rec.x2; x++) {
+            float nx = (x + 0.5 - rec.x1)/(2.0f * rx1);
+            float ny = (y + 0.5 - rec.y1)/(2.0f * ry1);
+            float dx = nx - 0.5;
+            float dy = ny - 0.5;
+            if(dx*dx + dy*dy <= 0.5*0.5) {
+                canvas_pixel(cav, x, y) = color;
+            }
+        }
+    }
+}
+
+void canvas_circle(canvas_t *cav, int cx, int cy, int r, uint32_t color) {
+    if(!cav) return;
+    rectangle_t rec = {0};
+    int r1 = r + CANVAS_SIGN(int , r);
+    if(!canvas_normalize_rectangle(cav, cx - r1, cy - r1, 2*r1, 2*r1, &rec)) return;
+
+    for (int y = rec.y1; y <= rec.y2; ++y) {
+        for (int x = rec.x1; x <= rec.x2; ++x) {
+            int count = 0;
+            for (int sox = 0; sox < CANVAS_AA_RES; ++sox) {
+                for (int soy = 0; soy < CANVAS_AA_RES; ++soy) {
+                    // TODO: switch to 64 bits to make the overflow less likely
+                    // Also research the probability of overflow
+                    int res1 = (CANVAS_AA_RES + 1);
+                    int dx = (x * res1 * 2 + 2 + sox * 2 - res1 * cx * 2 - res1);
+                    int dy = (y * res1 * 2 + 2 + soy * 2 - res1 * cy * 2 - res1);
+                    if (dx * dx + dy * dy <= res1 * res1 * r * r * 2 * 2) count += 1;
+                }
+            }
+            uint32_t alpha = ((color & 0xFF000000) >> (3 * 8)) * count / CANVAS_AA_RES / CANVAS_AA_RES;
+            uint32_t updated_color = (color & 0x00FFFFFF) | (alpha << (3 * 8));
+            canvas_blend(&canvas_pixel(cav, x, y), updated_color);
+        }
+    }
+}
+
 
 void canvas_export(canvas_t *cav, const char *path) {
     if(cav && cav->background) {

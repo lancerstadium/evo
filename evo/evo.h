@@ -791,6 +791,7 @@ struct image {
     attribute_vec_t attr_vec;
 };
 
+EVO_API image_t* image_from_tensor(tensor_t*);
 EVO_API image_t* image_blank(const char*, size_t, size_t);
 EVO_API image_t* image_load(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);
@@ -835,6 +836,10 @@ EVO_API void canvas_fill(canvas_t*, uint32_t);
 EVO_API void canvas_blend(uint32_t*, uint32_t);
 EVO_API bool canvas_is_in_bound(canvas_t*, int, int);
 EVO_API void canvas_line(canvas_t*, int, int, int, int, uint32_t);
+EVO_API void canvas_rectangle(canvas_t*, int, int, int, int, uint32_t);
+EVO_API void canvas_frame(canvas_t*, int, int, int, int, size_t, uint32_t);
+EVO_API void canvas_ellipse(canvas_t*, int, int, int, int, uint32_t);
+EVO_API void canvas_circle(canvas_t*, int, int, int, uint32_t);
 EVO_API void canvas_free(canvas_t*);
 
 // ==================================================================================== //
@@ -847,13 +852,9 @@ struct font {
     size_t width;
 };
 
-// ==================================================================================== //
-//                                  evo: Rectangle (gl)
-// ==================================================================================== //
-
 struct rectangle {
-    int x1, x2;
-    int y1, y2;
+    int x1, y1;
+    int x2, y2;
 };
 
 
