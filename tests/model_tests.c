@@ -82,7 +82,7 @@ UnitTest_fn_def(test_mnist_8) {
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 66
+    TESTD_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 66
     return NULL;
 }
 
@@ -119,8 +119,7 @@ UnitTest_fn_def(test_tinyyolo_v2_8) {
     UnitTest_msg("%s", image_dump_shape(cav->background));
 
     UnitTest_ast(tensor_equal(b, t1), "tinyyolo_v2_8" " failed");
-
-    graph_dump(mdl->graph);                       
+                   
     mdl->sez->unload(mdl);
 
     return NULL;
