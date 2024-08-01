@@ -177,6 +177,9 @@ struct tensor {
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
 EVO_API tensor_t * tensor_new_float32(const char*, int*, int, float*, size_t);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
+EVO_API tensor_t * tensor_permute(tensor_t*, int, int*);
+EVO_API tensor_t * tensor_nhwc2nchw(tensor_t*);
+EVO_API tensor_t * tensor_nchw2nhwc(tensor_t*);
 EVO_API void tensor_free(tensor_t*);
 EVO_API void tensor_copy(tensor_t*, tensor_t*);
 EVO_API bool tensor_equal(tensor_t*, tensor_t*);
@@ -794,7 +797,7 @@ struct image {
 };
 
 EVO_API image_t* image_from_tensor(tensor_t*);
-EVO_API image_t* image_heatmap(tensor_t*);
+EVO_API image_t* image_heatmap(tensor_t*,int);
 EVO_API image_t* image_blank(const char*, size_t, size_t);
 EVO_API image_t* image_load(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);

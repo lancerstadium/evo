@@ -195,6 +195,82 @@ tensor_t *tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) {
     return ts;
 }
 
+void permute_data(const void* src, void* dst, int* src_strides, int* dst_strides, int* sizes, int ndim, int element_size) {
+    int indices[EVO_DIM_MAX] = {0};
+    int total_elements = 1;
+    for (int i = 0; i < ndim; ++i) {
+        total_elements *= sizes[i];
+    }
+    
+    for (int i = 0; i < total_elements; ++i) {
+        int src_offset = 0;
+        int dst_offset = 0;
+        for (int j = 0; j < ndim; ++j) {
+            src_offset += indices[j] * src_strides[j];
+            dst_offset += indices[j] * dst_strides[j];
+        }
+        
+        memcpy((char*)dst + dst_offset * element_size, (char*)src + src_offset * element_size, element_size);
+        
+        for (int j = ndim - 1; j >= 0; --j) {
+            if (++indices[j] < sizes[j]) {
+                break;
+            }
+            indices[j] = 0;
+        }
+    }
+}
+
+tensor_t * tensor_permute(tensor_t *ts, int ndim, int* dim_idxs) {
+    if(!ts || ndim < ts->ndim || !dim_idxs)
+        return ts;
+    int dims[ndim];
+    int strides[ndim];
+    for (int i = 0; i < ndim; i++) {
+        dims[i] = ts->dims[dim_idxs[i]];
+        strides[i] = ts->strides[dim_idxs[i]];
+    }
+    tensor_t * new_ts = tensor_new(ts->name, ts->type);
+    tensor_reshape(new_ts, ndim, dims);
+    // Compute the size of a single element
+    int element_size = tensor_type_sizeof(ts->type);
+    // Set new_ts->datas
+    new_ts->ndata = ts->ndata;
+    new_ts->datas = malloc(ts->ndata * element_size);
+    if (!new_ts->datas) {
+        free(new_ts);
+        return NULL; // Memory allocation for data failed
+    }
+    // Compute the new strides for the permuted tensor
+    int new_strides[EVO_DIM_MAX];
+    new_strides[ndim - 1] = 1;
+    for (int i = ndim - 2; i >= 0; --i) {
+        new_strides[i] = new_strides[i + 1] * dims[i + 1];
+    }
+    // Permute the data
+    permute_data(ts->datas, new_ts->datas, strides, new_strides, dims, ndim, element_size);
+
+    return new_ts;
+}
+
+tensor_t * tensor_nhwc2nchw(tensor_t *ts) {
+    if(!ts || ts->layout == 0 || ts->ndim != 4) {
+        return ts;
+    }
+    tensor_t* res = tensor_permute(ts, 4, (int[]){0, 3, 1, 2});
+    res->layout = 0;
+    return res;
+}
+
+tensor_t * tensor_nchw2nhwc(tensor_t *ts) {
+    if(!ts || ts->layout == 1 || ts->ndim != 4) {
+        return ts;
+    }
+    tensor_t* res = tensor_permute(ts, 4, (int[]){0, 2, 3, 1});
+    res->layout = 1;
+    return res;
+}
+
 bool tensor_equal(tensor_t *a, tensor_t *b) {
     size_t i;
 

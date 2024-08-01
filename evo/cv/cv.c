@@ -165,7 +165,7 @@ image_t* image_from_tensor(tensor_t *ts) {
     return NULL;
 }
 
-image_t* image_heatmap(tensor_t *ts) {
+image_t* image_heatmap(tensor_t *ts, int channel) {
     image_t* img = (image_t*)malloc(sizeof(image_t));
     if(img && ts) {
         tensor_t *new_ts = tensor_new(sys_strdup(ts->name), TENSOR_TYPE_UINT8);
@@ -189,7 +189,7 @@ image_t* image_heatmap(tensor_t *ts) {
             uint32_t* datas = new_ts->datas;
             for(int x = 0; x < ts->dims[2]; x++) {
                 for(int y = 0; y < ts->dims[3]; y++) {
-                    datas[x * ts->dims[3] + y] = color_interpolate(0xffff0000, 0xff0000ff, data[x * ts->dims[3] + y]);
+                    datas[x * ts->dims[3] + y] = color_interpolate(0x00ff0000, 0xf00000ff, data[channel * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
                 }
             }
         }

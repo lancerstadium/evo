@@ -41,4 +41,6 @@ def preprocess(image):
 
 
 if __name__ == "__main__":
-    pass
+    img = Image.open('../picture/kitten.jpg')
+    img_data = preprocess(np.array(img))
+    print(img_data.shape)

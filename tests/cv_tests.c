@@ -14,7 +14,6 @@ UnitTest_fn_def(test_read_mnist) {
         attribute_t* attr = image_get_attr(img, "label");
         image_t* new_img = image_get_batch(img, 3, (int[]){9, 4, 7});
         image_dump_raw(new_img, 0);
-        // tensor_dump2(new_img->raw);
         // image_save(new_img, "1.png");
         image_free(img);
     } else {
@@ -32,15 +31,17 @@ UnitTest_fn_def(test_read_img) {
 }
 
 UnitTest_fn_def(test_heat_img) {
-    float heat[16] = {
+    float heat[20] = {
         0.1, 0.2, 0.3, 0.4,
         0.5, 0.6, 0.7, 0.8,
         0.9, 1.0, 0.9, 0.8,
-        0.7, 0.6, 0.5, 0.4
+        0.7, 0.6, 0.5, 0.3,
+        0.3, 0.2, 0.5, 0.7,
     };
-    tensor_t *ts = tensor_new_float32("heat", (int[]){1, 1, 4, 4}, 4, heat, 16);
-    tensor_dump2(ts);
-    image_t* heat_img = image_heatmap(ts);
+    tensor_t *ts = tensor_new_float32("heat", (int[]){1, 1, 5, 4}, 4, heat, 20);
+    tensor_t *ts_p = tensor_permute(ts, 4, (int[]){0, 1, 3, 2});
+    tensor_dump2(ts_p);
+    image_t* heat_img = image_heatmap(ts, 0);
     image_save(heat_img, "heat.png");
     return NULL;
 }

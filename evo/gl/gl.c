@@ -104,6 +104,8 @@ void canvas_blend(uint32_t* pixel, uint32_t color) {
 }
 
 uint32_t color_interpolate(uint32_t color1, uint32_t color2, float t) {
+    if(t > 1.0f) t = 1.0f;
+    if(t < 0.0f) t = 0.0f;
     uint8_t r1 = pixel_red(color1);
     uint8_t g1 = pixel_green(color1);
     uint8_t b1 = pixel_blue(color1);
