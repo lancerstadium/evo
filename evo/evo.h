@@ -835,7 +835,7 @@ struct canvas {
     image_t* background;
 };
 
-#define canvas_height(cav)      (cav)->background->raw->dims[3]
+#define canvas_height(cav)      (cav)->background->raw->dims[1]
 #define canvas_width(cav)       (cav)->background->raw->dims[2]
 #define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + (canvas_width(cav))*(y)]
 

@@ -24,32 +24,29 @@
 
 canvas_t* canvas_from_image(image_t* img) {
     if (!img || !img->raw) return NULL;
-    canvas_t* cav = canvas_new(img->raw->dims[2], img->raw->dims[3]);
+    canvas_t* cav = NULL;
+    tensor_t* temp = NULL;
+    if(img->raw->layout == 0) {
+        cav = canvas_new(img->raw->dims[3], img->raw->dims[2]);
+        temp = tensor_nchw2nhwc(img->raw);
+    } else {
+        cav = canvas_new(img->raw->dims[2], img->raw->dims[1]);
+        temp = img->raw;
+    }
     if (cav) {
-        if(img->type != IMAGE_TYPE_UNKNOWN) {
-            uint8_t* data = (uint8_t*)img->raw->datas;
-            for (int r = 0; r < img->raw->dims[2]; ++r) {
-                for (int c = 0; c < img->raw->dims[3]; ++c) {
-                    uint32_t color = 0;
-                    for (int s = 0; s < img->raw->dims[1]; ++s) {
-                        int idx = s + (r + c * img->raw->dims[2]) * img->raw->dims[1];
-                        color |= data[idx] << (8 * s);
-                    }
-                    canvas_pixel(cav, r, c) = color;
+        uint8_t* data = (uint8_t*)temp->datas;
+        for (int h = 0; h < temp->dims[1]; ++h) {
+            for (int w = 0; w < temp->dims[2]; ++w) {
+                uint32_t color = 0;
+                for (int c = 0; c < temp->dims[3]; ++c) {
+                    int idx = c + (h * temp->dims[2] + w) * temp->dims[3];
+                    color |= data[idx] << (8 * c);
                 }
+                canvas_pixel(cav, w, h) = color;
             }
-        } else {
-            uint8_t* data = (uint8_t*)img->raw->datas;
-            for (int r = 0; r < img->raw->dims[2]; ++r) {
-                for (int c = 0; c < img->raw->dims[3]; ++c) {
-                    uint32_t color = 0;
-                    for (int s = 0; s < img->raw->dims[1]; ++s) {
-                        int idx = s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c;
-                        color |= data[idx] << (8 * s);
-                    }
-                    canvas_pixel(cav, r, c) = color;
-                }
-            }
+        }
+        if(img->raw->layout == 0) {
+            tensor_free(temp);
         }
         return cav;
     }

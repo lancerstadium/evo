@@ -33,14 +33,26 @@ void image_dump_raw(image_t* img, int i) {
     if(!img || !img->raw || !img->raw->datas) return;
     uint8_t* data = (uint8_t*)img->raw->datas;
     if(i >= 0) {
-        for (int s = 0; s < img->raw->dims[1]; ++s) {
-            for (int r = 0; r < img->raw->dims[2]; ++r) {
-                for (int c = 0; c < img->raw->dims[3]; ++c) {
-                    printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+        if(img->raw->layout == 1) {
+            for (int s = 0; s < img->raw->dims[3]; ++s) {
+                for (int r = 0; r < img->raw->dims[1]; ++r) {
+                    for (int c = 0; c < img->raw->dims[2]; ++c) {
+                        printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[2] * img->raw->dims[3] + c * img->raw->dims[3] + s]);
+                    }
+                    printf("\n");
                 }
                 printf("\n");
             }
-            printf("\n");
+        } else {
+            for (int s = 0; s < img->raw->dims[1]; ++s) {
+                for (int r = 0; r < img->raw->dims[2]; ++r) {
+                    for (int c = 0; c < img->raw->dims[3]; ++c) {
+                        printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+                    }
+                    printf("\n");
+                }
+                printf("\n");
+            }
         }
     } else {
         for(int j = 0; j < img->raw->dims[0] && j < 20; ++j) {
@@ -138,7 +150,11 @@ image_t* image_from_tensor(tensor_t *ts) {
         dims[0] = 1;
         if(ts->ndim <= 2) {
             return NULL;
-        } else if(ts->ndim == 3) {
+        }
+        if(ts->layout != 1) {
+            ts = tensor_nchw2nhwc(ts);
+        }
+        if(ts->ndim == 3) {
             dims[1] = ts->dims[0];
             dims[2] = ts->dims[1];
             dims[3] = ts->dims[2];
@@ -149,8 +165,15 @@ image_t* image_from_tensor(tensor_t *ts) {
         tensor_reshape(new_ts, ndim, dims);
         new_ts->ndata = ts->dims[1] * ts->dims[2] * ts->dims[3];
         new_ts->datas = malloc(new_ts->ndata);
+        new_ts->layout = 1;
         if(ts->type == TENSOR_TYPE_FLOAT32) {
             float* data = ts->datas;
+            uint8_t* datas = new_ts->datas;
+            for(int i = 0; i < new_ts->ndata; i++) {
+                datas[i] = (uint8_t)data[i];
+            }
+        } else if(ts->type == TENSOR_TYPE_UINT8) {
+            uint8_t* data = ts->datas;
             uint8_t* datas = new_ts->datas;
             for(int i = 0; i < new_ts->ndata; i++) {
                 datas[i] = (uint8_t)data[i];
@@ -160,6 +183,9 @@ image_t* image_from_tensor(tensor_t *ts) {
         img->attr_vec = vector_create();
         img->type = IMAGE_TYPE_UNKNOWN;
         img->raw = new_ts;
+        if(ts->layout != 1) {
+            tensor_free(ts);
+        }
         return img;
     }
     return NULL;
@@ -172,15 +198,15 @@ image_t* image_heatmap(tensor_t *ts, int channel) {
         int ndim = 4;
         int dims[4];
         dims[0] = 1;
-        dims[1] = 4;
+        dims[3] = 4;
         if(ts->ndim <= 2) {
             return NULL;
         } else if(ts->ndim == 3) {
-            dims[2] = ts->dims[1];
-            dims[3] = ts->dims[2];
+            dims[1] = ts->dims[1];
+            dims[2] = ts->dims[2];
         }
-        dims[2] = ts->dims[2];
-        dims[3] = ts->dims[3];
+        dims[1] = ts->dims[2];
+        dims[2] = ts->dims[3];
         tensor_reshape(new_ts, ndim, dims);
         new_ts->ndata = 4 * ts->dims[2] * ts->dims[3];
         new_ts->datas = malloc(new_ts->ndata);
@@ -197,6 +223,7 @@ image_t* image_heatmap(tensor_t *ts, int channel) {
         img->attr_vec = vector_create();
         img->type = IMAGE_TYPE_UNKNOWN;
         img->raw = new_ts;
+        img->raw->layout = 1;
         return img;
     }
     return NULL;
@@ -209,9 +236,10 @@ image_t* image_blank(const char* name, size_t width, size_t height) {
         img->attr_vec = vector_create();
         img->type = IMAGE_TYPE_UNKNOWN;
         img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
-        tensor_reshape(img->raw, 4, (int[]){1, 4, width, height});
+        tensor_reshape(img->raw, 4, (int[]){1, height, width, 4});
         uint8_t * data = sys_malloc(4 * height * width * sizeof(uint8_t));
         tensor_apply(img->raw, (void*)data, 4 * height * width);
+        img->raw->layout = 1;
         free(data);
         data = NULL;
         return img;
@@ -228,8 +256,9 @@ image_t* image_load(const char* name) {
         img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
         int height, width, channels;
         uint8_t * data = stbi_load(name, &width, &height, &channels, 0);
-        tensor_reshape(img->raw, 4, (int[]){1, channels, width, height});
+        tensor_reshape(img->raw, 4, (int[]){1, height, width, channels});
         tensor_apply(img->raw, (void*)data, channels * height * width);
+        img->raw->layout = 1;
         free(data);
         data = NULL;
         return img;
@@ -240,18 +269,19 @@ image_t* image_load(const char* name) {
 image_t* image_extract_channel(image_t* img, int channel) {
     image_t* new_img = (image_t*)malloc(sizeof(image_t));
     if(new_img && img) {
-        if(channel >= img->raw->dims[1]) channel = 0;
+        if(channel >= img->raw->dims[3]) channel = 0;
         new_img->name = sys_strdup(img->name);
         new_img->attr_vec = vector_create();
         new_img->type = img->type;
         new_img->raw = tensor_new(sys_strdup(img->name), TENSOR_TYPE_UINT8);
-        tensor_reshape(new_img->raw, 4, (int[]){1, 1, img->raw->dims[2], img->raw->dims[3]});
-        new_img->raw->ndata = img->raw->dims[2] * img->raw->dims[3];
+        tensor_reshape(new_img->raw, 4, (int[]){1, img->raw->dims[1], img->raw->dims[2], 1});
+        new_img->raw->ndata = img->raw->dims[1] * img->raw->dims[2];
         new_img->raw->datas = malloc(new_img->raw->ndata);
+        new_img->raw->layout = img->raw->layout;
         uint8_t* data = new_img->raw->datas;
         uint8_t* datas = img->raw->datas;
         for(int i = 0; i < new_img->raw->ndata; i++) {
-            data[i] = datas[i * img->raw->dims[1] + channel];
+            data[i] = datas[i * img->raw->dims[3] + channel];
         }
         return new_img;
     }
@@ -260,8 +290,8 @@ image_t* image_extract_channel(image_t* img, int channel) {
 
 image_t* image_channel(image_t* img, int channel) {
     image_t* new_img = (image_t*)malloc(sizeof(image_t));
-    if(new_img && img) {
-        if(channel >= img->raw->dims[1]) channel = 0;
+    if(new_img && img && img->raw && img->raw->layout == 1) {
+        if(channel >= img->raw->dims[3]) channel = 0;
         new_img->name = sys_strdup(img->name);
         new_img->attr_vec = vector_create();
         new_img->type = img->type;
@@ -269,11 +299,12 @@ image_t* image_channel(image_t* img, int channel) {
         tensor_reshape(new_img->raw, 4, (int[]){1, img->raw->dims[1], img->raw->dims[2], img->raw->dims[3]});
         new_img->raw->ndata = img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3];
         new_img->raw->datas = malloc(new_img->raw->ndata);
+        new_img->raw->layout = img->raw->layout;
         memset(new_img->raw->datas, 0, new_img->raw->ndata);
         uint8_t* data = new_img->raw->datas;
         uint8_t* datas = img->raw->datas;
-        for(int i = 0; i < new_img->raw->ndata / img->raw->dims[1]; i++) {
-            data[i * img->raw->dims[1] + channel] = datas[i * img->raw->dims[1] + channel];
+        for(int i = 0; i < new_img->raw->ndata / img->raw->dims[3]; i++) {
+            data[i * img->raw->dims[3] + channel] = datas[i * img->raw->dims[3] + channel];
         }
         return new_img;
     }
@@ -289,23 +320,23 @@ void image_save_grey(image_t* img, const char* name, int channel) {
         image_t* grey_img = image_extract_channel(img, channel);
         switch(image_get_type(name)) {
             case IMAGE_TYPE_BMP:
-                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[3], 1, grey_img->raw->datas);
+                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[1], 1, grey_img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_JPG:
-                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[3], 1, grey_img->raw->datas, 100);
+                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[1], 1, grey_img->raw->datas, 100);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_PNG:
-                stbi_write_png(name, img->raw->dims[2], img->raw->dims[3], 1, grey_img->raw->datas, img->raw->dims[2] * 1);
+                stbi_write_png(name, img->raw->dims[2], img->raw->dims[1], 1, grey_img->raw->datas, img->raw->dims[2] * 1);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_TGA:
-                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[3], 1, grey_img->raw->datas);
+                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[1], 1, grey_img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_HDR:
-                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[3], 1, grey_img->raw->datas);
+                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[1], 1, grey_img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             default: break;
@@ -320,25 +351,30 @@ void image_save(image_t* img, const char* name) {
             LOG_WARN("Image save warn: only support uint8 tensor!\n");
             return;
         }
+        if(img->raw->layout == 0) {
+            tensor_t *new_ts = tensor_nchw2nhwc(img->raw);
+            tensor_free(img->raw);
+            img->raw = new_ts;
+        }
         switch(image_get_type(name)) {
             case IMAGE_TYPE_BMP:
-                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_JPG:
-                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, 100);
+                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas, 100);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_PNG:
-                stbi_write_png(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas, img->raw->dims[2] * img->raw->dims[1]);
+                stbi_write_png(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas, img->raw->dims[2] * img->raw->dims[3]);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_TGA:
-                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_HDR:
-                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[3], img->raw->dims[1], img->raw->datas);
+                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             default: break;
