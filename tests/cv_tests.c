@@ -31,6 +31,20 @@ UnitTest_fn_def(test_read_img) {
     return NULL;
 }
 
+UnitTest_fn_def(test_heat_img) {
+    float heat[16] = {
+        0.1, 0.2, 0.3, 0.4,
+        0.5, 0.6, 0.7, 0.8,
+        0.9, 1.0, 0.9, 0.8,
+        0.7, 0.6, 0.5, 0.4
+    };
+    tensor_t *ts = tensor_new_float32("heat", (int[]){1, 1, 4, 4}, 4, heat, 16);
+    tensor_dump2(ts);
+    image_t* heat_img = image_heatmap(ts);
+    image_save(heat_img, "heat.png");
+    return NULL;
+}
+
 UnitTest_fn_def(test_read_png) {
     const char* img_path = "model/lut3d_96/test_data_set_0/input_0.jpg";
     image_t* img = image_load(img_path);
@@ -46,6 +60,7 @@ UnitTest_fn_def(test_read_png) {
 UnitTest_fn_def(test_all) {
     UnitTest_add(test_read_mnist);
     UnitTest_add(test_read_img);
+    UnitTest_add(test_heat_img);
     UnitTest_add(test_read_png);
     return NULL;
 }

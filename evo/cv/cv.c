@@ -165,6 +165,43 @@ image_t* image_from_tensor(tensor_t *ts) {
     return NULL;
 }
 
+image_t* image_heatmap(tensor_t *ts) {
+    image_t* img = (image_t*)malloc(sizeof(image_t));
+    if(img && ts) {
+        tensor_t *new_ts = tensor_new(sys_strdup(ts->name), TENSOR_TYPE_UINT8);
+        int ndim = 4;
+        int dims[4];
+        dims[0] = 1;
+        dims[1] = 4;
+        if(ts->ndim <= 2) {
+            return NULL;
+        } else if(ts->ndim == 3) {
+            dims[2] = ts->dims[1];
+            dims[3] = ts->dims[2];
+        }
+        dims[2] = ts->dims[2];
+        dims[3] = ts->dims[3];
+        tensor_reshape(new_ts, ndim, dims);
+        new_ts->ndata = 4 * ts->dims[2] * ts->dims[3];
+        new_ts->datas = malloc(new_ts->ndata);
+        if(ts->type == TENSOR_TYPE_FLOAT32) {
+            float* data = ts->datas;
+            uint32_t* datas = new_ts->datas;
+            for(int x = 0; x < ts->dims[2]; x++) {
+                for(int y = 0; y < ts->dims[3]; y++) {
+                    datas[x * ts->dims[3] + y] = color_interpolate(0xffff0000, 0xff0000ff, data[x * ts->dims[3] + y]);
+                }
+            }
+        }
+        img->name = sys_strdup(ts->name);
+        img->attr_vec = vector_create();
+        img->type = IMAGE_TYPE_UNKNOWN;
+        img->raw = new_ts;
+        return img;
+    }
+    return NULL;
+}
+
 image_t* image_blank(const char* name, size_t width, size_t height) {
     image_t* img = (image_t*)malloc(sizeof(image_t));
     if(img) {

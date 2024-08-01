@@ -108,6 +108,18 @@ tensor_t *tensor_new(const char *name, tensor_type_t type) {
     return ts;
 }
 
+tensor_t *tensor_new_float32(const char *name, int* dims, int ndim, float* fs, size_t nf) {
+    tensor_t *ts = tensor_new(name, TENSOR_TYPE_FLOAT32);
+    if (ts) {
+        tensor_reshape(ts, ndim, dims);
+        if (nf > 0 && fs) {
+            tensor_apply(ts, (void *)fs, nf * sizeof(float));
+        } 
+        return ts;
+    }
+    return NULL;
+}
+
 void tensor_free(tensor_t *ts) {
     if (!ts) return;
     if (ts->name) sys_free(ts->name);

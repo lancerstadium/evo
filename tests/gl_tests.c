@@ -25,6 +25,7 @@ UnitTest_fn_def(test_line_canvas) {
 UnitTest_fn_def(test_rect_canvas) {
     canvas_rectangle(my_cav, 120, 30, 20, 40, 0xff00ff00);
     canvas_frame(my_cav, 120, 90, 20, 40, 1, 0xff00ff00);
+    canvas_rectangle_c2(my_cav, 200, 150, 40, 60, 0xffff0000, 0xff0000ff);
     return NULL;
 }
 

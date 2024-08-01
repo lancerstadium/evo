@@ -103,6 +103,25 @@ void canvas_blend(uint32_t* pixel, uint32_t color) {
     *pixel = pixel_rgba(r1, g1, b1, a1);
 }
 
+uint32_t color_interpolate(uint32_t color1, uint32_t color2, float t) {
+    uint8_t r1 = pixel_red(color1);
+    uint8_t g1 = pixel_green(color1);
+    uint8_t b1 = pixel_blue(color1);
+    uint8_t a1 = pixel_alpha(color1);
+
+    uint8_t r2 = pixel_red(color2);
+    uint8_t g2 = pixel_green(color2);
+    uint8_t b2 = pixel_blue(color2);
+    uint8_t a2 = pixel_alpha(color2);
+
+    uint8_t r = r1 + t * (r2 - r1);
+    uint8_t g = g1 + t * (g2 - g1);
+    uint8_t b = b1 + t * (b2 - b1);
+    uint8_t a = a1 + t * (a2 - a1);
+
+    return pixel_rgba(r, g, b, a);
+}
+
 bool canvas_is_in_bound(canvas_t* cav, int x, int y) {
     if (!cav) return false;
     return 0 <= x && x < canvas_width(cav) && 0 <= y && y < canvas_height(cav);
@@ -179,6 +198,19 @@ void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color)
         }
     }
 }
+
+void canvas_rectangle_c2(canvas_t* cav, int x, int y, int w, int h, uint32_t color1, uint32_t color2) {
+    if (!cav) return;
+    for (int i = x; i != MIN(x + w, canvas_width(cav) - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
+        float t_x = (float)(i - x) / w;
+        for (int j = y; j != MIN(y + h, canvas_height(cav) - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
+            float t_y = (float)(j - y) / h;
+            uint32_t color = color_interpolate(color1, color2, (t_x + t_y) / 2.0f);
+            canvas_blend(&canvas_pixel(cav, i, j), color);
+        }
+    }
+}
+
 
 void canvas_frame(canvas_t* cav, int x, int y, int w, int h, size_t t, uint32_t color) {
     if (!cav || t == 0) return;
