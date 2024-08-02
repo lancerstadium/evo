@@ -853,6 +853,7 @@ EVO_API void canvas_rectangle_c2(canvas_t*, int, int, int, int, uint32_t, uint32
 EVO_API void canvas_frame(canvas_t*, int, int, int, int, size_t, uint32_t);
 EVO_API void canvas_ellipse(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_circle(canvas_t*, int, int, int, uint32_t);
+EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint32_t);
 EVO_API void canvas_free(canvas_t*);
 
 // ==================================================================================== //
@@ -864,6 +865,12 @@ struct font {
     size_t height;
     size_t width;
 };
+
+extern font_t default_font;                             /* FONT|Default font for evo    */
+
+// ==================================================================================== //
+//                                  evo: Form (gl)
+// ==================================================================================== //
 
 struct rectangle {
     int x1, y1;

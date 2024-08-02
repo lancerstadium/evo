@@ -35,6 +35,11 @@ UnitTest_fn_def(test_circle_canvas) {
     return NULL;
 }
 
+UnitTest_fn_def(test_text_canvas) {
+    canvas_text(my_cav, "39.67%", 250, 250, &default_font, 2, 0xffc9b132);
+    return NULL;
+}
+
 UnitTest_fn_def(test_export_canvas) {
     UnitTest_msg("%s", image_dump_shape(my_cav->background));
     canvas_export(my_cav, "cav.jpg");
@@ -47,6 +52,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_line_canvas);
     UnitTest_add(test_rect_canvas);
     UnitTest_add(test_circle_canvas);
+    UnitTest_add(test_text_canvas);
     UnitTest_add(test_export_canvas);
     return NULL;
 }

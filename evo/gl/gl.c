@@ -273,6 +273,26 @@ void canvas_circle(canvas_t* cav, int cx, int cy, int r, uint32_t color) {
     }
 }
 
+void canvas_text(canvas_t* cav, const char* text, int tx, int ty, font_t* font, size_t glyph_size, uint32_t color) {
+    if (!cav || !text || !font) return;
+    for (size_t i = 0; *text; ++i, ++text) {
+        int gx = tx + i * font->width * glyph_size;
+        int gy = ty;
+        const char* glyph = &font->glyphs[(*text) * sizeof(char) * font->width * font->height];
+        for (int dy = 0; (size_t)dy < font->height; ++dy) {
+            for (int dx = 0; (size_t)dx < font->width; ++dx) {
+                int px = gx + dx * glyph_size;
+                int py = gy + dy * glyph_size;
+                if (0 <= px && px < (int)canvas_width(cav) && 0 <= py && py < (int)canvas_height(cav)) {
+                    if (glyph[dy * font->width + dx]) {
+                        canvas_rectangle(cav, px, py, glyph_size, glyph_size, color);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void canvas_export(canvas_t* cav, const char* path) {
     if (cav && cav->background) {
         image_save(cav->background, path);
