@@ -10,7 +10,6 @@ local arr2 = {
     {2, 5, 8},
     {3, 6, 9}
 }
-
 local ts1 = evo.Tensor(arr1)
 local ts2 = evo.Tensor(arr2)
 print(ts1)
