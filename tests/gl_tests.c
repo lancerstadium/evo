@@ -1,18 +1,22 @@
 #include "sob.h"
 #include <evo.h>
 
+#define WIDTH 960
+#define HEIGHT 720
+#define BG_COLOR 0xFF181818
+
 canvas_t* my_cav;
 
 UnitTest_fn_def(test_create_canvas) {
-    // my_cav = canvas_new(720, 480);
-    image_t * img = image_load("picture/input_0.jpg");
-    UnitTest_msg("%s", image_dump_shape(img));
-    my_cav = canvas_from_image(img);
+    my_cav = canvas_new(WIDTH, HEIGHT);
+    // image_t * img = image_load("picture/input_0.jpg");
+    // UnitTest_msg("%s", image_dump_shape(img));
+    // my_cav = canvas_from_image(img);
     return NULL;
 }
 
 UnitTest_fn_def(test_fill_canvas) {
-    // canvas_fill(my_cav, 0xffffffff);
+    canvas_fill(my_cav, BG_COLOR);
     return NULL;
 }
 
@@ -36,7 +40,7 @@ UnitTest_fn_def(test_circle_canvas) {
 }
 
 UnitTest_fn_def(test_text_canvas) {
-    canvas_text(my_cav, "39.67%", 250, 250, &default_font, 2, 0xffc9b132);
+    canvas_text(my_cav, "evo 39.67%", 250, 250, &default_font, 2, 0xffc9b132);
     return NULL;
 }
 

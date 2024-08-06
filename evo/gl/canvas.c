@@ -6,12 +6,6 @@
 #include "../util/math.h"
 #include "../util/sys.h"
 
-#define pixel_red(color) (((color) & 0x000000FF) >> (8 * 0))
-#define pixel_green(color) (((color) & 0x0000FF00) >> (8 * 1))
-#define pixel_blue(color) (((color) & 0x00FF0000) >> (8 * 2))
-#define pixel_alpha(color) (((color) & 0xFF000000) >> (8 * 3))
-#define pixel_rgba(r, g, b, a) ((((r) & 0xFF) << (8 * 0)) | (((g) & 0xFF) << (8 * 1)) | (((b) & 0xFF) << (8 * 2)) | (((a) & 0xFF) << (8 * 3)))
-
 #define CANVAS_AA_RES 2
 #define CANVAS_SWAP(T, a, b) \
     do {                     \
@@ -56,8 +50,27 @@ canvas_t* canvas_from_image(image_t* img) {
 canvas_t* canvas_new(size_t width, size_t height) {
     canvas_t* cav = sys_malloc(sizeof(canvas_t));
     if (cav) {
-        cav->background = image_blank("bg", MAX(width, 1), MAX(height, 1));
+        cav->width = MAX(width, 1);
+        cav->height = MAX(height, 1);
+        cav->background = image_blank("bg", cav->width, cav->height);
+        if(cav->background && cav->background->raw) {
+            cav->pixels = (uint32_t*)cav->background->raw->datas;
+        }
         return cav;
+    }
+    return NULL;
+}
+
+canvas_t* canvas_sub_new(canvas_t* cav, int x, int y, int w, int h) {
+    rectangle_t rec = {0};
+    if(!canvas_normalize_rectangle(cav, x, y, w, h, &rec)) return NULL;
+    canvas_t* sub_cav = sys_malloc(sizeof(canvas_t));
+    if (sub_cav) {
+        sub_cav->background = NULL;
+        sub_cav->pixels = &canvas_pixel(cav, rec.x1, rec.y1);
+        sub_cav->width = rec.x2 - rec.x1 + 1;
+        sub_cav->height = rec.y2 - rec.y1 + 1;
+        return sub_cav;
     }
     return NULL;
 }
@@ -65,15 +78,15 @@ canvas_t* canvas_new(size_t width, size_t height) {
 uint32_t* canvas_get(canvas_t* cav, size_t x, size_t y) {
     if (cav && cav->background && cav->background->raw && cav->background->raw->datas) {
         uint32_t* data = (uint32_t*)((cav)->background->raw->datas);
-        return &data[(x) + (canvas_width(cav)) * (y)];
+        return &data[(x) + (cav->width) * (y)];
     }
     return NULL;
 }
 
 void canvas_fill(canvas_t* cav, uint32_t color) {
     if (!cav) return;
-    for (size_t y = 0; y < canvas_height(cav); y++) {
-        for (size_t x = 0; x < canvas_width(cav); x++) {
+    for (size_t y = 0; y < cav->height; y++) {
+        for (size_t x = 0; x < cav->width; x++) {
             canvas_pixel(cav, x, y) = color;
         }
     }
@@ -123,7 +136,7 @@ uint32_t color_interpolate(uint32_t color1, uint32_t color2, float t) {
 
 bool canvas_is_in_bound(canvas_t* cav, int x, int y) {
     if (!cav) return false;
-    return 0 <= x && x < canvas_width(cav) && 0 <= y && y < canvas_height(cav);
+    return 0 <= x && x < cav->width && 0 <= y && y < cav->height;
 }
 
 void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) {
@@ -174,8 +187,8 @@ bool canvas_normalize_rectangle(canvas_t* cav, int x, int y, int w, int h, recta
     int oy2 = oy1 + CANVAS_SIGN(int, h) * (CANVAS_ABS(int, h) - 1);
     if (oy1 > oy2) CANVAS_SWAP(int, oy1, oy2);
 
-    if (ox1 >= canvas_width(cav) || ox2 < 0) return false;
-    if (oy1 >= canvas_height(cav) || oy2 < 0) return false;
+    if (ox1 >= cav->width || ox2 < 0) return false;
+    if (oy1 >= cav->height || oy2 < 0) return false;
 
     rec->x1 = ox1;
     rec->x2 = ox2;
@@ -183,16 +196,16 @@ bool canvas_normalize_rectangle(canvas_t* cav, int x, int y, int w, int h, recta
     rec->y2 = oy2;
 
     if (rec->x1 < 0) rec->x1 = 0;
-    if (rec->x2 >= canvas_width(cav)) rec->x2 = canvas_width(cav) - 1;
+    if (rec->x2 >= cav->width) rec->x2 = cav->width - 1;
     if (rec->y1 < 0) rec->y1 = 0;
-    if (rec->y2 >= canvas_height(cav)) rec->y2 = canvas_height(cav) - 1;
+    if (rec->y2 >= cav->height) rec->y2 = cav->height - 1;
     return true;
 }
 
 void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color) {
     if (!cav) return;
-    for (int i = x; i != MIN(x + w, canvas_width(cav) - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
-        for (int j = y; j != MIN(y + h, canvas_height(cav) - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
+    for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
+        for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
             canvas_blend(&canvas_pixel(cav, i, j), color);
         }
     }
@@ -200,9 +213,9 @@ void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color)
 
 void canvas_rectangle_c2(canvas_t* cav, int x, int y, int w, int h, uint32_t color1, uint32_t color2) {
     if (!cav) return;
-    for (int i = x; i != MIN(x + w, canvas_width(cav) - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
+    for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
         float t_x = (float)(i - x) / w;
-        for (int j = y; j != MIN(y + h, canvas_height(cav) - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
+        for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
             float t_y = (float)(j - y) / h;
             uint32_t color = color_interpolate(color1, color2, (t_x + t_y) / 2.0f);
             canvas_blend(&canvas_pixel(cav, i, j), color);
@@ -283,7 +296,7 @@ void canvas_text(canvas_t* cav, const char* text, int tx, int ty, font_t* font, 
             for (int dx = 0; (size_t)dx < font->width; ++dx) {
                 int px = gx + dx * glyph_size;
                 int py = gy + dy * glyph_size;
-                if (0 <= px && px < (int)canvas_width(cav) && 0 <= py && py < (int)canvas_height(cav)) {
+                if (0 <= px && px < (int)cav->width && 0 <= py && py < (int)cav->height) {
                     if (glyph[dy * font->width + dx]) {
                         canvas_rectangle(cav, px, py, glyph_size, glyph_size, color);
                     }
@@ -302,6 +315,7 @@ void canvas_export(canvas_t* cav, const char* path) {
 void canvas_free(canvas_t* cav) {
     if (cav) {
         if (cav->background) image_free(cav->background);
+        cav->pixels = NULL;
         free(cav);
         cav = NULL;
     }

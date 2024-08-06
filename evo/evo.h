@@ -826,7 +826,9 @@ EVO_API void image_free(image_t*);
 
 typedef struct font font_t;
 typedef struct canvas canvas_t;
+typedef struct renderer renderer_t;
 typedef struct rectangle rectangle_t;
+typedef canvas_t* (*render_fn_t)(float);
 
 // ==================================================================================== //
 //                                  evo: canvas (gl)
@@ -834,13 +836,20 @@ typedef struct rectangle rectangle_t;
 
 struct canvas {
     image_t* background;
+    uint32_t* pixels;
+    size_t width;
+    size_t height;
 };
 
-#define canvas_height(cav)      (cav)->background->raw->dims[1]
-#define canvas_width(cav)       (cav)->background->raw->dims[2]
-#define canvas_pixel(cav, x, y) ((uint32_t*)((cav)->background->raw->datas))[(x) + (canvas_width(cav))*(y)]
+#define pixel_red(color) (((color) & 0x000000FF) >> (8 * 0))
+#define pixel_green(color) (((color) & 0x0000FF00) >> (8 * 1))
+#define pixel_blue(color) (((color) & 0x00FF0000) >> (8 * 2))
+#define pixel_alpha(color) (((color) & 0xFF000000) >> (8 * 3))
+#define pixel_rgba(r, g, b, a) ((((r) & 0xFF) << (8 * 0)) | (((g) & 0xFF) << (8 * 1)) | (((b) & 0xFF) << (8 * 2)) | (((a) & 0xFF) << (8 * 3)))
+#define canvas_pixel(cav, x, y) ((cav)->pixels)[(x) + (cav->width)*(y)]
 
 EVO_API canvas_t* canvas_new(size_t, size_t);
+EVO_API canvas_t* canvas_sub_new(canvas_t*, int, int, int, int);
 EVO_API canvas_t* canvas_from_image(image_t*);
 EVO_API void canvas_export(canvas_t*, const char*);
 EVO_API uint32_t* canvas_get(canvas_t*, size_t, size_t);
@@ -849,6 +858,7 @@ EVO_API void canvas_blend(uint32_t*, uint32_t);
 EVO_API uint32_t color_interpolate(uint32_t, uint32_t, float);
 EVO_API bool canvas_is_in_bound(canvas_t*, int, int);
 EVO_API void canvas_line(canvas_t*, int, int, int, int, uint32_t);
+EVO_API bool canvas_normalize_rectangle(canvas_t*, int, int, int, int, rectangle_t*);
 EVO_API void canvas_rectangle(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_rectangle_c2(canvas_t*, int, int, int, int, uint32_t, uint32_t);
 EVO_API void canvas_frame(canvas_t*, int, int, int, int, size_t, uint32_t);
@@ -856,6 +866,30 @@ EVO_API void canvas_ellipse(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_circle(canvas_t*, int, int, int, uint32_t);
 EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint32_t);
 EVO_API void canvas_free(canvas_t*);
+
+// ==================================================================================== //
+//                                  evo: renderer type (gl)
+// ==================================================================================== //
+
+typedef enum renderer_type {
+    RENDERER_TYPE_TERM,
+    RENDERER_TYPE_GL,
+    RENDERER_TYPE_WEB
+} renderer_type_t;
+
+// ==================================================================================== //
+//                                  evo: renderer (gl)
+// ==================================================================================== //
+
+struct renderer {
+    renderer_type_t type;
+    void *priv;
+    void (*render)(struct renderer*, render_fn_t);
+};
+
+EVO_API renderer_t* renderer_new(renderer_type_t);
+EVO_API void renderer_run(renderer_t*, render_fn_t);
+EVO_API void renderer_free(renderer_t*);
 
 // ==================================================================================== //
 //                                  evo: Font (gl)
