@@ -2,13 +2,36 @@
 #include <vector>
 #include <string>
 
-#ifdef EVO_PYBIND11
-#include<pybind11/pybind11.h>
-#include<pybind11/numpy.h>
+#pragma once
 
+#if defined(EVO_PYBIND)
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 namespace py = pybind11;
 using namespace py::literals;
+#elif defined(EVO_LUABIND)
+#include <string.h>
+#include <lua.hpp>
+#include "../lua/LuaBridge/LuaBridge.h"
+
+void getDimensions(luabridge::LuaRef arr, std::vector<int>& dims) {
+    if (arr.isTable()) {
+        dims.push_back(arr.length());
+        getDimensions(arr[1], dims);
+    }
+}
+
+void extractData(luabridge::LuaRef arr, std::vector<double>& data) {
+    if (arr.isTable()) {
+        for (int i = 1; i <= arr.length(); ++i) {
+            extractData(arr[i], data);
+        }
+    } else {
+        data.push_back(arr.cast<double>());
+    }
+}
 #endif
+
 
 namespace Evo {
 
@@ -53,7 +76,7 @@ public:
     Tensor(const char *name, TensorType type) {
         this->_ts = tensor_new(name, (tensor_type_t)type);
     }
-#ifdef EVO_PYBIND11
+#if defined(EVO_PYBIND)
     template<typename T>
     Tensor(py::array_t<T> arr) {
         py::buffer_info buf = arr.request();
@@ -78,6 +101,23 @@ public:
         tensor_reshape(this->_ts, ndim, dims);
         memcpy(this->_ts->datas, datas, ndata * sizeof(T));
         this->_ts->ndata = ndata;
+    }
+#elif defined(EVO_LUABIND)
+    Tensor(luabridge::LuaRef arr) {
+        if(arr.isTable()) {
+            std::vector<double> data;
+            std::vector<int> dims;
+            getDimensions(arr, dims);
+            extractData(arr, data);
+
+            int ndim = dims.size();
+            this->_ts = tensor_new("Tensor", TENSOR_TYPE_FLOAT64);
+            tensor_reshape(this->_ts, ndim, dims.data());
+            memcpy(this->_ts->datas, data.data(), data.size() * sizeof(double));
+            this->_ts->ndata = data.size();
+        } else {
+            std::cerr << "Error: not a table" << std::endl;
+        }
     }
 #endif
     ~Tensor() {

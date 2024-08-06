@@ -1,4 +1,4 @@
-#define EVO_PYBIND11
+#define EVO_PYBIND
 #include "../cpp/Evo.hpp"
 #include <pybind11/stl.h>
 
