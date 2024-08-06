@@ -141,6 +141,12 @@ public:
         t->_ts = tensor_new("Tensor", TENSOR_TYPE_INT64);
         return t;
     }
+    // override tostring
+    std::string toString() {
+        if(this->_ts)
+            return tensor_to_string(this->_ts);
+        return "Tensor(?)";
+    }
     void dump() {
         if(this->_ts)
             tensor_dump(this->_ts);
@@ -220,6 +226,7 @@ private:
 public:
     Node() : _nd(nullptr) {}
     Node(OpType type, std::vector<Tensor*> inputs, std::vector<Tensor*> outputs) : _nd(node_new(internal_mdl ? internal_mdl->proto()->graph : NULL, op_name((op_type_t)type), type)) {
+        if(this->_nd == NULL) return;
         Tensor** in = inputs.data();
         int nin = inputs.size();
         this->_nd->nin = nin;

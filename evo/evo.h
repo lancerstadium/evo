@@ -186,6 +186,7 @@ EVO_API bool tensor_equal(tensor_t*, tensor_t*);
 EVO_API char* tensor_dump_shape(tensor_t*);
 EVO_API void tensor_dump(tensor_t*);
 EVO_API void tensor_dump2(tensor_t*);
+EVO_API char* tensor_to_string(tensor_t*);
 EVO_API int tensor_index2offset(tensor_t*, int*);
 EVO_API void tensor_offset2index(tensor_t*, int, int*);
 EVO_API int tensor_reshape(tensor_t*, int, int*);

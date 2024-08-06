@@ -746,3 +746,208 @@ void tensor_dump2(tensor_t *ts) {
     }
     LOG_INFO("\n");
 }
+
+
+char* tensor_to_string(tensor_t *ts) {
+    if (!ts) return NULL;
+    char* result = (char*)malloc(1024 * sizeof(char)); // Initial buffer size
+    if (!result) return NULL;
+    int buf_size = 1024;
+    int offset = 0;
+
+    int *sizes, *levels;
+    char *lbuf, *rbuf;
+    char *lp, *rp;
+    void *p;
+    int i, j, k;
+    
+    offset += snprintf(result + offset, buf_size - offset, "%s <%s/%s>",
+                       strcmp(ts->name, "") == 0 ? "Tensor" : ts->name,
+                       tensor_type_tostring(ts->type),
+                       tensor_layout_tostring(ts->layout));
+
+    if (ts->ndim > 0) {
+        char shape_buf[64];
+        sprintf(shape_buf, " [");
+        for (int i = 0; i < ts->ndim - 1; i++) {
+            sprintf(shape_buf + strlen(shape_buf), "%d,", ts->dims[i]);
+        }
+        sprintf(shape_buf + strlen(shape_buf), "%d]", ts->dims[ts->ndim - 1]);
+        offset += snprintf(result + offset, buf_size - offset, "%s", shape_buf);
+    } else {
+        offset += snprintf(result + offset, buf_size - offset, " []");
+    }
+
+    if (ts->ndata > 1 && ts->datas) {
+        offset += snprintf(result + offset, buf_size - offset, " = \n");
+        for (i = 0; i < ts->ndim; i++) {
+            if (ts->dims[i] <= 0) {
+                free(result);
+                return NULL;
+            }
+        }
+        sizes = malloc(sizeof(int) * ts->ndim);
+        levels = malloc(sizeof(int) * ts->ndim);
+        sizes[ts->ndim - 1] = ts->dims[ts->ndim - 1];
+        levels[ts->ndim - 1] = 0;
+        lbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        rbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        lp = lbuf;
+        rp = rbuf;
+        for (i = ts->ndim - 2; i >= 0; i--) {
+            sizes[i] = ts->dims[i] * sizes[i + 1];
+            levels[i] = 0;
+        }
+        for (size_t idx = 0; idx < ts->ndata; idx++) {
+            for (j = 0; j < ts->ndim; j++) {
+                if ((idx % sizes[j]) == 0)
+                    levels[j]++;
+                if (levels[j] == 1) {
+                    *lp++ = '[';
+                    levels[j]++;
+                }
+                if (levels[j] == 3) {
+                    *rp++ = ']';
+                    if ((j != 0) && (levels[j] > levels[j - 1])) {
+                        *lp++ = '[';
+                        levels[j] = 2;
+                    } else {
+                        levels[j] = 0;
+                    }
+                }
+            }
+            *lp = *rp = '\0';
+            offset += snprintf(result + offset, buf_size - offset, "%s", rbuf);
+            if (*rbuf != '\0') {
+                offset += snprintf(result + offset, buf_size - offset, "\n");
+                for (k = ts->ndim - strlen(rbuf); k > 0; k--)
+                    offset += snprintf(result + offset, buf_size - offset, " ");
+            }
+            offset += snprintf(result + offset, buf_size - offset, "%s", lbuf);
+            if (*lbuf == '\0')
+                offset += snprintf(result + offset, buf_size - offset, " ");
+            p = (void *)(ts->datas + tensor_type_sizeof(ts->type) * idx);
+            switch (ts->type) {
+                case TENSOR_TYPE_BOOL:
+                    offset += snprintf(result + offset, buf_size - offset, "%s,", *((uint8_t *)p) ? "true" : "false");
+                    break;
+                case TENSOR_TYPE_INT8:
+                    offset += snprintf(result + offset, buf_size - offset, "%d,", *((int8_t *)p));
+                    break;
+                case TENSOR_TYPE_INT16:
+                    offset += snprintf(result + offset, buf_size - offset, "%d,", *((int16_t *)p));
+                    break;
+                case TENSOR_TYPE_INT32:
+                    offset += snprintf(result + offset, buf_size - offset, "%d,", *((int32_t *)p));
+                    break;
+                case TENSOR_TYPE_INT64:
+                    offset += snprintf(result + offset, buf_size - offset, "%ld,", *((int64_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT8:
+                    offset += snprintf(result + offset, buf_size - offset, "%u,", *((uint8_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT16:
+                    offset += snprintf(result + offset, buf_size - offset, "%u,", *((uint16_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT32:
+                    offset += snprintf(result + offset, buf_size - offset, "%u,", *((uint32_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT64:
+                    offset += snprintf(result + offset, buf_size - offset, "%lu,", *((uint64_t *)p));
+                    break;
+                case TENSOR_TYPE_BFLOAT16:
+                    offset += snprintf(result + offset, buf_size - offset, "%g,", bfloat16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT16:
+                    offset += snprintf(result + offset, buf_size - offset, "%g,", float16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT32:
+                    offset += snprintf(result + offset, buf_size - offset, "%g,", *((float *)p));
+                    break;
+                case TENSOR_TYPE_FLOAT64:
+                    offset += snprintf(result + offset, buf_size - offset, "%g,", *((double *)p));
+                    break;
+                case TENSOR_TYPE_COMPLEX64:
+                    offset += snprintf(result + offset, buf_size - offset, "%g + %gi,", *((float *)p), *((float *)(p + sizeof(float))));
+                    break;
+                case TENSOR_TYPE_COMPLEX128:
+                    offset += snprintf(result + offset, buf_size - offset, "%g + %gi,", *((double *)p), *((double *)(p + sizeof(double))));
+                    break;
+                case TENSOR_TYPE_STRING:
+                    offset += snprintf(result + offset, buf_size - offset, "%s,", (char *)(((char **)p)[0]));
+                    break;
+                default:
+                    offset += snprintf(result + offset, buf_size - offset, "?,");
+                    break;
+            }
+            lp = lbuf;
+            rp = rbuf;
+        }
+        for (j = 0; j < ts->ndim; j++)
+            offset += snprintf(result + offset, buf_size - offset, "]");
+        free(sizes);
+        free(levels);
+        free(lbuf);
+        free(rbuf);
+        offset += snprintf(result + offset, buf_size - offset, "\n");
+    } else if (ts->ndata == 1 && ts->datas) {
+        offset += snprintf(result + offset, buf_size - offset, " = ");
+        p = (void *)(ts->datas);
+        switch (ts->type) {
+            case TENSOR_TYPE_BOOL:
+                offset += snprintf(result + offset, buf_size - offset, "%s", *((uint8_t *)p) ? "true" : "false");
+                break;
+            case TENSOR_TYPE_INT8:
+                offset += snprintf(result + offset, buf_size - offset, "%d", *((int8_t *)p));
+                break;
+            case TENSOR_TYPE_INT16:
+                offset += snprintf(result + offset, buf_size - offset, "%d", *((int16_t *)p));
+                break;
+            case TENSOR_TYPE_INT32:
+                offset += snprintf(result + offset, buf_size - offset, "%d", *((int32_t *)p));
+                break;
+            case TENSOR_TYPE_INT64:
+                offset += snprintf(result + offset, buf_size - offset, "%ld", *((int64_t *)p));
+                break;
+            case TENSOR_TYPE_UINT8:
+                offset += snprintf(result + offset, buf_size - offset, "%u", *((uint8_t *)p));
+                break;
+            case TENSOR_TYPE_UINT16:
+                offset += snprintf(result + offset, buf_size - offset, "%u", *((uint16_t *)p));
+                break;
+            case TENSOR_TYPE_UINT32:
+                offset += snprintf(result + offset, buf_size - offset, "%u", *((uint32_t *)p));
+                break;
+            case TENSOR_TYPE_UINT64:
+                offset += snprintf(result + offset, buf_size - offset, "%lu", *((uint64_t *)p));
+                break;
+            case TENSOR_TYPE_BFLOAT16:
+                offset += snprintf(result + offset, buf_size - offset, "%g", bfloat16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT16:
+                offset += snprintf(result + offset, buf_size - offset, "%g", float16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT32:
+                offset += snprintf(result + offset, buf_size - offset, "%g", *((float *)p));
+                break;
+            case TENSOR_TYPE_FLOAT64:
+                offset += snprintf(result + offset, buf_size - offset, "%g", *((double *)p));
+                break;
+            case TENSOR_TYPE_COMPLEX64:
+                offset += snprintf(result + offset, buf_size - offset, "%g + %gi", *((float *)p), *((float *)(p + sizeof(float))));
+                break;
+            case TENSOR_TYPE_COMPLEX128:
+                offset += snprintf(result + offset, buf_size - offset, "%g + %gi", *((double *)p), *((double *)(p + sizeof(double))));
+                break;
+            case TENSOR_TYPE_STRING:
+                offset += snprintf(result + offset, buf_size - offset, "%s,", (char *)(((char **)p)[0]));
+                break;
+            default:
+                offset += snprintf(result + offset, buf_size - offset, "?,");
+                break;
+        }
+    } else {
+        offset += snprintf(result + offset, buf_size - offset, " = []");
+    }
+    return result;
+}
