@@ -7,6 +7,7 @@
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "gifenc.h"
 
 attribute_t* image_get_attr(image_t* img, const char* name) {
     attribute_t* attr;
@@ -136,6 +137,8 @@ image_type_t image_get_type(const char* name) {
         return IMAGE_TYPE_TGA;
     } else if(strcmp(ext, "hdr") == 0) {
         return IMAGE_TYPE_HDR;
+    } else if(strcmp(ext, "gif") == 0) {
+        return IMAGE_TYPE_GIF;
     } else {
         return IMAGE_TYPE_UNKNOWN;
     }
@@ -255,9 +258,18 @@ image_t* image_load(const char* name) {
         img->type = image_get_type(name);
         img->raw = tensor_new(sys_strdup(name), TENSOR_TYPE_UINT8);
         int height, width, channels;
-        uint8_t * data = stbi_load(name, &width, &height, &channels, 0);
-        tensor_reshape(img->raw, 4, (int[]){1, height, width, channels});
-        tensor_apply(img->raw, (void*)data, channels * height * width);
+        int frame = 1;
+        uint8_t * data = NULL;
+        if(img->type == IMAGE_TYPE_GIF) {
+            int *delays = NULL;
+            data = stbi_load_gif(name, &delays, &width, &height, &frame, &channels, 0);
+            attribute_t* delays_attr = attribute_ints("delays", (int64_t*)delays, frame);
+            vector_add(&img->attr_vec, delays_attr);
+        } else {
+            data = stbi_load(name, &width, &height, &channels, 0);
+        }
+        tensor_reshape(img->raw, 4, (int[]){frame, height, width, channels});
+        tensor_apply(img->raw, (void*)data, frame * channels * height * width);
         img->raw->layout = 1;
         free(data);
         data = NULL;
@@ -377,7 +389,45 @@ void image_save(image_t* img, const char* name) {
                 stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
+            case IMAGE_TYPE_GIF:
+                attribute_t* deloys_attr = image_get_attr(img, "deloys");
+                if(deloys_attr) {
+                    int width = img->raw->dims[2];
+                    int height = img->raw->dims[1];
+                    int channel = img->raw->dims[3];
+                    int* deloys = deloys_attr->is;
+                    uint8_t* datas = img->raw->datas;
+                    uint8_t palette[] = {
+                        0x00, 0x00, 0x00,   /* entry 0: black */
+                        0xFF, 0xFF, 0xFF,   /* entry 1: white */
+                        0xFF, 0x00, 0x00,   /* entry 2: red */
+                        0x00, 0x00, 0xFF,   /* entry 3: blue */
+                    };
+                    int depth = 2;          /* palette has 1 << 2 (i.e. 4) entries */
+                    ge_GIF *gif = ge_new_gif(name, width, height, palette, depth, -1, 0);
+                    for(int i = 0; i < img->raw->dims[0]; i++) {
+                        ge_render_frame(gif->frame, datas + width * height * channel, channel);
+                        ge_add_frame(gif, deloys[i]);
+                    }
+                    ge_close_gif(gif);
+                    LOG_INFO("Image save: %s\n", name);
+                }
             default: break;
+        }
+    }
+}
+
+void image_set_deloys(image_t* img, int64_t* deloys, int len) {
+    if(img && deloys) {
+        attribute_t* deloys_attr = image_get_attr(img, "deloys");
+        if(!deloys_attr) {
+            deloys_attr = attribute_ints("deloys", deloys, len);
+            vector_add(&img->attr_vec, deloys_attr);
+        } else {
+            deloys_attr->ni = len;
+            for(int i = 0; i < len; i++) {
+                deloys_attr->is[i] = deloys[i];
+            }
         }
     }
 }

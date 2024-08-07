@@ -48,7 +48,8 @@ UnitTest_fn_def(test_heat_img) {
     tensor_t *ts_p = tensor_permute(ts, 4, (int[]){0, 2, 3, 1});
     tensor_dump2(ts_p);
     image_t* heat_img = image_heatmap(ts, 1);
-    image_save(heat_img, "heat.png");
+    image_set_deloys(heat_img, (int64_t[]){10, 10}, 2);
+    image_save(heat_img, "heat.gif");
     return NULL;
 }
 

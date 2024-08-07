@@ -784,6 +784,7 @@ typedef enum image_type {
     IMAGE_TYPE_JPG,
     IMAGE_TYPE_TGA,
     IMAGE_TYPE_HDR,
+    IMAGE_TYPE_GIF,
 } image_type_t;
 
 // ==================================================================================== //
@@ -813,6 +814,7 @@ EVO_API image_t* image_get_batch(image_t*, int, int*);
 EVO_API tensor_t* image_get_raw(image_t*, int);
 EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
+EVO_API void image_set_deloys(image_t*, int64_t*, int);
 EVO_API void image_free(image_t*);
 
 
@@ -873,8 +875,9 @@ EVO_API void canvas_free(canvas_t*);
 
 typedef enum renderer_type {
     RENDERER_TYPE_TERM,
-    RENDERER_TYPE_GL,
-    RENDERER_TYPE_WEB
+    RENDERER_TYPE_GIF,
+    RENDERER_TYPE_SDL,
+    RENDERER_TYPE_WASM
 } renderer_type_t;
 
 // ==================================================================================== //

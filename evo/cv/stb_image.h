@@ -431,6 +431,7 @@ STBIDEF stbi_uc *stbi_load_from_file  (FILE *f, int *x, int *y, int *channels_in
 
 #ifndef STBI_NO_GIF
 STBIDEF stbi_uc *stbi_load_gif_from_memory(stbi_uc const *buffer, int len, int **delays, int *x, int *y, int *z, int *comp, int req_comp);
+STBIDEF stbi_uc *stbi_load_gif(char const *filename, int **delays, int *width, int *height, int *frames, int *nrChannels, int req_comp);
 #endif
 
 #ifdef STBI_WINDOWS_UTF8
@@ -1453,6 +1454,34 @@ STBIDEF stbi_uc *stbi_load_gif_from_memory(stbi_uc const *buffer, int len, int *
    }
 
    return result;
+}
+
+STBIDEF stbi_uc *stbi_load_gif(char const *filename, int **delays, int *width, int *height, int *frames, int *nrChannels, int req_comp) 
+{
+    FILE *f = stbi__fopen(filename, "rb");
+    unsigned char *result;
+    if (!f) return stbi__errpuc("can't fopen", "Unable to open file");
+    fseek(f, 0, SEEK_END);
+    int bufSize = ftell(f);
+    unsigned char *buf = (unsigned char *)malloc(sizeof(unsigned char) * bufSize);
+    if (buf) 
+    {
+        fseek(f, 0, SEEK_SET);
+        size_t res = fread(buf, 1, bufSize, f);
+        if (res != bufSize) {
+            free(buf);
+            buf = NULL;
+        }
+        result = stbi_load_gif_from_memory(buf, bufSize, delays, width, height, frames, nrChannels, req_comp);
+        free(buf);
+        buf = NULL;
+    }
+    else 
+    {
+        result = stbi__errpuc("outofmem", "Out of memory");
+    }
+    fclose(f);
+    return result;
 }
 #endif
 

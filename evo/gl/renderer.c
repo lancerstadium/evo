@@ -402,7 +402,7 @@ static void renderer_term_compress_pixel(renderer_t* rd, canvas_t* cav) {
             int h, s, l;
             rgb_to_hsl(r, g, b, &h, &s, &l);
             priv->char_canvas[y * priv->scalaed_down_width + x] = find_ansi_index_by_hsl(h, s, l);
-            canvas_free(sub_cav);
+            // canvas_free(sub_cav);
         }
     }
 }
@@ -410,8 +410,9 @@ static void renderer_term_compress_pixel(renderer_t* rd, canvas_t* cav) {
 void renderer_render_term(renderer_t* rd, render_fn_t rd_fn) {
     if (!rd || !rd->priv || !rd_fn) return;
     renderer_term_t* priv = rd->priv;
+    canvas_t* cav = NULL;
     for (;;) {
-        canvas_t* cav = rd_fn(1.f / 60.f);
+        cav = rd_fn(1.f / 60.f);
         renderer_term_compress_pixel(rd, cav);
         for (size_t y = 0; y < priv->actual_height; y++) {
             for (size_t x = 0; x < priv->actual_width; x++) {
@@ -422,7 +423,6 @@ void renderer_render_term(renderer_t* rd, render_fn_t rd_fn) {
         usleep(1000 * 1000 / 60);
         printf("\033[%zuA", priv->actual_height);
         printf("\033[%zuD", priv->actual_width);
-        canvas_free(cav);
     }
 }
 
