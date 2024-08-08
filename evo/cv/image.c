@@ -269,8 +269,16 @@ image_t* image_load(const char* name) {
         uint8_t * data = NULL;
         if(img->type == IMAGE_TYPE_GIF) {
             int *delays = NULL;
+            int64_t *new_delays = NULL;
             data = stbi_load_gif(name, &delays, &width, &height, &frame, &channels, 0);
-            attribute_t* delays_attr = attribute_ints("delays", (int64_t*)delays, frame);
+            if(delays) {
+                new_delays = malloc(frame * sizeof(int64_t));
+                for(int i = 0; i < frame; i++) {
+                    new_delays[i] = (int64_t)delays[i];
+                }
+                free(delays);
+            }
+            attribute_t* delays_attr = attribute_ints("delays", new_delays, frame);
             vector_add(&img->attr_vec, delays_attr);
         } else {
             data = stbi_load(name, &width, &height, &channels, 0);
@@ -402,15 +410,17 @@ void image_save(image_t* img, const char* name) {
                     int width = img->raw->dims[2];
                     int height = img->raw->dims[1];
                     int channel = img->raw->dims[3];
-                    int* deloys = (int*)deloys_attr->is;
+                    int64_t* deloys = deloys_attr->is;
                     uint8_t* datas = img->raw->datas;
                     ge_GIF *gif = ge_new_gif(name, width, height, NULL, 8, -1, 0);
                     for(int i = 0; i < img->raw->dims[0]; i++) {
                         ge_render_frame(gif, datas + width * height * channel * i, channel);
-                        ge_add_frame(gif, deloys[i]);
+                        ge_add_frame(gif, (uint16_t) deloys[i]);
                     }
                     ge_close_gif(gif);
                     LOG_INFO("Image save: %s\n", name);
+                } else {
+                    LOG_WARN("Image warn: gif no deloys attribute!\n");
                 }
             default: break;
         }
@@ -424,10 +434,38 @@ void image_set_deloys(image_t* img, int64_t* deloys, int len) {
             deloys_attr = attribute_ints("deloys", deloys, len);
             vector_add(&img->attr_vec, deloys_attr);
         } else {
-            deloys_attr->ni = len;
-            for(int i = 0; i < len; i++) {
-                deloys_attr->is[i] = deloys[i];
+            if(len < deloys_attr->ni) {
+                deloys_attr->ni = len;
+                for(int i = 0; i < len; i++) {
+                    deloys_attr->is[i] = deloys[i];
+                }
+            } else {
+                deloys_attr->ni = len;
+                // if(deloys_attr->is) free(deloys_attr->is);
+                deloys_attr->is = malloc(len * sizeof(int64_t));
+                for(int i = 0; i < len; i++) {
+                    deloys_attr->is[i] = deloys[i];
+                }
             }
+        }
+    }
+}
+
+void image_push(image_t* a, image_t* b) {
+    if(!a || !b || !a->raw || !b->raw) return;
+    if(a->raw->type != b->raw->type || !a->raw->layout || !b->raw->layout) return;
+    if(a->raw->dims[1] == b->raw->dims[1] && a->raw->dims[2] == b->raw->dims[2] && a->raw->dims[3] == b->raw->dims[3]) {
+        int old_dim = a->raw->dims[0];
+        a->raw->dims[0] += b->raw->dims[0];
+        a->raw->strides[0] += b->raw->strides[0];
+        int ndata = a->raw->dims[0] * a->raw->dims[1] * a->raw->dims[2] * a->raw->dims[3];
+        void *datas = malloc(ndata * tensor_type_sizeof(a->raw->type));
+        if(datas) {
+            memcpy(datas, a->raw->datas, old_dim * a->raw->dims[1] * a->raw->dims[2] * a->raw->dims[3]);
+            memcpy(datas + old_dim * a->raw->dims[1] * a->raw->dims[2] * a->raw->dims[3], b->raw->datas, b->raw->dims[0] * a->raw->dims[1] * a->raw->dims[2] * a->raw->dims[3]);
+            a->raw->ndata = ndata;
+            if(a->raw->datas) free(a->raw->datas);
+            a->raw->datas = datas;
         }
     }
 }

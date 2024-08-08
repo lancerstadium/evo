@@ -53,13 +53,12 @@ canvas_t* dots3d(float dt) {
             }
         }
     }
-    canvas_export(cav, "dots3d.png");
     return cav;
 }
 
 UnitTest_fn_def(test_render_canvas) {
-    renderer_t* rd = renderer_new(RENDERER_TYPE_TERM);
-    // renderer_run(rd, dots3d);
+    renderer_t* rd = renderer_new(RENDERER_TYPE_GIF);
+    renderer_run(rd, dots3d);
     renderer_free(rd);
     return NULL;
 }

@@ -55,14 +55,19 @@ UnitTest_fn_def(test_heat_img) {
 
 UnitTest_fn_def(test_read_png) {
     const char* img_path = "model/lut3d_96/test_data_set_0/input_0.jpg";
+    // const char* img_path = "heat.gif";
     image_t* img = image_load(img_path);
     // image_dump_raw(img, 0);
     UnitTest_msg("%s", image_dump_shape(img));
     image_save(img, "demo.jpg");
     image_t* r_img = image_channel(img, 0);
+    image_t* g_img = image_channel(img, 1);
+    image_t* b_img = image_channel(img, 2);
     UnitTest_msg("%s", image_dump_shape(r_img));
     image_save(r_img, "demo_r.jpg");
-    image_save_grey(img, "demo_g.jpg", 0);
+    image_save(g_img, "demo_g.jpg");
+    image_save(b_img, "demo_b.jpg");
+    image_save_grey(img, "demo_grey.jpg", 0);
     return NULL;
 }
 
