@@ -56,6 +56,7 @@ canvas_t* dots3d(float dt) {
     return cav;
 }
 
+
 UnitTest_fn_def(test_render_canvas) {
     renderer_t* rd = renderer_new(RENDERER_TYPE_GIF);
     renderer_run(rd, dots3d);
