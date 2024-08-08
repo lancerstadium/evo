@@ -194,13 +194,18 @@ image_t* image_from_tensor(tensor_t *ts) {
     return NULL;
 }
 
-image_t* image_heatmap(tensor_t *ts, int channel) {
+image_t* image_heatmap(tensor_t *ts, int frame) {
     image_t* img = (image_t*)malloc(sizeof(image_t));
     if(img && ts) {
         tensor_t *new_ts = tensor_new(sys_strdup(ts->name), TENSOR_TYPE_UINT8);
         int ndim = 4;
         int dims[4];
-        dims[0] = 1;
+        bool is_valid = frame <= ts->dims[0] - 1 && frame >= 0;
+        if(is_valid) {
+            dims[0] = 1;
+        } else {
+            dims[0] = ts->dims[0];
+        }
         dims[3] = 4;
         if(ts->ndim <= 2) {
             return NULL;
@@ -211,14 +216,16 @@ image_t* image_heatmap(tensor_t *ts, int channel) {
         dims[1] = ts->dims[2];
         dims[2] = ts->dims[3];
         tensor_reshape(new_ts, ndim, dims);
-        new_ts->ndata = 4 * ts->dims[2] * ts->dims[3];
+        new_ts->ndata = dims[0] * dims[1] * dims[2] * 4;
         new_ts->datas = malloc(new_ts->ndata);
         if(ts->type == TENSOR_TYPE_FLOAT32) {
             float* data = ts->datas;
             uint32_t* datas = new_ts->datas;
-            for(int x = 0; x < ts->dims[2]; x++) {
-                for(int y = 0; y < ts->dims[3]; y++) {
-                    datas[x * ts->dims[3] + y] = color_interpolate(0x00ff0000, 0xf00000ff, data[channel * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
+            for(int i = 0; i < dims[0]; i++) {
+                for(int x = 0; x < dims[1]; x++) {
+                    for(int y = 0; y < dims[2]; y++) {
+                        datas[i * dims[1] * dims[2] + x * dims[2] + y] = color_interpolate(0x00ff0000, 0xf00000ff, data[(is_valid ? frame : i) * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
+                    }
                 }
             }
         }
@@ -395,18 +402,11 @@ void image_save(image_t* img, const char* name) {
                     int width = img->raw->dims[2];
                     int height = img->raw->dims[1];
                     int channel = img->raw->dims[3];
-                    int* deloys = deloys_attr->is;
+                    int* deloys = (int*)deloys_attr->is;
                     uint8_t* datas = img->raw->datas;
-                    uint8_t palette[] = {
-                        0x00, 0x00, 0x00,   /* entry 0: black */
-                        0xFF, 0xFF, 0xFF,   /* entry 1: white */
-                        0xFF, 0x00, 0x00,   /* entry 2: red */
-                        0x00, 0x00, 0xFF,   /* entry 3: blue */
-                    };
-                    int depth = 2;          /* palette has 1 << 2 (i.e. 4) entries */
-                    ge_GIF *gif = ge_new_gif(name, width, height, palette, depth, -1, 0);
+                    ge_GIF *gif = ge_new_gif(name, width, height, NULL, 8, -1, 0);
                     for(int i = 0; i < img->raw->dims[0]; i++) {
-                        ge_render_frame(gif->frame, datas + width * height * channel, channel);
+                        ge_render_frame(gif, datas + width * height * channel * i, channel);
                         ge_add_frame(gif, deloys[i]);
                     }
                     ge_close_gif(gif);

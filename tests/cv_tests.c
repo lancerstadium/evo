@@ -44,11 +44,11 @@ UnitTest_fn_def(test_heat_img) {
         0.2, 0.4, 0.9, 0.5,
         0.2, 0.4, 0.6, 0.5,
     };
-    tensor_t *ts = tensor_new_float32("heat", (int[]){1, 2, 5, 4}, 4, heat, 40);
+    tensor_t *ts = tensor_new_float32("heat", (int[]){2, 1, 5, 4}, 4, heat, 40);
     tensor_t *ts_p = tensor_permute(ts, 4, (int[]){0, 2, 3, 1});
     tensor_dump2(ts_p);
-    image_t* heat_img = image_heatmap(ts, 1);
-    image_set_deloys(heat_img, (int64_t[]){10, 10}, 2);
+    image_t* heat_img = image_heatmap(ts, -1);
+    image_set_deloys(heat_img, (int64_t[]){100, 100}, 2);
     image_save(heat_img, "heat.gif");
     return NULL;
 }
