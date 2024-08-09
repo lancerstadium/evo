@@ -869,10 +869,10 @@ EVO_API bool canvas_normalize_triangle(canvas_t*, int, int, int, int, int, int, 
 EVO_API void canvas_rectangle(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_rectangle_c2(canvas_t*, int, int, int, int, uint32_t, uint32_t);
 EVO_API void canvas_frame(canvas_t*, int, int, int, int, size_t, uint32_t);
-EVO_API void canvas_triangle_3c(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t c1, uint32_t c2, uint32_t c3);
-EVO_API void canvas_triangle_3z(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, float z1, float z2, float z3);
-EVO_API void canvas_triangle_3uv(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, float tx1, float ty1, float tx2, float ty2, float tx3, float ty3, float z1, float z2, float z3, canvas_t* texture);
-EVO_API void canvas_triangle(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color);
+EVO_API void canvas_triangle_3c(canvas_t*, int, int, int, int, int, int, uint32_t, uint32_t, uint32_t);
+EVO_API void canvas_triangle_3z(canvas_t*, int, int, int, int, int, int, float, float, float);
+EVO_API void canvas_triangle_3uv(canvas_t*, int, int, int, int, int, int, float, float, float, float, float, float, float, float, float, canvas_t*);
+EVO_API void canvas_triangle(canvas_t*, int, int, int, int, int, int, uint32_t);
 EVO_API void canvas_ellipse(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_circle(canvas_t*, int, int, int, uint32_t);
 EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint32_t);
