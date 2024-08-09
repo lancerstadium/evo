@@ -7,28 +7,29 @@
 #define WIDTH 960
 #define HEIGHT 720
 #define BG_COLOR 0xFF181818
-#define GRID_COUNT 10
-#define GRID_PAD 0.5 / GRID_COUNT
-#define GRID_SIZE ((GRID_COUNT - 1) * GRID_PAD)
-#define CIRCLE_RADIUS 5
-#define Z_START 0.25
-#define ABOBA_PADDING 50
 
 canvas_t* dots3d(float dt) {
+    // Parameters
+    int grid_count = 10;
+    int circle_radius = 5;
+    float grid_pad = 0.5 / grid_count;
+    float grid_size = (grid_count - 1) * grid_pad;
     float angle = 0;
+    float z_start = 0.25;
     angle += 0.25 * PI * dt;
+    // 0. init canvas
     canvas_t* cav = canvas_new(WIDTH, HEIGHT);
     canvas_fill(cav, BG_COLOR);
     // 1. draw circles
-    for (int ix = 0; ix < GRID_COUNT; ++ix) {
-        for (int iy = 0; iy < GRID_COUNT; ++iy) {
-            for (int iz = 0; iz < GRID_COUNT; ++iz) {
-                float x = ix * GRID_PAD - GRID_SIZE / 2;
-                float y = iy * GRID_PAD - GRID_SIZE / 2;
-                float z = Z_START + iz * GRID_PAD;
+    for (int ix = 0; ix < grid_count; ++ix) {
+        for (int iy = 0; iy < grid_count; ++iy) {
+            for (int iz = 0; iz < grid_count; ++iz) {
+                float x = ix * grid_pad - grid_size / 2;
+                float y = iy * grid_pad - grid_size / 2;
+                float z = z_start + iz * grid_pad;
 
                 float cx = 0.0;
-                float cz = Z_START + GRID_SIZE / 2;
+                float cz = z_start + grid_size / 2;
 
                 float dx = x - cx;
                 float dz = z - cz;
@@ -45,21 +46,79 @@ canvas_t* dots3d(float dt) {
                 x /= z;
                 y /= z;
 
-                uint32_t r = ix * 255 / GRID_COUNT;
-                uint32_t g = iy * 255 / GRID_COUNT;
-                uint32_t b = iz * 255 / GRID_COUNT;
+                uint32_t r = ix * 255 / grid_count;
+                uint32_t g = iy * 255 / grid_count;
+                uint32_t b = iz * 255 / grid_count;
                 uint32_t color = pixel_rgba(r, g, b, 255);
-                canvas_circle(cav, (x + 1) / 2 * WIDTH, (y + 1) / 2 * HEIGHT, CIRCLE_RADIUS, color);
+                canvas_circle(cav, (x + 1) / 2 * WIDTH, (y + 1) / 2 * HEIGHT, circle_radius, color);
             }
         }
     }
     return cav;
 }
 
+static inline void rotate_point(float angle, float* x, float* y) {
+    float dx = *x - WIDTH / 2;
+    float dy = *y - HEIGHT / 2;
+    float mag = sqrtf(dx * dx + dy * dy);
+    float dir = atan2f(dy, dx) + angle;
+    *x = cosf(dir) * mag + WIDTH / 2;
+    *y = sinf(dir) * mag + HEIGHT / 2;
+}
+
+canvas_t* triangle(float dt) {
+    // Parameters
+    float angle = 0;
+    float circle_radius = 100;
+    uint32_t circle_color = 0x99AA2020;
+    float circle_x = WIDTH/2;
+    float circle_y = HEIGHT/2;
+    float circle_dx = 100;
+    float circle_dy = 100;
+
+    // 0. init canvas
+    canvas_t* cav = canvas_new(WIDTH, HEIGHT);
+    canvas_fill(cav, BG_COLOR);
+
+    // 1. Triangle
+    {
+        angle += 0.5f*PI*dt;
+
+        float x1 = WIDTH/2, y1 = HEIGHT/8;
+        float x2 = WIDTH/8, y2 = HEIGHT/2;
+        float x3 = WIDTH*7/8, y3 = HEIGHT*7/8;
+        rotate_point(angle, &x1, &y1);
+        rotate_point(angle, &x2, &y2);
+        rotate_point(angle, &x3, &y3);
+        canvas_triangle_3c(cav, x1, y1, x2, y2, x3, y3, 0xFF2020FF, 0xFF20FF20, 0xFFFF2020);
+    }
+
+    // 2. Circle
+    {
+        float x = circle_x + circle_dx*dt;
+        if (x - circle_radius < 0 || x + circle_radius >= WIDTH) {
+            circle_dx *= -1;
+        } else {
+            circle_x = x;
+        }
+
+        float y = circle_y + circle_dy*dt;
+        if (y - circle_radius < 0 || y + circle_radius >= HEIGHT) {
+            circle_dy *= -1;
+        } else {
+            circle_y = y;
+        }
+
+        canvas_circle(cav, circle_x, circle_y, circle_radius, circle_color);
+    }
+
+    return cav;
+}
+
 
 UnitTest_fn_def(test_render_canvas) {
     renderer_t* rd = renderer_new(RENDERER_TYPE_GIF);
-    renderer_run(rd, dots3d);
+    renderer_run(rd, triangle);
     renderer_free(rd);
     return NULL;
 }

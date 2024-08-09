@@ -344,7 +344,7 @@ static uint8_t ge_match_color(ge_GIF *gif, uint8_t *color, int channel) {
                     loc_palette |= (gif->palette[i * 3 + j] << (j * 8));
                 }
             }
-            if(loc_color & 0x00FFFFFF == loc_palette) {
+            if((loc_color & 0x00FFFFFF) == loc_palette) {
                 return i;
             }
         }

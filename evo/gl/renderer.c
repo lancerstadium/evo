@@ -439,14 +439,15 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
     if (!rd || !rd->priv || !rd_fn) return;
     renderer_gif_t* priv = rd->priv;
     canvas_t* cav = rd_fn(0);
-    int64_t ndelay = 60;        // 0 < ndelay <= 60
+    int64_t ndelay = 60;       // 0 < ndelay <= 60
     int64_t delays[ndelay];
-    int64_t delay = 5;          // 5 ms
+    int64_t delay = 5;         // 5 ms
     delays[0] = delay;
     for (size_t i = 1; i < ndelay; i++) {
         delays[i] = delay;
         canvas_t* cav_tmp = rd_fn((1.f * i) / 60.f);
         image_push(cav->background, cav_tmp->background);
+        // canvas_free(cav_tmp);
     }
     image_set_deloys(cav->background, delays, ndelay);
     canvas_export(cav, "renderer.gif");

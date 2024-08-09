@@ -113,7 +113,7 @@ void canvas_blend(uint32_t* pixel, uint32_t color) {
     *pixel = pixel_rgba(r1, g1, b1, a1);
 }
 
-uint32_t color_interpolate(uint32_t color1, uint32_t color2, float t) {
+uint32_t color_mix(uint32_t color1, uint32_t color2, float t) {
     if(t > 1.0f) t = 1.0f;
     if(t < 0.0f) t = 0.0f;
     uint8_t r1 = pixel_red(color1);
@@ -134,9 +134,74 @@ uint32_t color_interpolate(uint32_t color1, uint32_t color2, float t) {
     return pixel_rgba(r, g, b, a);
 }
 
+uint32_t color_mix2(uint32_t c1, uint32_t c2, int u1, int det) {
+    int64_t r1 = pixel_red(c1);
+    int64_t g1 = pixel_green(c1);
+    int64_t b1 = pixel_blue(c1);
+    int64_t a1 = pixel_alpha(c1);
+
+    int64_t r2 = pixel_red(c2);
+    int64_t g2 = pixel_green(c2);
+    int64_t b2 = pixel_blue(c2);
+    int64_t a2 = pixel_alpha(c2);
+
+    if (det != 0) {
+        int u2 = det - u1;
+        int64_t r4 = (r1*u2 + r2*u1)/det;
+        int64_t g4 = (g1*u2 + g2*u1)/det;
+        int64_t b4 = (b1*u2 + b2*u1)/det;
+        int64_t a4 = (a1*u2 + a2*u1)/det;
+
+        return pixel_rgba(r4, g4, b4, a4);
+    }
+
+    return 0;
+}
+
+uint32_t color_mix3(uint32_t c1, uint32_t c2, uint32_t c3, int u1, int u2, int det) {
+    int64_t r1 = pixel_red(c1);
+    int64_t g1 = pixel_green(c1);
+    int64_t b1 = pixel_blue(c1);
+    int64_t a1 = pixel_alpha(c1);
+
+    int64_t r2 = pixel_red(c2);
+    int64_t g2 = pixel_green(c2);
+    int64_t b2 = pixel_blue(c2);
+    int64_t a2 = pixel_alpha(c2);
+
+    int64_t r3 = pixel_red(c3);
+    int64_t g3 = pixel_green(c3);
+    int64_t b3 = pixel_blue(c3);
+    int64_t a3 = pixel_alpha(c3);
+
+    if (det != 0) {
+        int u3 = det - u1 - u2;
+        int64_t r4 = (r1*u1 + r2*u2 + r3*u3)/det;
+        int64_t g4 = (g1*u1 + g2*u2 + g3*u3)/det;
+        int64_t b4 = (b1*u1 + b2*u2 + b3*u3)/det;
+        int64_t a4 = (a1*u1 + a2*u2 + a3*u3)/det;
+
+        return pixel_rgba(r4, g4, b4, a4);
+    }
+
+    return 0;
+}
+
+
 bool canvas_is_in_bound(canvas_t* cav, int x, int y) {
     if (!cav) return false;
     return 0 <= x && x < cav->width && 0 <= y && y < cav->height;
+}
+
+bool canvas_barycentric(int x1, int y1, int x2, int y2, int x3, int y3, int xp, int yp, int* u1, int* u2, int* det) {
+    *det = ((x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3));
+    *u1 = ((y2 - y3) * (xp - x3) + (x3 - x2) * (yp - y3));
+    *u2 = ((y3 - y1) * (xp - x3) + (x1 - x3) * (yp - y3));
+    int u3 = *det - *u1 - *u2;
+    return (
+        (CANVAS_SIGN(int, *u1) == CANVAS_SIGN(int, *det) || *u1 == 0) &&
+        (CANVAS_SIGN(int, *u2) == CANVAS_SIGN(int, *det) || *u2 == 0) &&
+        (CANVAS_SIGN(int, u3) == CANVAS_SIGN(int, *det) || u3 == 0));
 }
 
 void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) {
@@ -157,7 +222,7 @@ void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) 
 
         for (int x = x1; x <= x2; ++x) {
             int y = dy * (x - x1) / dx + y1;
-            // TODO: move boundary checks out side of the loops in olivec_draw_line
+            // TODO: move boundary checks out side of the loops in canvas_draw_line
             if (canvas_is_in_bound(cav, x, y)) {
                 canvas_blend(&canvas_pixel(cav, x, y), color);
             }
@@ -170,7 +235,7 @@ void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) 
 
         for (int y = y1; y <= y2; ++y) {
             int x = dx * (y - y1) / dy + x1;
-            // TODO: move boundary checks out side of the loops in olivec_draw_line
+            // TODO: move boundary checks out side of the loops in canvas_draw_line
             if (canvas_is_in_bound(cav, x, y)) {
                 canvas_blend(&canvas_pixel(cav, x, y), color);
             }
@@ -179,7 +244,7 @@ void canvas_line(canvas_t* cav, int x1, int y1, int x2, int y2, uint32_t color) 
 }
 
 bool canvas_normalize_rectangle(canvas_t* cav, int x, int y, int w, int h, rectangle_t* rec) {
-    if (w == 0 || h == 0) return false;
+    if (!cav || w == 0 || h == 0) return false;
     int ox1 = x;
     int oy1 = y;
     int ox2 = ox1 + CANVAS_SIGN(int, w) * (CANVAS_ABS(int, w) - 1);
@@ -202,6 +267,35 @@ bool canvas_normalize_rectangle(canvas_t* cav, int x, int y, int w, int h, recta
     return true;
 }
 
+bool canvas_normalize_triangle(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, int *lx, int *hx, int *ly, int *hy) {
+    if(!cav) return false;
+    size_t width = cav->width;
+    size_t height = cav->height;
+    *lx = x1;
+    *hx = x1;
+    if (*lx > x2) *lx = x2;
+    if (*lx > x3) *lx = x3;
+    if (*hx < x2) *hx = x2;
+    if (*hx < x3) *hx = x3;
+    if (*lx < 0) *lx = 0;
+    if ((size_t) *lx >= width) return false;;
+    if (*hx < 0) return false;;
+    if ((size_t) *hx >= width) *hx = width-1;
+
+    *ly = y1;
+    *hy = y1;
+    if (*ly > y2) *ly = y2;
+    if (*ly > y3) *ly = y3;
+    if (*hy < y2) *hy = y2;
+    if (*hy < y3) *hy = y3;
+    if (*ly < 0) *ly = 0;
+    if ((size_t) *ly >= height) return false;;
+    if (*hy < 0) return false;;
+    if ((size_t) *hy >= height) *hy = height-1;
+
+    return true;
+}
+
 void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color) {
     if (!cav) return;
     for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
@@ -217,7 +311,7 @@ void canvas_rectangle_c2(canvas_t* cav, int x, int y, int w, int h, uint32_t col
         float t_x = (float)(i - x) / w;
         for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
             float t_y = (float)(j - y) / h;
-            uint32_t color = color_interpolate(color1, color2, (t_x + t_y) / 2.0f);
+            uint32_t color = color_mix(color1, color2, (t_x + t_y) / 2.0f);
             canvas_blend(&canvas_pixel(cav, i, j), color);
         }
     }
@@ -238,6 +332,80 @@ void canvas_frame(canvas_t* cav, int x, int y, int w, int h, size_t t, uint32_t 
     canvas_rectangle(cav, x1 - t / 2, y2 + t / 2, (x2 - x1 + 1) + t / 2 * 2, -t, color);  // Bottom
     canvas_rectangle(cav, x2 + t / 2, y1 - t / 2, -t, (y2 - y1 + 1) + t / 2 * 2, color);  // Right
 }
+
+void canvas_triangle_3c(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t c1, uint32_t c2, uint32_t c3) {
+    if (!cav) return;
+    int lx, hx, ly, hy;
+    if (canvas_normalize_triangle(cav, x1, y1, x2, y2, x3, y3, &lx, &hx, &ly, &hy)) {
+        for (int y = ly; y <= hy; ++y) {
+            for (int x = lx; x <= hx; ++x) {
+                int u1, u2, det;
+                if (canvas_barycentric(x1, y1, x2, y2, x3, y3, x, y, &u1, &u2, &det)) {
+                    canvas_blend(&canvas_pixel(cav, x, y), color_mix3(c1, c2, c3, u1, u2, det));
+                }
+            }
+        }
+    }
+}
+
+void canvas_triangle_3z(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, float z1, float z2, float z3) {
+    if (!cav) return;
+    int lx, hx, ly, hy;
+    if (canvas_normalize_triangle(cav, x1, y1, x2, y2, x3, y3, &lx, &hx, &ly, &hy)) {
+        for (int y = ly; y <= hy; ++y) {
+            for (int x = lx; x <= hx; ++x) {
+                int u1, u2, det;
+                if (canvas_barycentric(x1, y1, x2, y2, x3, y3, x, y, &u1, &u2, &det)) {
+                    float z = z1*u1/det + z2*u2/det + z3*(det - u1 - u2)/det;
+                    canvas_pixel(cav, x, y) = *(uint32_t*)&z;
+                }
+            }
+        }
+    }
+}
+
+void canvas_triangle_3uv(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, float tx1, float ty1, float tx2, float ty2, float tx3, float ty3, float z1, float z2, float z3, canvas_t* texture) {
+    if (!cav) return;
+    int lx, hx, ly, hy;
+    if (canvas_normalize_triangle(cav, x1, y1, x2, y2, x3, y3, &lx, &hx, &ly, &hy)) {
+        for (int y = ly; y <= hy; ++y) {
+            for (int x = lx; x <= hx; ++x) {
+                int u1, u2, det;
+                if (canvas_barycentric(x1, y1, x2, y2, x3, y3, x, y, &u1, &u2, &det)) {
+                    int u3 = det - u1 - u2;
+                    float z = z1*u1/det + z2*u2/det + z3*(det - u1 - u2)/det;
+                    float tx = tx1*u1/det + tx2*u2/det + tx3*u3/det;
+                    float ty = ty1*u1/det + ty2*u2/det + ty3*u3/det;
+
+                    int texture_x = tx/z*texture->width;
+                    if (texture_x < 0) texture_x = 0;
+                    if ((size_t) texture_x >= texture->width) texture_x = texture->width - 1;
+
+                    int texture_y = ty/z*texture->height;
+                    if (texture_y < 0) texture_y = 0;
+                    if ((size_t) texture_y >= texture->height) texture_y = texture->height - 1;
+                    canvas_pixel(cav, x, y) = canvas_pixel(texture, (int)texture_x, (int)texture_y);
+                }
+            }
+        }
+    }
+}
+
+void canvas_triangle(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) {
+    if (!cav) return;
+    int lx, hx, ly, hy;
+    if (canvas_normalize_triangle(cav, x1, y1, x2, y2, x3, y3, &lx, &hx, &ly, &hy)) {
+        for (int y = ly; y <= hy; ++y) {
+            for (int x = lx; x <= hx; ++x) {
+                int u1, u2, det;
+                if (canvas_barycentric(x1, y1, x2, y2, x3, y3, x, y, &u1, &u2, &det)) {
+                    canvas_blend(&canvas_pixel(cav, x, y), color);
+                }
+            }
+        }
+    }
+}
+
 
 void canvas_ellipse(canvas_t* cav, int cx, int cy, int rx, int ry, uint32_t color) {
     if (!cav) return;

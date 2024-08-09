@@ -224,7 +224,7 @@ image_t* image_heatmap(tensor_t *ts, int frame) {
             for(int i = 0; i < dims[0]; i++) {
                 for(int x = 0; x < dims[1]; x++) {
                     for(int y = 0; y < dims[2]; y++) {
-                        datas[i * dims[1] * dims[2] + x * dims[2] + y] = color_interpolate(0x00ff0000, 0xf00000ff, data[(is_valid ? frame : i) * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
+                        datas[i * dims[1] * dims[2] + x * dims[2] + y] = color_mix(0x00ff0000, 0xf00000ff, data[(is_valid ? frame : i) * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
                     }
                 }
             }
