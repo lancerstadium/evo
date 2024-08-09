@@ -406,7 +406,6 @@ void canvas_triangle(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, int 
     }
 }
 
-
 void canvas_ellipse(canvas_t* cav, int cx, int cy, int rx, int ry, uint32_t color) {
     if (!cav) return;
     int rx1 = rx + CANVAS_SIGN(int, rx);
