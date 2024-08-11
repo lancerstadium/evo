@@ -883,7 +883,6 @@ EVO_API void canvas_free(canvas_t*);
 // ==================================================================================== //
 
 typedef enum renderer_type {
-    RENDERER_TYPE_TERM,
     RENDERER_TYPE_GIF,
     RENDERER_TYPE_SDL,
     RENDERER_TYPE_WASM
