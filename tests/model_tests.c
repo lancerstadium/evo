@@ -116,26 +116,26 @@ UnitTest_fn_def(test_mnist_8) {
 UnitTest_fn_def(test_mobilenet_v2_7) {
     TEST_1I_BEGIN("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 66
 
-    const char* relu_layer[] = {
-        "mobilenetv20_features_linearbottleneck9_relu0_fwd",
-        "mobilenetv20_features_linearbottleneck9_relu1_fwd",
-        "mobilenetv20_features_linearbottleneck10_relu0_fwd",
-        "mobilenetv20_features_linearbottleneck10_relu1_fwd",
-        "mobilenetv20_features_linearbottleneck11_relu0_fwd",
-        "mobilenetv20_features_linearbottleneck11_relu1_fwd"
-    };
+    // const char* relu_layer[] = {
+    //     "mobilenetv20_features_linearbottleneck9_relu0_fwd",
+    //     "mobilenetv20_features_linearbottleneck9_relu1_fwd",
+    //     "mobilenetv20_features_linearbottleneck10_relu0_fwd",
+    //     "mobilenetv20_features_linearbottleneck10_relu1_fwd",
+    //     "mobilenetv20_features_linearbottleneck11_relu0_fwd",
+    //     "mobilenetv20_features_linearbottleneck11_relu1_fwd"
+    // };
 
-    image_t *origin_input = image_from_tensor(a);
-    image_save(origin_input, "mobilenet_input.png");
-    int channel = 2;
-    for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
-        char path[64];
-        sprintf(path, "heatmap_mobiilenet_relu_%d_c%d.png", i, channel);
-        tensor_t * ts = model_get_tensor(mdl, relu_layer[i]);
-        image_t *heat_map = image_heatmap(ts, channel);
-        tensor_dump(ts);
-        image_save(heat_map, path);
-    }
+    // image_t *origin_input = image_from_tensor(a);
+    // image_save(origin_input, "mobilenet_input.png");
+    // int channel = 2;
+    // for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
+    //     char path[64];
+    //     sprintf(path, "heatmap_mobiilenet_relu_%d_c%d.png", i, channel);
+    //     tensor_t * ts = model_get_tensor(mdl, relu_layer[i]);
+    //     image_t *heat_map = image_heatmap(ts, channel);
+    //     tensor_dump(ts);
+    //     image_save(heat_map, path);
+    // }
 
     TEST_NORM_END();
     return NULL;
@@ -170,7 +170,7 @@ UnitTest_fn_def(test_tinyyolo_v2_8) {
     //     image_save(heat_map, path);
     // }
     image_t *img = image_from_tensor(t0);
-    // image_save(img, "tinyyolo_input.png");
+    image_save(img, "tinyyolo_input.png");
 
     TEST_NORM_END();
     return NULL;
