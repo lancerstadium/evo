@@ -7,6 +7,8 @@
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize2.h"
 #include "gifenc.h"
 
 attribute_t* image_get_attr(image_t* img, const char* name) {
@@ -449,6 +451,83 @@ void image_set_deloys(image_t* img, int64_t* deloys, int len) {
             }
         }
     }
+}
+
+void image_crop_center(image_t* img, int crop_width, int crop_height) {
+    if(!img || !img->raw || crop_height <= 0 || crop_width <= 0) return;
+    int width, height, channel;
+    if(img->raw->layout == 1) {
+        width = img->raw->dims[2];
+        height = img->raw->dims[1];
+        channel = img->raw->dims[3];
+    } else {
+        width = img->raw->dims[3];
+        height = img->raw->dims[2];
+        channel = img->raw->dims[1];
+    }
+    crop_height = (crop_height <= height) ? crop_height : height;
+    crop_width = (crop_width <= width) ? crop_width : width;
+    unsigned char* data = sys_malloc(crop_height * crop_width * channel);
+    int w_start = (width - crop_width) / 2;
+    int h_start = (height - crop_height) / 2;
+    int x_start = w_start + h_start * width;
+    uint8_t* datas = img->raw->datas;
+    for(int i = 0; i < crop_height; i++) {
+        int x = x_start + width * i;
+        memcpy(data + i * crop_width * channel, datas + x * channel, crop_width * channel);
+    }
+    // update dims
+    if(img->raw->layout == 1) {
+        img->raw->dims[2] = crop_width;
+        img->raw->dims[1] = crop_height;
+        img->raw->dims[3] = channel;
+    } else {
+        img->raw->dims[3] = crop_width;
+        img->raw->dims[2] = crop_height;
+        img->raw->dims[1] = channel;
+    }
+    // update strides
+    for(int i = img->raw->ndim - 2; i >= 0; i--) {
+        img->raw->strides[i] = img->raw->strides[i+1] * img->raw->dims[i+1];
+    }
+    // update datas
+    img->raw->ndata = crop_height * crop_width * channel;
+    free(img->raw->datas);
+    img->raw->datas = data;
+}
+
+void image_resize(image_t* img, int resize_width, int resize_height) {
+    if(!img || !img->raw || resize_height <= 0 || resize_width <= 0) return;
+    int width, height, channel;
+    if(img->raw->layout == 1) {
+        width = img->raw->dims[2];
+        height = img->raw->dims[1];
+        channel = img->raw->dims[3];
+    } else {
+        width = img->raw->dims[3];
+        height = img->raw->dims[2];
+        channel = img->raw->dims[1];
+    }
+    unsigned char* data = sys_malloc(resize_height * resize_width * channel);
+    stbir_resize_uint8_linear(img->raw->datas, width, height, 0, data, resize_width, resize_height, 0, channel);
+    // update dims
+    if(img->raw->layout == 1) {
+        img->raw->dims[2] = resize_width;
+        img->raw->dims[1] = resize_height;
+        img->raw->dims[3] = channel;
+    } else {
+        img->raw->dims[3] = resize_width;
+        img->raw->dims[2] = resize_height;
+        img->raw->dims[1] = channel;
+    }
+    // update strides
+    for(int i = img->raw->ndim - 2; i >= 0; i--) {
+        img->raw->strides[i] = img->raw->strides[i+1] * img->raw->dims[i+1];
+    }
+    // update datas
+    img->raw->ndata = resize_height * resize_width * channel;
+    free(img->raw->datas);
+    img->raw->datas = data;
 }
 
 void image_push(image_t* a, image_t* b) {

@@ -46,9 +46,9 @@ extern "C" {
 #define EVO_UNUSED
 #endif  // __GNUC__ || __clang__
 
-#define EVO_DFT_DEV     "cpu"
-#define EVO_DIM_MAX     8
-#define EVO_ALIGN_SIZE  16
+#define EVO_DFT_DEV         "cpu"
+#define EVO_DIM_MAX         8
+#define EVO_ALIGN_SIZE      16
 
 // ==================================================================================== //
 //                                       typedef
@@ -175,9 +175,12 @@ struct tensor {
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
+EVO_API tensor_t * tensor_new_int64(const char*, int*, int, int64_t*, size_t);
 EVO_API tensor_t * tensor_new_float32(const char*, int*, int, float*, size_t);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API tensor_t * tensor_permute(tensor_t*, int, int*);
+EVO_API tensor_t * tensor_softmax(tensor_t*, int);
+EVO_API tensor_t * tensor_squeeze(tensor_t*, int*, int);
 EVO_API tensor_t * tensor_nhwc2nchw(tensor_t*);
 EVO_API tensor_t * tensor_nchw2nhwc(tensor_t*);
 EVO_API void tensor_free(tensor_t*);
@@ -813,6 +816,8 @@ EVO_API image_t* image_get(image_t*, int);
 EVO_API image_t* image_get_batch(image_t*, int, int*);
 EVO_API tensor_t* image_get_raw(image_t*, int);
 EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
+EVO_API void image_crop_center(image_t*, int, int);
+EVO_API void image_resize(image_t*, int, int);
 EVO_API void image_push(image_t*, image_t*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_set_deloys(image_t*, int64_t*, int);

@@ -108,6 +108,18 @@ tensor_t *tensor_new(const char *name, tensor_type_t type) {
     return ts;
 }
 
+tensor_t *tensor_new_int64(const char *name, int* dims, int ndim, int64_t* is, size_t ni) {
+    tensor_t *ts = tensor_new(name, TENSOR_TYPE_INT64);
+    if (ts) {
+        tensor_reshape(ts, ndim, dims);
+        if (ni > 0 && is) {
+            tensor_apply(ts, (void *)is, ni * sizeof(int64_t));
+        } 
+        return ts;
+    }
+    return NULL;
+}
+
 tensor_t *tensor_new_float32(const char *name, int* dims, int ndim, float* fs, size_t nf) {
     tensor_t *ts = tensor_new(name, TENSOR_TYPE_FLOAT32);
     if (ts) {
@@ -251,6 +263,45 @@ tensor_t * tensor_permute(tensor_t *ts, int ndim, int* dim_idxs) {
     permute_data(ts->datas, new_ts->datas, strides, new_strides, dims, ndim, element_size);
 
     return new_ts;
+}
+
+tensor_t * tensor_softmax(tensor_t* ts, int axis) {
+    if(!ts) return ts;
+    node_t* nd = node_temp("softmax", OP_TYPE_SOFTMAX);
+    nd->nin = 1;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->out[0] = tensor_new("softmax_out", TENSOR_TYPE_FLOAT32);
+    attribute_t* axis_attr = attribute_int("axis", axis);
+    vector_add(&nd->attr_vec, axis_attr);
+    if(nd->op && nd->op->run)
+        nd->op->run(nd);
+    return nd->out[0];
+}
+
+tensor_t * tensor_squeeze(tensor_t* ts, int* axes, int axes_size) {
+    if(!ts) return ts;
+    node_t* nd = node_temp("squeeze", OP_TYPE_SQUEEZE);
+    if(!axes || axes_size <= 0) {
+        nd->nin = 1;
+    } else {
+        nd->nin = 2;
+    }
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    int64_t axes_is[axes_size];
+    for(int i = 0; i < axes_size; i++) {
+        axes_is[i] = axes[i];
+    }
+    nd->in[1] = tensor_new_int64("axes", (int[]){axes_size}, 1, axes_is, axes_size);
+    nd->out[0] = tensor_new("squeeze_out", TENSOR_TYPE_FLOAT32);
+    if(nd->op && nd->op->run)
+        nd->op->run(nd);
+    return nd->out[0];
 }
 
 tensor_t * tensor_nhwc2nchw(tensor_t *ts) {

@@ -14,7 +14,7 @@
 // ==================================================================================== //
 
 typedef struct {
-    
+    char* name;
 } renderer_gif_t;
 
 void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
@@ -32,7 +32,7 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
         // canvas_free(cav_tmp);
     }
     image_set_deloys(cav->background, delays, ndelay);
-    canvas_export(cav, "renderer.gif");
+    canvas_export(cav, priv->name);
     canvas_free(cav);
 }
 
@@ -47,7 +47,7 @@ renderer_t* renderer_new(renderer_type_t type) {
         case RENDERER_TYPE_GIF: {
             renderer_gif_t* priv = malloc(sizeof(renderer_gif_t));
             if (priv) {
-                
+                priv->name = strdup("renderer.gif");
             }
             rd->priv = priv;
             rd->render = renderer_render_gif;
@@ -70,6 +70,13 @@ void renderer_run(renderer_t* rd, render_fn_t rd_fn) {
 void renderer_free(renderer_t* rd) {
     if (rd) {
         if (rd->priv) {
+            switch(rd->type) {
+                case RENDERER_TYPE_GIF: {
+                    renderer_gif_t* priv = rd->priv;
+                    if(priv->name) free(priv->name);
+                }
+                default: break;
+            }
             free(rd->priv);
         }
         free(rd);

@@ -42,7 +42,7 @@ Title：Dynamic-Aware Inference Runtime on Resource-Constrained Edge Devices
 
 
 
-## 3 
+## 3 方法 Method
 
 
 深度学习稀疏性
@@ -50,3 +50,5 @@ Title：Dynamic-Aware Inference Runtime on Resource-Constrained Edge Devices
 提前退出：数据剖析 --> 阈值设计 --> 
 
 稀疏卷积：
+
+空间执行掩码（**spatial execution masks**）

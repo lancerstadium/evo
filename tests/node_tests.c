@@ -146,6 +146,32 @@ UnitTest_fn_def(test_add) {
     return NULL;
 }
 
+// ---------------------- ArgMax  ---------------------
+
+UnitTest_fn_def(test_argmax_dft_ae) {
+    TEST_1I("test_argmax_default_axis_example", data, result);
+    return NULL;
+}
+UnitTest_fn_def(test_argmax_dft_aes) {
+    TEST_1I("test_argmax_default_axis_example_select_last_index", data, result);
+    return NULL;
+}
+UnitTest_fn_def(test_argmax_dft_ar) {
+    TEST_1I("test_argmax_default_axis_random", data, result);
+    return NULL;
+}
+UnitTest_fn_def(test_argmax_dft_ars) {
+    TEST_1I("test_argmax_default_axis_random_select_last_index", data, result);
+    return NULL;
+}
+UnitTest_fn_def(test_argmax) {
+    UnitTest_add(test_argmax_dft_ae);
+    UnitTest_add(test_argmax_dft_aes);
+    UnitTest_add(test_argmax_dft_ar);
+    UnitTest_add(test_argmax_dft_ars);
+    return NULL;
+}
+
 // ---------------------- AveragePool -----------------
 
 UnitTest_fn_def(test_averagepool_1d) {
@@ -559,6 +585,22 @@ UnitTest_fn_def(test_softmax) {
     return NULL;
 }
 
+// ---------------------- Squeeze ---------------------
+
+UnitTest_fn_def(test_squeeze_dft) {
+    TEST_2I("test_squeeze", x, axes, y);
+    return NULL;
+}
+UnitTest_fn_def(test_squeeze_na) {
+    TEST_2I("test_squeeze_negative_axes", x, axes, y);
+    return NULL;
+}
+UnitTest_fn_def(test_squeeze) {
+    UnitTest_add(test_squeeze_dft);
+    UnitTest_add(test_squeeze_na);
+    return NULL;
+}
+
 // ---------------------- Sum     ---------------------
 UnitTest_fn_def(test_sum_1i) {
     TEST_1I("test_sum_one_input", data_0, result);
@@ -651,6 +693,7 @@ UnitTest_fn_def(test_all) {
 
     UnitTest_add(test_abs);
     UnitTest_add(test_add);
+    UnitTest_add(test_argmax);
     UnitTest_add(test_averagepool);
     // UnitTest_add(test_batchnorm);    // Failed
     UnitTest_add(test_cast);
@@ -667,6 +710,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
     UnitTest_add(test_softmax);
+    UnitTest_add(test_squeeze);
     UnitTest_add(test_sum);
     UnitTest_add(test_transpose);
     // UnitTest_add(test_where);    // Failed

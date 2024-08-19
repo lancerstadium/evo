@@ -89,55 +89,14 @@ UnitTest_fn_def(test_model_init) {
 // ---------------------- Mnist ----------------------
 
 UnitTest_fn_def(test_mnist_8) {
-    TEST_1I_BEGIN("mnist_8", "Input3", "Plus214_Output_0", 0);
-
-    const char* relu_layer[] = {
-        "ReLU114_Output_0"
-    };
-
-    // image_t *origin_input = image_from_tensor(a);
-    // image_save(origin_input, "mnist_input.png");
-    // int channel = 0;
-    // for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
-    //     char path[32];
-    //     sprintf(path, "heatmap_mnist_relu_%d_c%d.png", i, channel);
-    //     tensor_t * ts = model_get_tensor(mdl, relu_layer[i]);
-    //     image_t *grey_map = image_from_tensor(ts);
-    //     tensor_dump(ts);
-    //     image_save_grey(grey_map, path, channel);
-    // }
-
-    TEST_NORM_END();
+    TEST_1I("mnist_8", "Input3", "Plus214_Output_0", 0);
     return NULL;
 }
 
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
-    TEST_1I_BEGIN("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 0); // 66
-
-    // const char* relu_layer[] = {
-    //     "mobilenetv20_features_linearbottleneck9_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck9_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu1_fwd"
-    // };
-
-    // image_t *origin_input = image_from_tensor(a);
-    // image_save(origin_input, "mobilenet_input.png");
-    // int channel = 2;
-    // for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
-    //     char path[64];
-    //     sprintf(path, "heatmap_mobiilenet_relu_%d_c%d.png", i, channel);
-    //     tensor_t * ts = model_get_tensor(mdl, relu_layer[i]);
-    //     image_t *heat_map = image_heatmap(ts, channel);
-    //     tensor_dump(ts);
-    //     image_save(heat_map, path);
-    // }
-
-    TEST_NORM_END();
+    TEST_1I("mobilenet_v2_7", "data", "mobilenetv20_output_flatten0_reshape0", 1); // 66
     return NULL;
 }
 
@@ -151,7 +110,7 @@ UnitTest_fn_def(test_shufflenet_v1_9) {
 // ---------------------- SqueezeNet -----------------
 
 UnitTest_fn_def(test_squeezenet_v11_7) {
-    // TEST_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
+    TEST_1I("squeezenet_v11_7", "data", "squeezenet0_flatten0_reshape0", 0);   // 66 Op: Concat Dropout AveragePool
     return NULL;
 }
 

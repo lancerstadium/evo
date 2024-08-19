@@ -357,7 +357,7 @@ void canvas_triangle_3z(canvas_t* cav, int x1, int y1, int x2, int y2, int x3, i
                 int u1, u2, det;
                 if (canvas_barycentric(x1, y1, x2, y2, x3, y3, x, y, &u1, &u2, &det)) {
                     float z = z1*u1/det + z2*u2/det + z3*(det - u1 - u2)/det;
-                    canvas_pixel(cav, x, y) = *(uint32_t*)&z;
+                    memcpy(&canvas_pixel(cav, x, y), &z, sizeof(uint32_t));
                 }
             }
         }

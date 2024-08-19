@@ -11,6 +11,7 @@ extern "C" {
 
 void op_Abs_dft(node_t*);
 void op_Add_dft(node_t*);
+void op_ArgMax_dft(node_t*);
 void op_AveragePool_dft(node_t*);
 void op_BatchNormalization_dft(node_t*);
 void op_Cast_dft(node_t*);
@@ -41,6 +42,7 @@ void op_Slice_dft(node_t*);
 void op_Softmax_dft(node_t*);
 void op_Sub_dft(node_t*);
 void op_Sum_dft(node_t*);
+void op_Squeeze_dft(node_t*);
 void op_Transpose_dft(node_t*);
 void op_Unsqueeze_dft(node_t*);
 void op_Where_dft(node_t*);
