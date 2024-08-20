@@ -1,8 +1,8 @@
 
 .PHONY: all run clean
 
-SRC_TEST := $(wildcard *_tests.c)
-TEST_TRG := $(patsubst %.c,%,$(SRC_TEST))
+SRC_TEST 	:= $(wildcard *_tests.c)
+TEST_TRG 	:= $(patsubst %.c,%,$(SRC_TEST))
 INCDIRS		:= -I . -I ../evo
 LIBDIRS		:= -L ../build
 LIBS 		:= -levo -lm
