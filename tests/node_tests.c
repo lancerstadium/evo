@@ -338,8 +338,32 @@ UnitTest_fn_def(test_dropout) {
     return NULL;
 }
 
-// ---------------------- Gemm    ----------------------
+// ---------------------- Flatten ----------------------
+UnitTest_fn_def(test_flatten_a0) {
+    TEST_1I("test_flatten_axis0", a, b);
+    return NULL;
+}
+UnitTest_fn_def(test_flatten_a1) {
+    TEST_1I("test_flatten_axis1", a, b);
+    return NULL;
+}
+UnitTest_fn_def(test_flatten_a2) {
+    TEST_1I("test_flatten_axis2", a, b);
+    return NULL;
+}
+UnitTest_fn_def(test_flatten_a3) {
+    TEST_1I("test_flatten_axis3", a, b);
+    return NULL;
+}
+UnitTest_fn_def(test_flatten) {
+    UnitTest_add(test_flatten_a0);
+    UnitTest_add(test_flatten_a1);
+    UnitTest_add(test_flatten_a2);
+    // UnitTest_add(test_flatten_a3);
+    return NULL;
+}
 
+// ---------------------- Gemm    ----------------------
 
 UnitTest_fn_def(test_gemm_aa) {
     TEST_3I("test_gemm_all_attributes", a, b, c, y);
@@ -700,6 +724,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_concat);
     UnitTest_add(test_conv);
     UnitTest_add(test_dropout);
+    UnitTest_add(test_flatten);
     UnitTest_add(test_gemm);
     // UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_leakyrelu);

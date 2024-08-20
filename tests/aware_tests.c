@@ -7,6 +7,7 @@
 
 // ---------------------- ImageNet Pre ---------------
 tensor_t* imagenet_preprocess(image_t* img) {
+    if(!img) return NULL;
     image_resize(img, 256, 256);
     image_crop_center(img, 224, 224);
     tensor_t* ts = tensor_nhwc2nchw(img->raw);
@@ -27,14 +28,74 @@ tensor_t* imagenet_preprocess(image_t* img) {
     return new_ts;
 }
 
+void imagenet_load_label(const char* path, char* labels[1000]) {
+    FILE* file = fopen(path, "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+    
+    int nlabel = 1000;
+    
+    for (int i = 0; i < nlabel; i++) {
+        labels[i] = malloc(100 * sizeof(char));
+        if (labels[i] == NULL) {
+            printf("Error allocating memory.\n");
+            fclose(file);
+            for (int j = 0; j < i; j++) {
+                free(labels[j]);
+            }
+            return;
+        }
+    }
+    
+    int i = 0;
+    while (i < nlabel && fgets(labels[i], 100, file) != NULL) {
+        size_t len = strlen(labels[i]);
+        if (len > 0 && labels[i][len - 1] == '\n') {
+            labels[i][len - 1] = '\0';  // Remove the newline character at the end
+        }
+        i++;
+    }
+    
+    fclose(file);
+    
+    // Printing the labels
+    // for (int j = 0; j < nlabel; j++) {
+    //     printf("%s\n", labels[j]);
+    // }
+}
+
+void imagenet_unload_label(char* labels[1000]) {
+    int nlabel = 1000;
+    // Freeing allocated memory
+    for (int j = 0; j < nlabel; j++) {
+        if(labels[j]) free(labels[j]);
+    }
+    labels = NULL;
+}
+
 image_t* imagenet_recover(tensor_t* ts) {
-    if(ts->type != TENSOR_TYPE_FLOAT32) return NULL;
+    if(!ts || ts->type != TENSOR_TYPE_FLOAT32) return NULL;
     float* data = ts->datas;
     for(int i = 0; i < ts->ndata; i += 1) {
         data[i] = data[i] * 255;
     }
     image_t* img = image_from_tensor(ts);
     return img;
+}
+
+void imagenet_postprocess(tensor_t* out) {
+    if(!out) return;
+    char* labels[1000]; 
+    imagenet_load_label("picture/imagenet/synset.txt", labels);
+    tensor_t* scores_tmp = tensor_softmax(out, 0);
+    tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
+    tensor_t* scores_max = tensor_argmax(scores, 0, 1, 0);
+    int64_t* scores_idx = scores_max->datas;
+    float* scores_res = scores->datas;
+    UnitTest_msg("Class: %.2f (%s)", scores_res[scores_idx[0]], labels[scores_idx[0]]);
+    imagenet_unload_label(labels);
 }
 
 // ---------------------- MobileNet ------------------
@@ -45,15 +106,15 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     image_t* img = image_load("picture/kitten.jpg");
     image_save(img, "mobilenet_origin.jpg");
     tensor_t* ts_pre = imagenet_preprocess(img);
-    image_t* img_pre = imagenet_recover(ts_pre);
-    image_save(img_pre, "mobilenet_preprocess.jpg");
     runtime_t* rt = runtime_new("onnx");
 
     // 2. Model Inference
     runtime_load(rt, MD("mobilenet_v2_7"));
-    tensor_t* input = runtime_load_tensor(rt, TI("mobilenet_v2_7", 0, 0));
-    tensor_t* output_ref = runtime_load_tensor(rt, TO("mobilenet_v2_7", 0, 0));
-    // tensor_t* input = ts_pre;
+    tensor_t* input = ts_pre;
+    // tensor_t* input = runtime_load_tensor(rt, TI("mobilenet_v2_7", 0, 0));
+    // tensor_t* output_ref = runtime_load_tensor(rt, TO("mobilenet_v2_7", 0, 0));
+    image_t* img_input = imagenet_recover(input);
+    image_save(img_input, "mobilenet_input.jpg");
     runtime_set_tensor(rt, "data", input);
     runtime_run(rt);
 
@@ -78,9 +139,65 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "mobilenetv20_output_flatten0_reshape0");
     // UnitTest_ast(tensor_equal(output, output_ref), "mobilenet_v2_7 failed");
-    tensor_t* output_prob_sm = tensor_softmax(output, 0);
-    tensor_t* output_prob_sq = tensor_squeeze(output_prob_sm, NULL, 0);
-    tensor_dump2(output_prob_sq);
+    imagenet_postprocess(output);
+    runtime_free(rt);
+
+    return NULL;
+}
+
+// ---------------------- SqueezeNet -----------------
+
+UnitTest_fn_def(test_squeezenet_v11_7) {
+
+    // 1. Pre Process
+    image_t* img = image_load("picture/kitten.jpg");
+    image_save(img, "squeezenet_origin.jpg");
+    tensor_t* ts_pre = imagenet_preprocess(img);
+    runtime_t* rt = runtime_new("onnx");
+
+    // 2. Model Inference
+    runtime_load(rt, MD("squeezenet_v11_7"));
+    tensor_t* input = ts_pre;
+    // tensor_t* input = runtime_load_tensor(rt, TI("squeezenet_v11_7", 0, 0));
+    // tensor_t* output_ref = runtime_load_tensor(rt, TO("squeezenet_v11_7", 0, 0));
+    image_t* img_input = imagenet_recover(input);
+    image_save(img_input, "squeezenet_input.jpg");
+    runtime_set_tensor(rt, "data", input);
+    runtime_run(rt);
+
+    // 3. Post Process
+    tensor_t* output = runtime_get_tensor(rt, "squeezenet0_flatten0_reshape0");
+    // UnitTest_ast(tensor_equal(output, output_ref), "squeezenet_v11_7 failed");
+    imagenet_postprocess(output);
+    runtime_free(rt);
+
+    return NULL;
+}
+
+// ---------------------- SqueezeNet -----------------
+
+UnitTest_fn_def(test_resnet_18_v1_7) {
+
+    // 1. Pre Process
+    image_t* img = image_load("picture/kitten.jpg");
+    image_save(img, "resnet_18_origin.jpg");
+    tensor_t* ts_pre = imagenet_preprocess(img);
+    runtime_t* rt = runtime_new("onnx");
+
+    // 2. Model Inference
+    runtime_load(rt, MD("resnet_18_v1_7"));
+    tensor_t* input = ts_pre;
+    // tensor_t* input = runtime_load_tensor(rt, TI("resnet_18_v1_7", 0, 0));
+    // tensor_t* output_ref = runtime_load_tensor(rt, TO("resnet_18_v1_7", 0, 0));
+    image_t* img_input = imagenet_recover(input);
+    image_save(img_input, "resnet_18_input.jpg");
+    runtime_set_tensor(rt, "data", input);
+    runtime_run(rt);
+
+    // 3. Post Process
+    tensor_t* output = runtime_get_tensor(rt, "resnetv15_dense0_fwd");
+    // UnitTest_ast(tensor_equal(output, output_ref), "resnet_18_v1_7 failed");
+    imagenet_postprocess(output);
     runtime_free(rt);
 
     return NULL;
@@ -89,7 +206,9 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_mobilenet_v2_7);
+    // UnitTest_add(test_mobilenet_v2_7);
+    UnitTest_add(test_squeezenet_v11_7);
+    // UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }
 

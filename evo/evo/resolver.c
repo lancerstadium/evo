@@ -213,6 +213,7 @@ static resolver_t default_resolver = {
         OP_REG_DFT(CONV                     , Conv                  ),
         OP_REG_DFT(DROPOUT                  , Dropout               ),
         OP_REG_DFT(EQUAL                    , Equal                 ),
+        OP_REG_DFT(FLATTEN                  , Flatten               ),
         OP_REG_DFT(EXPAND                   , Expand                ),
         OP_REG_DFT(GATHER                   , Gather                ),
         OP_REG_DFT(GLOBAL_AVERAGEPOOL       , GlobalAveragePool     ),

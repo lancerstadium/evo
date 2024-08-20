@@ -100,6 +100,13 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     return NULL;
 }
 
+// ---------------------- ResNet ------------------
+
+UnitTest_fn_def(test_resnet_18_v1_7) {
+    TEST_1I("resnet_18_v1_7", "data", "resnetv15_dense0_fwd", 0); // 66
+    return NULL;
+}
+
 // ---------------------- ShuffleNet -----------------
 
 UnitTest_fn_def(test_shufflenet_v1_9) {
@@ -148,6 +155,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_model_init);
     UnitTest_add(test_mnist_8);
     UnitTest_add(test_mobilenet_v2_7);
+    UnitTest_add(test_resnet_18_v1_7);
     UnitTest_add(test_shufflenet_v1_9);
     UnitTest_add(test_squeezenet_v11_7);
     UnitTest_add(test_tinyyolo_v2_8);

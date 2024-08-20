@@ -22,6 +22,7 @@ void op_Conv_dft(node_t*);
 void op_Dropout_dft(node_t*);
 void op_Equal_dft(node_t*);
 void op_Expand_dft(node_t*);
+void op_Flatten_dft(node_t*);
 void op_Gather_dft(node_t*);
 void op_Gemm_dft(node_t*);
 void op_InstanceNormalization_dft(node_t*);

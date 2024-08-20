@@ -265,6 +265,27 @@ tensor_t * tensor_permute(tensor_t *ts, int ndim, int* dim_idxs) {
     return new_ts;
 }
 
+
+tensor_t * tensor_argmax(tensor_t* ts, int axis, int keepdims, int select_last_index) {
+    if(!ts) return ts;
+    node_t* nd = node_temp("argmax", OP_TYPE_ARG_MAX);
+    nd->nin = 1;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->out[0] = tensor_new("argmax_out", TENSOR_TYPE_FLOAT32);
+    attribute_t* axis_attr = attribute_int("axis", axis);   // 0
+    attribute_t* keepdims_attr = attribute_int("keepdims", keepdims);   // 1
+    attribute_t* select_last_index_attr = attribute_int("select_last_index", axis); // 0
+    vector_add(&nd->attr_vec, axis_attr);
+    vector_add(&nd->attr_vec, keepdims_attr);
+    vector_add(&nd->attr_vec, select_last_index_attr);
+    if(nd->op && nd->op->run)
+        nd->op->run(nd);
+    return nd->out[0];
+}
+
 tensor_t * tensor_softmax(tensor_t* ts, int axis) {
     if(!ts) return ts;
     node_t* nd = node_temp("softmax", OP_TYPE_SOFTMAX);
