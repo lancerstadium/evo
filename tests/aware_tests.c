@@ -207,8 +207,8 @@ UnitTest_fn_def(test_resnet_18_v1_7) {
 
 UnitTest_fn_def(test_all) {
     // UnitTest_add(test_mobilenet_v2_7);
-    UnitTest_add(test_squeezenet_v11_7);
-    // UnitTest_add(test_resnet_18_v1_7);
+    // UnitTest_add(test_squeezenet_v11_7);
+    UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }
 
