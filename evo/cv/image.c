@@ -551,18 +551,18 @@ image_t* image_merge(image_t* a, image_t* b, float alpha) {
         }
         for(int i = 0; i < a->raw->ndata / channel_a; i++) {    // update datas
             float ratio = (float)data_b[i * channel_b + channel_b - 1] / 255;
+            float sum = 1 - alpha;
+            float ratio2 = (1 - ratio) / sum;
             for(int c = 0; c < channel_a; c++) {
                 uint8_t a_part = data_a[i * channel_a + c];
                 uint8_t b_part = data_b[i * channel_b + c];
                 if(ratio < alpha) {
                     datas_a[i * channel_b + c] = a_part;
                 } else {
-                    float sum = 1 - alpha;
-                    float ratio2 = (1 - ratio) / sum;
                     datas_a[i * channel_b + c] = a_part * ratio2 + b_part * (1 - ratio2);
                 }
             }
-            datas_a[i * channel_b + channel_b - 1] = ratio < alpha ? 0xff : data_b[i * channel_b + channel_b - 1];
+            datas_a[i * channel_b + channel_b - 1] = ratio < alpha ? 0xff : 0xff * ratio2 + data_b[i * channel_b + channel_b - 1] * (1 - ratio2);
         }
         a->raw->ndata = ndata_a;
         free(a->raw->datas);
