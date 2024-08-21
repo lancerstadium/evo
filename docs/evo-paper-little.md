@@ -44,11 +44,13 @@ Title：Dynamic-Aware Inference Runtime on Resource-Constrained Edge Devices
 
 ## 3 方法 Method
 
+相关概念：
+- 数据稀疏性：
+- 动态钩子层：
+- 空间执行掩码（**Spatial Execution Masks**）：
+- 动态感知推理：数据感知 --> 构筑动态钩子层 --> 执行决策
 
-深度学习稀疏性
+### 3.1 架构
 
-提前退出：数据剖析 --> 阈值设计 --> 
-
+提前退出：
 稀疏卷积：
-
-空间执行掩码（**spatial execution masks**）
