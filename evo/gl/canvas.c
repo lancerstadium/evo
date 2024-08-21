@@ -113,6 +113,61 @@ void canvas_blend(uint32_t* pixel, uint32_t color) {
     *pixel = pixel_rgba(r1, g1, b1, a1);
 }
 
+uint32_t color_mix_heat(float temp) {
+    // 将温度值限制在 [0, 1] 范围内
+    if (temp > 1.0f) temp = 1.0f;
+    if (temp < 0.0f) temp = 0.0f;
+
+    uint8_t a = (uint8_t)(temp * 255.0f);
+
+    uint8_t r = 0, g = 0, b = 0;
+
+    // 根据温度计算颜色层次
+    if (temp < 0.125f) {
+        // 深蓝到蓝
+        r = 0;
+        g = 0;
+        b = 128 + (uint8_t)(temp * 8.0f * 127);  // 128 to 255
+    } else if (temp < 0.25f) {
+        // 蓝到青
+        r = 0;
+        g = (uint8_t)((temp - 0.125f) * 8.0f * 255);  // 0 to 255
+        b = 255;
+    } else if (temp < 0.375f) {
+        // 青到绿色
+        r = 0;
+        g = 255;
+        b = (uint8_t)(255 - (temp - 0.25f) * 8.0f * 255);  // 255 to 0
+    } else if (temp < 0.5f) {
+        // 绿色到黄绿
+        r = (uint8_t)((temp - 0.375f) * 8.0f * 127);  // 0 to 127
+        g = 255;
+        b = 0;
+    } else if (temp < 0.625f) {
+        // 黄绿到黄
+        r = 127 + (uint8_t)((temp - 0.5f) * 8.0f * 128);  // 127 to 255
+        g = 255;
+        b = 0;
+    } else if (temp < 0.75f) {
+        // 黄到橙
+        r = 255;
+        g = 255 - (uint8_t)((temp - 0.625f) * 8.0f * 127);  // 255 to 128
+        b = 0;
+    } else if (temp < 0.875f) {
+        // 橙到红
+        r = 255;
+        g = 128 - (uint8_t)((temp - 0.75f) * 8.0f * 128);  // 128 to 0
+        b = 0;
+    } else {
+        // 红到深红
+        r = 255;
+        g = 0;
+        b = 0;
+    }
+
+    return pixel_rgba(r, g, b, a);
+}
+
 uint32_t color_mix(uint32_t color1, uint32_t color2, float t) {
     if(t > 1.0f) t = 1.0f;
     if(t < 0.0f) t = 0.0f;

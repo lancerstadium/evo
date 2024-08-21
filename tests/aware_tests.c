@@ -87,7 +87,7 @@ image_t* imagenet_recover(tensor_t* ts) {
 
 void imagenet_postprocess(tensor_t* out) {
     if(!out) return;
-    char* labels[1000]; 
+    char* labels[1000];
     imagenet_load_label("picture/imagenet/synset.txt", labels);
     tensor_t* scores_tmp = tensor_softmax(out, 0);
     tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
@@ -104,6 +104,8 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
 
     // 1. Pre Process
     image_t* img = image_load("picture/kitten.jpg");
+    int width = img->raw->dims[2];
+    int height = img->raw->dims[1];
     image_save(img, "mobilenet_origin.jpg");
     tensor_t* ts_pre = imagenet_preprocess(img);
     runtime_t* rt = runtime_new("onnx");
@@ -118,28 +120,34 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     runtime_set_tensor(rt, "data", input);
     runtime_run(rt);
 
-    // const char* relu_layer[] = {
-    //     "mobilenetv20_features_linearbottleneck9_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck9_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu1_fwd"
-    // };
-    // int channel = 2;
-    // for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
-    //     char path[64];
-    //     sprintf(path, "heatmap_mobiilenet_relu_%d_c%d.png", i, channel);
-    //     tensor_t * ts = runtime_get_tensor(rt, relu_layer[i]);
-    //     image_t *heat_map = image_heatmap(ts, channel);
-    //     tensor_dump(ts);
-    //     image_save(heat_map, path);
-    // }
-
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "mobilenetv20_output_flatten0_reshape0");
     // UnitTest_ast(tensor_equal(output, output_ref), "mobilenet_v2_7 failed");
     imagenet_postprocess(output);
+
+
+    tensor_t * feature_map = runtime_get_tensor(rt, "mobilenetv20_features_conv1_fwd");
+    const char* relu_layer[] = {
+        "mobilenetv20_features_linearbottleneck9_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck9_relu1_fwd",
+        "mobilenetv20_features_linearbottleneck10_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck10_relu1_fwd",
+        "mobilenetv20_features_linearbottleneck11_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck11_relu1_fwd"
+    };
+    int channel = 2;
+    for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
+        char path[64];
+        image_t* origin_img = image_load("picture/kitten.jpg");
+        sprintf(path, "heatmap_mobilenet_relu_%d_c%d.png", i, channel);
+        tensor_t * ts = runtime_get_tensor(rt, relu_layer[i]);
+        image_t* heat_map = image_heatmap(ts, channel);
+        image_resize(heat_map, width, height);
+        if(i == 0) tensor_dump(heat_map->raw);
+        image_t* res_img = image_merge(origin_img, heat_map, 0.6);
+        image_save(res_img, path);
+    }
+
     runtime_free(rt);
 
     return NULL;
@@ -206,9 +214,9 @@ UnitTest_fn_def(test_resnet_18_v1_7) {
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
-    // UnitTest_add(test_mobilenet_v2_7);
+    UnitTest_add(test_mobilenet_v2_7);
     // UnitTest_add(test_squeezenet_v11_7);
-    UnitTest_add(test_resnet_18_v1_7);
+    // UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }
 

@@ -3,6 +3,7 @@
 #include "../evo.h"
 #include "../util/log.h"
 #include "../util/sys.h"
+#include "../util/math.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -226,7 +227,8 @@ image_t* image_heatmap(tensor_t *ts, int frame) {
             for(int i = 0; i < dims[0]; i++) {
                 for(int x = 0; x < dims[1]; x++) {
                     for(int y = 0; y < dims[2]; y++) {
-                        datas[i * dims[1] * dims[2] + x * dims[2] + y] = color_mix(0x00ff0000, 0xf00000ff, data[(is_valid ? frame : i) * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y]);
+                        float temp = data[(is_valid ? frame : i) * ts->dims[2] * ts->dims[3] + x * ts->dims[3] + y];
+                        datas[i * dims[1] * dims[2] + x * dims[2] + y] = color_mix_heat(temp);
                     }
                 }
             }
@@ -528,6 +530,50 @@ void image_resize(image_t* img, int resize_width, int resize_height) {
     img->raw->ndata = resize_height * resize_width * channel;
     free(img->raw->datas);
     img->raw->datas = data;
+}
+
+image_t* image_merge(image_t* a, image_t* b, float alpha) {
+    if(!a || !b || !a->raw || !b->raw) return NULL;
+    if(a->raw->layout != 1 || b->raw->layout != 1 || a->raw->dims[1] != b->raw->dims[1] || a->raw->dims[2] != b->raw->dims[2]) return a;
+    uint8_t* data_a = a->raw->datas;
+    uint8_t* data_b = b->raw->datas;
+    if(alpha > 1.0f) alpha = 1.0f;
+    if(alpha < 0.0f) alpha = 0.0f;
+    if(a->raw->dims[3] != b->raw->dims[3]) {
+        int channel_a = a->raw->dims[3];
+        int channel_b = b->raw->dims[3];
+        int ndata_a = a->raw->dims[1] * a->raw->dims[2] * channel_b;
+        uint8_t* datas_a = sys_malloc(ndata_a);
+        memset(datas_a, 0, ndata_a);
+        a->raw->dims[3] = channel_b;                            // update dims
+        for(int i = a->raw->ndim - 2; i >= 0; i--) {            // update strides
+            a->raw->strides[i] = a->raw->strides[i+1] * a->raw->dims[i+1];
+        }
+        for(int i = 0; i < a->raw->ndata / channel_a; i++) {    // update datas
+            float ratio = (float)data_b[i * channel_b + channel_b - 1] / 255;
+            for(int c = 0; c < channel_a; c++) {
+                uint8_t a_part = data_a[i * channel_a + c];
+                uint8_t b_part = data_b[i * channel_b + c];
+                if(ratio < alpha) {
+                    datas_a[i * channel_b + c] = a_part;
+                } else {
+                    float sum = 1 - alpha;
+                    float ratio2 = (1 - ratio) / sum;
+                    datas_a[i * channel_b + c] = a_part * ratio2 + b_part * (1 - ratio2);
+                }
+            }
+            datas_a[i * channel_b + channel_b - 1] = ratio < alpha ? 0xff : data_b[i * channel_b + channel_b - 1];
+        }
+        a->raw->ndata = ndata_a;
+        free(a->raw->datas);
+        a->raw->datas = (void*)datas_a;
+    } else {
+        for(int i = 0; i < MIN(a->raw->ndata, b->raw->ndata); i++) {
+            data_a[i] = data_a[i] * (1.0f - alpha) + data_b[i] * alpha;
+        }
+    }
+    LOG_INFO("Merge\n");
+    return a;
 }
 
 void image_push(image_t* a, image_t* b) {
