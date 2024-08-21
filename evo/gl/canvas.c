@@ -160,7 +160,7 @@ uint32_t color_mix_heat(float temp) {
         b = 0;
     } else {
         // 红到深红
-        r = 255;
+        r = 255 - (uint8_t)((temp - 0.875f) * 8.0f * 127);  // 255 to 128
         g = 0;
         b = 0;
     }

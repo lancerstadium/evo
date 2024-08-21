@@ -144,7 +144,7 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
         image_t* heat_map = image_heatmap(ts, channel);
         image_resize(heat_map, width, height);
         if(i == 0) tensor_dump(heat_map->raw);
-        image_t* res_img = image_merge(origin_img, heat_map, 0.2);
+        image_t* res_img = image_merge(origin_img, heat_map, 0.3);
         image_save(res_img, path);
     }
 
