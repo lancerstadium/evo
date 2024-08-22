@@ -572,7 +572,6 @@ image_t* image_merge(image_t* a, image_t* b, float alpha) {
             data_a[i] = data_a[i] * (1.0f - alpha) + data_b[i] * alpha;
         }
     }
-    LOG_INFO("Merge\n");
     return a;
 }
 
