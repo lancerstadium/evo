@@ -16,8 +16,14 @@ LIBS		:= -l flatccrt
 LIBDIRS     := -L ./sub/flatcc/lib
 INCDIRS		:= -I . -I sub/flatcc/include
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
+
+BARE_ENB	?=
+ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
+BARE_ENB	:= -DBARE_VIRT
+endif
+
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS)
+OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(BARE_ENB)
 ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC

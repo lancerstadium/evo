@@ -114,6 +114,7 @@ struct runtime {
 
 EVO_API runtime_t * runtime_new(const char*);
 EVO_API model_t * runtime_load(runtime_t*, const char*);
+EVO_API model_t* runtime_load_raw(runtime_t*, const void*, size_t);
 EVO_API tensor_t* runtime_load_tensor(runtime_t*, const char*);
 EVO_API void runtime_set_tensor(runtime_t*, const char*, tensor_t*);
 EVO_API tensor_t * runtime_get_tensor(runtime_t*, const char*);

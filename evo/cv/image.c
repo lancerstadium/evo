@@ -41,21 +41,21 @@ void image_dump_raw(image_t* img, int i) {
             for (int s = 0; s < img->raw->dims[3]; ++s) {
                 for (int r = 0; r < img->raw->dims[1]; ++r) {
                     for (int c = 0; c < img->raw->dims[2]; ++c) {
-                        printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[2] * img->raw->dims[3] + c * img->raw->dims[3] + s]);
+                        LOG_INFO("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[2] * img->raw->dims[3] + c * img->raw->dims[3] + s]);
                     }
-                    printf("\n");
+                    LOG_INFO("\n");
                 }
-                printf("\n");
+                LOG_INFO("\n");
             }
         } else {
             for (int s = 0; s < img->raw->dims[1]; ++s) {
                 for (int r = 0; r < img->raw->dims[2]; ++r) {
                     for (int c = 0; c < img->raw->dims[3]; ++c) {
-                        printf("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
+                        LOG_INFO("%3d ", data[i * img->raw->dims[1] * img->raw->dims[2] * img->raw->dims[3] + s * img->raw->dims[2] * img->raw->dims[3] + r * img->raw->dims[3] + c]);
                     }
-                    printf("\n");
+                    LOG_INFO("\n");
                 }
-                printf("\n");
+                LOG_INFO("\n");
             }
         }
     } else {

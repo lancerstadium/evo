@@ -24,6 +24,18 @@ model_t* runtime_load(runtime_t *rt, const char *path) {
     return NULL;
 }
 
+model_t* runtime_load_raw(runtime_t *rt, const void* buf, size_t size) {
+    if(!rt) return NULL;
+    if(rt->sez && rt->sez->load_model) {
+        if(rt->mdl) {
+            runtime_unload(rt);
+        }
+        rt->mdl = rt->sez->load(rt->sez, buf, size);
+        return rt->mdl;
+    }
+    return NULL;
+}
+
 tensor_t* runtime_load_tensor(runtime_t *rt, const char *path) {
     if(!rt) return NULL;
     if(rt->sez && rt->sez->load_tensor) {
