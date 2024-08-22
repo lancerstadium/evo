@@ -1,5 +1,5 @@
-#include "../../util/math.h"
 #include "../../evo/resolver.h"
+#include "../../util/math.h"
 
 typedef struct {
     int m;

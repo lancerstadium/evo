@@ -302,6 +302,31 @@ UnitTest_fn_def(test_conv) {
     return NULL;
 }
 
+// ---------------------- Div     ----------------------
+
+UnitTest_fn_def(test_div_dft) {
+    TEST_2I("test_div", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_div_b) {
+    TEST_2I("test_div_bcast", x, y, z);
+}
+UnitTest_fn_def(test_div_ex) {
+    TEST_2I("test_div_example", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_div_u8) {
+    TEST_2I("test_div_uint8", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_div) {
+    UnitTest_add(test_div_dft);
+    UnitTest_add(test_div_b);
+    UnitTest_add(test_div_ex);
+    UnitTest_add(test_div_u8);
+    return NULL;
+}
+
 // ---------------------- Dropout ----------------------
 
 UnitTest_fn_def(test_dropout_dft) {
@@ -415,6 +440,22 @@ UnitTest_fn_def(test_globalaveragepool) {
     return NULL;
 }
 
+// ---------------------- Log     ----------------------
+
+UnitTest_fn_def(test_log_dft) {
+    TEST_1I("test_log", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_log_ex) {
+    TEST_1I("test_log_example", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_log) {
+    UnitTest_add(test_log_dft);
+    UnitTest_add(test_log_ex);
+    return NULL;
+}
+
 // ---------------------- MatMul  ----------------------
 
 UnitTest_fn_def(test_matmul_2d) {
@@ -519,6 +560,22 @@ UnitTest_fn_def(test_mul) {
     return NULL;
 }
 
+// ---------------------- Neg     ----------------------
+
+UnitTest_fn_def(test_neg_dft) {
+    TEST_1I("test_neg", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_neg_ex) {
+    TEST_1I("test_neg_example", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_neg) {
+    UnitTest_add(test_neg_dft);
+    UnitTest_add(test_neg_ex);
+    return NULL;
+}
+
 // ---------------------- Range  ----------------------
 
 UnitTest_fn_def(test_range_f32_pd) {
@@ -573,6 +630,20 @@ UnitTest_fn_def(test_reshape) {
     return NULL;
 }
 
+// ---------------------- Shape   ---------------------
+UnitTest_fn_def(test_shape_dft) {
+    TEST_1I("test_shape", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_shape_ex) {
+    TEST_1I("test_shape_example", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_shape) {
+    UnitTest_add(test_shape_dft);
+    return NULL;
+}
+
 // ---------------------- Softmax ---------------------
 
 UnitTest_fn_def(test_softmax_a0) {
@@ -622,6 +693,31 @@ UnitTest_fn_def(test_squeeze_na) {
 UnitTest_fn_def(test_squeeze) {
     UnitTest_add(test_squeeze_dft);
     UnitTest_add(test_squeeze_na);
+    return NULL;
+}
+
+// ---------------------- Sub     ---------------------
+
+UnitTest_fn_def(test_sub_dft) {
+    TEST_2I("test_sub", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_sub_b) {
+    TEST_2I("test_sub_bcast", x, y, z);
+}
+UnitTest_fn_def(test_sub_ex) {
+    TEST_2I("test_sub_example", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_sub_u8) {
+    TEST_2I("test_sub_uint8", x, y, z);
+    return NULL;
+}
+UnitTest_fn_def(test_sub) {
+    UnitTest_add(test_sub_dft);
+    UnitTest_add(test_sub_b);
+    UnitTest_add(test_sub_ex);
+    UnitTest_add(test_sub_u8);
     return NULL;
 }
 
@@ -723,19 +819,24 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_cast);
     UnitTest_add(test_concat);
     UnitTest_add(test_conv);
+    UnitTest_add(test_div);
     UnitTest_add(test_dropout);
     UnitTest_add(test_flatten);
     UnitTest_add(test_gemm);
     // UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_leakyrelu);
+    UnitTest_add(test_log);
     UnitTest_add(test_matmul);
     // UnitTest_add(test_maxpool);  // Failed
     UnitTest_add(test_mul);
+    UnitTest_add(test_neg);
     // UnitTest_add(test_range);    // Failed
     UnitTest_add(test_relu);
     UnitTest_add(test_reshape);
+    UnitTest_add(test_shape);
     UnitTest_add(test_softmax);
     UnitTest_add(test_squeeze);
+    UnitTest_add(test_sub);
     UnitTest_add(test_sum);
     UnitTest_add(test_transpose);
     // UnitTest_add(test_where);    // Failed

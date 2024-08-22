@@ -29,6 +29,7 @@ void op_Gemm_dft(node_t*);
 void op_InstanceNormalization_dft(node_t*);
 void op_GlobalAveragePool_dft(node_t*);
 void op_LeakyRelu_dft(node_t*);
+void op_Log_dft(node_t*);
 void op_MatMul_dft(node_t*);
 void op_MaxPool_dft(node_t*);
 void op_Mul_dft(node_t*);

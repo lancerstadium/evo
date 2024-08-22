@@ -588,7 +588,7 @@ UNUSED static UnitTest sob_ut = {
         sob_ut.msg = test();                                                                                                                                     \
         _UT_TEND();                                                                                                                                              \
         _UT_NRES(sob_ut.msg);                                                                                                                                    \
-        printf("│  ├── " _MAGENTA("%-2d ") _BLUE("%-24s") _CYAN("%12.4f %2s") " %s │\n", sob_ut.n_test, #test, sob_ut.t_tak, sob_ut.t_sc, _UT_SRES(sob_ut.msg)); \
+        printf("│  ├── " _MAGENTA("%-3d") _BLUE("%-24s") _CYAN("%12.4f %2s") " %s │\n", sob_ut.n_test, #test, sob_ut.t_tak, sob_ut.t_sc, _UT_SRES(sob_ut.msg)); \
         Log_dbg("total exec %.3f %2s", sob_ut.t_tak, sob_ut.t_sc);                                                                                               \
         if (sob_ut.msg) return sob_ut.msg;                                                                                                                       \
     } while (0)
@@ -599,7 +599,7 @@ UNUSED static UnitTest sob_ut = {
         printf("┌──────────────────────────────────────────────────────┐\n");                                                                                                                                               \
         printf("│ Test: " _BLUE("%-46s") " │\n", argv[0]);                                                                                                                                                            \
         char* result = name();                                                                                                                                                                                        \
-        printf("│ Sum: " _MAGENTA("%-2d ") "[%2d " _GREEN("PASS") " %2d " _RED("FAIL") "] " _CYAN("%18.4f %2s") " %s │\n", sob_ut.n_test, sob_ut.n_pass, sob_ut.n_fail, sob_ut.t_tot, sob_ut.t_sc, _UT_SRES(result)); \
+        printf("│ Sum: " _MAGENTA("%-3d") "[%-3d" _GREEN("PASS") " %-3d" _RED("FAIL") "] " _CYAN("%18.4f %2s") " %s │\n", sob_ut.n_test, sob_ut.n_pass, sob_ut.n_fail, sob_ut.t_tot, sob_ut.t_sc, _UT_SRES(result)); \
         printf("├──────────────────────────────────────────────────────┤\n");                                                                                                                                               \
         if (result == NULL) {                                                                                                                                                                                         \
             printf("│ " _CYAN("%-3s ") _BLUE("%-43s ") "%s │\n", "Res", argv[0], _GREEN("PASS"));                                                                                                                     \

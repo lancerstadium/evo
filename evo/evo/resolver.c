@@ -221,6 +221,7 @@ static resolver_t default_resolver = {
         OP_REG_DFT(INSTANCE_NORMALIZATION   , InstanceNormalization ),
         OP_REG_DFT(GEMM                     , Gemm                  ),
         OP_REG_DFT(LEAKY_RELU               , LeakyRelu             ),
+        OP_REG_DFT(LOG                      , Log                   ),
         OP_REG_DFT(MAT_MUL                  , MatMul                ),
         OP_REG_DFT(MAX_POOL                 , MaxPool               ),
         OP_REG_DFT(MUL                      , Mul                   ),
