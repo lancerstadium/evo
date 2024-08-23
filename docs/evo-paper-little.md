@@ -1,17 +1,6 @@
-<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']]
-            }
-        });
-    </script>
-</head>
 
 
-## <div align="center"> <i>Evo</i>: Dynamic-Aware Edge Inference Framework on Resource-Constrained Devices <br> 资源受限设备上的动态感知推理边缘框架 </div>
+## <div align="center"> <i>Evo</i>: Dynamic-Aware Edge Inference Framework on Resource-Constrained Devices <br> 资源受限设备上的动态感知边缘推理框架 </div>
 
 <div align="center"> 
 
@@ -45,8 +34,8 @@
 ## 0 摘要 Abstract
 
 近年来，边缘人工智能（Edge AI）在许多领域取得了突破，但在边缘设备部署AI受到内存带宽、算力、能耗的限制，如何在资源受限设备上高效地推理是一个挑战。
-为了利用推理数据空间稀疏性和局部性加速推理，本文提出了动态感知的推理运行时，可以免再训练的（retraining-free）加速模型推理。我们引入运行时剖析，通过准确率、时延、内存占用等实际指标进行决策，使用局部卷积、提前退出的方式进行推理优化。
-我们在CIFAR-10、ImageNet上的实验表明，。
+为了利用推理数据空间稀疏性和局部性加速推理，本文提出了动态感知的推理引擎，可以免再训练的（retraining-free）加速模型推理。我们引入运行时剖析（Runtime-Profile），通过准确率、时延、内存占用等实际指标进行决策，使用局部卷积、提前退出的方式进行推理优化。
+我们使用CIFAR-10、ImageNet等数据集在推理引擎内进行了识别、目标检测、图像超分实验，结果表明：。
 
 **关键词**：软硬件协同设计（Co-Design）；边缘人工智能（Edge-AI）；深度学习（Deep Learning）；模型压缩；神经加速器
 
@@ -75,36 +64,53 @@
 ---
 ## 2 相关工作 Related work
 
-静态优化：一般输入模型文件，输出优化后的模型文件，剪枝、量化等等。
+传统的静态推理优化：一般输入模型文件，输出优化后的模型文件，剪枝、量化等等。
 
 同时，在大部分推理数据通常具有稀疏性和局部性。动态推理是一种新兴方法，它利用输入属性有选择地执行准确分类所需的显着计算子集。与永久删除神经元以提高模型效率的静态方法不同，动态方法仅根据输入实例暂时抑制计算。条件执行涉及网络模型的几个方面：
 1. 组合网络规模缩放（Combined Network Size Scaling）：根据输入有条件地执行某些网络层或块。并非所有输入实例都需要所有分层计算才能正确分类[28]。在现代 DNN 中，重复的块构建在彼此之上以微调特征细节。较难的样本可能需要更深的嵌入才能准确分类，而较简单的样本可能只需要浅的嵌入。换句话说，较浅的推理对于更容易的样本是可行的，而对于更困难的情况则需要更深的层来保持性能如简单的图像需要比复杂的示例更深的网络。
 2. 提前退出分支（Early Exit Branch）：后来的方法通过有条件地执行各个层来提高灵活性。这些方法基于残差架构对于层丢失具有鲁棒性的观察[20, 47]。 SkipNet [48] 使用强化学习来学习门控决策。 ConvNet-AIG [46] 使用 Gumbel-Softmax 技巧，而 BlockDrop [51] 使用强化学习训练单独的策略网络。
 3. 动态稀疏化（Dynamic Sparsity）：动态稀疏性涉及训练网络以利用计算图的固有稀疏性。这是通过仅预测和识别应用 ReLU 激活函数产生的零元素来实现的，ReLU 激活函数常用于深度学习模型。通过这样做，动态稀疏性可以实现与剪枝类似甚至更高的计算节省，并且对预测精度的影响最小。这是因为网络和稀疏性诱导机制是联合训练的，并且重点是零元素，这不会影响网络的输出。总之，动态稀疏性提供了一种高效且有效的方法来降低神经网络的计算成本，而不牺牲预测性能
 
-这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
+上述方法都需要对模型进行修改并重新训练。这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
 
 
 ---
 ## 3 方法 Method
 
 相关概念：
-- 数据稀疏性：
-- 动态钩子层（*Dynamic Hook Layer*）：
-- 空间执行掩码（*Spatial Execution Masks*）：
-- 动态感知推理：数据感知 --> 构筑动态钩子层 --> 执行决策
+- 数据稀疏性（*Data Sparsity*）：在模型前向计算时，经过特定层会产生大量含有0数据的张量，对于这些稀疏张量，可分析其计算特征进行深度优化。
+- 运行时剖析（*Runtime Profile*）：在推理引擎内部对模型参数、运行时信息、设备信息进行采样，用于后续推理优化。
+- 动态钩子网络（*Dynamic Hook Network*）：动态钩子网络与主网络协同计算，负责对主网络数据进行采样、分析以及执行优化决策。
+- 空间执行掩码（*Spatial Execution Masks*）：用于裁剪窗口，进行后续计算优化
+- 动态感知推理（*Dynamic-Aware Inference*）：数据感知 --> 构筑动态钩子网络 --> 执行决策
 
 ### 3.1 架构
 
 提前退出：
 
 稀疏卷积：
-1. 采样（Sampling）：Hard/Simple Token -> Gumble Softmax -> Mask
-2. 排序（Sorting）：Mask -> Argsort -> Top K I-hard of Sparse Attention (Other for Conv)
+1. 采样（Sampling）：Middle Feature Map -> Gumble Softmax -> Mask
+2. 排序（Sorting）：Mask -> Argsort -> Top K Index of Sparse Attention (Other for Conv)
 
 
 ---
-## 参考文献 Reference
+## 4 实验 Experiment
+
+
+指标：
+1. 吞吐量（）
+2. 内存占用（）
+3. 每秒浮点计算次数（GFLOPS）
+
+---
+## 5 结论 Conclusion
+
+
+后续优化：
+对于决策的信息收集可拓展到特定硬件平台
+
+---
+## 参考文献 References
 
 
 

@@ -25,7 +25,7 @@ run: $(TEST_TRG)
 	@echo;
 	@for target in $(TEST_TRG); do \
 		echo "[Test: $$target] >>>"; \
-		./$$target 2> $(LOG_TRG) >&1; \
+		/usr/bin/time -v ./$$target 2> $(LOG_TRG) >&1; \
 if [ $(LOG_ENB) -eq 1 ]; then \
 		echo "[Msg: $$target] --------------------------------------"; \
 		cat $(LOG_TRG); \

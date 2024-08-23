@@ -2280,34 +2280,34 @@ void test_mnist() {
 
 // ---------------------- All    ----------------------
 
-extern char _stack_top[];
+// extern char _stack_top[];
 
-extern uint32_t _sidata; // .data 段在 ROM 中的起始位置
-extern uint32_t _sdata;  // .data 段在 RAM 中的起始位置
-extern uint32_t _edata;  // .data 段在 RAM 中的结束位置
+// extern uint32_t _sidata; // .data 段在 ROM 中的起始位置
+// extern uint32_t _sdata;  // .data 段在 RAM 中的起始位置
+// extern uint32_t _edata;  // .data 段在 RAM 中的结束位置
 
-extern uint32_t _sbss;   // .bss 段在 RAM 中的起始位置
-extern uint32_t _ebss;   // .bss 段在 RAM 中的结束位置
+// extern uint32_t _sbss;   // .bss 段在 RAM 中的起始位置
+// extern uint32_t _ebss;   // .bss 段在 RAM 中的结束位置
 
-void init_data_bss() {
-    uint32_t *src = &_sidata;
-    uint32_t *dst = &_sdata;
+// void init_data_bss() {
+//     uint32_t *src = &_sidata;
+//     uint32_t *dst = &_sdata;
 
-    // 将 .data 段从 ROM 复制到 RAM
-    while (dst < &_edata) {
-        *dst++ = *src++;
-    }
+//     // 将 .data 段从 ROM 复制到 RAM
+//     while (dst < &_edata) {
+//         *dst++ = *src++;
+//     }
 
-    // 初始化 .bss 段为 0
-    dst = &_sbss;
-    while (dst < &_ebss) {
-        *dst++ = 0;
-    }
-}
+//     // 初始化 .bss 段为 0
+//     dst = &_sbss;
+//     while (dst < &_ebss) {
+//         *dst++ = 0;
+//     }
+// }
 
 int main() {
-    asm volatile ("la sp, _stack_top");  // 设置栈指针
-    init_data_bss();
+    // asm volatile ("la sp, _stack_top");  // 设置栈指针
+    // init_data_bss();
     test_mnist();
     return 0;
 }
