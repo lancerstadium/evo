@@ -1,44 +1,51 @@
 ENTRY(main)
 
+MEMORY
+{
+    RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 1M
+}
+
 SECTIONS
 {
-    . = 0x80000000; /* 内存起始地址 */
+    . = ORIGIN(RAM); /* 内存起始地址 */
 
     .text : {
-        *(.text.boot)
         *(.text*)
-        KEEP(*(.init))
-        KEEP(*(.fini))
-        . = ALIGN(4);
-    }
+    } > RAM
 
     .rodata : {
-        *(.rodata)
         *(.rodata*)
-        . = ALIGN(4);
-    }
+    } > RAM
 
     .data : {
-        _gp = . + 0x800; /* 设置全局指针 */
-        *(.data)
+        _sdata = .;           /* 设置 .data 段的起始地址 */
         *(.data*)
-        . = ALIGN(4);
-    }
+        _edata = .;           /* 设置 .data 段的结束地址 */
+    } > RAM
 
     .bss : {
-        *(.bss)
+        _sbss = .;            /* 设置 .bss 段的起始地址 */
         *(.bss*)
         *(COMMON)
-        . = ALIGN(4);
-        _end = .;
-    }
+        _ebss = .;            /* 设置 .bss 段的结束地址 */
+    } > RAM
+
+    . = ALIGN(8);
+    _end = .;
+
+    /* 栈段，假设栈大小为16KB */
+    .stack (NOLOAD) : {
+        . = ALIGN(16);
+        _stack_start = .;
+        . += 16K;
+        _stack_top = .;
+    } > RAM
 
     . = ALIGN(16);
-    PROVIDE(_stack_top = 0x80010000); /* 栈顶 */
-
     PROVIDE(_heap_start = _end);
 
     /* 手动定义符号 */
+    PROVIDE(_sidata = LOADADDR(.data));  /* .data 段在 ROM 中的起始地址 */
     PROVIDE(__init_array_start = .);
     PROVIDE(__init_array_end = .);
     PROVIDE(__fini_array_start = .);
@@ -49,5 +56,5 @@ SECTIONS
 
     .debug_frame : {
         *(.debug_frame)
-    }
+    } > RAM
 }

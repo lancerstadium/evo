@@ -1,8 +1,5 @@
-#include "sob.h"
 #include <evo.h>
-
-
-#ifndef BARE_VIRT
+#include <stdio.h>
 
 static const unsigned char mnist_onnx[] = {
 	0x08, 0x03, 0x12, 0x04, 0x43, 0x4e, 0x54, 0x4b, 0x1a, 0x05, 0x32, 0x2e,
@@ -2243,9 +2240,29 @@ static const float input_3[] = {
 	 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 };
 
+
+
+
+static inline void putch(int ch) {
+    volatile uint8_t *p = (uint8_t *)(uintptr_t)0x10000000;
+    *p = ch;
+}
+
+void uart_log(char* msg) {
+    putch('H');
+    putch(msg[0]);
+    while(*msg) {
+        putch(*msg);
+        putch('-');   // 输出分隔符，帮助观察输出顺序
+        msg++;
+    }
+}
+
+
 // ---------------------- Mnist  ----------------------
 
-UnitTest_fn_def(test_mnist) {
+void test_mnist() {
+    // uart_log();
     runtime_t* rt = runtime_new("onnx");
     runtime_load_raw(rt, mnist_onnx, sizeof(mnist_onnx));
     tensor_t* in = runtime_get_tensor(rt, "Input3");
@@ -2256,56 +2273,41 @@ UnitTest_fn_def(test_mnist) {
     runtime_run(rt);
     tensor_dump2(out);
     runtime_free(rt);
-    return NULL;
+    char message[] = "hello";
+    uart_log(message);
+    printf("world!\n");
 }
 
 // ---------------------- All    ----------------------
 
-UnitTest_fn_def(test_all) {
-    UnitTest_add(test_mnist);
-    return NULL;
-}
+extern char _stack_top[];
 
-UnitTest_run(test_all);
+extern uint32_t _sidata; // .data 段在 ROM 中的起始位置
+extern uint32_t _sdata;  // .data 段在 RAM 中的起始位置
+extern uint32_t _edata;  // .data 段在 RAM 中的结束位置
 
-#else
+extern uint32_t _sbss;   // .bss 段在 RAM 中的起始位置
+extern uint32_t _ebss;   // .bss 段在 RAM 中的结束位置
 
-#define UART0_BASE 0x10000000
-#define UART_TX_FIFO 0x0    // UART TX FIFO 寄存器偏移
-#define UART_LSR 0x5        // UART LSR 寄存器偏移
+void init_data_bss() {
+    uint32_t *src = &_sidata;
+    uint32_t *dst = &_sdata;
 
-// UART 日志输出函数
-static void uart_log(const char* msg) {
-    volatile uint8_t *uart_tx = (uint8_t *)(uintptr_t)(UART0_BASE + UART_TX_FIFO);
-    volatile uint8_t *uart_lsr = (uint8_t *)(uintptr_t)(UART0_BASE + UART_LSR);
+    // 将 .data 段从 ROM 复制到 RAM
+    while (dst < &_edata) {
+        *dst++ = *src++;
+    }
 
-    while (*msg != '\0') {
-        // 检查 UART 是否准备好发送下一个字符
-        while (!(*uart_lsr & 0x20)) {
-            // 简单的等待，不进行其他操作
-        }
-        // 处理换行符，将 '\n' 转换为 '\r\n' 以兼容更多终端
-        if (*msg == '\n') {
-            // 发送 '\r' 以保证换行在终端正确显示
-            *uart_tx = '\r';
-            // 等待 UART 准备好发送下一个字符
-            while (!(*uart_lsr & 0x20)) {
-                // 简单的等待，不进行其他操作
-            }
-        }
-        // 发送字符
-        *uart_tx = *msg++;
+    // 初始化 .bss 段为 0
+    dst = &_sbss;
+    while (dst < &_ebss) {
+        *dst++ = 0;
     }
 }
 
-void main() {
-    volatile uint8_t *p = (uint8_t *)(uintptr_t)0x10000000;
-    *p = 'H';
-    *p = 'e';
-    *p = 'l';
-    *p = 'l';
-    *p = 'o';
-    uart_log("World!\n");
+int main() {
+    asm volatile ("la sp, _stack_top");  // 设置栈指针
+    init_data_bss();
+    test_mnist();
+    return 0;
 }
-
-#endif

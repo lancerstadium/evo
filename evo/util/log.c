@@ -21,20 +21,6 @@ static void safety_log(struct logger* logger, char* message) {
     mutex_unlock(&log_locker);
 }
 
-#ifdef BARE_VIRT
-#define UART0_BASE 0x10000000
-
-static void uart_log(const char* msg) {
-    volatile uint8_t *uart = (uint8_t *)(uintptr_t)UART0_BASE;
-    while (*msg) {
-        while (*(uart + 5) & 0x20) { // 等待 UART 准备好
-            ;
-        }
-        *uart = *msg++;
-    }
-}
-#endif
-
 static void do_log(struct logger* logger, enum log_level level, const char* fmt, ...) {
     if (logger->log_level < level || level > LOG_LEVEL_DEBUG) {
         return;
@@ -75,55 +61,6 @@ static void do_log(struct logger* logger, enum log_level level, const char* fmt,
 
     return;
 
-#elif BARE_VIRT
-    if (logger->log_level < level || level > LOG_LEVEL_DEBUG) {
-        return;
-    }
-
-    char msg[LOG_MAX_MSG] = {0};
-    int max_len = LOG_MAX_MSG;
-    int left = max_len;
-    char* p = msg;
-    int ret;
-
-    if (logger->option.print_time) {
-        time_t t = time(NULL);
-        ret = strftime(p, left, "%Y-%m-%d %X ", localtime(&t));
-        left -= ret;
-        p += ret;
-    }
-
-    if (left <= 1) {
-        return uart_log(msg);
-    }
-
-    if (logger->option.print_level) {
-        ret = snprintf(p, left, "%s ", map_table[level]);
-        left -= ret;
-        p += ret;
-    }
-
-    if (left <= 1) {
-        return uart_log(msg);
-    }
-
-    if (logger->option.print_prefix && logger->prefix) {
-        ret = snprintf(p, left, "%s ", logger->prefix);
-        left -= ret;
-        p += ret;
-    }
-
-    if (left <= 1) {
-        return uart_log(msg);
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(p, left, fmt, ap);
-    va_end(ap);
-
-    uart_log(msg);
-    return;
 #else
     va_list ap;
     char msg[LOG_MAX_MSG] = {0};

@@ -15,7 +15,7 @@ all: $(TEST_TRG)
 	@echo [CC] $<
 ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
 	@echo [RV] $@
-	@$(CC) $(INCDIRS) $(LIBDIRS) -DSOB_CLR_OFF -DBARE_VIRT -ffreestanding -nostartfiles -Wl,-Tbare.ld -O2 -o $@ $< $(LIBS) -static
+	@$(CC) $(INCDIRS) $(LIBDIRS) -DSOB_CLR_OFF -ffreestanding -nostartfiles -Wl,-Tbare.ld -O2 -o $@ $< $(LIBS) -static
 else
 	@$(CC) $(INCDIRS) $(LIBDIRS) -o $@ $< $(LIBS) -static
 endif
@@ -35,8 +35,12 @@ fi; \
 	done
 
 bare-rv32:
-# riscv64-linux-gnu-gcc $(INCDIRS) $(LIBDIRS) $(LIBS) -DSOB_CLR_OFF --static -ffreestanding -nostdlib -Wl,-Tbare.ld -O2 bare_tests.c -o bare_tests
-	riscv64-unknown-elf-objcopy -j .text -O binary --change-addresses=0x80000000 bare_tests bare_tests.bin
+# riscv64-unknown-elf-objcopy -j .text -O binary --change-addresses=0x80000000 bare_tests bare_tests.bin
+	riscv64-unknown-elf-objcopy -O binary -R .note.gnu.build-id -R .comment -R .riscv.attributes bare_tests bare_tests.bin
+	riscv64-unknown-elf-objcopy -I binary -O ihex bare_tests.bin bare_tests.hex
+
+check-rv32:
+	riscv64-unknown-elf-objdump -h bare_tests
 
 emu-rv32:
 	qemu-system-riscv32 -nographic -machine virt -display none -bios none -serial mon:stdio -kernel bare_tests.bin -device loader,file=bare_tests.bin,addr=0x80000000

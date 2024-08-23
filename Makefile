@@ -17,13 +17,15 @@ LIBDIRS     := -L ./sub/flatcc/lib
 INCDIRS		:= -I . -I sub/flatcc/include
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
 
-BARE_ENB	?=
+ARCH_DEP	?=
 ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
-BARE_ENB	:= -DBARE_VIRT
+ARCH_DEP	:= 
+else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
+ARCH_DEP	:= 
 endif
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(BARE_ENB)
+OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(ARCH_DEP)
 ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
