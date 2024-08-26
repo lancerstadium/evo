@@ -8,6 +8,7 @@ LIBDIRS		:= -L../build
 LIBS 		:= -levo -lm
 LOG_TRG		:= tests.log
 LOG_ENB     := 1
+PERF_TOOL	:= /usr/bin/time -v
 
 all: $(TEST_TRG)
 
@@ -25,7 +26,7 @@ run: $(TEST_TRG)
 	@echo;
 	@for target in $(TEST_TRG); do \
 		echo "[Test: $$target] >>>"; \
-		/usr/bin/time -v ./$$target 2> $(LOG_TRG) >&1; \
+		$(PERF_TOOL) ./$$target 2> $(LOG_TRG) >&1; \
 if [ $(LOG_ENB) -eq 1 ]; then \
 		echo "[Msg: $$target] --------------------------------------"; \
 		cat $(LOG_TRG); \

@@ -86,9 +86,16 @@
 
 ### 3.1 架构
 
-提前退出：
+#### 3.1.1 动态钩子网络
 
-稀疏卷积：
+设计原则：非侵入式推理网络，优化网络前向推理过程
+
+同步推理：在模型初始化时静态分析生成特定的钩子网络，在模型推理时，耦合进主网络协同推理
+异步训练：采样主网络输入输出对，在主网络执行完毕后进行前向训练
+
+#### 3.1.2 提前退出
+
+#### 3.1.3 稀疏卷积
 1. 采样（Sampling）：Middle Feature Map -> Gumble Softmax -> Mask
 2. 排序（Sorting）：Mask -> Argsort -> Top K Index of Sparse Attention (Other for Conv)
 
