@@ -12,9 +12,9 @@ OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
 NAME		:= evo
-LIBS		:= -l flatccrt
-LIBDIRS     := -L ./sub/flatcc/lib
-INCDIRS		:= -I . -I sub/flatcc/include
+LIBS		:= -lflatccrt -lm
+LIBDIRS     := -L./sub/flatcc/lib
+INCDIRS		:= -I. -I./sub/flatcc/include
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
 
 ARCH_DEP	?=
@@ -24,8 +24,26 @@ else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
 ARCH_DEP	:= 
 endif
 
+PLATFORM  	?=
+ifeq ($(shell uname),Linux)
+    PLATFORM := Linux
+else ifeq ($(shell uname),Darwin)
+    PLATFORM := macOS
+else ifeq ($(OS),Windows)
+    PLATFORM = Windows
+endif
+
+GUI_DEP		?=
+ifeq ($(PLATFORM),Linux)
+GUI_DEP		:= -lX11
+else ifeq ($(PLATFORM),Darwin)
+GUI_DEP		:= -framework Cocoa
+else ifeq ($(PLATFORM),Windows)
+GUI_DEP		:= 
+endif
+
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(ARCH_DEP)
+OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(ARCH_DEP) $(GUI_DEP)
 ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
 CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC

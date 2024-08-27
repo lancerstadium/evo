@@ -49,6 +49,7 @@ extern "C" {
 #define EVO_DFT_DEV         "cpu"
 #define EVO_DIM_MAX         8
 #define EVO_ALIGN_SIZE      16
+#define EVO_GUI_MODE
 
 // ==================================================================================== //
 //                                       typedef
@@ -769,17 +770,20 @@ struct optimizer {
 };
 
 // ==================================================================================== //
-//                                  evo: Computer Vision (cv)
+//                                  evo: Vision (vis)
 // ==================================================================================== //
 
 // ==================================================================================== //
-//                                  evo: typedef (cv)
+//                                  evo: typedef (vis)
 // ==================================================================================== //
 
+typedef struct font font_t;
 typedef struct image image_t;
+typedef struct canvas canvas_t;
+typedef struct rectangle rectangle_t;
 
 // ==================================================================================== //
-//                                  evo: image type (cv)
+//                                  evo: image type (vis)
 // ==================================================================================== //
 
 typedef enum image_type {
@@ -793,7 +797,7 @@ typedef enum image_type {
 } image_type_t;
 
 // ==================================================================================== //
-//                                  evo: image (cv)
+//                                  evo: image (vis)
 // ==================================================================================== //
 
 struct image {
@@ -826,23 +830,8 @@ EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_set_deloys(image_t*, int64_t*, int);
 EVO_API void image_free(image_t*);
 
-
 // ==================================================================================== //
-//                                  evo: Graph (gl)
-// ==================================================================================== //
-
-// ==================================================================================== //
-//                                  evo: typedef (gl)
-// ==================================================================================== //
-
-typedef struct font font_t;
-typedef struct canvas canvas_t;
-typedef struct renderer renderer_t;
-typedef struct rectangle rectangle_t;
-typedef canvas_t* (*render_fn_t)(float);
-
-// ==================================================================================== //
-//                                  evo: canvas (gl)
+//                                  evo: canvas (vis)
 // ==================================================================================== //
 
 struct canvas {
@@ -888,31 +877,7 @@ EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint
 EVO_API void canvas_free(canvas_t*);
 
 // ==================================================================================== //
-//                                  evo: renderer type (gl)
-// ==================================================================================== //
-
-typedef enum renderer_type {
-    RENDERER_TYPE_GIF,
-    RENDERER_TYPE_SDL,
-    RENDERER_TYPE_WASM
-} renderer_type_t;
-
-// ==================================================================================== //
-//                                  evo: renderer (gl)
-// ==================================================================================== //
-
-struct renderer {
-    renderer_type_t type;
-    void *priv;
-    void (*render)(struct renderer*, render_fn_t);
-};
-
-EVO_API renderer_t* renderer_new(renderer_type_t);
-EVO_API void renderer_run(renderer_t*, render_fn_t);
-EVO_API void renderer_free(renderer_t*);
-
-// ==================================================================================== //
-//                                  evo: Font (gl)
+//                                  evo: Font (vis)
 // ==================================================================================== //
 
 struct font {
@@ -924,13 +889,62 @@ struct font {
 extern font_t default_font;                             /* FONT|Default font for evo    */
 
 // ==================================================================================== //
-//                                  evo: Form (gl)
+//                                  evo: Rectangle (vis)
 // ==================================================================================== //
 
 struct rectangle {
     int x1, y1;
     int x2, y2;
 };
+
+// ==================================================================================== //
+//                                  evo: Renderer (red)
+// ==================================================================================== //
+
+// ==================================================================================== //
+//                                  evo: typedef (red)
+// ==================================================================================== //
+
+typedef struct renderer renderer_t;
+typedef canvas_t* (*render_fn_t)(float);
+
+// ==================================================================================== //
+//                                  evo: renderer type (red)
+// ==================================================================================== //
+
+typedef enum renderer_type {
+    RENDERER_TYPE_GIF,
+#if defined(EVO_GUI_MODE)
+#if defined(__linux__) && !defined(__ANDROID__)
+    RENDERER_TYPE_LINUX,
+#elif defined(__ANDROID__)
+    RENDERER_TYPE_ANDROID,
+#elif defined(__IOS__)
+    RENDERER_TYPE_IOS,
+#elif defined(__MACOS__)
+    RENDERER_TYPE_OSX,
+#elif defined(_WIN32)
+    RENDERER_TYPE_WIN,
+#endif  // gui platform
+#endif  // EVO_GUI_MODE
+} renderer_type_t;
+
+// ==================================================================================== //
+//                                  evo: renderer (red)
+// ==================================================================================== //
+
+struct renderer {
+    renderer_type_t type;
+    void *priv;
+    void (*render)(struct renderer*, render_fn_t);
+};
+
+EVO_API renderer_t* renderer_new(renderer_type_t);
+EVO_API void renderer_run(renderer_t*, render_fn_t);
+EVO_API void renderer_free(renderer_t*);
+#if defined(EVO_GUI_MODE)
+
+#endif  // EVO_GUI_MODE
 
 
 #ifdef __cplusplus

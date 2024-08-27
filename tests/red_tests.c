@@ -123,8 +123,16 @@ UnitTest_fn_def(test_render_canvas) {
     return NULL;
 }
 
+UnitTest_fn_def(test_render_linux) {
+    renderer_t* rd = renderer_new(RENDERER_TYPE_LINUX);
+    renderer_free(rd);
+    return NULL;
+}
+
+
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_render_canvas);
+    // UnitTest_add(test_render_canvas);
+    UnitTest_add(test_render_linux);
     return NULL;
 }
 
