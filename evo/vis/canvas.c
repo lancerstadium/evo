@@ -536,7 +536,7 @@ void canvas_export(canvas_t* cav, const char* path) {
 
 void canvas_free(canvas_t* cav) {
     if (cav) {
-        if (cav->background) image_free(cav->background);
+        if (cav->background) { image_free(cav->background); cav->background = NULL; }
         cav->pixels = NULL;
         free(cav);
         cav = NULL;

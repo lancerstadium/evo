@@ -5,7 +5,7 @@ SRC_TEST 	:= $(wildcard *_tests.c)
 TEST_TRG 	:= $(patsubst %.c,%,$(SRC_TEST))
 INCDIRS		:= -I. -I../evo
 LIBDIRS		:= -L../build
-LIBS 		:= -levo -lm
+LIBS 		:= -levo -lX11 -lm
 LOG_TRG		:= tests.log
 LOG_ENB     := 1
 # PERF_TOOL	:= /usr/bin/time -v
@@ -18,7 +18,7 @@ ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
 	@echo [RV] $@
 	@$(CC) $(INCDIRS) $(LIBDIRS) -DSOB_CLR_OFF -ffreestanding -nostartfiles -Wl,-Tbare.ld -O2 -o $@ $< $(LIBS) -static
 else
-	@$(CC) $(INCDIRS) $(LIBDIRS) -o $@ $< $(LIBS) -static
+	$(CC) $(INCDIRS) $< -o $@ $(LIBDIRS) $(LIBS)
 endif
 
 

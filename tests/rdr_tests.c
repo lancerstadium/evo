@@ -8,7 +8,7 @@
 #define HEIGHT 720
 #define BG_COLOR 0xFF181818
 
-canvas_t* dots3d(float dt) {
+canvas_t* dots3d(canvas_t* cav, float dt) {
     // Parameters
     int grid_count = 10;
     int circle_radius = 5;
@@ -18,7 +18,6 @@ canvas_t* dots3d(float dt) {
     float z_start = 0.25;
     angle += 0.25 * PI * dt;
     // 0. init canvas
-    canvas_t* cav = canvas_new(WIDTH, HEIGHT);
     canvas_fill(cav, BG_COLOR);
     // 1. draw circles
     for (int ix = 0; ix < grid_count; ++ix) {
@@ -66,7 +65,7 @@ static inline void rotate_point(float angle, float* x, float* y) {
     *y = sinf(dir) * mag + HEIGHT / 2;
 }
 
-canvas_t* triangle(float dt) {
+canvas_t* triangle(canvas_t* cav, float dt) {
     // Parameters
     float angle = 0;
     float circle_radius = 100;
@@ -77,7 +76,6 @@ canvas_t* triangle(float dt) {
     float circle_dy = 100;
 
     // 0. init canvas
-    canvas_t* cav = canvas_new(WIDTH, HEIGHT);
     canvas_fill(cav, BG_COLOR);
 
     // 1. Triangle
@@ -118,13 +116,14 @@ canvas_t* triangle(float dt) {
 
 UnitTest_fn_def(test_render_canvas) {
     renderer_t* rd = renderer_new(RENDERER_TYPE_GIF);
-    renderer_run(rd, dots3d);
+    renderer_run(rd, triangle);
     renderer_free(rd);
     return NULL;
 }
 
 UnitTest_fn_def(test_render_linux) {
     renderer_t* rd = renderer_new(RENDERER_TYPE_LINUX);
+    renderer_run(rd, dots3d);
     renderer_free(rd);
     return NULL;
 }

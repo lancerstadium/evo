@@ -12,7 +12,7 @@ OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
 NAME		:= evo
-LIBS		:= -lflatccrt -lm
+LIBS		:= -lflatccrt
 LIBDIRS     := -L./sub/flatcc/lib
 INCDIRS		:= -I. -I./sub/flatcc/include
 SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
@@ -43,10 +43,10 @@ GUI_DEP		:=
 endif
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBS) $(LIBDIRS) $(NOWARNS) $(ARCH_DEP) $(GUI_DEP)
-ASFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
-CFLAGS		:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
-CXXFLAGS	:= -g -ggdb -Wall -O3 $(OPTIONS) -fPIC
+OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(GUI_DEP) $(NOWARNS)
+ASFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
+CFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
+CXXFLAGS	:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
 TRGDIR 		:= build
 OBJDIR		:= $(TRGDIR)/obj
 LIBTRG		:= $(TRGDIR)/lib$(NAME).a
@@ -82,17 +82,17 @@ $(LIBTRG) : $(OBJS)
 $(OBJDIR)/%.o : $(NAME)/%.S
 	@echo [AS] $<
 	@mkdir -p $(dir $@)
-	@$(AS) $(ASFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(AS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(ASFLAGS)
 
 $(OBJDIR)/%.o : $(NAME)/%.c
 	@echo [CC] $<
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(CC) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CFLAGS)
 
 $(OBJDIR)/%.o : $(NAME)/%.cpp
 	@echo [CXX] $<
 	@mkdir -p $(dir $@)
-	@$(CXX) $(CXXFLAGS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@
+	@$(CXX) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CXXFLAGS)
 
 test: $(LIBTRG)
 	@$(MAKE) -s -C tests run

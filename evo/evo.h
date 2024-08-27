@@ -898,18 +898,18 @@ struct rectangle {
 };
 
 // ==================================================================================== //
-//                                  evo: Renderer (red)
+//                                  evo: Renderer (rdr)
 // ==================================================================================== //
 
 // ==================================================================================== //
-//                                  evo: typedef (red)
+//                                  evo: typedef (rdr)
 // ==================================================================================== //
 
 typedef struct renderer renderer_t;
-typedef canvas_t* (*render_fn_t)(float);
+typedef canvas_t* (*render_fn_t)(canvas_t*, float);
 
 // ==================================================================================== //
-//                                  evo: renderer type (red)
+//                                  evo: renderer type (rdr)
 // ==================================================================================== //
 
 typedef enum renderer_type {
@@ -930,7 +930,7 @@ typedef enum renderer_type {
 } renderer_type_t;
 
 // ==================================================================================== //
-//                                  evo: renderer (red)
+//                                  evo: renderer (rdr)
 // ==================================================================================== //
 
 struct renderer {
@@ -943,7 +943,7 @@ EVO_API renderer_t* renderer_new(renderer_type_t);
 EVO_API void renderer_run(renderer_t*, render_fn_t);
 EVO_API void renderer_free(renderer_t*);
 #if defined(EVO_GUI_MODE)
-
+EVO_API int renderer_should_close(renderer_t*);
 #endif  // EVO_GUI_MODE
 
 
