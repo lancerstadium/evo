@@ -79,7 +79,7 @@ $(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
 
 .PHONY: all gen_config clean test line tool
 
-all : gen_config $(LIBTRG)
+all : $(LIBTRG)
 	@$(MAKE) -s -C tests all
 
 $(LIBTRG) : $(OBJS)
