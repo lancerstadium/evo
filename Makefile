@@ -19,9 +19,9 @@ SRCDIRS		:= src src/** src/**/**
 
 ARCH_DEP	?=
 ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
-ARCH_DEP	:= 
+	ARCH_DEP	:= 
 else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
-ARCH_DEP	:= 
+	ARCH_DEP	:= 
 endif
 
 PLATFORM  	?=
@@ -33,13 +33,19 @@ else ifeq ($(OS),Windows)
     PLATFORM = Windows
 endif
 
+# Options
+GUI_ENB		:= 1			# Compile with evo-gui
+
+# Options: GUI
 GUI_DEP		?=
-ifeq ($(PLATFORM),Linux)
-GUI_DEP		:= -lX11
-else ifeq ($(PLATFORM),Darwin)
-GUI_DEP		:= -framework Cocoa
-else ifeq ($(PLATFORM),Windows)
-GUI_DEP		:= 
+ifneq ($(GUI_ENB),)
+	ifeq ($(PLATFORM),Linux)
+		GUI_DEP		:= -lX11
+	else ifeq ($(PLATFORM),Darwin)
+		GUI_DEP		:= -framework Cocoa
+	else ifeq ($(PLATFORM),Windows)
+		GUI_DEP		:=
+	endif
 endif
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
@@ -54,6 +60,7 @@ LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 CPPFILES	:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
+CFGFILE		:= include/config.h
 
 SDEPS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o.d))
 CDEPS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o.d))
@@ -70,9 +77,9 @@ CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 $(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
 
-.PHONY: all clean test line tool
+.PHONY: all gen_config clean test line tool
 
-all : $(LIBTRG)
+all : gen_config $(LIBTRG)
 	@$(MAKE) -s -C tests all
 
 $(LIBTRG) : $(OBJS)
@@ -93,6 +100,14 @@ $(OBJDIR)/%.o : src/%.cpp
 	@echo [CXX] $<
 	@mkdir -p $(dir $@)
 	@$(CXX) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CXXFLAGS)
+
+gen_config:
+	@echo "/* Auto-generated config.h */" > $(CFGFILE)
+	@echo "#define EVO_VERSION \"1.0.0\"" >> $(CFGFILE)
+	@echo "#define EVO_PLATFORM \"$(PLATFORM)\"" >> $(CFGFILE)
+ifneq ($(GUI_ENB),)
+	@echo "#define EVO_GUI_ENB" >> $(CFGFILE)
+endif
 
 test: $(LIBTRG)
 	@$(MAKE) -s -C tests run

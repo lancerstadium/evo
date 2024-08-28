@@ -48,7 +48,7 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
     canvas_free(cav);
 }
 
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 
 #if defined(__linux__) && !defined(__ANDROID__)
 
@@ -209,7 +209,7 @@ void renderer_render_linux(renderer_t* rd, render_fn_t rd_fn) {
 
 #endif  // gui platform
 
-#endif  // EVO_GUI_MODE
+#endif  // EVO_GUI_ENB
 
 // ==================================================================================== //
 //                                  renderer: API
@@ -237,7 +237,7 @@ renderer_t* renderer_new(int width, int height, renderer_type_t type) {
             rd->render = renderer_render_gif;
             break;
         }
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 #if defined(__linux__) && !defined(__ANDROID__)
         case RENDERER_TYPE_LINUX: {
             renderer_linux_t* priv = malloc(sizeof(renderer_linux_t));
@@ -264,7 +264,7 @@ renderer_t* renderer_new(int width, int height, renderer_type_t type) {
             break;
         }
 #endif // gui platform
-#endif // EVO_GUI_MODE
+#endif // EVO_GUI_ENB
         default:
             rd->priv = NULL;
             rd->render = NULL;
@@ -288,7 +288,7 @@ void renderer_free(renderer_t* rd) {
                     if(priv->name) free(priv->name);
                     break;
                 }
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 #if defined(__linux__) && !defined(__ANDROID__)
                 case RENDERER_TYPE_LINUX: {
                     renderer_linux_t* priv = rd->priv;
@@ -301,7 +301,7 @@ void renderer_free(renderer_t* rd) {
                     break;
                 }
 #endif // gui platform
-#endif // EVO_GUI_MODE
+#endif // EVO_GUI_ENB
                 default: break;
             }
             free(rd->priv);
@@ -315,14 +315,14 @@ void renderer_free(renderer_t* rd) {
 int renderer_should_close(renderer_t* rd) {
     if(!rd) return 0;
     switch(rd->type) {
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 #if defined(__linux__) && !defined(__ANDROID__)
         case RENDERER_TYPE_LINUX: {
             renderer_linux_t* priv = rd->priv;
             return priv->should_close;
         }
 #endif // gui platform
-#endif // EVO_GUI_MODE
+#endif // EVO_GUI_ENB
         default: return 0;
     }
     return 0;

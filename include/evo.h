@@ -49,7 +49,8 @@ extern "C" {
 #define EVO_DFT_DEV         "cpu"
 #define EVO_DIM_MAX         8
 #define EVO_ALIGN_SIZE      16
-#define EVO_GUI_MODE
+
+#include "config.h"
 
 // ==================================================================================== //
 //                                       typedef
@@ -915,7 +916,7 @@ typedef canvas_t* (*render_fn_t)(canvas_t*, float);
 
 typedef enum renderer_type {
     RENDERER_TYPE_GIF,
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 #if defined(__linux__) && !defined(__ANDROID__)
     RENDERER_TYPE_LINUX,
 #elif defined(__ANDROID__)
@@ -927,7 +928,7 @@ typedef enum renderer_type {
 #elif defined(_WIN32)
     RENDERER_TYPE_WIN,
 #endif  // gui platform
-#endif  // EVO_GUI_MODE
+#endif  // EVO_GUI_ENB
 } renderer_type_t;
 
 // ==================================================================================== //
@@ -944,9 +945,9 @@ struct renderer {
 EVO_API renderer_t* renderer_new(int, int, renderer_type_t);
 EVO_API void renderer_run(renderer_t*, render_fn_t);
 EVO_API void renderer_free(renderer_t*);
-#if defined(EVO_GUI_MODE)
+#if defined(EVO_GUI_ENB)
 EVO_API int renderer_should_close(renderer_t*);
-#endif  // EVO_GUI_MODE
+#endif  // EVO_GUI_ENB
 
 
 #ifdef __cplusplus
