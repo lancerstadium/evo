@@ -1,5 +1,6 @@
 # Makefile for library
 
+# System Build Tool
 CROSS_COMPILE	?= 
 
 AS			:= $(CROSS_COMPILE)gcc -x assembler-with-cpp
@@ -11,7 +12,22 @@ OC			:= $(CROSS_COMPILE)objcopy
 OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
+# Application Information
 NAME		:= evo
+VERSION 	:= 1.0.0
+AUTHOR		:= lancerstadium
+
+# Platform Information
+PLATFORM  	?=
+ifeq ($(shell uname),Linux)
+    PLATFORM := Linux
+else ifeq ($(shell uname),Darwin)
+    PLATFORM := macOS
+else ifeq ($(OS),Windows)
+    PLATFORM = Windows
+endif
+
+# File & Dependence
 LIBS		:= 
 LIBDIRS     := 
 INCDIRS		:= -I./include
@@ -24,17 +40,8 @@ else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
 	ARCH_DEP	:= 
 endif
 
-PLATFORM  	?=
-ifeq ($(shell uname),Linux)
-    PLATFORM := Linux
-else ifeq ($(shell uname),Darwin)
-    PLATFORM := macOS
-else ifeq ($(OS),Windows)
-    PLATFORM = Windows
-endif
-
 # Options
-GUI_ENB		:= 1			# Compile with evo-gui
+GUI_ENB		:= 			# Compile with evo-gui
 
 # Options: GUI
 GUI_DEP		?=
@@ -72,15 +79,30 @@ COBJS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o))
 CPPOBJS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o)) 
 OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
 
-CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
+CURTIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 
 $(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
 
-.PHONY: all gen_config clean test line tool
+.PHONY: all config clean test line tool
 
 all : $(LIBTRG)
 	@$(MAKE) -s -C tests all
+
+config: $(CFGFILE)
+	@echo "[Config] >> \t\t\e[33;1m$(CFGFILE)\e[0m"
+	@echo "application: \t\t$(NAME)"
+	@echo "/* Auto-generated config.h */" > $(CFGFILE)
+	@echo "#define EVO_VERSION \"$(VERSION)\"" >> $(CFGFILE)
+	@echo "version: \t\t$(VERSION)"
+	@echo "#define EVO_PLATFORM \"$(PLATFORM)\"" >> $(CFGFILE)
+	@echo "platform: \t\t$(PLATFORM)"
+ifneq ($(GUI_ENB),)
+	@echo "#define EVO_GUI_ENB" >> $(CFGFILE)
+	@echo "option-gui: \t\t\e[32;1mon\e[0m"
+else
+	@echo "option-gui: \t\t\e[31;1moff\e[0m"
+endif
 
 $(LIBTRG) : $(OBJS)
 	@echo [AR] Archiving $@
@@ -101,14 +123,6 @@ $(OBJDIR)/%.o : src/%.cpp
 	@mkdir -p $(dir $@)
 	@$(CXX) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CXXFLAGS)
 
-gen_config:
-	@echo "/* Auto-generated config.h */" > $(CFGFILE)
-	@echo "#define EVO_VERSION \"1.0.0\"" >> $(CFGFILE)
-	@echo "#define EVO_PLATFORM \"$(PLATFORM)\"" >> $(CFGFILE)
-ifneq ($(GUI_ENB),)
-	@echo "#define EVO_GUI_ENB" >> $(CFGFILE)
-endif
-
 test: $(LIBTRG)
 	@$(MAKE) -s -C tests run
 
@@ -123,7 +137,7 @@ head:
 
 commit:
 	git add .
-	git commit -m '$(CUR_TIME)'
+	git commit -m '$(CURTIME)'
 	git push
 
 clean:
