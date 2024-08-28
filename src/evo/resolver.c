@@ -227,6 +227,8 @@ static resolver_t default_resolver = {
         OP_REG_DFT(MUL                      , Mul                   ),
         OP_REG_DFT(NEG                      , Neg                   ),
         OP_REG_DFT(PAD                      , Pad                   ),
+        OP_REG_DFT(RANDOM_UNIFORM           , RandomUniform         ),
+        OP_REG_DFT(RANDOM_UNIFORM_LIKE      , RandomUniformLike     ),
         OP_REG_DFT(RANGE                    , Range                 ),
         OP_REG_DFT(RELU                     , Relu                  ),
         OP_REG_DFT(RESHAPE                  , Reshape               ),

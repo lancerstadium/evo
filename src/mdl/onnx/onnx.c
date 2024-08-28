@@ -355,7 +355,7 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INTS:
             return attribute_ints(attr->name, attr->ints, attr->n_ints);
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__TENSOR:
-            tensor_t *t = tensor_new(attr->t->name, TENSOR_TYPE_UNDEFINED);
+            tensor_t *t = tensor_new(attr->t->name, attr->t->data_type);
             int *dims = malloc(sizeof(int) * attr->t->n_dims);
             int ndim;
             if (dims) {
@@ -366,6 +366,7 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
                 tensor_copy_proto_onnx(t, attr->t);
             }
             free(dims);
+            return attribute_tensor(attr->name, t);
         default: 
             return attribute_undefined(attr->name);
     }

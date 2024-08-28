@@ -276,6 +276,26 @@ UnitTest_fn_def(test_concat) {
     return NULL;
 }
 
+// ---------------------- ConstantOfShape -------------
+UnitTest_fn_def(test_constantofshape_f1s) {
+    TEST_1I("test_constantofshape_float_ones", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_constantofshape_is0) {
+    TEST_1I("test_constantofshape_int_shape_zero", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_constantofshape_i0s) {
+    TEST_1I("test_constantofshape_int_zeros", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_constantofshape) {
+    UnitTest_add(test_constantofshape_f1s);
+    UnitTest_add(test_constantofshape_is0);
+    UnitTest_add(test_constantofshape_i0s);
+    return NULL;
+}
+
 // ---------------------- Conv  -----------------------
 
 UnitTest_fn_def(test_conv_ap) {
@@ -818,6 +838,7 @@ UnitTest_fn_def(test_all) {
     // UnitTest_add(test_batchnorm);    // Failed
     UnitTest_add(test_cast);
     UnitTest_add(test_concat);
+    UnitTest_add(test_constantofshape);
     UnitTest_add(test_conv);
     UnitTest_add(test_div);
     UnitTest_add(test_dropout);
