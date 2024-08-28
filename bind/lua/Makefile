@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -fPIC
 LDFLAGS = -shared
-LUABIND_INCS = -I. -I../../evo -I./LuaBridge
+LUABIND_INCS = -I. -I../../include -I./LuaBridge
 LIBDIRS = -L/usr/local/lib/lua -L../../build
 LIBS = -lstdc++ -levo -llua -lm 
 

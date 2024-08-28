@@ -1,6 +1,6 @@
 CXX        := g++
 SRCS       := $(wildcard ./*.cpp)
-INCDIRS    := -I . -I ../../evo
+INCDIRS    := -I . -I ../../include
 LIBDIRS    := -L ../../build
 LIBS       := -levo -lm
 TARGET     := demo

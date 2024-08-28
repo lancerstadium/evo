@@ -2,8 +2,8 @@
 #include <evo.h>
 
 UnitTest_fn_def(test_read_mnist) {
-    const char* image_filename = "model/mnist_8/test_data_set_3/t10k-images-idx3-ubyte";
-    const char* label_filename = "model/mnist_8/test_data_set_3/t10k-labels-idx1-ubyte";
+    const char* image_filename = "picture/mnist/t10k-images-idx3-ubyte";
+    const char* label_filename = "picture/mnist/t10k-labels-idx1-ubyte";
 
     image_t* img = image_load_mnist(image_filename, label_filename);
     if (img) {

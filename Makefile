@@ -12,10 +12,10 @@ OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
 
 NAME		:= evo
-LIBS		:= -lflatccrt
-LIBDIRS     := -L./sub/flatcc/lib
-INCDIRS		:= -I. -I./sub/flatcc/include
-SRCDIRS		:= $(NAME) $(NAME)/** $(NAME)/**/**
+LIBS		:= 
+LIBDIRS     := 
+INCDIRS		:= -I./include
+SRCDIRS		:= src src/** src/**/**
 
 ARCH_DEP	?=
 ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
@@ -55,14 +55,14 @@ SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 CPPFILES	:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 
-SDEPS       := $(patsubst %, %, $(SFILES:$(NAME)/%.S=$(OBJDIR)/%.o.d))
-CDEPS       := $(patsubst %, %, $(CFILES:$(NAME)/%.c=$(OBJDIR)/%.o.d))
-CPPDEPS     := $(patsubst %, %, $(CPPFILES:$(NAME)/%.cpp=$(OBJDIR)/%.o.d))
+SDEPS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o.d))
+CDEPS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o.d))
+CPPDEPS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o.d))
 DEPS        := $(SDEPS) $(CDEPS) $(CPPDEPS)
 
-SOBJS       := $(patsubst %, %, $(SFILES:$(NAME)/%.S=$(OBJDIR)/%.o))
-COBJS       := $(patsubst %, %, $(CFILES:$(NAME)/%.c=$(OBJDIR)/%.o))
-CPPOBJS     := $(patsubst %, %, $(CPPFILES:$(NAME)/%.cpp=$(OBJDIR)/%.o)) 
+SOBJS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o))
+COBJS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o))
+CPPOBJS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o)) 
 OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
 
 CUR_TIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
@@ -79,17 +79,17 @@ $(LIBTRG) : $(OBJS)
 	@echo [AR] Archiving $@
 	@$(AR) -rcs $@ $(OBJS)
 
-$(OBJDIR)/%.o : $(NAME)/%.S
+$(OBJDIR)/%.o : src/%.S
 	@echo [AS] $<
 	@mkdir -p $(dir $@)
 	@$(AS) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(ASFLAGS)
 
-$(OBJDIR)/%.o : $(NAME)/%.c
+$(OBJDIR)/%.o : src/%.c
 	@echo [CC] $<
 	@mkdir -p $(dir $@)
 	@$(CC) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CFLAGS)
 
-$(OBJDIR)/%.o : $(NAME)/%.cpp
+$(OBJDIR)/%.o : src/%.cpp
 	@echo [CXX] $<
 	@mkdir -p $(dir $@)
 	@$(CXX) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CXXFLAGS)

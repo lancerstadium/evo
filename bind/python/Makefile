@@ -3,7 +3,7 @@
 CXX                 := g++
 NAME                := pyevo
 PYBIND_SRCS         := $(NAME).cpp
-PYBIND_INCS         := -I . -I ../../evo $(shell python3 -m pybind11 --includes)
+PYBIND_INCS         := -I . -I ../../include $(shell python3 -m pybind11 --includes)
 LIBDIRS             := -L ../../build
 LIBS                := -levo -lm
 PYBIND_DIR          := .
