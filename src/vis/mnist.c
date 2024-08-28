@@ -1,4 +1,5 @@
 #include <evo.h>
+#include <evo/util/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -6,15 +7,15 @@
 
 
 image_t* image_load_mnist(const char* image_filename, const char* label_filename) {
-  FILE* img_file = fopen(image_filename, "rb");
+    FILE* img_file = fopen(image_filename, "rb");
     if (!img_file) {
-        fprintf(stderr, "Cannot open image file %s\n", image_filename);
+        LOG_INFO("Cannot open image file %s\n", image_filename);
         return NULL;
     }
 
     FILE* lbl_file = fopen(label_filename, "rb");
     if (!lbl_file) {
-        fprintf(stderr, "Cannot open label file %s\n", label_filename);
+        LOG_INFO("Cannot open label file %s\n", label_filename);
         fclose(img_file);
         return NULL;
     }
@@ -24,7 +25,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     read_result = fread(&magic, 4, 1, img_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read magic number from image file\n");
+        LOG_INFO("Failed to read magic number from image file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -32,7 +33,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
     
     read_result = fread(&num_images, 4, 1, img_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read number of images from image file\n");
+        LOG_INFO("Failed to read number of images from image file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -40,7 +41,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
     
     read_result = fread(&rows, 4, 1, img_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read number of rows from image file\n");
+        LOG_INFO("Failed to read number of rows from image file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -48,7 +49,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
     
     read_result = fread(&cols, 4, 1, img_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read number of columns from image file\n");
+        LOG_INFO("Failed to read number of columns from image file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -61,7 +62,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     read_result = fread(&magic, 4, 1, lbl_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read magic number from label file\n");
+        LOG_INFO("Failed to read magic number from label file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -69,7 +70,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     read_result = fread(&num_labels, 4, 1, lbl_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read number of labels from label file\n");
+        LOG_INFO("Failed to read number of labels from label file\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -79,7 +80,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
     num_labels = __builtin_bswap32(num_labels);
 
     if (num_images != num_labels) {
-        fprintf(stderr, "Number of images and labels do not match\n");
+        LOG_INFO("Number of images and labels do not match\n");
         fclose(img_file);
         fclose(lbl_file);
         return NULL;
@@ -99,7 +100,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     read_result = fread(img_data, img_size, 1, img_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read image data\n");
+        LOG_INFO("Failed to read image data\n");
         free(img_data);
         free(lbl_data);
         image_free(image);
@@ -110,7 +111,7 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
 
     read_result = fread(lbl_data, lbl_size, 1, lbl_file);
     if (read_result != 1) {
-        fprintf(stderr, "Failed to read label data\n");
+        LOG_INFO("Failed to read label data\n");
         free(img_data);
         free(lbl_data);
         image_free(image);

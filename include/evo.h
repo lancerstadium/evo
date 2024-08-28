@@ -813,6 +813,7 @@ EVO_API image_t* image_heatmap(tensor_t*,int);
 EVO_API image_t* image_blank(const char*, size_t, size_t);
 EVO_API image_t* image_load(const char*);
 EVO_API image_t* image_load_mnist(const char*, const char*);
+EVO_API image_t* image_load_cifar10(const char*, int);
 EVO_API image_t* image_channel(image_t*, int);
 EVO_API image_t* image_extract_channel(image_t*, int);
 EVO_API void image_save_grey(image_t*, const char*, int);
