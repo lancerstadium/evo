@@ -498,6 +498,14 @@ void image_crop_center(image_t* img, int crop_width, int crop_height) {
     img->raw->datas = data;
 }
 
+image_t* image_copy(image_t* img) {
+    if(!img || !img->raw) return NULL;
+    tensor_t* raw = tensor_new(img->raw->name, img->raw->type);
+    tensor_copy(raw, img->raw);
+    image_t* new_img = image_from_tensor(raw);
+    return new_img;
+}
+
 void image_resize(image_t* img, int resize_width, int resize_height) {
     if(!img || !img->raw || resize_height <= 0 || resize_width <= 0) return;
     int width, height, channel;

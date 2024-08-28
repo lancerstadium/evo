@@ -115,15 +115,15 @@ canvas_t* triangle(canvas_t* cav, float dt) {
 
 
 UnitTest_fn_def(test_render_canvas) {
-    renderer_t* rd = renderer_new(RENDERER_TYPE_GIF);
-    renderer_run(rd, triangle);
+    renderer_t* rd = renderer_new(WIDTH, HEIGHT, RENDERER_TYPE_GIF);
+    renderer_run(rd, dots3d);
     renderer_free(rd);
     return NULL;
 }
 
 UnitTest_fn_def(test_render_linux) {
-    renderer_t* rd = renderer_new(RENDERER_TYPE_LINUX);
-    renderer_run(rd, dots3d);
+    renderer_t* rd = renderer_new(WIDTH, HEIGHT, RENDERER_TYPE_LINUX);
+    renderer_run(rd, triangle);
     renderer_free(rd);
     return NULL;
 }

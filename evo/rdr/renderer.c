@@ -13,6 +13,10 @@
 //                                  renderer: typedef
 // ==================================================================================== //
 
+#define EVO_GUI_TITLE   "renderer"
+#define EVO_GUI_WIDTH   960
+#define EVO_GUI_HEIGHT  720
+
 typedef enum {KEY_A, KEY_D, KEY_S, KEY_W, KEY_SPACE, KEY_NUM} keycode_t;
 typedef enum {BUTTON_L, BUTTON_R, BUTTON_NUM} button_t;
 
@@ -29,26 +33,22 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
     renderer_gif_t* priv = rd->priv;
     int64_t ndelay = 60;       // 0 < ndelay <= 60
     int64_t delays[ndelay];
-    canvas_t* cav = rd_fn(cav, 0.f);
+    canvas_t* cav = canvas_new(rd->width, rd->height);
+    canvas_t* cav_all = canvas_new(cav->width, cav->height);
     int64_t delay = 5;         // 5 ms
     delays[0] = delay;
     for (size_t i = 0; i < ndelay; i++) {
         delays[i] = delay;
-        /// TODO: canvas copy
-        canvas_t* cav_tmp = rd_fn(cav, (1.f * i) / 60.f);
-        // image_push(cav->background, cav_tmp->background);
-        // canvas_free(cav_tmp);
+        cav = rd_fn(cav, (1.f * i) / 60.f);
+        image_push(cav_all->background, cav->background);
     }
-    image_set_deloys(cav->background, delays, ndelay);
-    canvas_export(cav, priv->name);
+    image_set_deloys(cav_all->background, delays, ndelay);
+    canvas_export(cav_all, priv->name);
+    canvas_free(cav_all);
     canvas_free(cav);
 }
 
 #if defined(EVO_GUI_MODE)
-
-#define EVO_GUI_TITLE   "renderer"
-#define EVO_GUI_WIDTH   960
-#define EVO_GUI_HEIGHT  720
 
 #if defined(__linux__) && !defined(__ANDROID__)
 
@@ -131,7 +131,7 @@ static Window create_window_linux(renderer_linux_t *priv, const char *title, int
     //                              border, background);
 
     int screen = DefaultScreen(priv->g_display);
-    priv->handle = XCreateSimpleWindow(priv->g_display, RootWindow(priv->g_display, screen), 0, 0, EVO_GUI_WIDTH, EVO_GUI_HEIGHT, 0, BlackPixel(priv->g_display, screen), WhitePixel(priv->g_display, screen));
+    priv->handle = XCreateSimpleWindow(priv->g_display, RootWindow(priv->g_display, screen), 0, 0, width, height, 0, BlackPixel(priv->g_display, screen), WhitePixel(priv->g_display, screen));
     XStoreName(priv->g_display, priv->handle, EVO_GUI_TITLE);
     XSelectInput(priv->g_display, priv->handle, ExposureMask | KeyPressMask);
 
@@ -215,9 +215,17 @@ void renderer_render_linux(renderer_t* rd, render_fn_t rd_fn) {
 //                                  renderer: API
 // ==================================================================================== //
 
-renderer_t* renderer_new(renderer_type_t type) {
+renderer_t* renderer_new(int width, int height, renderer_type_t type) {
     renderer_t* rd = malloc(sizeof(renderer_t));
     rd->type = type;
+    if(width <= 0) {
+        width = EVO_GUI_WIDTH;
+    }
+    if(height <= 0) {
+        height = EVO_GUI_HEIGHT;
+    }
+    rd->width = width;
+    rd->height = height;
     switch (type) {
         case RENDERER_TYPE_GIF: {
             renderer_gif_t* priv = malloc(sizeof(renderer_gif_t));
@@ -241,8 +249,8 @@ renderer_t* renderer_new(renderer_type_t type) {
                 open_display_linux(priv);
                 // 2. Create window & surface
                 LOG_INFO("Creating window & surface\n");
-                create_window_linux(priv, EVO_GUI_TITLE, EVO_GUI_WIDTH, EVO_GUI_HEIGHT);
-                create_surface_linux(priv, EVO_GUI_WIDTH, EVO_GUI_HEIGHT);
+                create_window_linux(priv, EVO_GUI_TITLE, rd->width, rd->height);
+                create_surface_linux(priv, rd->width, rd->height);
                 // 3. Save context & map window
                 LOG_INFO("Saving context & mapping window\n");
                 // XSaveContext(priv->g_display, priv->handle, priv->g_context, (XPointer)priv);

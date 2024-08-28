@@ -823,6 +823,7 @@ EVO_API image_t* image_get_batch(image_t*, int, int*);
 EVO_API tensor_t* image_get_raw(image_t*, int);
 EVO_API tensor_t* image_get_raw_batch(image_t*, int, int*);
 EVO_API void image_crop_center(image_t*, int, int);
+EVO_API image_t* image_copy(image_t*);
 EVO_API void image_resize(image_t*, int, int);
 EVO_API image_t* image_merge(image_t*, image_t*, float);
 EVO_API void image_push(image_t*, image_t*);
@@ -934,12 +935,13 @@ typedef enum renderer_type {
 // ==================================================================================== //
 
 struct renderer {
+    int width, height;
     renderer_type_t type;
     void *priv;
     void (*render)(struct renderer*, render_fn_t);
 };
 
-EVO_API renderer_t* renderer_new(renderer_type_t);
+EVO_API renderer_t* renderer_new(int, int, renderer_type_t);
 EVO_API void renderer_run(renderer_t*, render_fn_t);
 EVO_API void renderer_free(renderer_t*);
 #if defined(EVO_GUI_MODE)
