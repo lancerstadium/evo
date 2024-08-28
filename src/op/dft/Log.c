@@ -1,5 +1,5 @@
-#include "../../evo/resolver.h"
-#include <util/math.h>
+#include <evo/resolver.h>
+#include <evo/util/math.h>
 #include <math.h>
 
 static void Log_bfloat16(node_t *nd) {

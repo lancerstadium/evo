@@ -30,11 +30,11 @@ extern "C" {
  * A simple way to ensure all of the above for most platforms is
  * to include the portable endian support file:
  *
- *     #include "flatcc/portable/pendian.h"
+ *     #include "portable/pendian.h"
  *
  * It is also necessary to include
  *
- *      #include "flatcc/flatcc_types.h"
+ *      #include "flatcc_types.h"
  *
  * or an equivalent file. This makes it possible to change the
  * endianness of the serialized data and the sizes of flatbuffer
@@ -66,7 +66,7 @@ extern "C" {
 #define htobe8(n) (n)
 #endif
 
-#include "flatcc/flatcc_accessors.h"
+#include "flatcc_accessors.h"
 
 /* This is the binary encoding endianness, usually LE for flatbuffers. */
 #if FLATBUFFERS_PROTOCOL_IS_LE
@@ -95,7 +95,7 @@ extern "C" {
  __flatcc_define_integer_accessors(__flatbuffers_thash, flatbuffers_thash_t,
          FLATBUFFERS_THASH_WIDTH, flatbuffers_endian)
 
-/* flatcc/portable/pendian.h sets LITTLE/BIG flags if possible, and always defines le16toh. */
+/* portable/pendian.h sets LITTLE/BIG flags if possible, and always defines le16toh. */
 #ifndef flatbuffers_is_native_pe
 #if defined(__LITTLE_ENDIAN__) || FLATBUFFERS_LITTLEENDIAN
 #undef FLATBUFFERS_LITTLEENDIAN

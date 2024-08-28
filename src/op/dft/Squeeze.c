@@ -1,4 +1,4 @@
-#include "../../evo/resolver.h"
+#include <evo/resolver.h>
 #include <string.h>
 
 static void Squeeze_operator(node_t *nd) {

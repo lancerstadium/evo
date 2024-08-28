@@ -16,9 +16,9 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#include "flatcc/flatcc_types.h"
-#include "flatcc/flatcc_iov.h"
-#include "flatcc/flatcc_alloc.h"
+#include "flatcc_types.h"
+#include "flatcc_iov.h"
+#include "flatcc_alloc.h"
 
 /*
  * The buffer steadily grows during emission but the design allows for

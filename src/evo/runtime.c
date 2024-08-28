@@ -1,6 +1,6 @@
 #include <evo.h>
-#include <util/log.h>
-#include <util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/sys.h>
 #include <string.h>
 
 runtime_t* runtime_new(const char* fmt) {

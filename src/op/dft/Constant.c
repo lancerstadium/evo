@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "../../evo/resolver.h"
+#include <evo/resolver.h>
 
 void op_Constant_dft(node_t *nd) {
     // 1. Constant init

@@ -1,5 +1,5 @@
 #include "gifenc.h"
-#include <util/log.h>
+#include <evo/util/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

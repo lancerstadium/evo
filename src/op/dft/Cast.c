@@ -1,8 +1,8 @@
 #include <string.h>
 
-#include "../../evo/resolver.h"
-#include <util/math.h>
-#include <util/log.h>
+#include <evo/resolver.h>
+#include <evo/util/math.h>
+#include <evo/util/log.h>
 
 typedef struct {
     tensor_type_t to;

@@ -2,9 +2,9 @@
 #include <string.h>
 
 #include <evo.h>
-#include <util/log.h>
-#include <util/math.h>
-#include <util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/math.h>
+#include <evo/util/sys.h>
 
 #define CANVAS_AA_RES 2
 #define CANVAS_SWAP(T, a, b) \

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #ifndef FLATCC_FLATBUFFERS_H
-#error "include via flatcc/flatcc_flatbuffers.h"
+#error "include via flatcc_flatbuffers.h"
 #endif
 
 #ifndef UINT8_MAX
@@ -107,7 +107,7 @@ static inline flatbuffers_thash_t flatbuffers_type_hash_from_string(const char *
  * used as a file identifer argument to various flatcc buffer calls.
  *
  * `flatbuffers_fid_t` is just `char [4]` for the default flatbuffers
- * type system defined in `flatcc/flatcc_types.h`.
+ * type system defined in `flatcc_types.h`.
  */
 static inline void flatbuffers_identifier_from_name(const char *name, flatbuffers_fid_t out_identifier)
 {

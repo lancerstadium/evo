@@ -1,6 +1,6 @@
 #include <evo.h>
-#include <util/log.h>
-#include <util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/sys.h>
 #include <string.h>
 
 char* str_from_back(char* str, char sym, int back_idx) {

@@ -1,5 +1,5 @@
 #include <evo.h>
-#include <util/sys.h>
+#include <evo/util/sys.h>
 
 // ==================================================================================== //
 //                                  resolver: default
@@ -36,6 +36,7 @@ void op_Mul_dft(node_t*);
 void op_Neg_dft(node_t*);
 void op_Nop_dft(node_t*);
 void op_Pad_dft(node_t*);
+void op_RandomUniformLike(node_t*);
 void op_Range_dft(node_t*);
 void op_Relu_dft(node_t*);
 void op_Reshape_dft(node_t*);

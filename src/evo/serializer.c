@@ -1,6 +1,6 @@
-#include "../mdl/onnx/onnx.h"
-#include "../mdl/tflite/tflite.h"
-#include <util/log.h>
+#include <evo/mdl/onnx/onnx.h>
+#include <evo/mdl/tflite/tflite.h>
+#include <evo/util/log.h>
 #include <string.h>
 
 // ==================================================================================== //

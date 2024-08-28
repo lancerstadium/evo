@@ -15,12 +15,12 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#include "flatcc/flatcc_rtconfig.h"
-#include "flatcc/flatcc_builder.h"
-#include "flatcc/flatcc_unaligned.h"
+#include "flatcc_rtconfig.h"
+#include "flatcc_builder.h"
+#include "flatcc_unaligned.h"
 
 #define PDIAGNOSTIC_IGNORE_UNUSED
-#include "flatcc/portable/pdiagnostic_push.h"
+#include "portable/pdiagnostic_push.h"
 
 typedef uint32_t flatcc_json_parser_flags_t;
 static const flatcc_json_parser_flags_t flatcc_json_parser_f_skip_unknown = 1;
@@ -899,7 +899,7 @@ int flatcc_json_parser_struct_as_root(flatcc_builder_t *B, flatcc_json_parser_t 
         const char *buf, size_t bufsiz, flatcc_json_parser_flags_t flags, const char *fid,
         flatcc_json_parser_struct_f *parser);
 
-#include "flatcc/portable/pdiagnostic_pop.h"
+#include "portable/pdiagnostic_pop.h"
 
 #ifdef __cplusplus
 }

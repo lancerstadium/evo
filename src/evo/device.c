@@ -1,6 +1,6 @@
 #include <evo.h>
-#include <util/sys.h>
-#include <util/log.h>
+#include <evo/util/sys.h>
+#include <evo/util/log.h>
 #include "../dev/cpu/def.h"
 #include <string.h>
 

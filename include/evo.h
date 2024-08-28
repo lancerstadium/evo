@@ -22,8 +22,8 @@
 //                                       include
 // ==================================================================================== //
 
-#include "util/map.h"
-#include "util/vec.h"
+#include "evo/util/map.h"
+#include "evo/util/vec.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,7 +50,7 @@ extern "C" {
 #define EVO_DIM_MAX         8
 #define EVO_ALIGN_SIZE      16
 
-#include "config.h"
+#include "evo/config.h"
 
 // ==================================================================================== //
 //                                       typedef

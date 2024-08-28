@@ -1,5 +1,5 @@
-#include "../../evo/resolver.h"
-#include <util/log.h>
+#include <evo/resolver.h>
+#include <evo/util/log.h>
 
 
 void op_Nop_dft(node_t* nd) {

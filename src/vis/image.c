@@ -1,9 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <evo.h>
-#include <util/log.h>
-#include <util/sys.h>
-#include <util/math.h>
+#include <evo/util/log.h>
+#include <evo/util/sys.h>
+#include <evo/util/math.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION

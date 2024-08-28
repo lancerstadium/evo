@@ -4,9 +4,9 @@
 #include <unistd.h>
 
 #include <evo.h>
-#include <util/log.h>
-#include <util/math.h>
-#include <util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/math.h>
+#include <evo/util/sys.h>
 
 
 // ==================================================================================== //

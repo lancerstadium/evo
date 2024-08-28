@@ -1,8 +1,8 @@
-#include <math.h>
-#include <string.h>
+#include <evo/resolver.h>
+#include <evo/util/math.h>
 
-#include "../../evo/resolver.h"
-#include <util/math.h>
+#include <string.h>
+#include <math.h>
 
 typedef enum {
     AUTO_PAD_NOTSET = 0,

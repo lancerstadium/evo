@@ -1,5 +1,5 @@
 #include <evo.h>
-#include <util/sys.h>
+#include <evo/util/sys.h>
 #include <math.h>
 
 predictor_t* predictor_new(int n_pes, int pe_fp32s, int fp32_cycles, double frequency, double mem_bandwidth, double mem_concurrent_fp32,  double memory_efficiency, double l2_speed_frac, uint8_t is_max_mode, int batch_size, double launch_time) {

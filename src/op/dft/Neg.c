@@ -1,5 +1,5 @@
-#include "../../evo/resolver.h"
-#include <util/math.h>
+#include <evo/resolver.h>
+#include <evo/util/math.h>
 
 static void Neg_int8(node_t *nd) {
     tensor_t *x = nd->in[0];

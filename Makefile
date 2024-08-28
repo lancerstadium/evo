@@ -67,7 +67,7 @@ LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 CPPFILES	:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
-CFGFILE		:= include/config.h
+CFGFILE		:= include/evo/config.h
 
 SDEPS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o.d))
 CDEPS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o.d))
@@ -103,6 +103,10 @@ ifneq ($(GUI_ENB),)
 else
 	@echo "option-gui: \t\t\e[31;1moff\e[0m"
 endif
+
+$(CFGFILE):
+	@echo "Creating $(CFGFILE)..."
+	@touch $(CFGFILE)
 
 $(LIBTRG) : $(OBJS)
 	@echo [AR] Archiving $@

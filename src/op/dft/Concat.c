@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include "../../evo/resolver.h"
-#include <util/sys.h>
+#include <evo/resolver.h>
+#include <evo/util/sys.h>
 
 typedef struct {
     int axis;

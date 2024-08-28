@@ -4,7 +4,7 @@
  *
  * Outside include guard to handle scope counter.
  */
-#include "flatcc/portable/pstatic_assert.h"
+#include "portable/pstatic_assert.h"
 
 #ifndef FLATCC_FLATBUFFERS_H
 #define FLATCC_FLATBUFFERS_H
@@ -17,17 +17,17 @@ extern "C" {
 #define flatcc_flatbuffers_defined
 
 #ifdef FLATCC_PORTABLE
-#include "flatcc/flatcc_portable.h"
+#include "flatcc_portable.h"
 #endif
-#include "flatcc/portable/pwarnings.h"
+#include "portable/pwarnings.h"
 /* Needed by C99 compilers without FLATCC_PORTABLE. */
-#include "flatcc/portable/pstdalign.h"
+#include "portable/pstdalign.h"
 
 /* Handle fallthrough attribute in switch statements. */
-#include "flatcc/portable/pattributes.h"
+#include "portable/pattributes.h"
 
-#include "flatcc/flatcc_alloc.h"
-#include "flatcc/flatcc_assert.h"
+#include "flatcc_alloc.h"
+#include "flatcc_assert.h"
 
 #define __FLATBUFFERS_PASTE2(a, b) a ## b
 #define __FLATBUFFERS_PASTE3(a, b, c) a ## b ## c
@@ -37,12 +37,12 @@ extern "C" {
  * "flatcc_endian.h" requires the preceeding include files,
  * or compatible definitions.
  */
-#include "flatcc/portable/pendian.h"
+#include "portable/pendian.h"
 /* Needed by flatcc_accessors.h to handle strict aliasing rules. */
-#include "flatcc/portable/pmemaccess.h"
-#include "flatcc/flatcc_types.h"
-#include "flatcc/flatcc_endian.h"
-#include "flatcc/flatcc_identifier.h"
+#include "portable/pmemaccess.h"
+#include "flatcc_types.h"
+#include "flatcc_endian.h"
+#include "flatcc_identifier.h"
 
 #ifndef FLATBUFFERS_WRAP_NAMESPACE
 #define FLATBUFFERS_WRAP_NAMESPACE(ns, x) ns ## _ ## x

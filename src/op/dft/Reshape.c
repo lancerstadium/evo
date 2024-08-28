@@ -1,5 +1,5 @@
-#include "../../evo/resolver.h"
-#include <util/log.h>
+#include <evo/resolver.h>
+#include <evo/util/log.h>
 #include <string.h>
 
 void op_Reshape_dft(node_t* nd) {

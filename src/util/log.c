@@ -1,6 +1,6 @@
 
-#include <util/log.h>
-#include <util/lock.h>
+#include <evo/util/log.h>
+#include <evo/util/lock.h>
 
 #include <stdarg.h>
 #include <stdio.h>

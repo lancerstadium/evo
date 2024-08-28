@@ -1,9 +1,9 @@
-#include "tflite.h"
-#include "tflite_builder.h"
-#include "tflite_reader.h"
-#include <util/sys.h>
-#include <util/log.h>
-#include <util/math.h>
+#include <evo/mdl/tflite/tflite.h>
+#include <evo/mdl/tflite/tflite_builder.h>
+#include <evo/mdl/tflite/tflite_reader.h>
+#include <evo/util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/math.h>
 #include <stdio.h>
 
 

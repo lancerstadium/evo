@@ -1,6 +1,6 @@
 #include <evo.h>
-#include <util/log.h>
-#include <util/sys.h>
+#include <evo/util/log.h>
+#include <evo/util/sys.h>
 #include <string.h>
 
 static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
