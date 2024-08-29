@@ -73,15 +73,23 @@
 
 上述方法都需要对模型进行修改并重新训练。这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
 
-前向训练（forward-forward train）介绍：
-Hinton 提出了前向前向 (FF) 算法 (Hinton 2022)，该算法提供了一种有效的分层学习方法，用两次前向传递取代了传统的反向传播。
-贴近生物表达：与生物神经系统类似，FF 的学习过程基于直接调整神经元活动（增强或减少活动）以响应不同类型的输入模式。
-局部学习：
-硬件友好：从硬件实现的角度来看，FF 消除了在每个模块计算后存储中间激活的必要性，这显着降低了训练期间的内存需求。这有利于许多深度网络架构中的模型并行性，以实现更快的训练和推理。
+> 动态推理优化相关文献：
+> 
+
+### 2.1 前向训练
+Hinton 于 2022 年提出了前向前向 (Forward Forward, FF) 算法，该算法提供了一种有效的分层学习方法，用两次前向传递取代了传统的反向传播。
+
+相比于传统反向传播（Backward, BP）的优势：
+1. 贴近生物表达：与生物神经系统类似，FF 的学习过程基于直接调整神经元活动（增强或减少活动）以响应不同类型的输入模式。
+2. 支持局部学习：
+3. 对硬件友好：从硬件实现的角度来看，FF 消除了在每个模块计算后存储中间激活的必要性，这显着降低了训练期间的内存需求。这有利于许多深度网络架构中的模型并行性，以实现更快的训练和推理。
+
+
 
 > 前向训练参考文献：
-> - The Forward-Forward Algorithm: Some Preliminary Investigations
-> - Distance-Forward Learning: Enhancing the Forward-Forward Algorithm Towards High-Performance On-Chip Learning
+> 1. The Forward-Forward Algorithm: Some Preliminary Investigations
+> 2. SymBa: Symmetric Backpropagation-Free Contrastive Learning with Forward-Forward Algorithm for Optimizing Convergence
+> 3. Distance-Forward Learning: Enhancing the Forward-Forward Algorithm Towards High-Performance On-Chip Learning
 
 ---
 ## 3 方法 Method
