@@ -6,7 +6,7 @@
 </div>
 
 <div align="center"> 
-<a href="">Lu TianShuo</a><sup>1</sup>, XXX<sup>1\*</sup>, XXX<sup>1\*†</sup>
+<a href="">Lu TianShuo</a><sup>1</sup>, XXX<sup>1*</sup>, XXX<sup>1*†</sup>
 </div>
 
 <p align="center"> <sup>1</sup>JiangNan University, <sup>2</sup>XXX </p>
@@ -24,11 +24,15 @@
     <img src="https://img.shields.io/badge/Paper-Online-FF8C00" /></a>
 </p>
 
-**Overview:** 
+<b>Overview:</b> 
+<div style="text-align: justify;">
+Evo is a Dynamic-Aware engine which use for Edge Inference...
+</div>
 
 <p align="center">
 <img src="public/logo.svg" width=100% height=100% class="center" alt="Opt-Arch">
 </p>
+
 
 ---
 
