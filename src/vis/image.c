@@ -130,6 +130,7 @@ image_t* image_get_batch(image_t* img, int n, int *idx) {
 
 image_type_t image_get_type(const char* name) { 
     char* ext = sys_get_file_ext(name);
+    if(!ext) return IMAGE_TYPE_UNKNOWN;
     if(strcmp(ext, "bmp") == 0) {
         return IMAGE_TYPE_BMP;
     } else if(strcmp(ext, "jpg") == 0) {
@@ -287,6 +288,9 @@ image_t* image_load(const char* name) {
         } else {
             data = stbi_load(name, &width, &height, &channels, 0);
         }
+        if(!data) {
+            LOG_ERR("image data load fail: %s\n", name);
+        }
         tensor_reshape(img->raw, 4, (int[]){frame, height, width, channels});
         tensor_apply(img->raw, (void*)data, frame * channels * height * width);
         img->raw->layout = 1;
@@ -340,6 +344,26 @@ image_t* image_channel(image_t* img, int channel) {
         return new_img;
     }
     return NULL;
+}
+
+int image_width(image_t* img) {
+    if(!img && !img->raw) return 0;
+    if(img->raw->ndim == 3) {
+        return img->raw->dims[2];
+    } else if(img->raw->ndim == 4) {
+        return img->raw->layout == 0 ? img->raw->dims[3] : img->raw->dims[2];
+    }
+    return 0;
+}
+
+int image_height(image_t* img) {
+    if(!img && !img->raw) return 0;
+    if(img->raw->ndim == 3) {
+        return img->raw->dims[1];
+    } else if(img->raw->ndim == 4) {
+        return img->raw->layout == 0 ? img->raw->dims[2] : img->raw->dims[1];
+    }
+    return 0;
 }
 
 void image_save_grey(image_t* img, const char* name, int channel) {

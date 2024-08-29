@@ -31,7 +31,7 @@ canvas_t* canvas_from_image(image_t* img) {
         uint8_t* data = (uint8_t*)temp->datas;
         for (int h = 0; h < temp->dims[1]; ++h) {
             for (int w = 0; w < temp->dims[2]; ++w) {
-                uint32_t color = 0;
+                uint32_t color = temp->dims[3] == 4 ? 0 : 0xFF000000;
                 for (int c = 0; c < temp->dims[3]; ++c) {
                     int idx = c + (h * temp->dims[2] + w) * temp->dims[3];
                     color |= data[idx] << (8 * c);
@@ -351,8 +351,20 @@ bool canvas_normalize_triangle(canvas_t* cav, int x1, int y1, int x2, int y2, in
     return true;
 }
 
+
+void canvas_draw(canvas_t* cav, int x, int y, int w, int h, uint32_t* colors) {
+    if (!cav) return;
+    if(x >= cav->width || y >= cav->height) return;
+    for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
+        for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
+            canvas_blend(&canvas_pixel(cav, i, j), *(colors + (j - y) * w + (i - x)));
+        }
+    }
+}
+
 void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color) {
     if (!cav) return;
+    if(x >= cav->width || y >= cav->height) return;
     for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
         for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {
             canvas_blend(&canvas_pixel(cav, i, j), color);
@@ -362,6 +374,7 @@ void canvas_rectangle(canvas_t* cav, int x, int y, int w, int h, uint32_t color)
 
 void canvas_rectangle_c2(canvas_t* cav, int x, int y, int w, int h, uint32_t color1, uint32_t color2) {
     if (!cav) return;
+    if(x >= cav->width || y >= cav->height) return;
     for (int i = x; i != MIN(x + w, cav->width - 1) && i >= 0; i += CANVAS_SIGN(int, w)) {
         float t_x = (float)(i - x) / w;
         for (int j = y; j != MIN(y + h, cav->height - 1) && j >= 0; j += CANVAS_SIGN(int, h)) {

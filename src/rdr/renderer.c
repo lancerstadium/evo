@@ -202,7 +202,7 @@ void renderer_render_linux(renderer_t* rd, render_fn_t rd_fn) {
             }
         }
         // canvas_free(cav_tmp);
-        usleep(30000); // 30ms
+        usleep(15000); // 15ms
         i++;
     }
 }

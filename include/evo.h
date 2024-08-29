@@ -816,6 +816,8 @@ EVO_API image_t* image_load_mnist(const char*, const char*);
 EVO_API image_t* image_load_cifar10(const char*, int);
 EVO_API image_t* image_channel(image_t*, int);
 EVO_API image_t* image_extract_channel(image_t*, int);
+EVO_API int image_width(image_t*);
+EVO_API int image_height(image_t*);
 EVO_API void image_save_grey(image_t*, const char*, int);
 EVO_API void image_save(image_t*, const char*);
 EVO_API char* image_dump_shape(image_t*);
@@ -867,6 +869,7 @@ EVO_API bool canvas_barycentric(int, int, int, int, int, int, int, int, int*, in
 EVO_API void canvas_line(canvas_t*, int, int, int, int, uint32_t);
 EVO_API bool canvas_normalize_rectangle(canvas_t*, int, int, int, int, rectangle_t*);
 EVO_API bool canvas_normalize_triangle(canvas_t*, int, int, int, int, int, int, int*, int*, int*, int*);
+EVO_API void canvas_draw(canvas_t*, int , int, int, int, uint32_t*);
 EVO_API void canvas_rectangle(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_rectangle_c2(canvas_t*, int, int, int, int, uint32_t, uint32_t);
 EVO_API void canvas_frame(canvas_t*, int, int, int, int, size_t, uint32_t);

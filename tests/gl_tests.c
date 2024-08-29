@@ -41,6 +41,11 @@ UnitTest_fn_def(test_circle_canvas) {
 
 UnitTest_fn_def(test_text_canvas) {
     canvas_text(my_cav, "evo 39.67%", 250, 250, &default_font, 2, 0xffc9b132);
+    image_t* img = image_load("mobilenet_origin.jpg");
+    canvas_t* img_cav = canvas_from_image(img);
+    printf("%08x\n", img_cav->pixels[0]);
+    canvas_draw(my_cav, 280, 50, img_cav->width, img_cav->height, img_cav->pixels);
+    canvas_free(img_cav);
     return NULL;
 }
 

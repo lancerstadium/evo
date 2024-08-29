@@ -49,11 +49,11 @@ char* sys_strdup(const char* src) {
 
 char* sys_get_file_ext(const char* path) {
     char* trg = strrchr(path, '.');
-    return trg ? (trg + 1) : NULL;
+    return trg && *trg != '\0' ? (trg + 1) : NULL;
 }
 char* sys_get_file_name(const char* path) { 
     char* trg = strrchr(path, '/');
-    return trg ? (trg + 1) : NULL;
+    return trg && *trg != '\0' ? (trg + 1) : NULL;
 }
 
 // ==================================================================================== //

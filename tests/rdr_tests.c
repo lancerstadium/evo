@@ -65,6 +65,8 @@ static inline void rotate_point(float angle, float* x, float* y) {
     *y = sinf(dir) * mag + HEIGHT / 2;
 }
 
+canvas_t* cat_cav = NULL;
+
 canvas_t* triangle(canvas_t* cav, float dt) {
     // Parameters
     float angle = 0;
@@ -77,10 +79,15 @@ canvas_t* triangle(canvas_t* cav, float dt) {
 
     // 0. init canvas
     canvas_fill(cav, BG_COLOR);
+    if(dt == 0.0) {
+        image_t* cat = image_load("mobilenet_origin.jpg");
+        image_resize(cat, 120, 120);
+        cat_cav = canvas_from_image(cat);
+    }
 
     // 1. Triangle
     {
-        angle += 0.5f*PI*dt;
+        angle += 0.25f*PI*dt;
 
         float x1 = WIDTH/2, y1 = HEIGHT/8;
         float x2 = WIDTH/8, y2 = HEIGHT/2;
@@ -110,13 +117,19 @@ canvas_t* triangle(canvas_t* cav, float dt) {
         canvas_circle(cav, circle_x, circle_y, circle_radius, circle_color);
     }
 
+    // 3. cat photo
+    {
+        canvas_draw(cav, 200 * 0.1 * dt, 300 * 0.8 * dt, cat_cav->width, cat_cav->height, cat_cav->pixels);
+    }
+
+
     return cav;
 }
 
 
 UnitTest_fn_def(test_render_canvas) {
     renderer_t* rd = renderer_new(WIDTH, HEIGHT, RENDERER_TYPE_GIF);
-    renderer_run(rd, dots3d);
+    renderer_run(rd, triangle);
     renderer_free(rd);
     return NULL;
 }

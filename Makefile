@@ -82,8 +82,6 @@ OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
 CURTIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 
-$(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
-
 .PHONY: all config clean test line tool
 
 all : $(LIBTRG)
@@ -99,9 +97,9 @@ config: $(CFGFILE)
 	@echo "platform: \t\t$(PLATFORM)"
 ifneq ($(GUI_ENB),)
 	@echo "#define EVO_GUI_ENB" >> $(CFGFILE)
-	@echo "option-gui: \t\t\e[32;1mon\e[0m"
+	@echo "gui(option): \t\t\e[32;1m$(GUI_DEP)\e[0m"
 else
-	@echo "option-gui: \t\t\e[31;1moff\e[0m"
+	@echo "gui(option): \t\t\e[31;1moff\e[0m"
 endif
 
 $(CFGFILE):
@@ -109,6 +107,7 @@ $(CFGFILE):
 	@touch $(CFGFILE)
 
 $(LIBTRG) : $(OBJS)
+	$(shell mkdir -p $(TRGDIR) $(TRGDIR)/obj)
 	@echo [AR] Archiving $@
 	@$(AR) -rcs $@ $(OBJS)
 
