@@ -13,7 +13,7 @@
 <p align="center">
 <a href="https://arxiv.org/abs/XXXX.XXXXX" alt="arXiv">
     <img src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b.svg?style=flat" /></a>
-<a href="https://github.com/icandle/CAMixerSR/blob/main/LICENSE" alt="license">
+<a href="https://github.com/lancerstadium/evo/blob/ml/LICENSE" alt="license">
     <img src="https://img.shields.io/badge/license-MIT-%23B7A800" /></a>
 <a href="https://github.com/lancerstadium/evo/tree/ml">
     <img src="https://img.shields.io/badge/Code-Github-blue" /></a>
