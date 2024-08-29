@@ -419,7 +419,7 @@ UnitTest_fn_def(test_gemm_a) {
     return NULL;
 }
 UnitTest_fn_def(test_gemm_b) {
-    TESTD_3I("test_gemm_beta", a, b, c, y);
+    TEST_3I("test_gemm_beta", a, b, c, y);
     return NULL;
 }
 UnitTest_fn_def(test_gemm_dft_mb) {
@@ -599,7 +599,7 @@ UnitTest_fn_def(test_neg) {
 // ---------------------- Range  ----------------------
 
 UnitTest_fn_def(test_range_f32_pd) {
-    TESTD_3I("test_range_float_type_positive_delta", start, limit, delta, output);
+    TEST_3I("test_range_float_type_positive_delta", start, limit, delta, output);
     return NULL;
 }
 UnitTest_fn_def(test_range) {
@@ -802,14 +802,41 @@ UnitTest_fn_def(test_transpose) {
     return NULL;
 }
 
-// ---------------------- Exit   ----------------------
+// ---------------------- Unsqueeze -------------------
+
+UnitTest_fn_def(test_unsqueeze_a0) {
+    TEST_2I("test_unsqueeze_axis_0", x, axes, y);
+    return NULL;
+}
+UnitTest_fn_def(test_unsqueeze_a1) {
+    TEST_2I("test_unsqueeze_axis_1", x, axes, y);
+    return NULL;
+}
+UnitTest_fn_def(test_unsqueeze_a2) {
+    TEST_2I("test_unsqueeze_axis_2", x, axes, y);
+    return NULL;
+}
+UnitTest_fn_def(test_unsqueeze_a3) {
+    TEST_1I("test_unsqueeze_axis_3", x, y);
+    return NULL;
+}
+UnitTest_fn_def(test_unsqueeze) {
+    UnitTest_add(test_unsqueeze_a0);
+    UnitTest_add(test_unsqueeze_a1);
+    UnitTest_add(test_unsqueeze_a2);
+    // UnitTest_add(test_unsqueeze_a3);
+    return NULL;
+}
+
+
+// ---------------------- Where  ----------------------
 
 UnitTest_fn_def(test_where_exa) {
-    TESTD_3I("test_where_example", condition, x, y, z);
+    TEST_3I("test_where_example", condition, x, y, z);
     return NULL;
 }
 UnitTest_fn_def(test_where_long_exa) {
-    TESTD_3I("test_where_long_example", condition, x, y, z);
+    TEST_3I("test_where_long_example", condition, x, y, z);
     return NULL;
 }
 UnitTest_fn_def(test_where) {
@@ -860,6 +887,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_sub);
     UnitTest_add(test_sum);
     UnitTest_add(test_transpose);
+    UnitTest_add(test_unsqueeze);
     // UnitTest_add(test_where);    // Failed
 
     UnitTest_add(test_node_exit);
