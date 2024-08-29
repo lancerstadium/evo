@@ -30,9 +30,8 @@ Evo is a Dynamic-Aware engine which use for Edge Inference...
 </div>
 
 <p align="center">
-<img src="public/logo.svg" width=100% height=100% class="center" alt="Opt-Arch">
+<img src="public/logo.svg" width=25% height=25% class="center" alt="Opt-Arch">
 </p>
-
 
 ---
 
