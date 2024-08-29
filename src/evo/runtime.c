@@ -68,7 +68,7 @@ void runtime_run(runtime_t *rt) {
     }
 }
 
-void runtime_dump_graph(runtime_t *rt) {
+void runtime_graph_dump(runtime_t *rt) {
     if(!rt) return;
     if(rt->mdl && rt->mdl->graph) {
         graph_dump(rt->mdl->graph);

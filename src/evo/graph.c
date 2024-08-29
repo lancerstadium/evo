@@ -3,6 +3,17 @@
 #include <evo/util/sys.h>
 #include <string.h>
 
+static char* graph_status_tbl[] = {
+    [GRAPH_STATUS_INIT]     = "Init",
+    [GRAPH_STATUS_READY]    = "Ready",
+    [GRAPH_STATUS_RUN]      = "Run",
+    [GRAPH_STATUS_SUSPEND]  = "Suspend",
+    [GRAPH_STATUS_RESUME]   = "Resume",
+    [GRAPH_STATUS_ABORT]    = "Abort",
+    [GRAPH_STATUS_DONE]     = "Done",
+    [GRAPH_STATUS_ERROR]    = "Error"
+};
+
 
 static void graph_init(graph_t *g, model_t *mdl) {
     g->name = NULL;
@@ -171,7 +182,7 @@ void graph_posrun(graph_t *g) {
 
 void graph_dump(graph_t* g) {
     if(!g) return;
-    LOG_INFO("[Graph: %s]\n", g->name);
+    LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
     LOG_INFO("| --------------------------------------------------------- |\n");
     LOG_INFO("|     Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
     LOG_INFO("| -------------------- | --------------- | ---------------- |\n");
@@ -190,7 +201,7 @@ void graph_dump(graph_t* g) {
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
 void graph_dump2(graph_t* g) {
     if(!g) return;
-    LOG_INFO("[Graph: %s]\n", g->name);
+    LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
     for(int i=0; i < g->nnode; i++) {
         node_dump(g->nodes[i]);
     }

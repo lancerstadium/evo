@@ -27,7 +27,7 @@ static void profiler_exec_report0(profiler_t* p) {
     if (!p || p->type != PROFILER_TYPE_EXEC) return;
     LOG_INFO("[Report: Exec]\n");
     LOG_INFO("| ----------------------------------------------- |\n");
-    LOG_INFO("|       Layers(%3d)      |  Exec Time   | Proport |\n", p->exec_nnode);
+    LOG_INFO("|       Layers(%3d)      |   Latency    | Proport |\n", p->exec_nnode);
     LOG_INFO("| ---------------------- | ------------ | ------- |\n");
     for (int i = 0; i < p->exec_nnode; i++) {
         char* name1 = str_from_back(p->exec_node_vec[i]->name, '_', 2);
@@ -65,7 +65,7 @@ static void profiler_exec_report1(profiler_t* p) {
     }
     LOG_INFO("[Report: Exec-Operator]\n");
     LOG_INFO("| ------------------------------------------------------- |\n");
-    LOG_INFO("|      Operator(%3d)     |  num  |  Exec Time   | Proport |\n", vector_size(exec_type_operator_vec));
+    LOG_INFO("|      Operator(%3d)     |  num  |   Latency    | Proport |\n", vector_size(exec_type_operator_vec));
     LOG_INFO("| ---------------------- | ----- | ------------ | ------- |\n");
     for (int i = 0; i < vector_size(exec_type_operator_vec); i++) {
         LOG_INFO("| %22s | %5d | %9.3f ms | %6.2f% |\n", op_name(exec_type_operator_vec[i]), exec_num_operator_vec[i], exec_time_operator_vec[i], exec_time_operator_vec[i] / p->exec_time_vec[p->exec_nnode] * 100);

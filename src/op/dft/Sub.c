@@ -183,16 +183,20 @@ static void Sub_float64(node_t* nd) {
 
 void op_Sub_dft(node_t* nd) {
     // 1. Sub init
-    if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+    if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
+    if (!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     // 2. Sub reshape
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
+    tensor_dump(a);
+    tensor_dump(b);
     tensor_reshape_multi_broadcast(y, a, b, a->type);
     // 3. Sub run
     switch (nd->in[0]->type) {

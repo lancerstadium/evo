@@ -50,7 +50,7 @@ void op_Constant_dft(node_t *nd) {
         }
     }
     // 2. Constant reshape
-    // 3. Constant 
+    // 3. Constant run
     
     // 4. Constant exit
     return;

@@ -329,7 +329,7 @@ public:
     }
     void dump_graph() {
         if(this->_rt)
-            runtime_dump_graph(this->_rt);
+            runtime_graph_dump(this->_rt);
     }
 };
 

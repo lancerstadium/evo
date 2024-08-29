@@ -4,10 +4,12 @@
 
 void op_Reshape_dft(node_t* nd) {
     // 1. Reshape init
-    if(!nd || !nd->in  || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+    if(!nd || !nd->in) {
         return;
     }
-    if(!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0)) {
+    if(!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     // 2. Reshape reshape

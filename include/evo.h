@@ -122,7 +122,7 @@ EVO_API void runtime_set_tensor(runtime_t*, const char*, tensor_t*);
 EVO_API tensor_t * runtime_get_tensor(runtime_t*, const char*);
 EVO_API void runtime_unload(runtime_t*);
 EVO_API void runtime_run(runtime_t*);
-EVO_API void runtime_dump_graph(runtime_t*);
+EVO_API void runtime_graph_dump(runtime_t*);
 EVO_API void runtime_free(runtime_t*);
 EVO_API device_t* runtime_reg_dev(runtime_t*, const char*);
 EVO_API void runtime_unreg_dev(runtime_t*, const char*);

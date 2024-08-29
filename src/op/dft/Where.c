@@ -312,10 +312,12 @@ static void Where_string(node_t *nd) {
 
 void op_Where_dft(node_t *nd) {
     // 1. Where init
-    if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+    if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 3) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
+    if (!(nd->nin == 3) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) || (nd->in[2]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED || nd->in[2]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     // 2. Where reshape
