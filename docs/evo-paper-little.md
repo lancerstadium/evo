@@ -104,6 +104,7 @@ $$
 v^*=Wx^*,\quad g^*=\|v^*\|_2^2,\quad Loss=\sigma(g^{pos}-\theta)+\sigma(\theta-g^{neg})
 $$
 
+
 其中， $W\in\mathbb{R}^{n\times m}$ 表示连接前一层到当前层的矩阵，$v$ 表示加权输入和，$\theta$ 是调节优度敏感度的阈值参数。给定优度函数（Goodness）的表达式， FF 采用负log-sigmoid函数 $\sigma(x)=\log(1+\exp(-x))$，通过同时反向调整 $\sigma(g^{pos}-\theta)$ 和 $\sigma(\theta-g^{neg})$ 来优化网络参数方向。
 
 > 前向训练参考文献：
