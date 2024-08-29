@@ -1,16 +1,3 @@
-<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']]
-            }
-        });
-    </script>
-</head>
-
----
 
 ## <div align="center"> <i>Evo</i>: Dynamic-Aware Edge Inference Framework on Resource-Constrained Devices <br> 资源受限设备上的动态感知边缘推理框架 </div>
 
