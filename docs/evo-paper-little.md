@@ -1,10 +1,12 @@
 
-## <div align="center"> <i>Evo</i>: Dynamic-Aware Edge Inference Framework on Resource-Constrained Devices <br> 资源受限设备上的动态感知边缘推理框架 </div>
+<div align="center">
+<h2> 
+<i>Evo</i>: Dynamic-Aware Edge Inference Framework on Resource-Constrained Devices <br> 资源受限设备上的动态感知边缘推理框架 
+</h2>
+</div>
 
 <div align="center"> 
-
-[Lu TianShuo]()<sup>1</sup>, XXX<sup>1\*</sup>, XXX<sup>1\*†</sup>
-
+<a href="">Lu TianShuo</a><sup>1</sup>, XXX<sup>1\*</sup>, XXX<sup>1\*†</sup>
 </div>
 
 <p align="center"> <sup>1</sup>JiangNan University, <sup>2</sup>XXX </p>
