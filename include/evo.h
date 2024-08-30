@@ -781,7 +781,9 @@ struct optimizer {
 typedef struct font font_t;
 typedef struct image image_t;
 typedef struct canvas canvas_t;
+typedef struct renderer renderer_t;
 typedef struct rectangle rectangle_t;
+typedef canvas_t* (*render_fn_t)(canvas_t*, float);
 
 // ==================================================================================== //
 //                                  evo: image type (vis)
@@ -883,7 +885,7 @@ EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint
 EVO_API void canvas_free(canvas_t*);
 
 // ==================================================================================== //
-//                                  evo: Font (vis)
+//                                  evo: font (vis)
 // ==================================================================================== //
 
 struct font {
@@ -895,7 +897,7 @@ struct font {
 extern font_t default_font;                             /* FONT|Default font for evo    */
 
 // ==================================================================================== //
-//                                  evo: Rectangle (vis)
+//                                  evo: rectangle (vis)
 // ==================================================================================== //
 
 struct rectangle {
@@ -904,18 +906,7 @@ struct rectangle {
 };
 
 // ==================================================================================== //
-//                                  evo: Renderer (rdr)
-// ==================================================================================== //
-
-// ==================================================================================== //
-//                                  evo: typedef (rdr)
-// ==================================================================================== //
-
-typedef struct renderer renderer_t;
-typedef canvas_t* (*render_fn_t)(canvas_t*, float);
-
-// ==================================================================================== //
-//                                  evo: renderer type (rdr)
+//                                  evo: renderer type (vis)
 // ==================================================================================== //
 
 typedef enum renderer_type {
@@ -936,7 +927,7 @@ typedef enum renderer_type {
 } renderer_type_t;
 
 // ==================================================================================== //
-//                                  evo: renderer (rdr)
+//                                  evo: renderer (vis)
 // ==================================================================================== //
 
 struct renderer {
