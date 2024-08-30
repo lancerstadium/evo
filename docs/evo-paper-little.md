@@ -84,14 +84,17 @@ Evo is a Dynamic-Aware engine which use for Edge Inference...
 同时，在大部分推理数据通常具有稀疏性和局部性。动态推理是一种新兴方法，它利用输入属性有选择地执行准确分类所需的显着计算子集。与永久删除神经元以提高模型效率的静态方法不同，动态方法仅根据输入实例暂时抑制计算。条件执行涉及网络模型的几个方面：
 1. 组合网络规模缩放（Combined Network Size Scaling）：根据输入有条件地执行某些网络层或块。并非所有输入实例都需要所有分层计算才能正确分类[28]。在现代 DNN 中，重复的块构建在彼此之上以微调特征细节。较难的样本可能需要更深的嵌入才能准确分类，而较简单的样本可能只需要浅的嵌入。换句话说，较浅的推理对于更容易的样本是可行的，而对于更困难的情况则需要更深的层来保持性能如简单的图像需要比复杂的示例更深的网络。
 2. 提前退出分支（Early Exit Branch）：后来的方法通过有条件地执行各个层来提高灵活性。这些方法基于残差架构对于层丢失具有鲁棒性的观察[20, 47]。 SkipNet [48] 使用强化学习来学习门控决策。 ConvNet-AIG [46] 使用 Gumbel-Softmax 技巧，而 BlockDrop [51] 使用强化学习训练单独的策略网络。
-3. 动态稀疏化（Dynamic Sparsity）：动态稀疏性涉及训练网络以利用计算图的固有稀疏性。这是通过仅预测和识别应用 ReLU 激活函数产生的零元素来实现的，ReLU 激活函数常用于深度学习模型。通过这样做，动态稀疏性可以实现与剪枝类似甚至更高的计算节省，并且对预测精度的影响最小。这是因为网络和稀疏性诱导机制是联合训练的，并且重点是零元素，这不会影响网络的输出。总之，动态稀疏性提供了一种高效且有效的方法来降低神经网络的计算成本，而不牺牲预测性能
+3. 测试时修剪（Pruning at test time）测试时的剪枝侧重于在推理阶段从神经网络中删除不必要的操作，而不在训练阶段调整网络
+4. 动态稀疏化（Dynamic Sparsity）：动态稀疏性涉及训练网络以利用计算图的固有稀疏性。这是通过仅预测和识别应用 ReLU 激活函数产生的零元素来实现的，ReLU 激活函数常用于深度学习模型。通过这样做，动态稀疏性可以实现与剪枝类似甚至更高的计算节省，并且对预测精度的影响最小。这是因为网络和稀疏性诱导机制是联合训练的，并且重点是零元素，这不会影响网络的输出。总之，动态稀疏性提供了一种高效且有效的方法来降低神经网络的计算成本，而不牺牲预测性能
 
 上述方法都需要对模型进行修改并重新训练。这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
 
 > 动态推理优化相关文献：
-> 1. Spatially Adaptive Computation Time for Residual Networks
-> 2. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
-> 3. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
+> 1. 2019 DYNAMIC RUNTIME FEATURE MAP PRUNING
+> 2. Adapting Neural Networks at Runtime: Current Trends in At-Runtime Optimizations for Deep Learning
+> 2. Spatially Adaptive Computation Time for Residual Networks
+> 3. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
+> 4. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
 
 
 
@@ -155,21 +158,34 @@ $$
 3. 异步训练：采样主网络输入输出对，在主网络执行完毕后通过前向训练的方式对网络参数进行局部学习
 
 
-### 3.3 提前退出
+### 3.2 稀疏卷积
 
-提前退出动态钩子网络（Early Exit Dynamic Hook Network, EE-DHN）组件设计：
+自适应元素动态钩子网络（Adaptive Element Dynamic Hook Network, AL-DHN）组件设计：
 
-- 输入：前一层的输出 $H×W×C$
-- 头（Head）：第一个组件负责将输入特征图规范化为统一大小，一般采用 GlobalAreragePool 算子将输入特征压缩为 $1×1×C$ 通道描述符
+
+
+### 3.3 层次跳过
+
+自适应层级动态钩子网络（Adaptive Layer Dynamic Hook Network, AL-DHN）组件设计：对于残差网络进行跳过处理
+
+- 输入：前一层的输出 $C×H×W$
+- 头（Head）：第一个组件负责将输入特征图规范化为统一大小，一般采用 GlobalAreragePool 算子将输入特征压缩为 $C×1×1$ 通道描述符
 - 体（Body）：第二个组件有效地估计当前图像的各个层的相关性。为捕获通道之间的依赖关系，ConvNet-AIG 添加了一个由两个全连接层（fc）组成的简单非线性函数，这些层通过 BatchNorm 和 ReLU 连接，计算相关性分数 $\beta=\mathbf{W}_2\sigma(\mathbf{W}_1\mathbf{z})$ ，其中 $\mathbf{W}_1\in\mathbb{R}^{d\times C},\:\mathbf{W}_2\in\mathbb{R}^{2\times d}$ 。（对于向量 $\beta$ ，分别包含用于计算和跳过下一层动作的两个非归一化分数。一般来说，如果执行得分 $\beta_1$ 大于跳过该层的得分（即 $\beta_0$），则认为该层与给定输入相关。）
 - 门（Gate）：第三个组件通过特殊设计的网络输出决策信息。一般使用 GumbelSoftmax 进行采样来做出离散决策。
 
-### 3.4 稀疏卷积
 
-稀疏卷积动态钩子网络（Sparse Convlution Dynamic Hook Network, SC-DHN）设计：
+### 3.4 通道剪枝
+
+自适应通道动态钩子网络（Adaptive Channel Dynamic Hook Network, AC-DHN）设计：
 
 1. 采样（Sampling）：Middle Feature Map -> Gumble Softmax -> Mask
 2. 排序（Sorting）：Mask -> Argsort -> Top K Index of Sparse Attention (Other for Conv)
+
+
+### 3.5 提前退出
+
+
+
 
 
 ---
