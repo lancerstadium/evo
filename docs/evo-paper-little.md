@@ -40,9 +40,9 @@
 Evo is a Dynamic-Aware engine which use for Edge Inference...
 </div>
 
-<p align="center">
-<img src="public/logo.svg" width=25% height=25% class="center" alt="Opt-Arch">
-</p>
+<div align="center"> 
+<img src="./public/logo.svg" width=25% height=25% class="center" alt="Opt-Arch">
+</div>
 
 ---
 
@@ -89,7 +89,11 @@ Evo is a Dynamic-Aware engine which use for Edge Inference...
 上述方法都需要对模型进行修改并重新训练。这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
 
 > 动态推理优化相关文献：
-> 
+> 1. Spatially Adaptive Computation Time for Residual Networks
+> 2. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
+> 3. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
+
+
 
 ### 2.1 前向训练
 Hinton 于 2022 年提出了前向前向 (Forward Forward, FF) 算法，该算法提供了一种有效的分层学习方法，用两次前向传递取代了传统的反向传播。
@@ -131,6 +135,8 @@ $$
 ---
 ## 3 方法 Method
 
+### 3.1 架构概览
+
 相关概念：
 - 数据稀疏性（*Data Sparsity*）：在模型前向计算时，经过特定层会产生大量含有0数据的张量，对于这些稀疏张量，可分析其计算特征进行深度优化。
 - 运行时剖析（*Runtime Profile*）：在推理引擎内部对模型参数、运行时信息、设备信息进行采样，用于后续推理优化。
@@ -138,20 +144,30 @@ $$
 - 空间执行掩码（*Spatial Execution Masks*）：用于裁剪窗口，进行后续计算优化
 - 动态感知推理（*Dynamic-Aware Inference*）：数据感知 --> 构筑动态钩子网络 --> 执行决策
 
-### 3.1 架构
 
-#### 3.1.1 动态钩子网络
+### 3.2 动态钩子网络
 
-设计原则：非侵入式推理网络，在主网络进行前向推理过程中运行，目的是用于优化主网络相关指标进行动态优化
+设计原则：非侵入式推理网络，在主网络进行前向推理过程时挂载，目的是用于优化主网络相关指标进行动态优化
 
 特征（features）：
-1. 同步推理：在模型初始化时静态分析生成特定的钩子网络，在模型推理时，耦合进主网络协同推理
-2. 异步训练：采样主网络输入输出对，在主网络执行完毕后通过前向训练的方式对网络参数进行局部学习
+1. 自适应构建：通过主网络信息进行分析动态构建钩子网络，一般为轻量化网络
+2. 同步推理：在模型推理时，耦合进主网络协同推理，一般推理消耗时间较少
+3. 异步训练：采样主网络输入输出对，在主网络执行完毕后通过前向训练的方式对网络参数进行局部学习
 
 
-#### 3.1.2 提前退出
+### 3.3 提前退出
 
-#### 3.1.3 稀疏卷积
+提前退出动态钩子网络（Early Exit Dynamic Hook Network, EE-DHN）组件设计：
+
+- 输入：前一层的输出 $H×W×C$
+- 头（Head）：第一个组件负责将输入特征图规范化为统一大小，一般采用 GlobalAreragePool 算子将输入特征压缩为 $1×1×C$ 通道描述符
+- 体（Body）：第二个组件有效地估计当前图像的各个层的相关性。为捕获通道之间的依赖关系，ConvNet-AIG 添加了一个由两个全连接层（fc）组成的简单非线性函数，这些层通过 BatchNorm 和 ReLU 连接，计算相关性分数 $\beta=\mathbf{W}_2\sigma(\mathbf{W}_1\mathbf{z})$ ，其中 $\mathbf{W}_1\in\mathbb{R}^{d\times C},\:\mathbf{W}_2\in\mathbb{R}^{2\times d}$ 。（对于向量 $\beta$ ，分别包含用于计算和跳过下一层动作的两个非归一化分数。一般来说，如果执行得分 $\beta_1$ 大于跳过该层的得分（即 $\beta_0$），则认为该层与给定输入相关。）
+- 门（Gate）：第三个组件通过特殊设计的网络输出决策信息。一般使用 GumbelSoftmax 进行采样来做出离散决策。
+
+### 3.4 稀疏卷积
+
+稀疏卷积动态钩子网络（Sparse Convlution Dynamic Hook Network, SC-DHN）设计：
+
 1. 采样（Sampling）：Middle Feature Map -> Gumble Softmax -> Mask
 2. 排序（Sorting）：Mask -> Argsort -> Top K Index of Sparse Attention (Other for Conv)
 
@@ -159,6 +175,15 @@ $$
 ---
 ## 4 实验 Experiment
 
+
+### 4.1 实验环境
+
+数据集：
+1. CIFAR-10
+2. ImageNet
+
+
+### 4.2 实验结果
 
 指标：
 1. 吞吐量（）
