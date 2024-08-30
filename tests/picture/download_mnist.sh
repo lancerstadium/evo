@@ -22,9 +22,13 @@ for FILE in "${FILES[@]}"; do
         continue
     fi
     
-    # 下载文件
-    echo "Downloading $FILE..."
-    wget "$MNIST_URL_BASE$FILE" -O "$FILE_PATH"
+    # 检查并下载文件
+    if [ -f "$FILE_PATH" ]; then
+        echo "$FILE already exists, skipping download..."
+    else
+        echo "Downloading $FILE..."
+        wget "$MNIST_URL_BASE$FILE" -O "$FILE_PATH"
+    fi
     
     # 解压文件
     echo "Extracting $FILE with gzip..."

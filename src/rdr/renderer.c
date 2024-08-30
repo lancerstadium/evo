@@ -76,6 +76,7 @@ struct renderer_linux {
     XContext g_context;
     /* common data */
     canvas_t* surface;
+    char* pixels_buffer;
     int should_close;
     char keys[KEY_NUM];
     char buttons[BUTTON_NUM];
@@ -161,6 +162,23 @@ static Window create_window_linux(renderer_linux_t *priv, const char *title, int
     return priv->handle;
 }
 
+
+static void rgb2bgr(char *src, char *dst, int width, int height) {
+    if(!src || !dst) return;
+    // aabbggrr --> ffrrggbb
+    for(int i = 0; i < width * height; i++) {
+        dst[i * 4 + 0] = src[i * 4 + 2];
+        dst[i * 4 + 1] = src[i * 4 + 1];
+        dst[i * 4 + 2] = src[i * 4 + 0];
+        dst[i * 4 + 3] = src[i * 4 + 3];
+    }
+}
+
+static void update_buffer_linux(renderer_linux_t *priv) {
+    if(!priv || !priv->surface || !priv->pixels_buffer) return;
+    rgb2bgr((char*)priv->surface->background->raw->datas, priv->pixels_buffer, priv->surface->width, priv->surface->height);
+}
+
 static void create_surface_linux(renderer_linux_t *priv, int width, int height) {
     if(!priv) return;
     int screen = XDefaultScreen(priv->g_display);
@@ -173,7 +191,9 @@ static void create_surface_linux(renderer_linux_t *priv, int width, int height) 
     LOG_INFO("Depth: %d\n", depth);
     priv->surface = canvas_new(width, height);
     LOG_INFO("Surface created: %d x %d\n", width, height);
-    priv->ximage = XCreateImage(priv->g_display, DefaultVisual(priv->g_display, screen), depth, ZPixmap, 0, priv->surface->background->raw->datas, width, height, 32, 0);
+    priv->pixels_buffer = malloc(width * height * 4);
+    update_buffer_linux(priv);
+    priv->ximage = XCreateImage(priv->g_display, DefaultVisual(priv->g_display, screen), depth, ZPixmap, 0, priv->pixels_buffer, width, height, 32, 0);
 }
 
 static void draw_surface_linux(renderer_linux_t *priv) {
@@ -181,6 +201,7 @@ static void draw_surface_linux(renderer_linux_t *priv) {
     int screen = XDefaultScreen(priv->g_display);
     GC gc = XDefaultGC(priv->g_display, screen);
     if(!priv->surface) return;
+    update_buffer_linux(priv);
     XPutImage(priv->g_display, priv->handle, gc, priv->ximage, 0, 0, 0, 0, priv->surface->width, priv->surface->height);
     XFlush(priv->g_display);
 }
@@ -295,6 +316,7 @@ void renderer_free(renderer_t* rd) {
                     XUnmapWindow(priv->g_display, priv->handle);
                     XDeleteContext(priv->g_display, priv->handle, priv->g_context);
                     if (priv->ximage) { priv->ximage->data = NULL; XDestroyImage(priv->ximage); }
+                    if (priv->pixels_buffer) free(priv->pixels_buffer);
                     close_display_linux(priv);
                     // XFlush(priv->g_display);
                     if (priv->surface) canvas_free(priv->surface);

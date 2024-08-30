@@ -133,9 +133,9 @@ image_type_t image_get_type(const char* name) {
     if(!ext) return IMAGE_TYPE_UNKNOWN;
     if(strcmp(ext, "bmp") == 0) {
         return IMAGE_TYPE_BMP;
-    } else if(strcmp(ext, "jpg") == 0) {
+    } else if(strcmp(ext, "jpg") == 0 || strcmp(ext, "JPG") == 0 || strcmp(ext, "jepg") == 0 || strcmp(ext, "JEPG") == 0) {
         return IMAGE_TYPE_JPG;
-    } else if(strcmp(ext, "png") == 0) {
+    } else if(strcmp(ext, "png") == 0 || strcmp(ext, "PNG") == 0) {
         return IMAGE_TYPE_PNG;
     } else if(strcmp(ext, "tga") == 0) {
         return IMAGE_TYPE_TGA;
