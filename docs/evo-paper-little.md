@@ -89,14 +89,6 @@ Evo is a Dynamic-Aware engine which use for Edge Inference...
 
 上述方法都需要对模型进行修改并重新训练。这些方法的一个共同属性是同一模型处理不同的输入实例。考虑到不同的实例具有独特的视觉特征，一个自然的问题就出现了：每个实例是否都需要所有级别的嵌入和同一组特征图才能准确分类？直观上，对于易于分类的图像来说，可能不需要更深的嵌入。因此，为了最大限度地提高计算效率，应仅为困难的输入实例保留与更深层相关的额外计算。此外，由于卷积通道/滤波器捕获特定于类的特征，因此可以通过在推理过程中跳过不相关的通道来节省不必要的计算。
 
-> 动态推理优化相关文献：
-> 1. 2019 DYNAMIC RUNTIME FEATURE MAP PRUNING
-> 2. Adapting Neural Networks at Runtime: Current Trends in At-Runtime Optimizations for Deep Learning
-> 2. Spatially Adaptive Computation Time for Residual Networks
-> 3. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
-> 4. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
-
-
 
 ### 2.1 前向训练
 Hinton 于 2022 年提出了前向前向 (Forward Forward, FF) 算法，该算法提供了一种有效的分层学习方法，用两次前向传递取代了传统的反向传播。
@@ -130,10 +122,6 @@ L(P,N)=\log(1+e^{-\alpha(G_P-G_N)})
 $$
 
 
-> 前向训练参考文献：
-> 1. The Forward-Forward Algorithm: Some Preliminary Investigations
-> 2. SymBa: Symmetric Backpropagation-Free Contrastive Learning with Forward-Forward Algorithm for Optimizing Convergence
-> 3. Distance-Forward Learning: Enhancing the Forward-Forward Algorithm Towards High-Performance On-Chip Learning
 
 ---
 ## 3 方法 Method
@@ -160,7 +148,7 @@ $$
 
 ### 3.2 稀疏卷积
 
-自适应元素动态钩子网络（Adaptive Element Dynamic Hook Network, AL-DHN）组件设计：
+自适应元素动态钩子网络（Adaptive Element Dynamic Hook Network, AL-DHN）组件设计：与参数稀疏性相比，特征图稀疏性与每个输入相关，具有更好的适应性。实际的稀疏模式是非结构性的，并且随机位于具有不同形状的特征图上。
 
 
 
@@ -216,7 +204,19 @@ $$
 ---
 ## 参考文献 References
 
+> 动态推理优化相关文献：
+> 1. 2019 DYNAMIC RUNTIME FEATURE MAP PRUNING
+> 2. Adapting Neural Networks at Runtime: Current Trends in At-Runtime Optimizations for Deep Learning
+> 3. FalCon: Fine-grained Feature Map Sparsity Computing with Decomposed Convolutions for Inference Optimization
+> 4. Fully Dynamic Inference with Deep Neural Networks
+> 5. Spatially Adaptive Computation Time for Residual Networks
+> 6. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
+> 7. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
 
+> 前向训练参考文献：
+> 1. The Forward-Forward Algorithm: Some Preliminary Investigations
+> 2. SymBa: Symmetric Backpropagation-Free Contrastive Learning with Forward-Forward Algorithm for Optimizing Convergence
+> 3. Distance-Forward Learning: Enhancing the Forward-Forward Algorithm Towards High-Performance On-Chip Learning
 
 ---
 ## 附录
