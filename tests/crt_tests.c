@@ -3,7 +3,8 @@
 
 
 UnitTest_fn_def(test_model_create) {
-
+    model_t* mdl = model_new("my_model");
+    graph_dump(mdl->graph);
     return NULL;
 }
 
