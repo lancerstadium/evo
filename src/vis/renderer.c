@@ -37,7 +37,6 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
     canvas_t* cav_all = canvas_new(cav->width, cav->height);
     int64_t delay = 5;         // 5 ms
     delays[0] = delay;
-    LOG_INFO("1~~~~~~~\n");
     for (size_t i = 0; i < ndelay; i++) {
         delays[i] = delay;
         cav = rd_fn(cav, (1.f * i) / 60.f);
@@ -213,7 +212,6 @@ void renderer_render_linux(renderer_t* rd, render_fn_t rd_fn) {
     renderer_linux_t* priv = rd->priv;
     XEvent event;
     canvas_t* cav = priv->surface;
-    LOG_INFO("0~~~~~~~\n");
     while(!renderer_should_close(rd)) {
         cav = rd_fn(cav, (1.f * i) / 60.f);
         draw_surface_linux(priv);

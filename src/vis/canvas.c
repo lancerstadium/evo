@@ -55,8 +55,11 @@ canvas_t* canvas_new(size_t width, size_t height) {
         cav->background = image_blank("bg", cav->width, cav->height);
         if(cav->background && cav->background->raw) {
             cav->pixels = (uint32_t*)cav->background->raw->datas;
+            return cav;
+        } else {
+            LOG_ERR("canvas new background fail\n");
+            return NULL;
         }
-        return cav;
     }
     return NULL;
 }
