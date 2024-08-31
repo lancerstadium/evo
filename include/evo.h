@@ -451,16 +451,16 @@ typedef enum attribute_type {
 
 struct attribute {
     char * name;
-    attribute_type_t type;
+    attribute_type_t  type;
     union {
-        float       f;
-        int64_t     i;
+        float            f;
+        int64_t          i;
         struct {
-            size_t ns;
-            char  *ss;
+            size_t      ns;
+            char       *ss;
         };
-        tensor_t  * t;
-        graph_t   * g;
+        tensor_t       * t;
+        graph_t        * g;
         struct {
             size_t      nf;
             float      *fs;
@@ -601,6 +601,7 @@ EVO_API graph_t * graph_as_sub(graph_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
+EVO_API void graph_add_layer(graph_t*, node_type_t, tensor_t**, int, int);
 EVO_API void graph_prerun(graph_t*);
 EVO_API void graph_step(graph_t*, int);
 EVO_API void graph_run(graph_t*);

@@ -143,6 +143,37 @@ node_t* graph_get_node(graph_t *g, int i) {
     return NULL;
 }
 
+void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int nout) {
+    if(!g) return;
+    // Create node
+    char name_buf[54];
+    sprintf(name_buf, "%s%u", op_name(type), g->nnode);
+    node_t* nd = node_new(g, name_buf, type);
+    // Add in tensors
+    if(nin > 0 && in) {
+        nd->nin = nin;
+        nd->in = malloc(nin * sizeof(tensor_t*));
+        for(int i = 0; i < nin && in[i]; i++) {
+            nd->in[i] = in[i];
+            graph_push_tenser(g, nd->in[i]);
+            hashmap_set(g->mdl->tensor_map, hashmap_str_lit(nd->in[i]->name), (uintptr_t)nd->in[i]);
+        }
+    }
+    // Add out tensors
+    if(nout > 0 && nout) {
+        nd->nout = nout;
+        nd->out = malloc(nout * sizeof(tensor_t*));
+        for(int i = 0; i < nout; i++) {
+            sprintf(name_buf, "%s%u_out%d", op_name(type), g->nnode, i);
+            nd->out[i] = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
+            graph_push_tenser(g, nd->out[i]);
+            hashmap_set(g->mdl->tensor_map, hashmap_str_lit(nd->out[i]->name), (uintptr_t)nd->out[i]);
+        }
+    }
+    // Add node
+    graph_push_node(g, nd);
+}
+
 void graph_prerun(graph_t *g) {
     if(!g || !g->mdl) return;
     model_t *mdl = g->mdl;
