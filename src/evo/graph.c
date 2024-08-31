@@ -188,7 +188,7 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
-void graph_add_dense(graph_t *g, int units) {
+void graph_add_dense(graph_t *g, int units, const char* activation) {
     if(!g || g->ntensor == 0) return;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
@@ -215,6 +215,30 @@ void graph_add_dense(graph_t *g, int units) {
     graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
     last = g->tensors[g->ntensor - 1];
     tensor_reshape(last, last_ndim, bias_dims);
+    // Activation
+    if(strcmp(activation, "relu") == 0) {
+        graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
+        tensor_t* act = g->tensors[g->ntensor - 1];
+        tensor_reshape(act, last->ndim, last->dims);
+    } else if(strcmp(activation, "softmax") == 0){
+        graph_add_layer(g, OP_TYPE_SOFTMAX, (tensor_t*[]){last}, 1, 1, NULL, 0);
+        tensor_t* act = g->tensors[g->ntensor - 1];
+        tensor_reshape(act, last->ndim, last->dims);
+    }
+}
+
+void graph_add_flatten(graph_t *g) {
+    if(!g || g->ntensor == 0) return;
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    int last_ndim = last->ndim;
+    int sum_dim = 1;
+    for(int i = 0; i < last_ndim; i++) {
+        sum_dim *= last->dims[i];
+    }
+    // y[l * m * n] = x[l, m, n]
+    graph_add_layer(g, OP_TYPE_FLATTEN, (tensor_t*[]){last}, 1, 1, NULL, 0);
+    last = g->tensors[g->ntensor - 1];
+    tensor_reshape(last, 2, (int[]){1, sum_dim});
 }
 
 void graph_prerun(graph_t *g) {
