@@ -149,14 +149,12 @@ void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int n
     char name_buf[54];
     sprintf(name_buf, "%s%u", op_name(type), g->nnode);
     node_t* nd = node_new(g, name_buf, type);
-    // Add in tensors
+    // Connect in tensors
     if(nin > 0 && in) {
         nd->nin = nin;
         nd->in = malloc(nin * sizeof(tensor_t*));
         for(int i = 0; i < nin && in[i]; i++) {
             nd->in[i] = in[i];
-            graph_push_tenser(g, nd->in[i]);
-            hashmap_set(g->mdl->tensor_map, hashmap_str_lit(nd->in[i]->name), (uintptr_t)nd->in[i]);
         }
     }
     // Add out tensors
@@ -178,6 +176,40 @@ void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int n
     }
     // Add node
     graph_push_node(g, nd);
+}
+
+void graph_add_input(graph_t *g, int in_dim, int* dims) {
+    if(!g) return;
+    char name_buf[20];
+    sprintf(name_buf, "Input%u", g->ntensor);
+    tensor_t* in = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
+    tensor_reshape(in, in_dim, dims);
+    graph_push_tenser(g, in);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
+}
+
+void graph_add_dense(graph_t *g, int units) {
+    if(!g || g->ntensor == 0) return;
+    char name_buf[54];
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    int last_dim = last->dims[last->ndim - 1];
+    // y = x[l, m, n] * kernel[n, k] + bias[l, m, k]
+    sprintf(name_buf, "Gemm%u_kernel", g->nnode);
+    tensor_t* kernel = tensor_new(name_buf, last->type);
+    tensor_reshape(kernel, 2, (int[]){last_dim, units});
+    sprintf(name_buf, "Gemm%u_bias", g->nnode);
+    tensor_t* bias = tensor_new(name_buf, last->type);
+    int bias_dims[last->ndim];
+    for(int i = 0; i < last->ndim - 1; i++) {
+        bias_dims[i] = last->dims[i];
+    }
+    bias_dims[last->ndim - 1] = units;
+    tensor_reshape(bias, last->ndim, bias_dims);
+    graph_push_tenser(g, kernel);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
+    graph_push_tenser(g, bias);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
+    graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
 }
 
 void graph_prerun(graph_t *g) {
@@ -216,6 +248,7 @@ void graph_posrun(graph_t *g) {
     if(!g || !g->mdl) return;
     model_t *mdl = g->mdl;
     mdl->scd->posrun(mdl->scd, g);
+    g->status = GRAPH_STATUS_DONE;
 }
 
 void graph_dump(graph_t* g) {
@@ -240,6 +273,13 @@ void graph_dump(graph_t* g) {
 void graph_dump2(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
+    if(g->ntensor > 0) {
+        tensor_t* first = g->tensors[0];
+        char* shape = tensor_dump_shape(first);
+        LOG_INFO("Input:\n");
+        LOG_INFO("  - %s: %s\n", first->name, shape);
+        free(shape);
+    }
     for(int i=0; i < g->nnode; i++) {
         node_dump(g->nodes[i]);
     }
