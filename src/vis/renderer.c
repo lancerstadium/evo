@@ -37,6 +37,7 @@ void renderer_render_gif(renderer_t* rd, render_fn_t rd_fn) {
     canvas_t* cav_all = canvas_new(cav->width, cav->height);
     int64_t delay = 5;         // 5 ms
     delays[0] = delay;
+    LOG_INFO("1~~~~~~~\n");
     for (size_t i = 0; i < ndelay; i++) {
         delays[i] = delay;
         cav = rd_fn(cav, (1.f * i) / 60.f);
@@ -131,6 +132,7 @@ static Window create_window_linux(renderer_linux_t *priv, const char *title, int
     // handle = XCreateSimpleWindow(priv->g_display, root, 0, 0, width, height, 0,
     //                              border, background);
 
+    if(!priv) exit(-1);
     int screen = DefaultScreen(priv->g_display);
     priv->handle = XCreateSimpleWindow(priv->g_display, RootWindow(priv->g_display, screen), 0, 0, width, height, 0, BlackPixel(priv->g_display, screen), WhitePixel(priv->g_display, screen));
     XStoreName(priv->g_display, priv->handle, EVO_GUI_TITLE);
@@ -197,10 +199,9 @@ static void create_surface_linux(renderer_linux_t *priv, int width, int height) 
 }
 
 static void draw_surface_linux(renderer_linux_t *priv) {
-    if(!priv) return;
+    if(!priv || !priv->g_display || !priv->surface) return;
     int screen = XDefaultScreen(priv->g_display);
     GC gc = XDefaultGC(priv->g_display, screen);
-    if(!priv->surface) return;
     update_buffer_linux(priv);
     XPutImage(priv->g_display, priv->handle, gc, priv->ximage, 0, 0, 0, 0, priv->surface->width, priv->surface->height);
     XFlush(priv->g_display);
@@ -212,8 +213,9 @@ void renderer_render_linux(renderer_t* rd, render_fn_t rd_fn) {
     renderer_linux_t* priv = rd->priv;
     XEvent event;
     canvas_t* cav = priv->surface;
+    LOG_INFO("0~~~~~~~\n");
     while(!renderer_should_close(rd)) {
-        rd_fn(cav, (1.f * i) / 60.f);
+        cav = rd_fn(cav, (1.f * i) / 60.f);
         draw_surface_linux(priv);
         // Events
         while (XPending(priv->g_display)) {
@@ -319,7 +321,7 @@ void renderer_free(renderer_t* rd) {
                     if (priv->pixels_buffer) free(priv->pixels_buffer);
                     close_display_linux(priv);
                     // XFlush(priv->g_display);
-                    if (priv->surface) canvas_free(priv->surface);
+                    if (priv->surface) { canvas_free(priv->surface); priv->surface = NULL; }
                     break;
                 }
 #endif // gui platform
@@ -327,6 +329,7 @@ void renderer_free(renderer_t* rd) {
                 default: break;
             }
             free(rd->priv);
+            rd->priv = NULL;
         }
         free(rd);
         rd = NULL;
