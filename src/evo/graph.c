@@ -143,7 +143,7 @@ node_t* graph_get_node(graph_t *g, int i) {
     return NULL;
 }
 
-void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int nout) {
+void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int nout, attribute_t** attr, int nattr) {
     if(!g) return;
     // Create node
     char name_buf[54];
@@ -168,6 +168,12 @@ void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int n
             nd->out[i] = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
             graph_push_tenser(g, nd->out[i]);
             hashmap_set(g->mdl->tensor_map, hashmap_str_lit(nd->out[i]->name), (uintptr_t)nd->out[i]);
+        }
+    }
+    // Add attrs
+    if(nattr > 0 && attr) {
+        for(int i = 0; i < nattr; i++) {
+            if(attr[i]) vector_add(&nd->attr_vec, attr[i]);
         }
     }
     // Add node
