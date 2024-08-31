@@ -192,24 +192,29 @@ void graph_add_dense(graph_t *g, int units) {
     if(!g || g->ntensor == 0) return;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
-    int last_dim = last->dims[last->ndim - 1];
+    int last_ndim = last->ndim;
+    int last_dim = last->dims[last_ndim - 1];
     // y = x[l, m, n] * kernel[n, k] + bias[l, m, k]
     sprintf(name_buf, "Gemm%u_kernel", g->nnode);
     tensor_t* kernel = tensor_new(name_buf, last->type);
-    tensor_reshape(kernel, 2, (int[]){last_dim, units});
+    if(last_ndim > 0)
+        tensor_reshape(kernel, 2, (int[]){last_dim, units});
     sprintf(name_buf, "Gemm%u_bias", g->nnode);
     tensor_t* bias = tensor_new(name_buf, last->type);
-    int bias_dims[last->ndim];
-    for(int i = 0; i < last->ndim - 1; i++) {
+    int bias_dims[last_ndim];
+    for(int i = 0; i < last_ndim - 1; i++) {
         bias_dims[i] = last->dims[i];
     }
-    bias_dims[last->ndim - 1] = units;
-    tensor_reshape(bias, last->ndim, bias_dims);
+    bias_dims[last_ndim - 1] = units;
+    if(last_ndim > 0)
+        tensor_reshape(bias, last_ndim, bias_dims);
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     graph_push_tenser(g, bias);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
     graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
+    last = g->tensors[g->ntensor - 1];
+    tensor_reshape(last, last_ndim, bias_dims);
 }
 
 void graph_prerun(graph_t *g) {
