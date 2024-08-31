@@ -1,8 +1,6 @@
 #include "sob.h"
 #include <evo.h>
 
-
-
 UnitTest_fn_def(test_model_create) {
     device_reg("cpu");
     model_t* mdl = model_new("my_model");
