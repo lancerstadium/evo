@@ -38,6 +38,7 @@ static void graph_init(graph_t *g, model_t *mdl) {
     g->sub_vec = vector_create();                   /* Sub graph vec */
 
     if(mdl) {
+        g->name = sys_strdup(mdl->name);
         mdl->graph = g;
         g->sez = mdl->sez;
     }
