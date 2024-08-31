@@ -16,7 +16,7 @@ UnitTest_fn_def(test_model_create) {
     graph_prerun(mdl->graph);
     graph_run(mdl->graph);
     graph_posrun(mdl->graph);
-    graph_dump2(mdl->graph);
+    graph_dump(mdl->graph);
     model_dump_tensor(mdl);
     // tensor_t* ts3 = model_get_tensor(mdl, "Gemm0_out0");
     // tensor_dump2(ts3);
