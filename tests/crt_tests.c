@@ -9,7 +9,7 @@ UnitTest_fn_def(test_model_create) {
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
     // graph_add_input(mdl->graph, 2, (int[]){2, 3});
     // graph_add_layer(mdl->graph, OP_TYPE_MAT_MUL, (tensor_t*[]){ts1, ts2}, 2, 1, NULL, 0);
-    graph_add_dense(mdl->graph, 144);
+    graph_add_dense(mdl->graph, 128);
     model_dump_tensor(mdl);
     graph_add_dense(mdl->graph, 10);
     graph_prerun(mdl->graph);
