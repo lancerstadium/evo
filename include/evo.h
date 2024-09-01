@@ -777,6 +777,41 @@ struct optimizer {
 };
 
 // ==================================================================================== //
+//                                  evo: widget
+// ==================================================================================== //
+
+// ==================================================================================== //
+//                                  evo: typedef (widget)
+// ==================================================================================== //
+
+typedef struct progressbar progressbar_t;
+
+// ==================================================================================== //
+//                                  evo: progress bar (widget)
+// ==================================================================================== //
+
+
+struct progressbar {
+    unsigned long max;                                  /* maximum iter value           */
+    unsigned long value;                                /* current iter value           */
+    time_t start;                                       /* time bar was started         */
+    const char *label;                                  /* labels show in bar           */               
+    struct {                                            /* E.g. |###    | has |#|       */
+        char begin;                                     /* char for the beginning       */
+        char fill;                                      /* char for the filling         */
+        char end;                                       /* char for the ending          */
+    } format;
+};
+
+progressbar_t *progressbar_new(const char *label, unsigned long max);
+progressbar_t *progressbar_new_format(const char *label, unsigned long max, const char *format);
+void progressbar_free(progressbar_t *bar);
+void progressbar_inc(progressbar_t *bar);
+void progressbar_update(progressbar_t *bar, unsigned long value);
+void progressbar_update_label(progressbar_t *bar, const char *label);
+void progressbar_finish(progressbar_t *bar);
+
+// ==================================================================================== //
 //                                  evo: Vision (vis)
 // ==================================================================================== //
 
