@@ -1,11 +1,25 @@
 #include "sob.h"
 #include <evo.h>
 
+/**
+ *  ** Mnist Model ** :
+ *      - Flatten           : [1,1,28,28] ->     [1,784]
+ *      - FC                :     [1,784] ->     [1,500]
+ *      - ReLU              :     [1,500] ->     [1,500]
+ *      - FC                :     [1,500] ->      [1,10]
+ *      - Softmax           :      [1,10] ->      [1,10]
+ *
+ *  ** Train Config ** :
+ *      - learning_rate     = 0.1(hinton_loss) else 0.35
+ *      - optimizer         = Adam
+ *      - num_epochs        = 600(hinton_loss) else 60
+ *      - batch_size        = 4096
+ */
 model_t* mnist_model_def() {
     model_t* mdl = model_new("mnist_model");
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
     graph_add_flatten(mdl->graph);
-    graph_add_dense(mdl->graph, 128, "relu");
+    graph_add_dense(mdl->graph, 500, "relu");
     graph_add_dense(mdl->graph, 10, "softmax");
     return mdl;
 }
