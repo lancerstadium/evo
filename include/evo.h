@@ -605,6 +605,8 @@ EVO_API void graph_add_layer(graph_t*, node_type_t, tensor_t**, int, int, attrib
 EVO_API void graph_add_input(graph_t*, int, int*);
 EVO_API void graph_add_dense(graph_t*, int, const char*);
 EVO_API void graph_add_flatten(graph_t*);
+EVO_API void graph_add_conv2d(graph_t*, int, int);
+EVO_API void graph_add_maxpool2d(graph_t*, int, int);
 EVO_API void graph_prerun(graph_t*);
 EVO_API void graph_step(graph_t*, int);
 EVO_API void graph_run(graph_t*);
