@@ -30,12 +30,13 @@ model_t* mnist_model_def() {
 
 UnitTest_fn_def(test_model_create) {
     device_reg("cpu");
-    
+    // Dataset
     const char* image_filename = "picture/mnist/t10k-images-idx3-ubyte";
     const char* label_filename = "picture/mnist/t10k-labels-idx1-ubyte";
     image_t* imgs = image_load_mnist(image_filename, label_filename);
     image_t* img_demo = image_get(imgs, 0);
 
+    // Model
     model_t* mdl = mnist_model_def();
     tensor_t * in = model_get_tensor(mdl, "Input0");
     tensor_copy(in, img_demo->raw);
