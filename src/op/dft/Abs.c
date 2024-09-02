@@ -2,7 +2,7 @@
 #include <evo/util/math.h>
 #include <math.h>
 
-static void Abs_int8(node_t *nd) {
+static void Abs_forward_int8(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int8_t *px = (int8_t *)x->datas;
@@ -12,7 +12,7 @@ static void Abs_int8(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_int16(node_t *nd) {
+static void Abs_forward_int16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int16_t *px = (int16_t *)x->datas;
@@ -22,7 +22,7 @@ static void Abs_int16(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_int32(node_t *nd) {
+static void Abs_forward_int32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int32_t *px = (int32_t *)x->datas;
@@ -32,7 +32,7 @@ static void Abs_int32(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_int64(node_t *nd) {
+static void Abs_forward_int64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int64_t *px = (int64_t *)x->datas;
@@ -42,7 +42,7 @@ static void Abs_int64(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_uint8(node_t *nd) {
+static void Abs_forward_uint8(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint8_t *px = (uint8_t *)x->datas;
@@ -52,7 +52,7 @@ static void Abs_uint8(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_uint16(node_t *nd) {
+static void Abs_forward_uint16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -62,7 +62,7 @@ static void Abs_uint16(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_uint32(node_t *nd) {
+static void Abs_forward_uint32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint32_t *px = (uint32_t *)x->datas;
@@ -72,7 +72,7 @@ static void Abs_uint32(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_uint64(node_t *nd) {
+static void Abs_forward_uint64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint64_t *px = (uint64_t *)x->datas;
@@ -82,7 +82,7 @@ static void Abs_uint64(node_t *nd) {
         py[i] = (px[i] < 0) ? -px[i] : px[i];
 }
 
-static void Abs_bfloat16(node_t *nd) {
+static void Abs_forward_bfloat16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -95,7 +95,7 @@ static void Abs_bfloat16(node_t *nd) {
     }
 }
 
-static void Abs_float16(node_t *nd) {
+static void Abs_forward_float16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -108,7 +108,7 @@ static void Abs_float16(node_t *nd) {
     }
 }
 
-static void Abs_float32(node_t *nd) {
+static void Abs_forward_float32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     float *px = (float *)x->datas;
@@ -118,7 +118,7 @@ static void Abs_float32(node_t *nd) {
         py[i] = fabsf(px[i]);
 }
 
-static void Abs_float64(node_t *nd) {
+static void Abs_forward_float64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     double *px = (double *)x->datas;
@@ -128,9 +128,10 @@ static void Abs_float64(node_t *nd) {
         py[i] = fabs(px[i]);
 }
 
-void op_Abs_dft(node_t *nd) {
+
+void Abs_init(node_t *nd) {
     // 1. Abs init
-    if (!nd || !nd->in ) {
+    if (!nd || !nd->in) {
         return;
     }
     if (!(nd->nin == 1) || !(nd->nout == 1) 
@@ -138,26 +139,48 @@ void op_Abs_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
+}
+
+void Abs_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     // 2. Abs reshape
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
+}
+
+void Abs_run(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     // 3. Abs run
     switch (nd->in[0]->type) {
-        case TENSOR_TYPE_INT8:      Abs_int8(nd); break;
-        case TENSOR_TYPE_INT16:     Abs_int16(nd); break;
-        case TENSOR_TYPE_INT32:     Abs_int32(nd); break;
-        case TENSOR_TYPE_INT64:     Abs_int64(nd); break;
-        case TENSOR_TYPE_UINT8:     Abs_uint8(nd); break;
-        case TENSOR_TYPE_UINT16:    Abs_uint16(nd); break;
-        case TENSOR_TYPE_UINT32:    Abs_uint32(nd); break;
-        case TENSOR_TYPE_UINT64:    Abs_uint64(nd); break;
-        case TENSOR_TYPE_FLOAT16:   Abs_float16(nd); break;
-        case TENSOR_TYPE_BFLOAT16:  Abs_bfloat16(nd); break;
-        case TENSOR_TYPE_FLOAT32:   Abs_float32(nd); break;
-        case TENSOR_TYPE_FLOAT64:   Abs_float64(nd); break;
+        case TENSOR_TYPE_INT8:      Abs_forward_int8(nd); break;
+        case TENSOR_TYPE_INT16:     Abs_forward_int16(nd); break;
+        case TENSOR_TYPE_INT32:     Abs_forward_int32(nd); break;
+        case TENSOR_TYPE_INT64:     Abs_forward_int64(nd); break;
+        case TENSOR_TYPE_UINT8:     Abs_forward_uint8(nd); break;
+        case TENSOR_TYPE_UINT16:    Abs_forward_uint16(nd); break;
+        case TENSOR_TYPE_UINT32:    Abs_forward_uint32(nd); break;
+        case TENSOR_TYPE_UINT64:    Abs_forward_uint64(nd); break;
+        case TENSOR_TYPE_FLOAT16:   Abs_forward_float16(nd); break;
+        case TENSOR_TYPE_BFLOAT16:  Abs_forward_bfloat16(nd); break;
+        case TENSOR_TYPE_FLOAT32:   Abs_forward_float32(nd); break;
+        case TENSOR_TYPE_FLOAT64:   Abs_forward_float64(nd); break;
         default: break;
     }
-    // 4. Abs exit
+}
+
+void Abs_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Abs_dft(node_t *nd) {
+    // 1. Abs init
+    Abs_init(nd);
+    // 2. Abs reshape
+    Abs_reshape(nd);
+    // 3. Abs run
+    Abs_run(nd);
+    // 4. Abs exit
+    Abs_exit(nd);
 }
