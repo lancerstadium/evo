@@ -407,7 +407,7 @@ typedef enum op_type {
 
 struct op {
     op_type_t type;                                     /* Operator type                */
-    void (*run)(node_t*);                               /* Operator run fn              */
+    void (*bind)(node_t*);                              /* Operator bind fn             */
 
     uint8_t is_same_shape : 1;                          /* Operator same shape          */
 };

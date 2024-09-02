@@ -2,7 +2,7 @@
 #include <evo/util/math.h>
 #include <evo/resolver.h>
 
-static void Relu_int8(node_t *nd) {
+static void Relu_forward_int8(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int8_t *px = (int8_t *)x->datas;
@@ -10,7 +10,7 @@ static void Relu_int8(node_t *nd) {
     for (size_t i = 0, l = y->ndata; i < l; i++)
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
-static void Relu_int16(node_t *nd) {
+static void Relu_forward_int16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int16_t *px = (int16_t *)x->datas;
@@ -18,7 +18,7 @@ static void Relu_int16(node_t *nd) {
     for (size_t i = 0, l = y->ndata; i < l; i++)
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
-static void Relu_int32(node_t *nd) {
+static void Relu_forward_int32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int32_t *px = (int32_t *)x->datas;
@@ -26,7 +26,7 @@ static void Relu_int32(node_t *nd) {
     for (size_t i = 0, l = y->ndata; i < l; i++)
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
-static void Relu_int64(node_t *nd) {
+static void Relu_forward_int64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int64_t *px = (int64_t *)x->datas;
@@ -34,7 +34,7 @@ static void Relu_int64(node_t *nd) {
     for (size_t i = 0, l = y->ndata; i < l; i++)
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
-static void Relu_bfloat16(node_t *nd) {
+static void Relu_forward_bfloat16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -47,7 +47,7 @@ static void Relu_bfloat16(node_t *nd) {
         py[i] = float32_to_bfloat16(v);
     }
 }
-static void Relu_float16(node_t *nd) {
+static void Relu_forward_float16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -61,7 +61,7 @@ static void Relu_float16(node_t *nd) {
     }
 }
 
-static void Relu_float32(node_t *nd) {
+static void Relu_forward_float32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     float *px = (float *)x->datas;
@@ -70,7 +70,7 @@ static void Relu_float32(node_t *nd) {
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
 
-static void Relu_float64(node_t *nd) {
+static void Relu_forward_float64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     double *px = (double *)x->datas;
@@ -79,31 +79,49 @@ static void Relu_float64(node_t *nd) {
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
 
-void op_Relu_dft(node_t *nd) {
-    // 1. Relu init
+void Relu_init(node_t *nd) {
     if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
         return;
-    }
-    // 2. Relu reshape
+    } 
+}
+
+void Relu_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. Relu run
+}
+
+void Relu_run(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
-        case TENSOR_TYPE_INT8: Relu_int8(nd); break;
-        case TENSOR_TYPE_INT16: Relu_int16(nd); break;
-        case TENSOR_TYPE_INT32: Relu_int32(nd); break;
-        case TENSOR_TYPE_INT64: Relu_int64(nd); break;
-        case TENSOR_TYPE_BFLOAT16: Relu_bfloat16(nd); break;
-        case TENSOR_TYPE_FLOAT16: Relu_float16(nd); break;
-        case TENSOR_TYPE_FLOAT32: Relu_float32(nd); break;
-        case TENSOR_TYPE_FLOAT64: Relu_float64(nd); break;
+        case TENSOR_TYPE_INT8:      Relu_forward_int8(nd); break;
+        case TENSOR_TYPE_INT16:     Relu_forward_int16(nd); break;
+        case TENSOR_TYPE_INT32:     Relu_forward_int32(nd); break;
+        case TENSOR_TYPE_INT64:     Relu_forward_int64(nd); break;
+        case TENSOR_TYPE_BFLOAT16:  Relu_forward_bfloat16(nd); break;
+        case TENSOR_TYPE_FLOAT16:   Relu_forward_float16(nd); break;
+        case TENSOR_TYPE_FLOAT32:   Relu_forward_float32(nd); break;
+        case TENSOR_TYPE_FLOAT64:   Relu_forward_float64(nd); break;
         default: break;
     }
+}
 
-    // 4. Relu exit
+void Relu_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Relu_dft(node_t *nd) {
+    // 1. Relu init
+    Relu_init(nd);
+    // 2. Relu reshape
+    Relu_reshape(nd);
+    // 3. Relu run
+    Relu_run(nd);
+    // 4. Relu exit
+    Relu_exit(nd);
 }

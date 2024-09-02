@@ -60,10 +60,10 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         // ==== Clock up ====== //
         double time_st, time_ed;
         time_st = sys_time();
-        if(!nd->op->run) {
+        if(!nd->op->bind) {
             LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
         } else {
-            nd->op->run(nd);
+            nd->op->bind(nd);
         }
         time_ed = sys_time();
         // ==== Clock down ==== //
@@ -96,10 +96,10 @@ static int cpu_run(device_t *dev, graph_t *g) {
         // ==== Clock up ====== //
         double time_st, time_ed;
         time_st = sys_time();
-        if(!nd->op->run) {
+        if(!nd->op->bind) {
             LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
         } else {
-            nd->op->run(nd);
+            nd->op->bind(nd);
         }
         time_ed = sys_time();
         // ==== Clock down ==== //

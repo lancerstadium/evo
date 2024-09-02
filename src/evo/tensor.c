@@ -281,8 +281,8 @@ tensor_t * tensor_argmax(tensor_t* ts, int axis, int keepdims, int select_last_i
     vector_add(&nd->attr_vec, axis_attr);
     vector_add(&nd->attr_vec, keepdims_attr);
     vector_add(&nd->attr_vec, select_last_index_attr);
-    if(nd->op && nd->op->run)
-        nd->op->run(nd);
+    if(nd->op && nd->op->bind)
+        nd->op->bind(nd);
     return nd->out[0];
 }
 
@@ -297,8 +297,8 @@ tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {
     nd->out[0] = tensor_new("cast_out", type);
     attribute_t* to_attr = attribute_int("to", type);
     vector_add(&nd->attr_vec, to_attr);
-    if(nd->op && nd->op->run)
-        nd->op->run(nd);
+    if(nd->op && nd->op->bind)
+        nd->op->bind(nd);
     return nd->out[0];
 }
 
@@ -313,8 +313,8 @@ tensor_t * tensor_softmax(tensor_t* ts, int axis) {
     nd->out[0] = tensor_new("softmax_out", TENSOR_TYPE_FLOAT32);
     attribute_t* axis_attr = attribute_int("axis", axis);
     vector_add(&nd->attr_vec, axis_attr);
-    if(nd->op && nd->op->run)
-        nd->op->run(nd);
+    if(nd->op && nd->op->bind)
+        nd->op->bind(nd);
     return nd->out[0];
 }
 
@@ -336,8 +336,8 @@ tensor_t * tensor_squeeze(tensor_t* ts, int* axes, int axes_size) {
     }
     nd->in[1] = tensor_new_int64("axes", (int[]){axes_size}, 1, axes_is, axes_size);
     nd->out[0] = tensor_new("squeeze_out", TENSOR_TYPE_FLOAT32);
-    if(nd->op && nd->op->run)
-        nd->op->run(nd);
+    if(nd->op && nd->op->bind)
+        nd->op->bind(nd);
     return nd->out[0];
 }
 

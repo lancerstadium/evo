@@ -191,7 +191,7 @@ static void* resolver_init_dft() {
 static void resolver_release_dft(void* rctx) {
 }
 
-#define OP_REG(T, S, R) [OP_TYPE_##T] = {.type = OP_TYPE_##T, .run = op_##S##_##R}
+#define OP_REG(T, S, R) [OP_TYPE_##T] = {.type = OP_TYPE_##T, .bind = op_##S##_##R}
 #define OP_REG_DFT(T, S) OP_REG(T, S, dft)
 
 static resolver_t default_resolver = {
