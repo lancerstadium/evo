@@ -241,6 +241,32 @@ void graph_add_flatten(graph_t *g) {
     tensor_reshape(last, 2, (int[]){1, sum_dim});
 }
 
+void graph_add_resize(graph_t *g, float* scales, size_t nscale, char* mode) {
+    if(!g || g->ntensor == 0) return;
+    char name_buf[54];
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    int last_ndim = last->ndim;
+    int sum_dim = 1;
+    for(int i = 0; i < last_ndim; i++) {
+        sum_dim *= last->dims[i];
+    }
+    attribute_t* resize_mode = attribute_string("mode", mode, strlen(mode));
+    sprintf(name_buf, "Resize%u_scale", g->nnode);
+    tensor_t* scale = tensor_new_float32(name_buf, (int[]){1, nscale}, 2, scales, nscale);
+    graph_push_tenser(g, scale);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(scale->name), (uintptr_t)scale);
+    graph_add_layer(g, OP_TYPE_RESIZE, (tensor_t*[]){last, scale}, 2, 1, (attribute_t*[]){resize_mode}, 1);
+    tensor_t* samp = g->tensors[g->ntensor - 1];
+    int new_dims[last_ndim];
+    for(int i = 0; i < last_ndim; i++) {
+        if(i < (last_ndim <= nscale ? last_ndim : nscale))
+            new_dims[i] = last->dims[i] * scales[i];
+        else
+            new_dims[i] = last->dims[i];
+    }
+    tensor_reshape(samp, last_ndim, new_dims);
+}
+
 void graph_prerun(graph_t *g) {
     if(!g || !g->mdl) return;
     model_t *mdl = g->mdl;

@@ -85,6 +85,7 @@ char * node_get_attr_string(node_t *nd, const char *name, char *dft) {
     attribute_t *attr = node_get_attr(nd, name);
     if(attr && (attr->type == ATTRIBUTE_TYPE_STRING)) {
         if(attr->ns > 0) {
+            attr->ss[attr->ns] = '\0';
             return attr->ss;
         }
     }

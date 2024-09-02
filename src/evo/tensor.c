@@ -295,6 +295,8 @@ tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {
     nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
     nd->in[0] = ts;
     nd->out[0] = tensor_new("cast_out", type);
+    attribute_t* to_attr = attribute_int("to", type);
+    vector_add(&nd->attr_vec, to_attr);
     if(nd->op && nd->op->run)
         nd->op->run(nd);
     return nd->out[0];

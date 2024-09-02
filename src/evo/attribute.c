@@ -47,7 +47,7 @@ attribute_t* attribute_string(char *name, char *ss, size_t ns) {
     if(attr && name) {
         attr->name = sys_strdup(name);
         attr->type = ATTRIBUTE_TYPE_STRING;
-        attr->ss = ss;
+        attr->ss = sys_strdup(ss);
         attr->ns = ns;
         return attr;
     }
