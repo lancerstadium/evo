@@ -183,6 +183,7 @@ EVO_API tensor_t * tensor_new_float32(const char*, int*, int, float*, size_t);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API tensor_t * tensor_permute(tensor_t*, int, int*);
 EVO_API tensor_t * tensor_argmax(tensor_t*, int, int, int);
+EVO_API tensor_t * tensor_cast(tensor_t*, tensor_type_t);
 EVO_API tensor_t * tensor_softmax(tensor_t*, int);
 EVO_API tensor_t * tensor_squeeze(tensor_t*, int*, int);
 EVO_API tensor_t * tensor_nhwc2nchw(tensor_t*);

@@ -286,6 +286,20 @@ tensor_t * tensor_argmax(tensor_t* ts, int axis, int keepdims, int select_last_i
     return nd->out[0];
 }
 
+tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {
+    if(!ts) return ts;
+    node_t* nd = node_temp("cast", OP_TYPE_CAST);
+    nd->nin = 1;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->out[0] = tensor_new("cast_out", type);
+    if(nd->op && nd->op->run)
+        nd->op->run(nd);
+    return nd->out[0];
+}
+
 tensor_t * tensor_softmax(tensor_t* ts, int axis) {
     if(!ts) return ts;
     node_t* nd = node_temp("softmax", OP_TYPE_SOFTMAX);
