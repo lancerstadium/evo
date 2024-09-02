@@ -3,12 +3,7 @@
 #include <math.h>
 
 /**
- * 
- * 
- * 
- * 
- * 
- * 
+ * ask hear: https://chatgpt.com/c/94ab7adb-e89e-4341-ba8d-fd6ea4377eaf
  * 
  */
 
