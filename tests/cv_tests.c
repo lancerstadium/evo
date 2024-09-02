@@ -5,8 +5,8 @@ UnitTest_fn_def(test_read_mnist) {
     const char* image_filename = "picture/mnist/t10k-images-idx3-ubyte";
     const char* label_filename = "picture/mnist/t10k-labels-idx1-ubyte";
 
-    // image_t* img = image_load_mnist(image_filename, label_filename);
-    image_t* img = image_load_cifar10("picture/cifar10/data_batch_1.bin", -1);
+    image_t* img = image_load_mnist(image_filename, label_filename);
+    // image_t* img = image_load_cifar10("picture/cifar10/data_batch_1.bin", -1);
     if (img) {
         printf("Image name: %s\n", img->name);
         printf("Image type: %d\n", img->type);
@@ -21,8 +21,6 @@ UnitTest_fn_def(test_read_mnist) {
     } else {
         fprintf(stderr, "Failed to read img\n");
     }
-
-    
 
     return NULL;
 }

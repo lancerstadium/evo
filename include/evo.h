@@ -601,7 +601,7 @@ EVO_API graph_t * graph_as_sub(graph_t*);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
-EVO_API void graph_add_layer(graph_t*, node_type_t, tensor_t**, int, int, attribute_t**, int);
+EVO_API void graph_add_layer(graph_t*, op_type_t, tensor_t**, int, int, attribute_t**, int);
 EVO_API void graph_add_input(graph_t*, int, int*);
 EVO_API void graph_add_dense(graph_t*, int, const char*);
 EVO_API void graph_add_flatten(graph_t*);

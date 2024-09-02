@@ -17,7 +17,11 @@
  */
 model_t* mnist_model_def() {
     model_t* mdl = model_new("mnist_model");
+    attribute_t* upsample_mode = attribute_string("mode", hashmap_str_lit("bilinear"));
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
+    tensor_t* input = model_get_tensor(mdl, "Input0");
+    tensor_t* sc = tensor_new_float32("Upsample_scale", (int[]){1, 4}, 2, (float[]){1, 1, 0.5, 0.5}, 4);
+    graph_add_layer(mdl->graph, OP_TYPE_UPSAMPLE, (tensor_t*[]){input, sc}, 2, 1, (attribute_t*[]){upsample_mode}, 1);
     graph_add_flatten(mdl->graph);
     graph_add_dense(mdl->graph, 500, "relu");
     graph_add_dense(mdl->graph, 10, "softmax");
@@ -26,7 +30,15 @@ model_t* mnist_model_def() {
 
 UnitTest_fn_def(test_model_create) {
     device_reg("cpu");
+    
+    const char* image_filename = "picture/mnist/t10k-images-idx3-ubyte";
+    const char* label_filename = "picture/mnist/t10k-labels-idx1-ubyte";
+    image_t* imgs = image_load_mnist(image_filename, label_filename);
+    image_t* img_demo = image_get(imgs, 0);
+
     model_t* mdl = mnist_model_def();
+    tensor_t * in = model_get_tensor(mdl, "Input0");
+    tensor_copy(in, img_demo->raw);
     graph_prerun(mdl->graph);
     graph_run(mdl->graph);
     graph_posrun(mdl->graph);

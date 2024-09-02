@@ -143,7 +143,7 @@ node_t* graph_get_node(graph_t *g, int i) {
     return NULL;
 }
 
-void graph_add_layer(graph_t *g, node_type_t type, tensor_t** in, int nin, int nout, attribute_t** attr, int nattr) {
+void graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nout, attribute_t** attr, int nattr) {
     if(!g) return;
     // Create node
     char name_buf[54];
