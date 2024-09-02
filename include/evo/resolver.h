@@ -51,6 +51,7 @@ void op_Sum_dft(node_t*);
 void op_Squeeze_dft(node_t*);
 void op_Transpose_dft(node_t*);
 void op_Unsqueeze_dft(node_t*);
+void op_Upsample_dft(node_t*);
 void op_Where_dft(node_t*);
 
 

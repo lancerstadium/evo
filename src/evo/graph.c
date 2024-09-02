@@ -22,14 +22,12 @@ static void graph_init(graph_t *g, model_t *mdl) {
     g->input_inodes_vec = vector_create();
     g->output_inodes_vec = vector_create();
 
+    g->mdl = mdl;
+
     g->ntensor = 0;
     g->nnode = 0;
     g->ninput_node = 0;
     g->noutput_node = 0;
-
-    g->mdl = mdl;
-    g->sez = mdl->sez;
-    g->dev = mdl->dev;
 
     g->data_layout = 0;                             /* Default: NCHW */
     g->is_sub = 0;                                  /* Default: not  */
@@ -38,7 +36,9 @@ static void graph_init(graph_t *g, model_t *mdl) {
     g->sub_vec = vector_create();                   /* Sub graph vec */
 
     if(mdl) {
-        g->name = sys_strdup(mdl->name);
+        g->sez = mdl->sez;
+        g->dev = mdl->dev;
+        if(mdl->name) g->name = sys_strdup(mdl->name);
         mdl->graph = g;
         g->sez = mdl->sez;
     }

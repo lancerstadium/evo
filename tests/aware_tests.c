@@ -31,7 +31,7 @@ tensor_t* imagenet_preprocess(image_t* img) {
 void imagenet_load_label(const char* path, char* labels[1000]) {
     FILE* file = fopen(path, "r");
     if (file == NULL) {
-        printf("Error opening file.\n");
+        printf("Error opening file %s\n", path);
         return;
     }
     
@@ -67,6 +67,7 @@ void imagenet_load_label(const char* path, char* labels[1000]) {
 }
 
 void imagenet_unload_label(char* labels[1000]) {
+    if(!labels) return;
     int nlabel = 1000;
     // Freeing allocated memory
     for (int j = 0; j < nlabel; j++) {
@@ -123,6 +124,7 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "mobilenetv20_output_flatten0_reshape0");
     // UnitTest_ast(tensor_equal(output, output_ref), "mobilenet_v2_7 failed");
+    fprintf(stderr, "asdfasdfasdf\n");
     imagenet_postprocess(output);
 
 
@@ -148,6 +150,7 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     //     image_save(res_img, path);
     // }
 
+    fprintf(stderr, "asdfasdfasdf\n");
     runtime_free(rt);
 
     return NULL;

@@ -343,7 +343,7 @@ static op_type_t op_map_onnx(char *op_ty) {
 
 static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
     if(!attr) return NULL;
-    switch(attr->type) {
+    switch (attr->type) {
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__FLOAT:
             return attribute_float(attr->name, attr->f);
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INT:
@@ -354,19 +354,17 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
             return attribute_floats(attr->name, attr->floats, attr->n_floats);
         case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__INTS:
             return attribute_ints(attr->name, attr->ints, attr->n_ints);
-        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__TENSOR:
+        case ONNX__ATTRIBUTE_PROTO__ATTRIBUTE_TYPE__TENSOR: {
             tensor_t *t = tensor_new(attr->t->name, attr->t->data_type);
-            int *dims = malloc(sizeof(int) * attr->t->n_dims);
+            int dims[attr->t->n_dims];
             int ndim;
-            if (dims) {
-                for (int i = 0; i < attr->t->n_dims; i++)
-                    dims[i] = attr->t->dims[i];
-                ndim = attr->t->n_dims;
-                tensor_reshape(t, ndim, dims);
-                tensor_copy_proto_onnx(t, attr->t);
-            }
-            free(dims);
+            for (int i = 0; i < attr->t->n_dims; i++)
+                dims[i] = attr->t->dims[i];
+            ndim = attr->t->n_dims;
+            tensor_reshape(t, ndim, dims);
+            tensor_copy_proto_onnx(t, attr->t);
             return attribute_tensor(attr->name, t);
+        }
         default: 
             return attribute_undefined(attr->name);
     }
@@ -378,12 +376,14 @@ model_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
         return NULL;
     mdl = model_new(NULL);
     mdl->sez = s;
+
     mdl->model_proto = onnx__model_proto__unpack(NULL, len, buf);
     if (!mdl->model_proto) {
         if (mdl)
             sys_free(mdl);
         return NULL;
     }
+
     mdl->model_size = len;
     mdl->name = sys_strdup(((Onnx__ModelProto*)(mdl->model_proto))->domain);
 
@@ -396,6 +396,7 @@ model_t *load_onnx(struct serializer *s, const void *buf, size_t len) {
             sys_free(mdl);
         return NULL;
     }
+
     // graph
     load_graph_onnx(mdl);
     return mdl;

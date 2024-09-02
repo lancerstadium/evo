@@ -242,6 +242,7 @@ static resolver_t default_resolver = {
         OP_REG_DFT(SUM                      , Sum                   ),
         OP_REG_DFT(TRANSPOSE                , Transpose             ),
         OP_REG_DFT(UNSQUEEZE                , Unsqueeze             ),
+        OP_REG_DFT(UPSAMPLE                 , Upsample              ),
         OP_REG_DFT(WHERE                    , Where                 ),
         [OP_TYPE_LAST] = {0}
     }
