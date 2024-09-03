@@ -9,6 +9,7 @@
 tensor_t* imagenet_preprocess(image_t* img) {
     if(!img) return NULL;
     image_resize(img, 256, 256);
+    
     image_crop_center(img, 224, 224);
     tensor_t* ts = tensor_nhwc2nchw(img->raw);
     // normalize
@@ -31,7 +32,8 @@ tensor_t* imagenet_preprocess(image_t* img) {
 void imagenet_load_label(const char* path, char* labels[1000]) {
     FILE* file = fopen(path, "r");
     if (file == NULL) {
-        printf("Error opening file %s\n", path);
+        fprintf(stderr, "Error opening file %s\n", path);
+        labels = NULL;
         return;
     }
     
@@ -89,7 +91,10 @@ image_t* imagenet_recover(tensor_t* ts) {
 void imagenet_postprocess(tensor_t* out) {
     if(!out) return;
     char* labels[1000];
-    imagenet_load_label("picture/imagenet/synset.txt", labels);
+    imagenet_load_label("picture/imagenet/imagenet.shortnames.list", labels);
+    if(!labels) {
+        return;
+    }
     tensor_t* scores_tmp = tensor_softmax(out, 0);
     tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
     tensor_t* scores_max = tensor_argmax(scores, 0, 1, 0);
@@ -113,6 +118,7 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
 
     // 2. Model Inference
     runtime_load(rt, MD("mobilenet_v2_7"));
+    tensor_dump(ts_pre);
     tensor_t* input = ts_pre;
     // tensor_t* input = runtime_load_tensor(rt, TI("mobilenet_v2_7", 0, 0));
     // tensor_t* output_ref = runtime_load_tensor(rt, TO("mobilenet_v2_7", 0, 0));
@@ -124,7 +130,6 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "mobilenetv20_output_flatten0_reshape0");
     // UnitTest_ast(tensor_equal(output, output_ref), "mobilenet_v2_7 failed");
-    fprintf(stderr, "asdfasdfasdf\n");
     imagenet_postprocess(output);
 
 
@@ -150,7 +155,6 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     //     image_save(res_img, path);
     // }
 
-    fprintf(stderr, "asdfasdfasdf\n");
     runtime_free(rt);
 
     return NULL;
@@ -217,8 +221,8 @@ UnitTest_fn_def(test_resnet_18_v1_7) {
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_mobilenet_v2_7);
-    // UnitTest_add(test_squeezenet_v11_7);
+    // UnitTest_add(test_mobilenet_v2_7);
+    UnitTest_add(test_squeezenet_v11_7);
     // UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }

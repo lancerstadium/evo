@@ -406,40 +406,42 @@ void image_save(image_t* img, const char* name) {
             LOG_WARN("Image save warn: only support uint8 tensor!\n");
             return;
         }
+        tensor_t *new_ts = tensor_new(img->raw->name, img->raw->type);
         if(img->raw->layout == 0) {
-            tensor_t *new_ts = tensor_nchw2nhwc(img->raw);
-            tensor_free(img->raw);
-            img->raw = new_ts;
+            new_ts = tensor_nchw2nhwc(img->raw);
+        } else {
+            tensor_reshape(new_ts, img->raw->ndim, img->raw->dims);
+            tensor_copy(new_ts, img->raw);
         }
         switch(image_get_type(name)) {
             case IMAGE_TYPE_BMP:
-                stbi_write_bmp(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
+                stbi_write_bmp(name, new_ts->dims[2], new_ts->dims[1], new_ts->dims[3], new_ts->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_JPG:
-                stbi_write_jpg(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas, 100);
+                stbi_write_jpg(name, new_ts->dims[2], new_ts->dims[1], new_ts->dims[3], new_ts->datas, 100);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_PNG:
-                stbi_write_png(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas, img->raw->dims[2] * img->raw->dims[3]);
+                stbi_write_png(name, new_ts->dims[2], new_ts->dims[1], new_ts->dims[3], new_ts->datas, new_ts->dims[2] * new_ts->dims[3]);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_TGA:
-                stbi_write_tga(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
+                stbi_write_tga(name, new_ts->dims[2], new_ts->dims[1], new_ts->dims[3], new_ts->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_HDR:
-                stbi_write_hdr(name, img->raw->dims[2], img->raw->dims[1], img->raw->dims[3], img->raw->datas);
+                stbi_write_hdr(name, new_ts->dims[2], new_ts->dims[1], new_ts->dims[3], new_ts->datas);
                 LOG_INFO("Image save: %s\n", name);
                 break;
             case IMAGE_TYPE_GIF:
                 attribute_t* deloys_attr = image_get_attr(img, "deloys");
                 if(deloys_attr) {
-                    int width = img->raw->dims[2];
-                    int height = img->raw->dims[1];
-                    int channel = img->raw->dims[3];
+                    int width = new_ts->dims[2];
+                    int height = new_ts->dims[1];
+                    int channel = new_ts->dims[3];
                     int64_t* deloys = deloys_attr->is;
-                    uint8_t* datas = img->raw->datas;
+                    uint8_t* datas = new_ts->datas;
                     ge_GIF *gif = ge_new_gif(name, width, height, NULL, 8, -1, 0);
                     for(int i = 0; i < img->raw->dims[0]; i++) {
                         ge_render_frame(gif, datas + width * height * channel * i, channel);
@@ -452,6 +454,7 @@ void image_save(image_t* img, const char* name) {
                 }
             default: break;
         }
+        tensor_free(new_ts);
     }
 }
 

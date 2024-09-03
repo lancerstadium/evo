@@ -148,6 +148,8 @@ $$
 
 ### 3.3 感知量化 & 重参数化
 
+- [Awesome quantization](https://github.com/Zhen-Dong/Awesome-Quantization-Papers)
+
 - [Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference](https://openaccess.thecvf.com/content_cvpr_2018/papers/Jacob_Quantization_and_Training_CVPR_2018_paper.pdf) 开头写的不错
 
 - [Instance-Aware Dynamic Neural Network Quantization](https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Instance-Aware_Dynamic_Neural_Network_Quantization_CVPR_2022_paper.pdf) | [CSDN](https://blog.csdn.net/Z960515/article/details/139701036)
@@ -158,6 +160,7 @@ $$
 
 - [DAQ: Channel-Wise Distribution-Aware Quantization for Deep Image Super-Resolution Networks](https://openaccess.thecvf.com/content/WACV2022/papers/Hong_DAQ_Channel-Wise_Distribution-Aware_Quantization_for_Deep_Image_Super-Resolution_Networks_WACV_2022_paper.pdf) 图画的不错
 
+- [CADyQ: Content-Aware Dynamic Quantization for Image Super-Resolution](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136670360.pdf) 数据相关
 
 
 ### 3.4 层次跳过
