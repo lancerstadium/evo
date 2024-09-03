@@ -146,13 +146,17 @@ $$
 3. 异步训练：采样主网络输入输出对，在主网络执行完毕后通过前向训练的方式对网络参数进行局部学习
 
 
-### 3.2 稀疏卷积
+### 3.3 感知量化 & 重参数化
 
-自适应元素动态钩子网络（Adaptive Element Dynamic Hook Network, AL-DHN）组件设计：与参数稀疏性相比，特征图稀疏性与每个输入相关，具有更好的适应性。实际的稀疏模式是非结构性的，并且随机位于具有不同形状的特征图上。
+- [Instance-Aware Dynamic Neural Network Quantization](https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Instance-Aware_Dynamic_Neural_Network_Quantization_CVPR_2022_paper.pdf) | [CSDN](https://blog.csdn.net/Z960515/article/details/139701036)
+
+- [Improved Model Design and Training Techniques for Efficient DNN Inference](https://repositories.lib.utexas.edu/server/api/core/bitstreams/076f3f54-4fc7-4219-b6c9-6f7f3547b3d9/content)
+
+- [Soft Threshold Weight Reparameterization for Learnable Sparsity](http://proceedings.mlr.press/v119/kusupati20a/kusupati20a.pdf)
 
 
 
-### 3.3 层次跳过
+### 3.4 层次跳过
 
 自适应层级动态钩子网络（Adaptive Layer Dynamic Hook Network, AL-DHN）组件设计：对于残差网络进行跳过处理
 
@@ -162,7 +166,7 @@ $$
 - 门（Gate）：第三个组件通过特殊设计的网络输出决策信息。一般使用 GumbelSoftmax 进行采样来做出离散决策。
 
 
-### 3.4 通道剪枝
+### 3.5 通道剪枝
 
 自适应通道动态钩子网络（Adaptive Channel Dynamic Hook Network, AC-DHN）设计：
 
@@ -170,7 +174,12 @@ $$
 2. 排序（Sorting）：Mask -> Argsort -> Top K Index of Sparse Attention (Other for Conv)
 
 
-### 3.5 提前退出
+### 3.6 稀疏卷积
+
+自适应元素动态钩子网络（Adaptive Element Dynamic Hook Network, AL-DHN）组件设计：与参数稀疏性相比，特征图稀疏性与每个输入相关，具有更好的适应性。实际的稀疏模式是非结构性的，并且随机位于具有不同形状的特征图上。
+
+### 3.7 提前退出
+
 
 
 
