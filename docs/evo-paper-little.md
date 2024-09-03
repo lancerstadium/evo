@@ -148,11 +148,15 @@ $$
 
 ### 3.3 感知量化 & 重参数化
 
+- [Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference](https://openaccess.thecvf.com/content_cvpr_2018/papers/Jacob_Quantization_and_Training_CVPR_2018_paper.pdf) 开头写的不错
+
 - [Instance-Aware Dynamic Neural Network Quantization](https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Instance-Aware_Dynamic_Neural_Network_Quantization_CVPR_2022_paper.pdf) | [CSDN](https://blog.csdn.net/Z960515/article/details/139701036)
 
 - [Improved Model Design and Training Techniques for Efficient DNN Inference](https://repositories.lib.utexas.edu/server/api/core/bitstreams/076f3f54-4fc7-4219-b6c9-6f7f3547b3d9/content)
 
 - [Soft Threshold Weight Reparameterization for Learnable Sparsity](http://proceedings.mlr.press/v119/kusupati20a/kusupati20a.pdf)
+
+- [DAQ: Channel-Wise Distribution-Aware Quantization for Deep Image Super-Resolution Networks](https://openaccess.thecvf.com/content/WACV2022/papers/Hong_DAQ_Channel-Wise_Distribution-Aware_Quantization_for_Deep_Image_Super-Resolution_Networks_WACV_2022_paper.pdf) 图画的不错
 
 
 
