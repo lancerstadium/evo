@@ -17,6 +17,20 @@ float goodness(tensor_t* h) {
     return sum / h->ndata;
 }
 
+/**
+ * @brief
+ * hinton loss:
+ * 
+ * ```latex
+ * 
+ *      L(x) = log(1 + e^{y (\theta - G_x)})
+ * 
+ *  - x         : input image
+ *  - y         : class of input x
+ *  - \theta    : threshold
+ * 
+ * ```
+ */
 float hinton_loss(tensor_t* h_pos, tensor_t* h_neg, float theta, float alpha) {
     float g_pos = goodness(h_pos);
     float g_neg = goodness(h_neg);
@@ -29,6 +43,17 @@ float hinton_loss(tensor_t* h_pos, tensor_t* h_neg, float theta, float alpha) {
     return loss_pos + loss_neg;
 }
 
+
+/**
+ * @brief
+ * symba loss:
+ * 
+ * ```latex
+ * 
+ *      L(P, N) = log(1 + e^{-\alpha (G_P - G_N)})
+ * 
+ * ```
+ */
 float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
     float g_pos = goodness(h_pos);
     float g_neg = goodness(h_neg);
@@ -83,11 +108,10 @@ UnitTest_fn_def(test_model_create) {
     const char* image_filename = "picture/mnist/t10k-images-idx3-ubyte";
     const char* label_filename = "picture/mnist/t10k-labels-idx1-ubyte";
     image_t* imgs = image_load_mnist(image_filename, label_filename);
-    // int idx_train[100], idx_test[20];
-    // tensor_t* data_train = image_get_raw_batch(imgs, sizeof(idx_train) / sizeof(int), idx_train);
-    // tensor_t* data_test  = image_get_raw_batch(imgs, sizeof(idx_test)  / sizeof(int), idx_test);
-    // tensor_t* f32_train  = tensor_cast(data_train, TENSOR_TYPE_FLOAT32);
-    // tensor_t* f32_test   = tensor_cast(data_test , TENSOR_TYPE_FLOAT32);
+    if(!imgs) {
+        fprintf(stderr, "Load mnist fail, please exec `download_mnist.sh` in Dir `picture`.\n");
+        return "Load Mnist Fail!";
+    }
 
     // Model
     model_t* mdl = mnist_model();
@@ -97,10 +121,10 @@ UnitTest_fn_def(test_model_create) {
     // Train
     tensor_t *x_tmp, *x;
     attribute_t* label = image_get_attr(imgs, "label");
-
     int num_epochs = 600;
     int num_batchs = 4096;
     int learning_rate = 0.1;
+
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
         for (int batch = 0; batch < num_batchs; batch++) {
