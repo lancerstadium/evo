@@ -222,6 +222,7 @@ void graph_add_dense(graph_t *g, int units, const char* activation) {
     graph_push_tenser(g, bias);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
     graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
+    last = g->tensors[g->ntensor - 1];
     // Activation
     if(strcmp(activation, "relu") == 0) {
         graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
