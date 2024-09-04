@@ -169,10 +169,7 @@ struct tensor {
     size_t ndata;                                       /* Tensor data size             */
     int16_t pnode;                                      /* Tensor parent node index     */
 
-    uint8_t is_reshaped : 1;                            /* Tensor is reshaped           */
     uint8_t is_constant : 1;                            /* Tensor is constant           */
-    uint8_t is_input : 1;                               /* Tensor is input              */
-    uint8_t is_output : 1;                              /* Tensor is output             */
     uint8_t is_iallocated: 1;                           /* Tensor is iallocated         */
     uint8_t layout : 1;                                 /* Tensor is layout 0NCHW/1NHWC */
 };

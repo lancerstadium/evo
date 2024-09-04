@@ -75,7 +75,6 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->name = NULL;
     ts->pnode = -1;
     // option
-    ts->is_reshaped = 0;    // ts is not reshaped
     ts->is_constant = 0;    // ts is var
     ts->is_iallocated = 1;  // ts is internal allocated
     ts->layout = 0;         // ts is layout NCHW

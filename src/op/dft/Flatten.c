@@ -6,25 +6,8 @@ typedef struct {
     int axis;
 } operator_pdata_t;
 
-static void Flatten_operator(node_t* nd) {
-    tensor_t* x = nd->in[0];
-    tensor_t* y = nd->out[0];
-    char** px = (char**)x->datas;
-    char** py = (char**)y->datas;
 
-    if (x->type == TENSOR_TYPE_STRING) {
-        for (size_t i = 0, l = y->ndata; i < l; i++) {
-            if (py[i])
-                free(py[i]);
-            py[i] = sys_strdup(px[i]);
-        }
-    } else {
-        memcpy(y->datas, x->datas, x->ndata * tensor_type_sizeof(x->type));
-    }
-}
-
-void op_Flatten_dft(node_t* nd) {
-    // 1. Flatten init
+void Flatten_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -37,7 +20,11 @@ void op_Flatten_dft(node_t* nd) {
         pdat->axis = node_get_attr_int(nd, "axis", 1);
         nd->priv = pdat;
     }
-    // 2. Flatten reshape
+}
+
+void Flatten_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
     int axis = pdat->axis;
@@ -60,32 +47,45 @@ void op_Flatten_dft(node_t* nd) {
     dims[ndim++] = j;
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. Flatten run
-    switch (nd->in[0]->type) {
-        case TENSOR_TYPE_BOOL:
-        case TENSOR_TYPE_INT8:
-        case TENSOR_TYPE_INT16:
-        case TENSOR_TYPE_INT32:
-        case TENSOR_TYPE_INT64:
-        case TENSOR_TYPE_UINT8:
-        case TENSOR_TYPE_UINT16:
-        case TENSOR_TYPE_UINT32:
-        case TENSOR_TYPE_UINT64:
-        case TENSOR_TYPE_BFLOAT16:
-        case TENSOR_TYPE_FLOAT16:
-        case TENSOR_TYPE_FLOAT32:
-        case TENSOR_TYPE_FLOAT64:
-        case TENSOR_TYPE_COMPLEX64:
-        case TENSOR_TYPE_COMPLEX128:
-        case TENSOR_TYPE_STRING:
-            Flatten_operator(nd);
-            break;
-        default:
-            break;
+}
+
+void Flatten_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if(nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    tensor_t* x = nd->in[0];
+    tensor_t* y = nd->out[0];
+    char** px = (char**)x->datas;
+    char** py = (char**)y->datas;
+
+    if (x->type == TENSOR_TYPE_STRING) {
+        for (size_t i = 0, l = y->ndata; i < l; i++) {
+            if (py[i])
+                free(py[i]);
+            py[i] = sys_strdup(px[i]);
+        }
+    } else {
+        memcpy(y->datas, x->datas, x->ndata * tensor_type_sizeof(x->type));
     }
-    // 4. Flatten exit
+}
+
+void Flatten_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+
+
+void op_Flatten_dft(node_t* nd) {
+    // 1. Flatten init
+    Flatten_init(nd);
+    // 2. Flatten reshape
+    Flatten_reshape(nd);
+    // 3. Flatten run
+    Flatten_forward(nd);
+    // 4. Flatten exit
+    Flatten_exit(nd);
 }
