@@ -15,6 +15,11 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     // operater
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
     nd->op->type = op_ty;
+    nd->op->bind = NULL;
+    nd->op->init = NULL;
+    nd->op->reshape = NULL;
+    nd->op->forward = NULL;
+    nd->op->backward = NULL;
     // attribute
     nd->attr_vec = vector_create();
 }

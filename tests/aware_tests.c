@@ -129,6 +129,7 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
 
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "mobilenetv20_output_flatten0_reshape0");
+    // tensor_dump2(output);
     // UnitTest_ast(tensor_equal(output, output_ref), "mobilenet_v2_7 failed");
     imagenet_postprocess(output);
 
@@ -221,8 +222,8 @@ UnitTest_fn_def(test_resnet_18_v1_7) {
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
-    // UnitTest_add(test_mobilenet_v2_7);
-    UnitTest_add(test_squeezenet_v11_7);
+    UnitTest_add(test_mobilenet_v2_7);
+    // UnitTest_add(test_squeezenet_v11_7);
     // UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }
