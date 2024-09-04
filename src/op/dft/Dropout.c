@@ -40,8 +40,7 @@ static void Dropout_float64(node_t *nd) {
         py[i] = px[i];
 }
 
-void op_Dropout_dft(node_t *nd) {
-    // 1. Dropout init
+void Dropout_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -50,11 +49,17 @@ void op_Dropout_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Dropout reshape
+}
+
+void Dropout_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. Dropout run
+}
+
+void Dropout_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BFLOAT16:
             Dropout_bfloat16(nd);
@@ -71,6 +76,20 @@ void op_Dropout_dft(node_t *nd) {
         default:
             break;
     }
-    // 4. Dropout exit
+}
+
+void Dropout_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Dropout_dft(node_t *nd) {
+    // 1. Dropout init
+    Dropout_init(nd);
+    // 2. Dropout reshape
+    Dropout_reshape(nd);
+    // 3. Dropout forward
+    Dropout_forward(nd);
+    // 4. Dropout exit
+    Dropout_exit(nd);
 }
