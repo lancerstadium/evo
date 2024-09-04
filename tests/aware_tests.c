@@ -104,6 +104,7 @@ void imagenet_postprocess(tensor_t* out) {
     imagenet_unload_label(labels);
 }
 
+
 // ---------------------- MobileNet ------------------
 
 UnitTest_fn_def(test_mobilenet_v2_7) {
