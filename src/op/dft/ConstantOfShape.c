@@ -150,12 +150,10 @@ void ConstantOfShape_exit(node_t* nd) {
 }
 
 void op_ConstantOfShape_dft(node_t* nd) {
-    // 1. ConstantOfShape init
-    ConstantOfShape_init(nd);
-    // 2. ConstantOfShape reshape
-    ConstantOfShape_reshape(nd);
-    // 3. ConstantOfShape forward
-    ConstantOfShape_forward(nd);
-    // 4. ConstantOfShape exit
-    ConstantOfShape_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = ConstantOfShape_init;
+    nd->op->reshape     = ConstantOfShape_reshape;
+    nd->op->forward     = ConstantOfShape_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = ConstantOfShape_exit;
 }

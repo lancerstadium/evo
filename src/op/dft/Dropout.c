@@ -84,12 +84,10 @@ void Dropout_exit(node_t *nd) {
 }
 
 void op_Dropout_dft(node_t *nd) {
-    // 1. Dropout init
-    Dropout_init(nd);
-    // 2. Dropout reshape
-    Dropout_reshape(nd);
-    // 3. Dropout forward
-    Dropout_forward(nd);
-    // 4. Dropout exit
-    Dropout_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Dropout_init;
+    nd->op->reshape     = Dropout_reshape;
+    nd->op->forward     = Dropout_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Dropout_exit;
 }

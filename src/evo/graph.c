@@ -16,6 +16,7 @@ static char* graph_status_tbl[] = {
 
 
 static void graph_init(graph_t *g, model_t *mdl) {
+    if(!mdl) return;
     g->name = NULL;
     g->tensors = NULL;
     g->nodes = NULL;
@@ -29,6 +30,7 @@ static void graph_init(graph_t *g, model_t *mdl) {
     g->ninput_node = 0;
     g->noutput_node = 0;
 
+    g->mode = 0;                                    /* Default: Eval */
     g->data_layout = 0;                             /* Default: NCHW */
     g->is_sub = 0;                                  /* Default: not  */
     g->status = GRAPH_STATUS_INIT;                  /* Default: INIT */
@@ -45,6 +47,7 @@ static void graph_init(graph_t *g, model_t *mdl) {
 }
 
 static void graph_sub_init(graph_t *g, graph_t *pg) {
+    if(!pg) return;
     g->tensors = pg->tensors;
     g->nodes = pg->nodes;
     g->ntensor = pg->ntensor;
@@ -57,7 +60,8 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->sez = pg->sez;
     g->dev = pg->dev;
 
-    g->data_layout = pg ? pg->data_layout : 0;
+    g->mode = pg->mode;
+    g->data_layout = pg->data_layout;
     g->is_sub = 1;                                  /* Default: yes  */
     g->status = GRAPH_STATUS_INIT;                  /* Default: INIT */
 
@@ -176,6 +180,11 @@ void graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nou
     }
     // Add node
     graph_push_node(g, nd);
+    // Bind Operator & reshape
+    node_bind_op(nd);
+    if(nd->op && nd->op->init) nd->op->init(nd);
+    if(nd->op && nd->op->reshape) nd->op->reshape(nd);
+    if(nd->op && nd->op->exit) nd->op->exit(nd);
 }
 
 void graph_add_input(graph_t *g, int in_dim, int* dims) {
@@ -213,58 +222,31 @@ void graph_add_dense(graph_t *g, int units, const char* activation) {
     graph_push_tenser(g, bias);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
     graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
-    last = g->tensors[g->ntensor - 1];
-    tensor_reshape(last, last_ndim, bias_dims);
     // Activation
     if(strcmp(activation, "relu") == 0) {
         graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
-        tensor_t* act = g->tensors[g->ntensor - 1];
-        tensor_reshape(act, last->ndim, last->dims);
     } else if(strcmp(activation, "softmax") == 0){
         graph_add_layer(g, OP_TYPE_SOFTMAX, (tensor_t*[]){last}, 1, 1, NULL, 0);
-        tensor_t* act = g->tensors[g->ntensor - 1];
-        tensor_reshape(act, last->ndim, last->dims);
     }
 }
 
 void graph_add_flatten(graph_t *g) {
     if(!g || g->ntensor == 0) return;
     tensor_t* last = g->tensors[g->ntensor - 1];
-    int last_ndim = last->ndim;
-    int sum_dim = 1;
-    for(int i = 0; i < last_ndim; i++) {
-        sum_dim *= last->dims[i];
-    }
     // y[l * m * n] = x[l, m, n]
     graph_add_layer(g, OP_TYPE_FLATTEN, (tensor_t*[]){last}, 1, 1, NULL, 0);
-    last = g->tensors[g->ntensor - 1];
-    tensor_reshape(last, 2, (int[]){1, sum_dim});
 }
 
 void graph_add_resize(graph_t *g, float* scales, size_t nscale, char* mode) {
     if(!g || g->ntensor == 0) return;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
-    int last_ndim = last->ndim;
-    int sum_dim = 1;
-    for(int i = 0; i < last_ndim; i++) {
-        sum_dim *= last->dims[i];
-    }
     attribute_t* resize_mode = attribute_string("mode", mode, strlen(mode));
     sprintf(name_buf, "Resize%u_scale", g->nnode);
     tensor_t* scale = tensor_new_float32(name_buf, (int[]){1, nscale}, 2, scales, nscale);
     graph_push_tenser(g, scale);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(scale->name), (uintptr_t)scale);
     graph_add_layer(g, OP_TYPE_RESIZE, (tensor_t*[]){last, scale}, 2, 1, (attribute_t*[]){resize_mode}, 1);
-    tensor_t* samp = g->tensors[g->ntensor - 1];
-    int new_dims[last_ndim];
-    for(int i = 0; i < last_ndim; i++) {
-        if(i < (last_ndim <= nscale ? last_ndim : nscale))
-            new_dims[i] = last->dims[i] * scales[i];
-        else
-            new_dims[i] = last->dims[i];
-    }
-    tensor_reshape(samp, last_ndim, new_dims);
 }
 
 void graph_prerun(graph_t *g) {

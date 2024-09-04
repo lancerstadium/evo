@@ -62,12 +62,10 @@ void Constant_exit(node_t *nd) {
 }
 
 void op_Constant_dft(node_t *nd) {
-    // 1. Constant init
-    Constant_init(nd);
-    // 2. Constant reshape
-    Constant_reshape(nd);
-    // 3. Constant forward
-    Constant_forward(nd);
-    // 4. Constant exit
-    Constant_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Constant_init;
+    nd->op->reshape     = Constant_reshape;
+    nd->op->forward     = Constant_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Constant_exit;
 }

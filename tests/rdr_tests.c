@@ -80,8 +80,8 @@ canvas_t* triangle(canvas_t* cav, float dt) {
     // 0. init canvas
     canvas_fill(cav, BG_COLOR);
     if(dt == 0.0) {
-        image_t* cat = image_load("mobilenet_origin.jpg");
-        image_resize(cat, 120, 120);
+        image_t* cat = image_load("./picture/sinking.png");
+        image_resize(cat, 230, 230);
         cat_cav = canvas_from_image(cat);
     }
 

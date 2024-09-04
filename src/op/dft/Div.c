@@ -250,12 +250,10 @@ void Div_exit(node_t *nd) {
 }
 
 void op_Div_dft(node_t* nd) {
-    // 1. Div init
-    Div_init(nd);
-    // 2. Div reshape
-    Div_reshape(nd);
-    // 3. Div run
-    Div_forward(nd);
-    // 4. Div exit
-    Div_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Div_init;
+    nd->op->reshape     = Div_reshape;
+    nd->op->forward     = Div_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Div_exit;
 }

@@ -1321,12 +1321,10 @@ void Cast_exit(node_t *nd) {
 }
 
 void op_Cast_dft(node_t *nd) {
-    // 1. Cast init
-    Cast_init(nd);
-    // 2. Cast reshape
-    Cast_reshape(nd);
-    // 3. Cast forward
-    Cast_forward(nd);
-    // 4. Cast exit
-    Cast_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Cast_init;
+    nd->op->reshape     = Cast_reshape;
+    nd->op->forward     = Cast_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Cast_exit;
 }

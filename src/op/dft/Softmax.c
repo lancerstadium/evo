@@ -19,7 +19,7 @@ typedef struct {
     };
 } operator_pdata_t;
 
-static void Softmax_13_bfloat16(node_t *nd) {
+static void Softmax_forward_v13_bfloat16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -55,7 +55,7 @@ static void Softmax_13_bfloat16(node_t *nd) {
     }
 }
 
-static void Softmax_13_float16(node_t *nd) {
+static void Softmax_forward_v13_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -91,7 +91,7 @@ static void Softmax_13_float16(node_t *nd) {
     }
 }
 
-static void Softmax_13_float32(node_t *nd) {
+static void Softmax_forward_v13_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -124,7 +124,7 @@ static void Softmax_13_float32(node_t *nd) {
     }
 }
 
-static void Softmax_13_float64(node_t *nd) {
+static void Softmax_forward_v13_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -157,7 +157,7 @@ static void Softmax_13_float64(node_t *nd) {
     }
 }
 
-static void Softmax_1_11_float16(node_t *nd) {
+static void Softmax_forward_v1_11_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -186,7 +186,7 @@ static void Softmax_1_11_float16(node_t *nd) {
     }
 }
 
-static void Softmax_1_11_float32(node_t *nd) {
+static void Softmax_forward_v1_11_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -211,7 +211,7 @@ static void Softmax_1_11_float32(node_t *nd) {
     }
 }
 
-static void Softmax_1_11_float64(node_t *nd) {
+static void Softmax_forward_v1_11_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -236,8 +236,8 @@ static void Softmax_1_11_float64(node_t *nd) {
     }
 }
 
-void op_Softmax_dft(node_t *nd) {
-    // 1. Softmax init
+
+void Softmax_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -254,7 +254,11 @@ void op_Softmax_dft(node_t *nd) {
         pdat->axis = node_get_attr_int(nd, "axis", 1);
         nd->priv = pdat;
     }
-    // 2. Softmax reshape
+}
+
+void Softmax_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int i;
@@ -287,20 +291,23 @@ void op_Softmax_dft(node_t *nd) {
         }
         tensor_reshape_ident(y, x, x->type);
     }
-    // 3. Softmax run
+}
+
+void Softmax_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     if (nd->opset >= 13) {
         switch (nd->in[0]->type) {
             case TENSOR_TYPE_BFLOAT16:
-                Softmax_13_bfloat16(nd);
+                Softmax_forward_v13_bfloat16(nd);
                 break;
             case TENSOR_TYPE_FLOAT16:
-                Softmax_13_float16(nd);
+                Softmax_forward_v13_float16(nd);
                 break;
             case TENSOR_TYPE_FLOAT32:
-                Softmax_13_float32(nd);
+                Softmax_forward_v13_float32(nd);
                 break;
             case TENSOR_TYPE_FLOAT64:
-                Softmax_13_float64(nd);
+                Softmax_forward_v13_float64(nd);
                 break;
             default:
                 break;
@@ -308,21 +315,34 @@ void op_Softmax_dft(node_t *nd) {
     } else {
         switch (nd->in[0]->type) {
             case TENSOR_TYPE_FLOAT16:
-                Softmax_1_11_float16(nd);
+                Softmax_forward_v1_11_float16(nd);
                 break;
             case TENSOR_TYPE_FLOAT32:
-                Softmax_1_11_float32(nd);
+                Softmax_forward_v1_11_float32(nd);
                 break;
             case TENSOR_TYPE_FLOAT64:
-                Softmax_1_11_float64(nd);
+                Softmax_forward_v1_11_float64(nd);
                 break;
             default:
                 break;
         }
     }
-    // 4. Softmax exit
+}
+
+void Softmax_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_Softmax_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Softmax_init;
+    nd->op->reshape     = Softmax_reshape;
+    nd->op->forward     = Softmax_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Softmax_exit;
 }

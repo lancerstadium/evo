@@ -11,7 +11,45 @@ typedef struct {
     int nshape;
 } operator_pdata_t;
 
-static void RandomUniform_operator(node_t* nd) {
+
+void RandomUniform_init(node_t* nd) {
+    if (!nd || !nd->in) {
+        return;
+    }
+    if (!(nd->nout == 1) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
+    int64_t* ints;
+    int i;
+    if (pdat) {
+        memset(pdat, 0, sizeof(operator_pdata_t));
+        pdat->nshape = node_get_attr_ints(nd, "shape", &ints);
+        if ((pdat->nshape > 0) && (pdat->shape = malloc(sizeof(int) * pdat->nshape))) {
+            pdat->dtype = (tensor_type_t)node_get_attr_int(nd, "dtype", 0);
+            pdat->high = node_get_attr_float(nd, "high", 1.0);
+            pdat->low = node_get_attr_float(nd, "low", 0.0);
+            pdat->seed = node_get_attr_float(nd, "seed", 0.0);
+            for (i = 0; i < pdat->nshape; i++)
+                pdat->shape[i] = ints[i];
+            nd->priv = pdat;
+        } else {
+            free(pdat);
+            return;
+        }
+    }
+}
+
+void RandomUniform_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t* y = nd->out[0];
+    y->type = pdat->dtype;
+    tensor_reshape(y, pdat->nshape, pdat->shape);
+}
+
+void RandomUniform_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
 
@@ -38,40 +76,10 @@ static void RandomUniform_operator(node_t* nd) {
     }
 }
 
-void op_RandomUniform_dft(node_t* nd) {
-    // 1. RandomUniform init
-    if (!nd || !nd->in) {
-        return;
-    }
-    if (!(nd->nout == 1) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
-    operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
-    int64_t* ints;
-    int i;
-    if (pdat) {
-        memset(pdat, 0, sizeof(operator_pdata_t));
-        pdat->nshape = node_get_attr_ints(nd, "shape", &ints);
-        if ((pdat->nshape > 0) && (pdat->shape = malloc(sizeof(int) * pdat->nshape))) {
-            pdat->dtype = (tensor_type_t)node_get_attr_int(nd, "dtype", 0);
-            pdat->high = node_get_attr_float(nd, "high", 1.0);
-            pdat->low = node_get_attr_float(nd, "low", 0.0);
-            pdat->seed = node_get_attr_float(nd, "seed", 0.0);
-            for (i = 0; i < pdat->nshape; i++)
-                pdat->shape[i] = ints[i];
-            nd->priv = pdat;
-        } else {
-            free(pdat);
-            return;
-        }
-    }
-    // 2. RandomUniform reshape
-    tensor_t* y = nd->out[0];
-    y->type = pdat->dtype;
-    tensor_reshape(y, pdat->nshape, pdat->shape);
-    // 3. RandomUniform run
-    RandomUniform_operator(nd);
-    // 4. RandomUniform exit
+
+void RandomUniform_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat) {
         if (pdat->shape)
             free(pdat->shape);
@@ -79,4 +87,13 @@ void op_RandomUniform_dft(node_t* nd) {
     }
     nd->priv = NULL;
     return;
+}
+
+void op_RandomUniform_dft(node_t* nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = RandomUniform_init;
+    nd->op->reshape     = RandomUniform_reshape;
+    nd->op->forward     = RandomUniform_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = RandomUniform_exit;
 }

@@ -24,14 +24,11 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
     }
     for(int i = 0; i < g->nnode; i++) {
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
-        if(nd) {
-            op_t* trg_op = device_find_op(dev, nd->op->type);
-            if(trg_op) {
-                nd->op = trg_op;
-                vector_add(&(g->prof->exec_node_vec), nd);
-                vector_add(&(g->prof->exec_time_vec), 0.0);
-                g->prof->exec_nnode++;
-            }
+        node_bind_op(nd);
+        if(nd->op && nd->op->init) {
+            vector_add(&(g->prof->exec_node_vec), nd);
+            vector_add(&(g->prof->exec_time_vec), 0.0);
+            g->prof->exec_nnode++;
         }
     }
     vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time
@@ -57,16 +54,15 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-        // ==== Clock up ====== //
         double time_st, time_ed;
-        time_st = sys_time();
-        if(!nd->op->bind) {
-            LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
-        } else {
-            nd->op->bind(nd);
-        }
-        time_ed = sys_time();
-        // ==== Clock down ==== //
+
+        if(nd->op->init) nd->op->init(nd);          // --- Init Operator
+        if(nd->op->reshape) nd->op->reshape(nd);    // --- Reshape Operator
+        time_st = sys_time();                       // --- Clock up
+        if(nd->op->forward) nd->op->forward(nd);    // --- Forward Operator
+        time_ed = sys_time();                       // --- Clock down
+        if(nd->op->exit) nd->op->exit(nd);          // --- Exit Operator
+
         if(g->prof->exec_time_vec) {
             g->prof->exec_time_vec[g->prof->exec_node_idx] = time_ed - time_st;
             g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);
@@ -93,16 +89,15 @@ static int cpu_run(device_t *dev, graph_t *g) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-        // ==== Clock up ====== //
         double time_st, time_ed;
-        time_st = sys_time();
-        if(!nd->op->bind) {
-            LOG_WARN("CPU Run Fail: Node %s no run func %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
-        } else {
-            nd->op->bind(nd);
-        }
-        time_ed = sys_time();
-        // ==== Clock down ==== //
+
+        if(nd->op->init) nd->op->init(nd);          // --- Init Operator
+        if(nd->op->reshape) nd->op->reshape(nd);    // --- Reshape Operator
+        time_st = sys_time();                       // --- Clock up
+        if(nd->op->forward) nd->op->forward(nd);    // --- Forward Operator
+        time_ed = sys_time();                       // --- Clock down
+        if(nd->op->exit) nd->op->exit(nd);          // --- Exit Operator
+        
         if(g->prof->exec_time_vec) {
             g->prof->exec_time_vec[i] = time_ed - time_st;
             g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);

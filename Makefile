@@ -41,7 +41,8 @@ else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
 endif
 
 # Options
-GUI_ENB		:= 			# Compile with evo-gui
+GUI_ENB		:= 				# Compile with evo-gui
+TRAIN_ENB	:=				# Compile with train-mode
 
 # Options: GUI
 GUI_DEP		?=
@@ -55,8 +56,15 @@ ifneq ($(GUI_ENB),)
 	endif
 endif
 
+# Options: TRAIN
+TRAIN_DEP	:=
+ifneq ($(TRAIN_ENB),)
+	TRAIN_DEP		:=
+endif
+
+
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(GUI_DEP) $(NOWARNS)
+OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
 ASFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
 CFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
 CXXFLAGS	:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
@@ -100,6 +108,12 @@ ifneq ($(GUI_ENB),)
 	@echo "gui(option): \t\t\e[32;1m$(GUI_DEP)\e[0m"
 else
 	@echo "gui(option): \t\t\e[31;1moff\e[0m"
+endif
+ifneq ($(TRAIN_ENB),)
+	@echo "#define EVO_TRAIN_ENB" >> $(CFGFILE)
+	@echo "train(option): \t\t\e[32;1mon\e[0m"
+else
+	@echo "train(option): \t\t\e[31;1moff\e[0m"
 endif
 
 $(CFGFILE):

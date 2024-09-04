@@ -171,7 +171,7 @@ static void Add_forward_bfloat16(node_t *nd) {
     }
 }
 
-void Add_forward_init(node_t *nd) {
+void Add_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -240,12 +240,10 @@ void Add_exit(node_t *nd) {
 }
 
 void op_Add_dft(node_t *nd) {
-    // 1. Add init
-    Add_forward_init(nd);
-    // 2. Add reshape
-    Add_reshape(nd);
-    // 3. Add forward
-    Add_forward(nd);
-    // 4. Add exit
-    Add_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Add_init;
+    nd->op->reshape     = Add_reshape;
+    nd->op->forward     = Add_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Add_exit;
 }

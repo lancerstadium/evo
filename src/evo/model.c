@@ -36,12 +36,30 @@ tensor_t* model_get_tensor(model_t *mdl, const char *name) {
     return NULL;
 }
 
+#if defined(EVO_TRAIN_ENB)
+void model_train(model_t* mdl) {
+
+}
+#endif
+
+tensor_t* model_eval(model_t* mdl) {
+    if(!mdl || !mdl->graph) return NULL;
+    mdl->graph->mode = 0;
+    graph_prerun(mdl->graph);
+    graph_run(mdl->graph);
+    graph_posrun(mdl->graph);
+    if(mdl->graph->ntensor > 0) {
+        return mdl->graph->tensors[mdl->graph->ntensor - 1];
+    }
+    return NULL;
+}
+
 static int tensor_map_print(const void* key, size_t ksize, uintptr_t value, void* usr) {
     LOG_INFO("%s,", (char*)key);
     return 0;
 }
 
-void model_dump_tensor(model_t *mdl) {
+void model_show_tensors(model_t *mdl) {
     LOG_INFO("%s[%d] = [", mdl->name, hashmap_size(mdl->tensor_map));
     hashmap_iterate(mdl->tensor_map, tensor_map_print, NULL);
     LOG_INFO("]\n");

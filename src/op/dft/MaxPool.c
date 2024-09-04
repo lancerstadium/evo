@@ -1,9 +1,9 @@
+#include <evo/resolver.h>
+#include <evo/util/math.h>
+
 #include <float.h>
 #include <math.h>
 #include <string.h>
-
-#include <evo/resolver.h>
-#include <evo/util/math.h>
 
 typedef enum {
     AUTO_PAD_NOTSET = 0,
@@ -54,7 +54,7 @@ static inline int dim_offset(int ndim, int *dims, int *dim_max) {
     return o;
 }
 
-static void MaxPool_int8(node_t *nd) {
+static void MaxPool_forward_int8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -91,7 +91,7 @@ static void MaxPool_int8(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void MaxPool_uint8(node_t *nd) {
+static void MaxPool_forward_uint8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -128,7 +128,7 @@ static void MaxPool_uint8(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void MaxPool_float16(node_t *nd) {
+static void MaxPool_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -165,7 +165,7 @@ static void MaxPool_float16(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void MaxPool_float32(node_t *nd) {
+static void MaxPool_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -202,7 +202,7 @@ static void MaxPool_float32(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void MaxPool_float64(node_t *nd) {
+static void MaxPool_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -239,8 +239,7 @@ static void MaxPool_float64(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-void op_MaxPool_dft(node_t *nd) {
-    // 1. MaxPool init
+void MaxPool_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -309,12 +308,17 @@ void op_MaxPool_dft(node_t *nd) {
         }
         nd->priv = pdat;
     }
-    // 2. MaxPool reshape
+}
+
+void MaxPool_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int ndim = x->ndim;
     int dims[ndim];
     int pad;
+    int i;
     switch (pdat->auto_pad) {
         case AUTO_PAD_NOTSET:
             memcpy(pdat->cpads, pdat->pads, sizeof(int) * pdat->npad);
@@ -362,27 +366,34 @@ void op_MaxPool_dft(node_t *nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. MaxPool run
+}
+
+void MaxPool_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT32:
-            MaxPool_int8(nd);
+            MaxPool_forward_int8(nd);
             break;
         case TENSOR_TYPE_INT64:
-            MaxPool_uint8(nd);
+            MaxPool_forward_uint8(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            MaxPool_float16(nd);
+            MaxPool_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            MaxPool_float32(nd);
+            MaxPool_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            MaxPool_float64(nd);
+            MaxPool_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. MaxPool exit
+}
+
+void MaxPool_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat) {
         if (pdat->kernels)
             free(pdat->kernels);
@@ -396,4 +407,13 @@ void op_MaxPool_dft(node_t *nd) {
     }
     nd->priv = NULL;
     return;
+}
+
+void op_MaxPool_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = MaxPool_init;
+    nd->op->reshape     = MaxPool_reshape;
+    nd->op->forward     = MaxPool_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = MaxPool_exit;
 }

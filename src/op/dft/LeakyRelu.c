@@ -6,7 +6,7 @@ typedef struct {
     float alpha;
 } operator_pdata_t;
 
-static void LeakyRelu_float16(node_t *nd) {
+static void LeakyRelu_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -21,7 +21,7 @@ static void LeakyRelu_float16(node_t *nd) {
     }
 }
 
-static void LeakyRelu_float32(node_t *nd) {
+static void LeakyRelu_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -31,7 +31,7 @@ static void LeakyRelu_float32(node_t *nd) {
         py[i] = (px[i] < 0) ? px[i] * pdat->alpha : px[i];
 }
 
-static void LeakyRelu_float64(node_t *nd) {
+static void LeakyRelu_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -41,8 +41,7 @@ static void LeakyRelu_float64(node_t *nd) {
         py[i] = (px[i] < 0) ? px[i] * pdat->alpha : px[i];
 }
 
-void op_LeakyRelu_dft(node_t *nd) {
-    // 1. LeakyRelu init
+void LeakyRelu_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -56,27 +55,45 @@ void op_LeakyRelu_dft(node_t *nd) {
         pdat->alpha = node_get_attr_float(nd, "alpha", 0.01);
         nd->priv = pdat;
     }
-    // 2. LeakyRelu reshape
+}
+
+void LeakyRelu_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. LeakyRelu run
+}
+
+void LeakyRelu_forward(node_t *nd) {
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            LeakyRelu_float16(nd);
+            LeakyRelu_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            LeakyRelu_float32(nd);
+            LeakyRelu_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            LeakyRelu_float64(nd);
+            LeakyRelu_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. LeakyRelu exit
+}
+
+void LeakyRelu_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_LeakyRelu_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = LeakyRelu_init;
+    nd->op->reshape     = LeakyRelu_reshape;
+    nd->op->forward     = LeakyRelu_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = LeakyRelu_exit;
 }

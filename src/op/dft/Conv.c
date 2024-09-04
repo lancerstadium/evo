@@ -953,12 +953,10 @@ void Conv_exit(node_t *nd) {
 }
 
 void op_Conv_dft(node_t* nd) {
-    // 1. Conv init
-    Conv_init(nd);
-    // 2. Conv reshape
-    Conv_reshape(nd);
-    // 3. Conv forward
-    Conv_forward(nd);
-    // 4. Conv exit
-    Conv_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Conv_init;
+    nd->op->reshape     = Conv_reshape;
+    nd->op->forward     = Conv_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Conv_exit;
 }

@@ -122,12 +122,10 @@ void Concat_exit(node_t *nd) {
 
 
 void op_Concat_dft(node_t *nd) {
-    // 1. Concat init
-    Concat_init(nd);
-    // 2. Concat reshape
-    Concat_reshape(nd);
-    // 3. Concat run
-    Concat_forward(nd);
-    // 4. Concat exit
-    Concat_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Concat_init;
+    nd->op->reshape     = Concat_reshape;
+    nd->op->forward     = Concat_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Concat_exit;
 }

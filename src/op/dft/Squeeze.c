@@ -1,24 +1,8 @@
 #include <evo/resolver.h>
 #include <string.h>
 
-static void Squeeze_operator(node_t *nd) {
-    tensor_t *x = nd->in[0];
-    tensor_t *y = nd->out[0];
-    char **px = (char **)x->datas;
-    char **py = (char **)y->datas;
-    if (x->type == TENSOR_TYPE_STRING) {
-        for (size_t i = 0, l = y->ndata; i < l; i++) {
-            if (py[i])
-                free(py[i]);
-            py[i] = strdup(px[i]);
-        }
-    } else {
-        memcpy(y->datas, x->datas, x->ndata * tensor_type_sizeof(x->type));
-    }
-}
 
-void op_Squeeze_dft(node_t *nd) {
-    // 1. Squeeze init
+void Squeeze_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -27,7 +11,10 @@ void op_Squeeze_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Squeeze reshape
+}
+
+void Squeeze_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *y = nd->out[0];
     tensor_t *x = nd->in[0];
     tensor_t *a;
@@ -64,29 +51,36 @@ void op_Squeeze_dft(node_t *nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. Squeeze run
-    switch (nd->in[0]->type) {
-        case TENSOR_TYPE_BOOL:
-        case TENSOR_TYPE_INT8:
-        case TENSOR_TYPE_INT16:
-        case TENSOR_TYPE_INT32:
-        case TENSOR_TYPE_INT64:
-        case TENSOR_TYPE_UINT8:
-        case TENSOR_TYPE_UINT16:
-        case TENSOR_TYPE_UINT32:
-        case TENSOR_TYPE_UINT64:
-        case TENSOR_TYPE_BFLOAT16:
-        case TENSOR_TYPE_FLOAT16:
-        case TENSOR_TYPE_FLOAT32:
-        case TENSOR_TYPE_FLOAT64:
-        case TENSOR_TYPE_COMPLEX64:
-        case TENSOR_TYPE_COMPLEX128:
-        case TENSOR_TYPE_STRING:
-            Squeeze_operator(nd);
-            break;
-        default:
-            break;
+}
+
+void Squeeze_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if(nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    tensor_t *x = nd->in[0];
+    tensor_t *y = nd->out[0];
+    char **px = (char **)x->datas;
+    char **py = (char **)y->datas;
+    if (x->type == TENSOR_TYPE_STRING) {
+        for (size_t i = 0, l = y->ndata; i < l; i++) {
+            if (py[i])
+                free(py[i]);
+            py[i] = strdup(px[i]);
+        }
+    } else {
+        memcpy(y->datas, x->datas, x->ndata * tensor_type_sizeof(x->type));
     }
-    // 4. Squeeze exit
+}
+
+void Squeeze_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Squeeze_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Squeeze_init;
+    nd->op->reshape     = Squeeze_reshape;
+    nd->op->forward     = Squeeze_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Squeeze_exit;
 }

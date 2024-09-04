@@ -175,12 +175,10 @@ void Abs_exit(node_t *nd) {
 }
 
 void op_Abs_dft(node_t *nd) {
-    // 1. Abs init
-    Abs_init(nd);
-    // 2. Abs reshape
-    Abs_reshape(nd);
-    // 3. Abs run
-    Abs_forward(nd);
-    // 4. Abs exit
-    Abs_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Abs_init;
+    nd->op->reshape     = Abs_reshape;
+    nd->op->forward     = Abs_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Abs_exit;
 }

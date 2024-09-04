@@ -310,8 +310,7 @@ static void Where_string(node_t *nd) {
     }
 }
 
-void op_Where_dft(node_t *nd) {
-    // 1. Where init
+void Where_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -320,7 +319,11 @@ void op_Where_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED || nd->in[2]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Where reshape
+}
+
+
+void Where_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *y = nd->out[0];
     int i;
     if (!tensor_reshape_ident(y, nd->in[nd->nin - 1], nd->in[nd->nin - 1]->type))
@@ -329,7 +332,10 @@ void op_Where_dft(node_t *nd) {
         if (!tensor_reshape_multi_broadcast(y, y, nd->in[i], y->type))
             return;
     }
-    // 3. Where run
+}
+
+void Where_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BOOL:
             Where_bool(nd);
@@ -382,7 +388,19 @@ void op_Where_dft(node_t *nd) {
         default:
             break;
     }
+}
 
-    // 4. Where exit
+void Where_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+
+void op_Where_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Where_init;
+    nd->op->reshape     = Where_reshape;
+    nd->op->forward     = Where_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Where_exit;
 }

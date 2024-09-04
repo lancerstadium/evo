@@ -2,8 +2,8 @@
 #include <evo/util/log.h>
 #include <string.h>
 
-void op_Reshape_dft(node_t* nd) {
-    // 1. Reshape init
+
+void Reshape_init(node_t* nd) {
     if(!nd || !nd->in) {
         return;
     }
@@ -12,7 +12,10 @@ void op_Reshape_dft(node_t* nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Reshape reshape
+}
+
+void Reshape_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
     tensor_t* s = nd->in[1];
@@ -40,7 +43,12 @@ void op_Reshape_dft(node_t* nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. Reshape run
+}
+
+void Reshape_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    tensor_t* y = nd->out[0];
+    tensor_t* x = nd->in[0];
     char** xdata = x->datas;
     char** ydata = y->datas;
     if(x->type == TENSOR_TYPE_STRING) {
@@ -52,6 +60,18 @@ void op_Reshape_dft(node_t* nd) {
     } else {
         memcpy(ydata, xdata, x->ndata * tensor_type_sizeof(x->type));
     }
-    // 4. Reshape exit
+}
+
+void Reshape_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Reshape_dft(node_t* nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Reshape_init;
+    nd->op->reshape     = Reshape_reshape;
+    nd->op->forward     = Reshape_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Reshape_exit;
 }

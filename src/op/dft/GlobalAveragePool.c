@@ -3,7 +3,7 @@
 #include <evo/resolver.h>
 #include <evo/util/math.h>
 
-static void GlobalAveragePool_float16(node_t *nd) {
+static void GlobalAveragePool_forward_float16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -30,7 +30,7 @@ static void GlobalAveragePool_float16(node_t *nd) {
     }
 }
 
-static void GlobalAveragePool_float32(node_t *nd) {
+static void GlobalAveragePool_forward_float32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     float *px = (float *)x->datas;
@@ -57,7 +57,7 @@ static void GlobalAveragePool_float32(node_t *nd) {
     }
 }
 
-static void GlobalAveragePool_float64(node_t *nd) {
+static void GlobalAveragePool_forward_float64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     double *px = (double *)x->datas;
@@ -84,8 +84,7 @@ static void GlobalAveragePool_float64(node_t *nd) {
     }
 }
 
-void op_GlobalAveragePool_dft(node_t *nd) {
-    // 1. GlobalAveragePool init
+void GlobalAveragePool_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -94,7 +93,10 @@ void op_GlobalAveragePool_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. GlobalAveragePool reshape
+}
+
+void GlobalAveragePool_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int ndim = x->ndim;
@@ -108,20 +110,35 @@ void op_GlobalAveragePool_dft(node_t *nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. GlobalAveragePool run
+}
+
+void GlobalAveragePool_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            GlobalAveragePool_float16(nd);
+            GlobalAveragePool_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            GlobalAveragePool_float32(nd);
+            GlobalAveragePool_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            GlobalAveragePool_float64(nd);
+            GlobalAveragePool_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. GlobalAveragePool exit
+}
+
+void GlobalAveragePool_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_GlobalAveragePool_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = GlobalAveragePool_init;
+    nd->op->reshape     = GlobalAveragePool_reshape;
+    nd->op->forward     = GlobalAveragePool_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = GlobalAveragePool_exit;
 }

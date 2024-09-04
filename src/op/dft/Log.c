@@ -2,7 +2,7 @@
 #include <evo/util/math.h>
 #include <math.h>
 
-static void Log_bfloat16(node_t *nd) {
+static void Log_forward_bfloat16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -15,7 +15,7 @@ static void Log_bfloat16(node_t *nd) {
     }
 }
 
-static void Log_float16(node_t *nd) {
+static void Log_forward_float16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
@@ -28,7 +28,7 @@ static void Log_float16(node_t *nd) {
     }
 }
 
-static void Log_float32(node_t *nd) {
+static void Log_forward_float32(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     float *px = (float *)x->datas;
@@ -38,7 +38,7 @@ static void Log_float32(node_t *nd) {
         py[i] = logf(px[i]);
 }
 
-static void Log_float64(node_t *nd) {
+static void Log_forward_float64(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     double *px = (double *)x->datas;
@@ -48,8 +48,7 @@ static void Log_float64(node_t *nd) {
         py[i] = log(px[i]);
 }
 
-void op_Log_dft(node_t *nd) {
-    // 1. Log init
+void Log_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -58,27 +57,46 @@ void op_Log_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Log reshape
+}
+
+void Log_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. Log run
+}
+
+void Log_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            Log_float16(nd);
+            Log_forward_float16(nd);
             break;
         case TENSOR_TYPE_BFLOAT16:
-            Log_bfloat16(nd);
+            Log_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Log_float32(nd);
+            Log_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Log_float64(nd);
+            Log_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. Log exit
+}
+
+void Log_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+
+void op_Log_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Log_init;
+    nd->op->reshape     = Log_reshape;
+    nd->op->forward     = Log_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Log_exit;
 }

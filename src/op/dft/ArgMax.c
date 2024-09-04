@@ -572,12 +572,10 @@ void ArgMax_exit(node_t* nd) {
 }
 
 void op_ArgMax_dft(node_t *nd) {
-    // 1. ArgMax init
-    ArgMax_init(nd);
-    // 2. ArgMax reshape
-    ArgMax_reshape(nd);
-    // 3. ArgMax run
-    ArgMax_forward(nd);
-    // 4. ArgMax exit
-    ArgMax_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = ArgMax_init;
+    nd->op->reshape     = ArgMax_reshape;
+    nd->op->forward     = ArgMax_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = ArgMax_exit;
 }

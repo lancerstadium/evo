@@ -1,7 +1,7 @@
 #include <evo/resolver.h>
 #include <evo/util/math.h>
 
-static void Sum_bfloat16(node_t *nd) {
+static void Sum_forward_bfloat16(node_t *nd) {
     tensor_t *y = nd->out[0];
     tensor_t *x;
     uint16_t *py = (uint16_t *)y->datas;
@@ -19,7 +19,7 @@ static void Sum_bfloat16(node_t *nd) {
     }
 }
 
-static void Sum_float16(node_t *nd) {
+static void Sum_forward_float16(node_t *nd) {
     tensor_t *y = nd->out[0];
     tensor_t *x;
     uint16_t *py = (uint16_t *)y->datas;
@@ -37,7 +37,7 @@ static void Sum_float16(node_t *nd) {
     }
 }
 
-static void Sum_float32(node_t *nd) {
+static void Sum_forward_float32(node_t *nd) {
     tensor_t *y = nd->out[0];
     tensor_t *x;
     float *py = (float *)y->datas;
@@ -55,7 +55,7 @@ static void Sum_float32(node_t *nd) {
     }
 }
 
-static void Sum_float64(node_t *nd) {
+static void Sum_forward_float64(node_t *nd) {
     tensor_t *y = nd->out[0];
     tensor_t *x;
     double *py = (double *)y->datas;
@@ -73,8 +73,7 @@ static void Sum_float64(node_t *nd) {
     }
 }
 
-void op_Sum_dft(node_t *nd) {
-    // 1. Sum init
+void Sum_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -83,7 +82,10 @@ void op_Sum_dft(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Sum reshape
+}
+
+void Sum_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *y = nd->out[0];
     int i;
     if (!tensor_reshape_ident(y, nd->in[0], nd->in[0]->type))
@@ -92,23 +94,38 @@ void op_Sum_dft(node_t *nd) {
         if (!tensor_reshape_multi_broadcast(y, y, nd->in[i], y->type))
             return;
     }
-    // 3. Sum run
+}
+
+void Sum_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BFLOAT16:
-            Sum_bfloat16(nd);
+            Sum_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            Sum_float16(nd);
+            Sum_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Sum_float32(nd);
+            Sum_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Sum_float64(nd);
+            Sum_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. Sum exit
+}
+
+void Sum_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Sum_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Sum_init;
+    nd->op->reshape     = Sum_reshape;
+    nd->op->forward     = Sum_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Sum_exit;
 }

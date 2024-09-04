@@ -95,7 +95,7 @@ void Relu_reshape(node_t *nd) {
     tensor_reshape_ident(y, x, x->type);
 }
 
-void Relu_run(node_t *nd) {
+void Relu_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:      Relu_forward_int8(nd); break;
@@ -116,12 +116,10 @@ void Relu_exit(node_t *nd) {
 }
 
 void op_Relu_dft(node_t *nd) {
-    // 1. Relu init
-    Relu_init(nd);
-    // 2. Relu reshape
-    Relu_reshape(nd);
-    // 3. Relu run
-    Relu_run(nd);
-    // 4. Relu exit
-    Relu_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Relu_init;
+    nd->op->reshape     = Relu_reshape;
+    nd->op->forward     = Relu_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Relu_exit;
 }

@@ -147,6 +147,27 @@ void node_dump(node_t *nd) {
     }
 }
 
+void node_bind_op(node_t* nd) {
+    if(!nd || !nd->op) return;
+    
+    device_t* dev = NULL;
+    if(nd->graph) {
+        dev = nd->graph->dev;
+    } else {
+        dev = internal_device_get_default();
+    }
+    
+    op_t* trg_op = device_find_op(dev, nd->op->type);
+    if(trg_op) {
+        nd->op = trg_op;
+        if(!nd->op->bind) {
+            LOG_WARN("Node Bind Fail: Node %s no bind %s !\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "");
+        } else {
+            nd->op->bind(nd);
+        }
+    }
+}
+
 void node_free(node_t* nd) {
     if(!nd) {
         return;

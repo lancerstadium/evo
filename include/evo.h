@@ -544,6 +544,7 @@ EVO_API int node_get_attr_floats(node_t*, const char*, float**);
 EVO_API int node_get_attr_ints(node_t*, const char*, int64_t**);
 EVO_API tensor_t* node_get_attr_tensor(node_t*, const char*, tensor_t*);
 EVO_API void node_dump(node_t*);
+EVO_API void node_bind_op(node_t*);
 EVO_API void node_free(node_t*);
 
 // ==================================================================================== //
@@ -576,6 +577,7 @@ struct graph {
     device_t *dev;                                      /* Device of graph              */
     model_t *mdl;                                       /* Owner model                  */
 
+    uint8_t mode : 1;                                   /* Graph Mode: 0:Eval|1:Train   */
     uint8_t data_layout : 1;                            /* Data layout: 0NCHW/1NHWC     */
     uint8_t is_sub : 1;                                 /* Graph is sub graph           */
     uint8_t status : 4;                                 /* Status of Graph              */
@@ -643,8 +645,12 @@ struct model {
 
 EVO_API model_t * model_new(const char*);
 EVO_API tensor_t* model_get_tensor(model_t*, const char*);
-EVO_API void model_dump_tensor(model_t*);
+EVO_API tensor_t* model_eval(model_t*);
+EVO_API void model_show_tensors(model_t*);
 EVO_API void model_free(model_t*);
+#if defined(EVO_TRAIN_ENB)
+EVO_API void model_train(model_t* mdl);;
+#endif
 
 // ==================================================================================== //
 //                                       evo: predictor

@@ -350,12 +350,10 @@ void AveragePool_exit(node_t* nd) {
 
 
 void op_AveragePool_dft(node_t* nd) {
-    // 1. AveragePool init
-    AveragePool_init(nd);
-    // 2. AveragePool reshape
-    AveragePool_reshape(nd);
-    // 3. AveragePool forward
-    AveragePool_forward(nd);
-    // 4. AveragePool exit
-    AveragePool_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = AveragePool_init;
+    nd->op->reshape     = AveragePool_reshape;
+    nd->op->forward     = AveragePool_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = AveragePool_exit;
 }

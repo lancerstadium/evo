@@ -80,12 +80,10 @@ void Flatten_exit(node_t* nd) {
 
 
 void op_Flatten_dft(node_t* nd) {
-    // 1. Flatten init
-    Flatten_init(nd);
-    // 2. Flatten reshape
-    Flatten_reshape(nd);
-    // 3. Flatten run
-    Flatten_forward(nd);
-    // 4. Flatten exit
-    Flatten_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = Flatten_init;
+    nd->op->reshape     = Flatten_reshape;
+    nd->op->forward     = Flatten_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Flatten_exit;
 }

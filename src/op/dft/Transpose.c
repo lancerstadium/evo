@@ -25,7 +25,7 @@ static void Transpose_bool(node_t *nd) {
     }
 }
 
-static void Transpose_int8(node_t *nd) {
+static void Transpose_forward_int8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -45,7 +45,7 @@ static void Transpose_int8(node_t *nd) {
     }
 }
 
-static void Transpose_int16(node_t *nd) {
+static void Transpose_forward_int16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -65,7 +65,7 @@ static void Transpose_int16(node_t *nd) {
     }
 }
 
-static void Transpose_int32(node_t *nd) {
+static void Transpose_forward_int32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -85,7 +85,7 @@ static void Transpose_int32(node_t *nd) {
     }
 }
 
-static void Transpose_int64(node_t *nd) {
+static void Transpose_forward_int64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -105,7 +105,7 @@ static void Transpose_int64(node_t *nd) {
     }
 }
 
-static void Transpose_uint8(node_t *nd) {
+static void Transpose_forward_uint8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -125,7 +125,7 @@ static void Transpose_uint8(node_t *nd) {
     }
 }
 
-static void Transpose_uint16(node_t *nd) {
+static void Transpose_forward_uint16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -145,7 +145,7 @@ static void Transpose_uint16(node_t *nd) {
     }
 }
 
-static void Transpose_uint32(node_t *nd) {
+static void Transpose_forward_uint32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -165,7 +165,7 @@ static void Transpose_uint32(node_t *nd) {
     }
 }
 
-static void Transpose_uint64(node_t *nd) {
+static void Transpose_forward_uint64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -185,7 +185,7 @@ static void Transpose_uint64(node_t *nd) {
     }
 }
 
-static void Transpose_bfloat16(node_t *nd) {
+static void Transpose_forward_bfloat16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -205,7 +205,7 @@ static void Transpose_bfloat16(node_t *nd) {
     }
 }
 
-static void Transpose_float16(node_t *nd) {
+static void Transpose_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -225,7 +225,7 @@ static void Transpose_float16(node_t *nd) {
     }
 }
 
-static void Transpose_float32(node_t *nd) {
+static void Transpose_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -245,7 +245,7 @@ static void Transpose_float32(node_t *nd) {
     }
 }
 
-static void Transpose_float64(node_t *nd) {
+static void Transpose_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -265,7 +265,7 @@ static void Transpose_float64(node_t *nd) {
     }
 }
 
-static void Transpose_complex64(node_t *nd) {
+static void Transpose_forward_complex64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -286,7 +286,7 @@ static void Transpose_complex64(node_t *nd) {
     }
 }
 
-static void Transpose_complex128(node_t *nd) {
+static void Transpose_forward_complex128(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -307,7 +307,7 @@ static void Transpose_complex128(node_t *nd) {
     }
 }
 
-static void Transpose_string(node_t *nd) {
+static void Transpose_forward_string(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -329,8 +329,7 @@ static void Transpose_string(node_t *nd) {
     }
 }
 
-void op_Transpose_dft(node_t *nd) {
-    // 1. Transpose init
+void Transpose_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -359,67 +358,80 @@ void op_Transpose_dft(node_t *nd) {
         free(pdat);
         return;
     }
-    // 2. Transpose reshape
+}
+
+void Transpose_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    int i;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     if (tensor_reshape_ident(y, x, x->type)) {
         for (i = 0; i < x->ndim; i++)
             y->dims[i] = x->dims[pdat->perm[i]];
     }
-    // 3. Transpose run
+}
+
+void Transpose_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BOOL:
             Transpose_bool(nd);
             break;
         case TENSOR_TYPE_INT8:
-            Transpose_int8(nd);
+            Transpose_forward_int8(nd);
             break;
         case TENSOR_TYPE_INT16:
-            Transpose_int16(nd);
+            Transpose_forward_int16(nd);
             break;
         case TENSOR_TYPE_INT32:
-            Transpose_int32(nd);
+            Transpose_forward_int32(nd);
             break;
         case TENSOR_TYPE_INT64:
-            Transpose_int64(nd);
+            Transpose_forward_int64(nd);
             break;
         case TENSOR_TYPE_UINT8:
-            Transpose_uint8(nd);
+            Transpose_forward_uint8(nd);
             break;
         case TENSOR_TYPE_UINT16:
-            Transpose_uint16(nd);
+            Transpose_forward_uint16(nd);
             break;
         case TENSOR_TYPE_UINT32:
-            Transpose_uint32(nd);
+            Transpose_forward_uint32(nd);
             break;
         case TENSOR_TYPE_UINT64:
-            Transpose_uint64(nd);
+            Transpose_forward_uint64(nd);
             break;
         case TENSOR_TYPE_BFLOAT16:
-            Transpose_bfloat16(nd);
+            Transpose_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            Transpose_float16(nd);
+            Transpose_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Transpose_float32(nd);
+            Transpose_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Transpose_float64(nd);
+            Transpose_forward_float64(nd);
             break;
         case TENSOR_TYPE_COMPLEX64:
-            Transpose_complex64(nd);
+            Transpose_forward_complex64(nd);
             break;
         case TENSOR_TYPE_COMPLEX128:
-            Transpose_complex128(nd);
+            Transpose_forward_complex128(nd);
             break;
         case TENSOR_TYPE_STRING:
-            Transpose_string(nd);
+            Transpose_forward_string(nd);
             break;
         default:
             break;
     }
-    // 4. Transpose exit
+
+}
+
+void Transpose_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat) {
         if (pdat->perm)
             free(pdat->perm);
@@ -427,4 +439,13 @@ void op_Transpose_dft(node_t *nd) {
     }
     nd->priv = NULL;
     return;
+}
+
+void op_Transpose_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Transpose_init;
+    nd->op->reshape     = Transpose_reshape;
+    nd->op->forward     = Transpose_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Transpose_exit;
 }

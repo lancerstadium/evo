@@ -58,7 +58,7 @@ static double tensor_get_value(void *p, tensor_type_t type) {
     return v;
 }
 
-static void Range_int16(node_t *nd) {
+static void Range_forward_int16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     int16_t *py = (int16_t *)y->datas;
@@ -67,7 +67,7 @@ static void Range_int16(node_t *nd) {
         py[i] = pdat->start + (pdat->delta * i);
 }
 
-static void Range_int32(node_t *nd) {
+static void Range_forward_int32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     int32_t *py = (int32_t *)y->datas;
@@ -76,7 +76,7 @@ static void Range_int32(node_t *nd) {
         py[i] = pdat->start + (pdat->delta * i);
 }
 
-static void Range_int64(node_t *nd) {
+static void Range_forward_int64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     int64_t *py = (int64_t *)y->datas;
@@ -85,7 +85,7 @@ static void Range_int64(node_t *nd) {
         py[i] = pdat->start + (pdat->delta * i);
 }
 
-static void Range_float32(node_t *nd) {
+static void Range_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     float *py = (float *)y->datas;
@@ -94,7 +94,7 @@ static void Range_float32(node_t *nd) {
         py[i] = pdat->start + (pdat->delta * i);
 }
 
-static void Range_float64(node_t *nd) {
+static void Range_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     double *py = (double *)y->datas;
@@ -103,8 +103,7 @@ static void Range_float64(node_t *nd) {
         py[i] = pdat->start + (pdat->delta * i);
 }
 
-void op_Range_dft(node_t *nd) {
-    // 1. Range init
+void Range_init(node_t *nd){
     if (!nd || !nd->in) {
         return;
     }
@@ -114,38 +113,59 @@ void op_Range_dft(node_t *nd) {
         return;
     }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
-    // 2. Range reshape
-    tensor_t *y = nd->out[0];
-    int ndim;
     pdat->start = tensor_get_value(nd->in[0]->datas, nd->in[0]->type);
     pdat->limit = tensor_get_value(nd->in[1]->datas, nd->in[1]->type);
     pdat->delta = tensor_get_value(nd->in[2]->datas, nd->in[2]->type);
+    nd->priv = pdat;
+}
+
+void Range_reshape(node_t *nd){
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t *y = nd->out[0];
+    int ndim;
     ndim = fmax(ceil((pdat->limit - pdat->start) / pdat->delta), 0);
     y->type = nd->in[0]->type;
     tensor_reshape(y, 1, (int[]){ndim});
-    // 3. Range run
+}
+
+void Range_forward(node_t *nd){
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT16:
-            Range_int16(nd);
+            Range_forward_int16(nd);
             break;
         case TENSOR_TYPE_INT32:
-            Range_int32(nd);
+            Range_forward_int32(nd);
             break;
         case TENSOR_TYPE_INT64:
-            Range_int64(nd);
+            Range_forward_int64(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Range_float32(nd);
+            Range_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Range_float64(nd);
+            Range_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. Range exit
+}
+
+void Range_exit(node_t *nd){
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_Range_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = Range_init;
+    nd->op->reshape     = Range_reshape;
+    nd->op->forward     = Range_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = Range_exit;
 }

@@ -6,7 +6,7 @@ typedef struct {
     float epsilon;
 } operator_pdata_t;
 
-static void InstanceNormalization_float16(node_t *nd) {
+static void InstanceNormalization_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -42,7 +42,7 @@ static void InstanceNormalization_float16(node_t *nd) {
     }
 }
 
-static void InstanceNormalization_float32(node_t *nd) {
+static void InstanceNormalization_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -78,7 +78,7 @@ static void InstanceNormalization_float32(node_t *nd) {
     }
 }
 
-static void InstanceNormalization_float64(node_t *nd) {
+static void InstanceNormalization_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -114,8 +114,7 @@ static void InstanceNormalization_float64(node_t *nd) {
     }
 }
 
-void op_InstanceNormalization_dft(node_t *nd) {
-    // 1. InstanceNormalization init
+void InstanceNormalization_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -127,27 +126,47 @@ void op_InstanceNormalization_dft(node_t *nd) {
         pdat->epsilon = node_get_attr_float(nd, "epsilon", 1e-05);
         nd->priv = pdat;
     }
-    // 2. InstanceNormalization reshape
+}
+
+void InstanceNormalization_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. InstanceNormalization run
+}
+
+void InstanceNormalization_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            InstanceNormalization_float16(nd);
+            InstanceNormalization_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            InstanceNormalization_float32(nd);
+            InstanceNormalization_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            InstanceNormalization_float64(nd);
+            InstanceNormalization_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. InstanceNormalization exit
+}
+
+void InstanceNormalization_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+
+void op_InstanceNormalization_dft(node_t *nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = InstanceNormalization_init;
+    nd->op->reshape     = InstanceNormalization_reshape;
+    nd->op->forward     = InstanceNormalization_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = InstanceNormalization_exit;
 }

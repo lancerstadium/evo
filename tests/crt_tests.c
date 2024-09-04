@@ -111,12 +111,14 @@ UnitTest_fn_def(test_model_create) {
     if(!imgs) {
         fprintf(stderr, "Load mnist fail, please exec `download_mnist.sh` in Dir `picture`.\n");
         return "Load Mnist Fail!";
+    } else {
+        fprintf(stderr, "Load Mnist Success!\n");
     }
 
     // Model
     model_t* mdl = mnist_model();
     graph_dump(mdl->graph);
-    model_dump_tensor(mdl); 
+    model_show_tensors(mdl);
     
     // Train
     tensor_t *x_tmp, *x;
@@ -169,9 +171,7 @@ UnitTest_fn_def(test_model_create) {
         x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
         uint8_t y = label->bs[i];
         tensor_copy(in, x);
-        graph_prerun(mdl->graph);
-        graph_run(mdl->graph);
-        graph_posrun(mdl->graph);
+        model_eval(mdl);
     }
 
     return NULL;

@@ -146,12 +146,10 @@ void BatchNormalization_exit(node_t *nd) {
 }
 
 void op_BatchNormalization_dft(node_t *nd) {
-    // 1. BatchNormalization init
-    BatchNormalization_init(nd);
-    // 2. BatchNormalization reshape
-    BatchNormalization_reshape(nd);
-    // 3. BatchNormalization run
-    BatchNormalization_forward(nd);
-    // 4. BatchNormalization exit
-    BatchNormalization_exit(nd);
+    if(!nd || !nd->op) return;
+    nd->op->init        = BatchNormalization_init;
+    nd->op->reshape     = BatchNormalization_reshape;
+    nd->op->forward     = BatchNormalization_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = BatchNormalization_exit;
 }

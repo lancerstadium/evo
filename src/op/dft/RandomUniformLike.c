@@ -9,7 +9,51 @@ typedef struct {
     float seed;
 } operator_pdata_t;
 
-static void RandomUniformLike_operator(node_t* nd) {
+
+void RandomUniformLike_init(node_t* nd) {
+    if (!nd || !nd->in) {
+        return;
+    }
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
+    if (pdat) {
+        memset(pdat, 0, sizeof(operator_pdata_t));
+        pdat->dtype = (tensor_type_t)node_get_attr_int(nd, "dtype", 0);
+        pdat->high = node_get_attr_float(nd, "high", 1.0);
+        pdat->low = node_get_attr_float(nd, "low", 0.0);
+        pdat->seed = node_get_attr_float(nd, "seed", 0.0);
+        nd->priv = pdat;
+    }
+}
+
+void RandomUniformLike_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t* x = nd->in[0];
+    tensor_t* y = nd->out[0];
+    tensor_type_t type;
+    if (pdat->dtype != TENSOR_TYPE_UNDEFINED)
+        type = pdat->dtype;
+    else
+        type = x->type;
+    switch (type) {
+        case TENSOR_TYPE_FLOAT16:
+        case TENSOR_TYPE_FLOAT32:
+        case TENSOR_TYPE_FLOAT64:
+            y->type = type;
+            tensor_reshape(y, x->ndim, x->dims);
+            break;
+        default:
+            break;
+    }
+}
+
+void RandomUniformLike_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
 
@@ -36,48 +80,20 @@ static void RandomUniformLike_operator(node_t* nd) {
     }
 }
 
-void op_RandomUniformLike_dft(node_t* nd) {
-    // 1. RandomUniformLike init
-    if (!nd || !nd->in) {
-        return;
-    }
-    if (!(nd->nin == 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
-    operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
-    if (pdat) {
-        memset(pdat, 0, sizeof(operator_pdata_t));
-        pdat->dtype = (tensor_type_t)node_get_attr_int(nd, "dtype", 0);
-        pdat->high = node_get_attr_float(nd, "high", 1.0);
-        pdat->low = node_get_attr_float(nd, "low", 0.0);
-        pdat->seed = node_get_attr_float(nd, "seed", 0.0);
-        nd->priv = pdat;
-    }
-    // 2. RandomUniformLike reshape
-    tensor_t* x = nd->in[0];
-    tensor_t* y = nd->out[0];
-    tensor_type_t type;
-    if (pdat->dtype != TENSOR_TYPE_UNDEFINED)
-        type = pdat->dtype;
-    else
-        type = x->type;
-    switch (type) {
-        case TENSOR_TYPE_FLOAT16:
-        case TENSOR_TYPE_FLOAT32:
-        case TENSOR_TYPE_FLOAT64:
-            y->type = type;
-            tensor_reshape(y, x->ndim, x->dims);
-            break;
-        default:
-            break;
-    }
-    // 3. RandomUniformLike run
-    RandomUniformLike_operator(nd);
-    // 4. RandomUniformLike exit
+void RandomUniformLike_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_RandomUniformLike_dft(node_t* nd) {
+    if(!nd || !nd->op) return;
+    nd->op->init        = RandomUniformLike_init;
+    nd->op->reshape     = RandomUniformLike_reshape;
+    nd->op->forward     = RandomUniformLike_forward;
+    nd->op->backward    = NULL;
+    nd->op->exit        = RandomUniformLike_exit;
 }
