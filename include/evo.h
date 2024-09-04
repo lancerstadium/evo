@@ -408,9 +408,14 @@ typedef enum op_type {
 
 struct op {
     op_type_t type;                                     /* Operator type                */
+
     void (*bind)(node_t*);                              /* Operator bind fn             */
 
-    uint8_t is_same_shape : 1;                          /* Operator same shape          */
+    void (*init)(node_t*);                              /* Operator init fn             */
+    void (*reshape)(node_t*);                           /* Operator reshape fn          */
+    void (*forward)(node_t*);                           /* Operator forward fn          */
+    void (*backward)(node_t*);                          /* Operator backward fn         */
+    void (*exit)(node_t*);                              /* Operator exit fn             */
 };
 
 EVO_API const char* op_name(op_type_t);

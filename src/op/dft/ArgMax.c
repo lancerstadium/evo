@@ -11,7 +11,7 @@ typedef struct {
     int stride;
 } operator_pdata_t;
 
-static void ArgMax_int8(node_t* nd) {
+static void ArgMax_forward_int8(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -49,7 +49,7 @@ static void ArgMax_int8(node_t* nd) {
     }
 }
 
-static void ArgMax_int16(node_t* nd) {
+static void ArgMax_forward_int16(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -87,7 +87,7 @@ static void ArgMax_int16(node_t* nd) {
     }
 }
 
-static void ArgMax_int32(node_t* nd) {
+static void ArgMax_forward_int32(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -125,7 +125,7 @@ static void ArgMax_int32(node_t* nd) {
     }
 }
 
-static void ArgMax_int64(node_t* nd) {
+static void ArgMax_forward_int64(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -163,7 +163,7 @@ static void ArgMax_int64(node_t* nd) {
     }
 }
 
-static void ArgMax_uint8(node_t* nd) {
+static void ArgMax_forward_uint8(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -201,7 +201,7 @@ static void ArgMax_uint8(node_t* nd) {
     }
 }
 
-static void ArgMax_uint16(node_t* nd) {
+static void ArgMax_forward_uint16(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -239,7 +239,7 @@ static void ArgMax_uint16(node_t* nd) {
     }
 }
 
-static void ArgMax_uint32(node_t* nd) {
+static void ArgMax_forward_uint32(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -277,7 +277,7 @@ static void ArgMax_uint32(node_t* nd) {
     }
 }
 
-static void ArgMax_uint64(node_t* nd) {
+static void ArgMax_forward_uint64(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -315,7 +315,7 @@ static void ArgMax_uint64(node_t* nd) {
     }
 }
 
-static void ArgMax_bfloat16(node_t* nd) {
+static void ArgMax_forward_bfloat16(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -354,7 +354,7 @@ static void ArgMax_bfloat16(node_t* nd) {
     }
 }
 
-static void ArgMax_float16(node_t* nd) {
+static void ArgMax_forward_float16(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -393,7 +393,7 @@ static void ArgMax_float16(node_t* nd) {
     }
 }
 
-static void ArgMax_float32(node_t* nd) {
+static void ArgMax_forward_float32(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -431,7 +431,7 @@ static void ArgMax_float32(node_t* nd) {
     }
 }
 
-static void ArgMax_float64(node_t* nd) {
+static void ArgMax_forward_float64(node_t* nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -469,8 +469,7 @@ static void ArgMax_float64(node_t* nd) {
     }
 }
 
-void op_ArgMax_dft(node_t *nd) {
-    // 1. ArgMax init
+void ArgMax_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -487,7 +486,12 @@ void op_ArgMax_dft(node_t *nd) {
         pdat->select_last_index = node_get_attr_int(nd, "select_last_index", 0);
         nd->priv = pdat;
     }
-    // 2. ArgMax reshape
+    return;
+}
+
+void ArgMax_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     int axis = pdat->axis;
@@ -512,50 +516,68 @@ void op_ArgMax_dft(node_t *nd) {
     }
     y->type = TENSOR_TYPE_INT64;
     tensor_reshape(y, ndim, dims);
-    // 3. ArgMax run
+}
+
+void ArgMax_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:
-            ArgMax_int8(nd);
+            ArgMax_forward_int8(nd);
             break;
         case TENSOR_TYPE_INT16:
-            ArgMax_int16(nd);
+            ArgMax_forward_int16(nd);
             break;
         case TENSOR_TYPE_INT32:
-            ArgMax_int32(nd);
+            ArgMax_forward_int32(nd);
             break;
         case TENSOR_TYPE_INT64:
-            ArgMax_int64(nd);
+            ArgMax_forward_int64(nd);
             break;
         case TENSOR_TYPE_UINT8:
-            ArgMax_uint8(nd);
+            ArgMax_forward_uint8(nd);
             break;
         case TENSOR_TYPE_UINT16:
-            ArgMax_uint16(nd);
+            ArgMax_forward_uint16(nd);
             break;
         case TENSOR_TYPE_UINT32:
-            ArgMax_uint32(nd);
+            ArgMax_forward_uint32(nd);
             break;
         case TENSOR_TYPE_UINT64:
-            ArgMax_uint64(nd);
+            ArgMax_forward_uint64(nd);
             break;
         case TENSOR_TYPE_BFLOAT16:
-            ArgMax_bfloat16(nd);
+            ArgMax_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            ArgMax_float16(nd);
+            ArgMax_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            ArgMax_float32(nd);
+            ArgMax_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            ArgMax_float64(nd);
+            ArgMax_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. ArgMax exit
+}
+
+void ArgMax_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_ArgMax_dft(node_t *nd) {
+    // 1. ArgMax init
+    ArgMax_init(nd);
+    // 2. ArgMax reshape
+    ArgMax_reshape(nd);
+    // 3. ArgMax run
+    ArgMax_forward(nd);
+    // 4. ArgMax exit
+    ArgMax_exit(nd);
 }

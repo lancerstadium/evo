@@ -149,7 +149,7 @@ void Abs_reshape(node_t *nd) {
     tensor_reshape_ident(y, x, x->type);
 }
 
-void Abs_run(node_t *nd) {
+void Abs_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     // 3. Abs run
     switch (nd->in[0]->type) {
@@ -180,7 +180,7 @@ void op_Abs_dft(node_t *nd) {
     // 2. Abs reshape
     Abs_reshape(nd);
     // 3. Abs run
-    Abs_run(nd);
+    Abs_forward(nd);
     // 4. Abs exit
     Abs_exit(nd);
 }

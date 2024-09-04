@@ -286,8 +286,9 @@ tensor_t * tensor_argmax(tensor_t* ts, int axis, int keepdims, int select_last_i
     return nd->out[0];
 }
 
+/** TODO: upsample */
 tensor_t * tensor_resize(tensor_t* ts, int rz_w, int rz_h) {
-    if(!ts) return ts;
+    return ts;
 }
 
 tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {

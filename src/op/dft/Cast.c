@@ -1,14 +1,14 @@
-#include <string.h>
-
 #include <evo/resolver.h>
 #include <evo/util/math.h>
 #include <evo/util/log.h>
+
+#include <string.h>
 
 typedef struct {
     tensor_type_t to;
 } operator_pdata_t;
 
-static void Cast_bool(node_t *nd) {
+static void Cast_forward_bool(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -96,7 +96,7 @@ static void Cast_bool(node_t *nd) {
     }
 }
 
-static void Cast_int8(node_t *nd) {
+static void Cast_forward_int8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -184,7 +184,7 @@ static void Cast_int8(node_t *nd) {
     }
 }
 
-static void Cast_int16(node_t *nd) {
+static void Cast_forward_int16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -272,7 +272,7 @@ static void Cast_int16(node_t *nd) {
     }
 }
 
-static void Cast_int32(node_t *nd) {
+static void Cast_forward_int32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -360,7 +360,7 @@ static void Cast_int32(node_t *nd) {
     }
 }
 
-static void Cast_int64(node_t *nd) {
+static void Cast_forward_int64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -448,7 +448,7 @@ static void Cast_int64(node_t *nd) {
     }
 }
 
-static void Cast_uint8(node_t *nd) {
+static void Cast_forward_uint8(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -536,7 +536,7 @@ static void Cast_uint8(node_t *nd) {
     }
 }
 
-static void Cast_uint16(node_t *nd) {
+static void Cast_forward_uint16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -624,7 +624,7 @@ static void Cast_uint16(node_t *nd) {
     }
 }
 
-static void Cast_uint32(node_t *nd) {
+static void Cast_forward_uint32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -712,7 +712,7 @@ static void Cast_uint32(node_t *nd) {
     }
 }
 
-static void Cast_uint64(node_t *nd) {
+static void Cast_forward_uint64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -800,7 +800,7 @@ static void Cast_uint64(node_t *nd) {
     }
 }
 
-static void Cast_bfloat16(node_t *nd) {
+static void Cast_forward_bfloat16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -888,7 +888,7 @@ static void Cast_bfloat16(node_t *nd) {
     }
 }
 
-static void Cast_float16(node_t *nd) {
+static void Cast_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -976,7 +976,7 @@ static void Cast_float16(node_t *nd) {
     }
 }
 
-static void Cast_float32(node_t *nd) {
+static void Cast_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -1063,7 +1063,7 @@ static void Cast_float32(node_t *nd) {
     }
 }
 
-static void Cast_float64(node_t *nd) {
+static void Cast_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -1151,7 +1151,7 @@ static void Cast_float64(node_t *nd) {
     }
 }
 
-static void Cast_string(node_t *nd) {
+static void Cast_forward_string(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -1237,8 +1237,7 @@ static void Cast_string(node_t *nd) {
     }
 }
 
-void op_Cast_dft(node_t *nd) {
-    // 1. Cast init
+void Cast_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -1252,61 +1251,82 @@ void op_Cast_dft(node_t *nd) {
         pdat->to = (tensor_type_t)node_get_attr_int(nd, "to", nd->in[0]->type);
         nd->priv = pdat;
     }
-    // 2. Cast reshape
+}
+
+void Cast_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, pdat->to);
-    
-    // 3. Cast run
+}
+
+void Cast_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BOOL:
-            Cast_bool(nd);
+            Cast_forward_bool(nd);
             break;
         case TENSOR_TYPE_INT8:
-            Cast_int8(nd);
+            Cast_forward_int8(nd);
             break;
         case TENSOR_TYPE_INT16:
-            Cast_int16(nd);
+            Cast_forward_int16(nd);
             break;
         case TENSOR_TYPE_INT32:
-            Cast_int32(nd);
+            Cast_forward_int32(nd);
             break;
         case TENSOR_TYPE_INT64:
-            Cast_int64(nd);
+            Cast_forward_int64(nd);
             break;
         case TENSOR_TYPE_UINT8:
-            Cast_uint8(nd);
+            Cast_forward_uint8(nd);
             break;
         case TENSOR_TYPE_UINT16:
-            Cast_uint16(nd);
+            Cast_forward_uint16(nd);
             break;
         case TENSOR_TYPE_UINT32:
-            Cast_uint32(nd);
+            Cast_forward_uint32(nd);
             break;
         case TENSOR_TYPE_UINT64:
-            Cast_uint64(nd);
+            Cast_forward_uint64(nd);
             break;
         case TENSOR_TYPE_BFLOAT16:
-            Cast_bfloat16(nd);
+            Cast_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            Cast_float16(nd);
+            Cast_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Cast_float32(nd);
+            Cast_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Cast_float64(nd);
+            Cast_forward_float64(nd);
             break;
         case TENSOR_TYPE_STRING:
-            Cast_string(nd);
+            Cast_forward_string(nd);
             break;
         default:
             break;
     }
-    // 4. Cast exit
+}
+
+void Cast_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_Cast_dft(node_t *nd) {
+    // 1. Cast init
+    Cast_init(nd);
+    // 2. Cast reshape
+    Cast_reshape(nd);
+    // 3. Cast forward
+    Cast_forward(nd);
+    // 4. Cast exit
+    Cast_exit(nd);
 }

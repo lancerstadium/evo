@@ -8,7 +8,55 @@ typedef struct {
     int caxis;
 } operator_pdata_t;
 
-static void Concat_operator(node_t *nd) {
+
+void Concat_init(node_t *nd) {
+    if (!nd || !nd->in) {
+        return;
+    }
+    if (!(nd->nin >= 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
+    if (pdat) {
+        pdat->axis = node_get_attr_int(nd, "axis", 1);
+        nd->priv = pdat;
+    }
+}
+
+void Concat_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t *x = nd->in[0];
+    tensor_t *y = nd->out[0];
+    int ndim = x->ndim;
+    int dims[ndim];
+    int *pdims;
+    int i, j, s;
+    pdat->caxis = pdat->axis;
+    if (pdat->caxis < 0)
+        pdat->caxis += ndim;
+    if (pdat->caxis < 0 || pdat->caxis >= ndim)
+        return;
+    s = x->dims[pdat->caxis];
+    for (i = 1; i < nd->nin; i++) {
+        pdims = nd->in[i]->dims;
+        for (j = 0; j < ndim; j++) {
+            if (j == pdat->caxis)
+                s += pdims[j];
+            else if (x->dims[j] != pdims[j])
+                return;
+            dims[j] = pdims[j];
+        }
+    }
+    dims[pdat->caxis] = s;
+    y->type = x->type;
+    tensor_reshape(y, ndim, dims);
+}
+
+void Concat_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     tensor_t *x;
@@ -63,52 +111,23 @@ static void Concat_operator(node_t *nd) {
     }
 }
 
-void op_Concat_dft(node_t *nd) {
-    // 1. Concat init
-    if (!nd || !nd->in) {
-        return;
-    }
-    if (!(nd->nin >= 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
-    operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
-    if (pdat) {
-        pdat->axis = node_get_attr_int(nd, "axis", 1);
-        nd->priv = pdat;
-    }
-    // 2. Concat reshape
-    tensor_t *x = nd->in[0];
-    tensor_t *y = nd->out[0];
-    int ndim = x->ndim;
-    int dims[ndim];
-    int *pdims;
-    int i, j, s;
-    pdat->caxis = pdat->axis;
-    if (pdat->caxis < 0)
-        pdat->caxis += ndim;
-    if (pdat->caxis < 0 || pdat->caxis >= ndim)
-        return;
-    s = x->dims[pdat->caxis];
-    for (i = 1; i < nd->nin; i++) {
-        pdims = nd->in[i]->dims;
-        for (j = 0; j < ndim; j++) {
-            if (j == pdat->caxis)
-                s += pdims[j];
-            else if (x->dims[j] != pdims[j])
-                return;
-            dims[j] = pdims[j];
-        }
-    }
-    dims[pdat->caxis] = s;
-    y->type = x->type;
-    tensor_reshape(y, ndim, dims);
-    // 3. Concat run
-    Concat_operator(nd);
-    // 4. Concat exit
+void Concat_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+
+void op_Concat_dft(node_t *nd) {
+    // 1. Concat init
+    Concat_init(nd);
+    // 2. Concat reshape
+    Concat_reshape(nd);
+    // 3. Concat run
+    Concat_forward(nd);
+    // 4. Concat exit
+    Concat_exit(nd);
 }

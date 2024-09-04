@@ -96,7 +96,7 @@ static inline void dgemm_float64(int n, int m, int o, double* A, double* B, doub
     }
 }
 
-static void Conv_float16(node_t *nd) {
+static void Conv_forward_float16(node_t *nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
@@ -328,7 +328,7 @@ static void Conv_float16(node_t *nd) {
     }
 }
 
-static void Conv_float32(node_t *nd) {
+static void Conv_forward_float32(node_t *nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
@@ -560,7 +560,7 @@ static void Conv_float32(node_t *nd) {
     }
 }
 
-static void Conv_float64(node_t *nd) {
+static void Conv_forward_float64(node_t *nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
@@ -792,8 +792,7 @@ static void Conv_float64(node_t *nd) {
     }
 }
 
-void op_Conv_dft(node_t* nd) {
-    // 1. Conv init
+void Conv_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -860,13 +859,18 @@ void op_Conv_dft(node_t* nd) {
         }
         nd->priv = pdat;
     }
-    // 2. Conv reshape
+}
+
+void Conv_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
     tensor_t* w = nd->in[1];
     int ndim = x->ndim;
     int dims[ndim];
     int pad;
+    int i;
     switch (pdat->auto_pad) {
         case AUTO_PAD_NOTSET:
             memcpy(pdat->cpads, pdat->pads, sizeof(int) * pdat->npad);
@@ -911,21 +915,28 @@ void op_Conv_dft(node_t* nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. Conv run
+}
+
+void Conv_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            Conv_float16(nd);
+            Conv_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Conv_float32(nd);
+            Conv_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Conv_float64(nd);
+            Conv_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. Conv exit
+}
+
+void Conv_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat) {
         if (pdat->kernels)
             free(pdat->kernels);
@@ -939,4 +950,15 @@ void op_Conv_dft(node_t* nd) {
     }
     nd->priv = NULL;
     return;
+}
+
+void op_Conv_dft(node_t* nd) {
+    // 1. Conv init
+    Conv_init(nd);
+    // 2. Conv reshape
+    Conv_reshape(nd);
+    // 3. Conv forward
+    Conv_forward(nd);
+    // 4. Conv exit
+    Conv_exit(nd);
 }

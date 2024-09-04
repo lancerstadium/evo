@@ -15,7 +15,6 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     // operater
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
     nd->op->type = op_ty;
-    nd->op->is_same_shape = 1;
     // attribute
     nd->attr_vec = vector_create();
 }

@@ -190,7 +190,7 @@ void Add_reshape(node_t *nd) {
     tensor_reshape_multi_broadcast(y, a, b, a->type);
 }
 
-void Add_run(node_t *nd) {
+void Add_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:
@@ -244,8 +244,8 @@ void op_Add_dft(node_t *nd) {
     Add_forward_init(nd);
     // 2. Add reshape
     Add_reshape(nd);
-    // 3. Add run
-    Add_run(nd);
+    // 3. Add forward
+    Add_forward(nd);
     // 4. Add exit
     Add_exit(nd);
 }

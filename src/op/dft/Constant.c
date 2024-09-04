@@ -1,9 +1,7 @@
+#include <evo/resolver.h>
 #include <string.h>
 
-#include <evo/resolver.h>
-
-void op_Constant_dft(node_t *nd) {
-    // 1. Constant init
+void Constant_init(node_t *nd) {
     if (!(nd->nout == 1) || !(vector_size(nd->attr_vec) == 1)) {
         return;
     }
@@ -49,9 +47,27 @@ void op_Constant_dft(node_t *nd) {
                 break;
         }
     }
+}
+
+void Constant_reshape(node_t *nd) {
+    if(!nd || !nd->out) return;
+}
+
+void Constant_forward(node_t *nd) {
+    if(!nd || !nd->out) return;
+}
+
+void Constant_exit(node_t *nd) {
+    if(!nd || !nd->out) return;
+}
+
+void op_Constant_dft(node_t *nd) {
+    // 1. Constant init
+    Constant_init(nd);
     // 2. Constant reshape
-    // 3. Constant run
-    
+    Constant_reshape(nd);
+    // 3. Constant forward
+    Constant_forward(nd);
     // 4. Constant exit
-    return;
+    Constant_exit(nd);
 }

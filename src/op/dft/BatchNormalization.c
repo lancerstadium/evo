@@ -7,7 +7,7 @@ typedef struct {
     float momentum;
 } operator_pdata_t;
 
-static void BatchNormalization_float16(node_t *nd) {
+static void BatchNormalization_forward_float16(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -37,7 +37,7 @@ static void BatchNormalization_float16(node_t *nd) {
     }
 }
 
-static void BatchNormalization_float32(node_t *nd) {
+static void BatchNormalization_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -67,7 +67,7 @@ static void BatchNormalization_float32(node_t *nd) {
     }
 }
 
-static void BatchNormalization_float64(node_t *nd) {
+static void BatchNormalization_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *scale = nd->in[1];
@@ -97,8 +97,7 @@ static void BatchNormalization_float64(node_t *nd) {
     }
 }
 
-void op_BatchNormalization_dft(node_t *nd) {
-    // 1. BatchNormalization init
+void BatchNormalization_init(node_t *nd) {
     if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
@@ -111,27 +110,48 @@ void op_BatchNormalization_dft(node_t *nd) {
         pdat->momentum = node_get_attr_float(nd, "momentum", 0.9);
         nd->priv = pdat;
     }
-    // 2. BatchNormalization reshape
+}
+
+void BatchNormalization_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
-    // 3. BatchNormalization run
+}
+
+void BatchNormalization_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            BatchNormalization_float16(nd);
+            BatchNormalization_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            BatchNormalization_float32(nd);
+            BatchNormalization_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            BatchNormalization_float64(nd);
+            BatchNormalization_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. BatchNormalization exit
+}
+
+void BatchNormalization_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_BatchNormalization_dft(node_t *nd) {
+    // 1. BatchNormalization init
+    BatchNormalization_init(nd);
+    // 2. BatchNormalization reshape
+    BatchNormalization_reshape(nd);
+    // 3. BatchNormalization run
+    BatchNormalization_forward(nd);
+    // 4. BatchNormalization exit
+    BatchNormalization_exit(nd);
 }

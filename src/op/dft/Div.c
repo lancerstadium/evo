@@ -1,7 +1,7 @@
 #include <evo/resolver.h>
 #include <evo/util/math.h>
 
-static void Div_int8(node_t* nd) {
+static void Div_forward_int8(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -16,7 +16,7 @@ static void Div_int8(node_t* nd) {
     }
 }
 
-static void Div_int16(node_t* nd) {
+static void Div_forward_int16(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -31,7 +31,7 @@ static void Div_int16(node_t* nd) {
     }
 }
 
-static void Div_int32(node_t* nd) {
+static void Div_forward_int32(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -46,7 +46,7 @@ static void Div_int32(node_t* nd) {
     }
 }
 
-static void Div_int64(node_t* nd) {
+static void Div_forward_int64(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -61,7 +61,7 @@ static void Div_int64(node_t* nd) {
     }
 }
 
-static void Div_uint8(node_t* nd) {
+static void Div_forward_uint8(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -76,7 +76,7 @@ static void Div_uint8(node_t* nd) {
     }
 }
 
-static void Div_uint16(node_t* nd) {
+static void Div_forward_uint16(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -91,7 +91,7 @@ static void Div_uint16(node_t* nd) {
     }
 }
 
-static void Div_uint32(node_t* nd) {
+static void Div_forward_uint32(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -106,7 +106,7 @@ static void Div_uint32(node_t* nd) {
     }
 }
 
-static void Div_uint64(node_t* nd) {
+static void Div_forward_uint64(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -121,7 +121,7 @@ static void Div_uint64(node_t* nd) {
     }
 }
 
-static void Div_float16(node_t* nd) {
+static void Div_forward_float16(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -136,7 +136,7 @@ static void Div_float16(node_t* nd) {
     }
 }
 
-static void Div_float32(node_t* nd) {
+static void Div_forward_float32(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -151,7 +151,7 @@ static void Div_float32(node_t* nd) {
     }
 }
 
-static void Div_float64(node_t* nd) {
+static void Div_forward_float64(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -166,7 +166,7 @@ static void Div_float64(node_t* nd) {
     }
 }
 
-static void Div_bfloat16(node_t* nd) {
+static void Div_forward_bfloat16(node_t* nd) {
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -181,8 +181,7 @@ static void Div_bfloat16(node_t* nd) {
     }
 }
 
-void op_Div_dft(node_t* nd) {
-    // 1. Div init
+void Div_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -191,52 +190,72 @@ void op_Div_dft(node_t* nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-    // 2. Div reshape
+}
+
+void Div_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
     tensor_reshape_multi_broadcast(y, a, b, a->type);
-    // 3. Div run
+}
+
+void Div_forward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:
-            Div_int8(nd);
+            Div_forward_int8(nd);
             break;
         case TENSOR_TYPE_INT16:
-            Div_int16(nd);
+            Div_forward_int16(nd);
             break;
         case TENSOR_TYPE_INT32:
-            Div_int32(nd);
+            Div_forward_int32(nd);
             break;
         case TENSOR_TYPE_INT64:
-            Div_int64(nd);
+            Div_forward_int64(nd);
             break;
         case TENSOR_TYPE_UINT8:
-            Div_uint8(nd);
+            Div_forward_uint8(nd);
             break;
         case TENSOR_TYPE_UINT16:
-            Div_uint16(nd);
+            Div_forward_uint16(nd);
             break;
         case TENSOR_TYPE_UINT32:
-            Div_uint32(nd);
+            Div_forward_uint32(nd);
             break;
         case TENSOR_TYPE_UINT64:
-            Div_uint64(nd);
+            Div_forward_uint64(nd);
             break;
         case TENSOR_TYPE_FLOAT16:
-            Div_float16(nd);
+            Div_forward_float16(nd);
             break;
         case TENSOR_TYPE_BFLOAT16:
-            Div_bfloat16(nd);
+            Div_forward_bfloat16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            Div_float32(nd);
+            Div_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            Div_float64(nd);
+            Div_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. Div exit
+}
+
+void Div_exit(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     return;
+}
+
+void op_Div_dft(node_t* nd) {
+    // 1. Div init
+    Div_init(nd);
+    // 2. Div reshape
+    Div_reshape(nd);
+    // 3. Div run
+    Div_forward(nd);
+    // 4. Div exit
+    Div_exit(nd);
 }

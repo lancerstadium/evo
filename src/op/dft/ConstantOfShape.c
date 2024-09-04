@@ -31,28 +31,7 @@ typedef struct {
     int size;
 } operator_pdata_t;
 
-static void ConstantOfShape_operator(node_t* nd) {
-    operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
-    tensor_t* x = nd->in[0];
-    tensor_t* y = nd->out[0];
-    char* p;
-    size_t i, l;
-
-    if (x->ndata > 0) {
-        int dims[x->ndata];
-        for (i = 0; i < x->ndata; i++)
-            dims[i] = ((int64_t*)x->datas)[i];
-        tensor_reinit(y, pdat->type, x->ndata, dims);
-        
-    } else {
-        tensor_reinit(y, pdat->type, 0, NULL);
-    }
-    for (i = 0, l = y->ndata, p = y->datas; i < l; i++, p += pdat->size)
-        memcpy(p, &pdat->scalar, pdat->size);
-}
-
-void op_ConstantOfShape_dft(node_t* nd) {
-    // 1. ConstantOfShape init
+void ConstantOfShape_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -134,12 +113,49 @@ void op_ConstantOfShape_dft(node_t* nd) {
         pdat->size = tensor_type_sizeof(pdat->type);
         nd->priv = pdat;
     }
-    // 2. ConstantOfShape reshape
-    // 3. ConstantOfShape run
-    ConstantOfShape_operator(nd);
-    // 4. ConstantOfShape exit
+}
+
+void ConstantOfShape_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+}
+
+void ConstantOfShape_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
+    tensor_t* x = nd->in[0];
+    tensor_t* y = nd->out[0];
+    char* p;
+    size_t i, l;
+
+    if (x->ndata > 0) {
+        int dims[x->ndata];
+        for (i = 0; i < x->ndata; i++)
+            dims[i] = ((int64_t*)x->datas)[i];
+        tensor_reinit(y, pdat->type, x->ndata, dims);
+        
+    } else {
+        tensor_reinit(y, pdat->type, 0, NULL);
+    }
+    for (i = 0, l = y->ndata, p = y->datas; i < l; i++, p += pdat->size)
+        memcpy(p, &pdat->scalar, pdat->size);
+}
+
+void ConstantOfShape_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     if (pdat)
         free(pdat);
     nd->priv = NULL;
     return;
+}
+
+void op_ConstantOfShape_dft(node_t* nd) {
+    // 1. ConstantOfShape init
+    ConstantOfShape_init(nd);
+    // 2. ConstantOfShape reshape
+    ConstantOfShape_reshape(nd);
+    // 3. ConstantOfShape forward
+    ConstantOfShape_forward(nd);
+    // 4. ConstantOfShape exit
+    ConstantOfShape_exit(nd);
 }

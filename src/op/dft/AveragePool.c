@@ -50,7 +50,7 @@ static inline int dim_offset(int ndim, int* dims, int* dim_max) {
     return o;
 }
 
-static void AveragePool_float16(node_t* nd) {
+static void AveragePool_forward_float16(node_t* nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
@@ -98,7 +98,7 @@ static void AveragePool_float16(node_t* nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void AveragePool_float32(node_t* nd) {
+static void AveragePool_forward_float32(node_t* nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
@@ -146,7 +146,7 @@ static void AveragePool_float32(node_t* nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-static void AveragePool_float64(node_t* nd) {
+static void AveragePool_forward_float64(node_t* nd) {
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
@@ -194,8 +194,8 @@ static void AveragePool_float64(node_t* nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
-void op_AveragePool_dft(node_t* nd) {
-    // 1. AveragePool init
+
+void AveragePool_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
@@ -254,12 +254,17 @@ void op_AveragePool_dft(node_t* nd) {
         }
         nd->priv = pdat;
     }
-    // 2. AveragePool reshape
+}
+
+void AveragePool_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
     int ndim = x->ndim;
     int dims[ndim];
     int pad;
+    int i;
     switch (pdat->auto_pad) {
         case AUTO_PAD_NOTSET:
             memcpy(pdat->cpads, pdat->pads, sizeof(int) * pdat->npad);
@@ -307,21 +312,29 @@ void op_AveragePool_dft(node_t* nd) {
     }
     y->type = x->type;
     tensor_reshape(y, ndim, dims);
-    // 3. AveragePool run
+}
+
+
+void AveragePool_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
-            AveragePool_float16(nd);
+            AveragePool_forward_float16(nd);
             break;
         case TENSOR_TYPE_FLOAT32:
-            AveragePool_float32(nd);
+            AveragePool_forward_float32(nd);
             break;
         case TENSOR_TYPE_FLOAT64:
-            AveragePool_float64(nd);
+            AveragePool_forward_float64(nd);
             break;
         default:
             break;
     }
-    // 4. AveragePool exit
+}
+
+void AveragePool_exit(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (pdat) {
         if (pdat->kernels)
             free(pdat->kernels);
@@ -333,4 +346,16 @@ void op_AveragePool_dft(node_t* nd) {
     }
     nd->priv = NULL;
     return;
+}
+
+
+void op_AveragePool_dft(node_t* nd) {
+    // 1. AveragePool init
+    AveragePool_init(nd);
+    // 2. AveragePool reshape
+    AveragePool_reshape(nd);
+    // 3. AveragePool forward
+    AveragePool_forward(nd);
+    // 4. AveragePool exit
+    AveragePool_exit(nd);
 }
