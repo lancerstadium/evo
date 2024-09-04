@@ -231,6 +231,7 @@ void graph_add_dense(graph_t *g, int units, const char* activation) {
     }
 }
 
+
 void graph_add_flatten(graph_t *g) {
     if(!g || g->ntensor == 0) return;
     tensor_t* last = g->tensors[g->ntensor - 1];
