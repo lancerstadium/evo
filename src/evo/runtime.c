@@ -4,7 +4,7 @@
 #include <string.h>
 
 runtime_t* runtime_new(const char* fmt) {
-    device_reg(EVO_DFT_DEV);
+    device_reg(EVO_DEVICE);
     runtime_t * rt = (runtime_t*)sys_malloc(sizeof(runtime_t));
     rt->dev_reg_vec = internal_context_info.dev_vec;
     rt->sez = serializer_new(fmt);
@@ -89,7 +89,7 @@ void runtime_free(runtime_t *rt) {
     if(rt->sez) serializer_free(rt->sez);
     sys_free(rt);
     rt = NULL;
-    device_unreg(EVO_DFT_DEV);
+    device_unreg(EVO_DEVICE);
 }
 
 

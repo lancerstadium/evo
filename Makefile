@@ -27,6 +27,15 @@ else ifeq ($(OS),Windows)
     PLATFORM = Windows
 endif
 
+DEVICE      ?=
+ifeq ($(DEVICE),npu)
+	DEVICE	:= npu
+else ifeq ($(DEVICE), gpu)
+	DEVICE	:= gpu
+else
+	DEVICE	:= cpu
+endif
+
 # File & Dependence
 LIBS		:= 
 LIBDIRS     := 
@@ -97,23 +106,26 @@ all : $(LIBTRG)
 
 config: $(CFGFILE)
 	@echo "[Config] >> \t\t\e[33;1m$(CFGFILE)\e[0m"
-	@echo "application: \t\t$(NAME)"
+	@echo "  - item:   \t\t$(NAME)"
 	@echo "/* Auto-generated config.h */" > $(CFGFILE)
 	@echo "#define EVO_VERSION \"$(VERSION)\"" >> $(CFGFILE)
-	@echo "version: \t\t$(VERSION)"
+	@echo "  - version: \t\t$(VERSION)"
 	@echo "#define EVO_PLATFORM \"$(PLATFORM)\"" >> $(CFGFILE)
-	@echo "platform: \t\t$(PLATFORM)"
+	@echo "  - platform: \t\t$(PLATFORM)"
+	@echo "#define EVO_DEVICE \"$(DEVICE)\"" >> $(CFGFILE)
+	@echo "  - device: \t\t$(DEVICE)"
+	@echo "[Option]"
 ifneq ($(GUI_ENB),)
 	@echo "#define EVO_GUI_ENB" >> $(CFGFILE)
-	@echo "gui(option): \t\t\e[32;1m$(GUI_DEP)\e[0m"
+	@echo "  - gui:    \t\t\e[32;1m$(GUI_DEP)\e[0m"
 else
-	@echo "gui(option): \t\t\e[31;1moff\e[0m"
+	@echo "  - gui:    \t\t\e[31;1moff\e[0m"
 endif
 ifneq ($(TRAIN_ENB),)
 	@echo "#define EVO_TRAIN_ENB" >> $(CFGFILE)
-	@echo "train(option): \t\t\e[32;1mon\e[0m"
+	@echo "  - train:  \t\t\e[32;1mon\e[0m"
 else
-	@echo "train(option): \t\t\e[31;1moff\e[0m"
+	@echo "  - train:  \t\t\e[31;1moff\e[0m"
 endif
 
 $(CFGFILE):

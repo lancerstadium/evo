@@ -7,9 +7,9 @@
 // ==================================================================================== //
 
 model_t* internal_model_init() {
-    device_t* dft_dev = internal_device_find_nowarn(EVO_DFT_DEV);
+    device_t* dft_dev = internal_device_find_nowarn(EVO_DEVICE);
     if(dft_dev == NULL) {
-        dft_dev = device_reg(EVO_DFT_DEV);
+        dft_dev = device_reg(EVO_DEVICE);
     }
     internal_context_info.mdl = malloc(sizeof(model_t));
     internal_context_info.mdl->name = "internal_context_info.mdl",
@@ -93,7 +93,7 @@ device_t* internal_device_get(int idx) {
     }
 }
 device_t* internal_device_get_default() {
-    return internal_device_find(EVO_DFT_DEV);
+    return internal_device_find(EVO_DEVICE);
 }
 
 void internal_device_release() {

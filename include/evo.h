@@ -46,7 +46,6 @@ extern "C" {
 #define EVO_UNUSED
 #endif  // __GNUC__ || __clang__
 
-#define EVO_DFT_DEV         "cpu"
 #define EVO_DIM_MAX         8
 #define EVO_ALIGN_SIZE      16
 
