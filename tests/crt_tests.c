@@ -135,10 +135,10 @@ UnitTest_fn_def(test_model_create) {
                 uint8_t y = label->bs[b];
                 tensor_t* y_ts = model_eval(mdl, x);
                 tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
-                // tensor_t* sss = model_get_tensor(mdl, "Gemm3_kernel");
-                // tensor_dump2(sss);
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
+            tensor_t* sss = model_get_tensor(mdl, "Flatten0_out0");
+            tensor_dump2(sss);
             train_error -= (acc_cnt / num_batchs);
             printf("[%4d] Training: %.2f%%, Test: %.2f%%\n", epoch, train_error * 100, test_error * 100);
         }

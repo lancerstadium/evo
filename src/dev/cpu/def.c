@@ -60,10 +60,9 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         nd->op->init(nd);                           // --- Init Operator
         nd->op->reshape(nd);                        // --- Reshape Operator
         time_st = sys_time();                       // --- Clock up
+        nd->op->forward(nd);                        // --- Forward Operator
         if(g->mode == 1 && nd->op->backward) {
             nd->op->backward(nd);                   // --- Backward Operator
-        } else if(nd->op->forward) {
-            nd->op->forward(nd);                    // --- Forward Operator
         }
         time_ed = sys_time();                       // --- Clock down
         nd->op->exit(nd);                           // --- Exit Operator
@@ -103,10 +102,9 @@ static int cpu_run(device_t *dev, graph_t *g) {
         nd->op->init(nd);                           // --- Init Operator
         nd->op->reshape(nd);                        // --- Reshape Operator
         time_st = sys_time();                       // --- Clock up
+        nd->op->forward(nd);                        // --- Forward Operator
         if(g->mode == 1 && nd->op->backward) {
             nd->op->backward(nd);                   // --- Backward Operator
-        } else if(nd->op->forward) {
-            nd->op->forward(nd);                    // --- Forward Operator
         }
         time_ed = sys_time();                       // --- Clock down
         nd->op->exit(nd);                           // --- Exit Operator
