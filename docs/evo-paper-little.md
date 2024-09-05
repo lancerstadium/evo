@@ -69,8 +69,9 @@ Evo is a Dynamic-Aware engine which use for Edge Inference...
 
 在资源受限的设备上推理部署时，也存在一些挑战：
 1. 大多数深度神经网络的研究都集中在提高准确性上，而不考虑模型的复杂性。随着社区转向更困难的问题——例如从分类到检测或姿态估计——架构的容量和计算复杂性往往会增加。然而，对于在手机、笔记本电脑或监控摄像头等消费设备上运行的实时应用程序来说，最重要的是性能（即每秒处理的帧数）和准确性之间的良好权衡。
-2. 主流的静态优化技术，如剪枝、近似计算和量化，虽然可以实现推理工作负载的本地执行，但它们可能会永久损害神经网络的预测能力。于是，如何不修改原本的模型进行高效推理成为一项重要议题。在运行时内通过动态决策，还可以搭配静态优化技术使用，以达到最大化优化。
-3. 更实际的，部署程序通常需要对输入数据（图像、语音、文本等数据）进行前处理和后处理，这些数据处理库通常比较功能复杂且占用资源较多，不适用于嵌入式部署。
+2. 主流的静态优化技术，如剪枝、近似计算和量化，虽然可以实现推理工作负载的本地执行，但它们可能会永久损害神经网络的预测能力，，且对于 MobileNet, SqueezeNet, ShuffleNet 这类针对嵌入式平台设计的 BackBone 效果甚微。于是，如何不修改原本的模型进行高效推理成为一项重要议题。在运行时内通过动态决策，还可以搭配静态优化技术使用，以达到最大化优化。
+3. 大部分推理数据常常存在局部性与稀疏性，现有的引擎无法针对不同的输入数据选择不同的处理方式，以改善推理性能，进一步地，；
+4. 更实际的，部署程序通常需要对输入数据（图像、语音、文本等数据）进行前处理和后处理，这些数据处理库通常比较功能复杂且占用资源较多，不适用于嵌入式部署。
 
 本文的主要贡献如下：
 
@@ -209,7 +210,7 @@ $$
 1. 吞吐量（）
 2. 内存占用（）
 3. 每秒浮点计算次数（GFLOPS）
-4. 推理时间（FPS）
+4. 推理速度（FPS）
 
 ---
 ## 5 结论 Conclusion
@@ -222,13 +223,14 @@ $$
 ## 参考文献 References
 
 > 动态推理优化相关文献：
-> 1. 2019 DYNAMIC RUNTIME FEATURE MAP PRUNING
+> 1. [Dynamic runtime feature map pruning](https://arxiv.org/pdf/1812.09922)
 > 2. Adapting Neural Networks at Runtime: Current Trends in At-Runtime Optimizations for Deep Learning
-> 3. FalCon: Fine-grained Feature Map Sparsity Computing with Decomposed Convolutions for Inference Optimization
-> 4. Fully Dynamic Inference with Deep Neural Networks
-> 5. Spatially Adaptive Computation Time for Residual Networks
-> 6. Convolutional Networks with Adaptive Inference Graphs：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
-> 7. A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution
+> 3. [FalCon: Fine-grained Feature Map Sparsity Computing with Decomposed Convolutions for Inference Optimization](https://openaccess.thecvf.com/content/WACV2022/papers/Xu_FalCon_Fine-Grained_Feature_Map_Sparsity_Computing_With_Decomposed_Convolutions_for_WACV_2022_paper.pdf)
+> 4. [Fully Dynamic Inference with Deep Neural Networks](https://arxiv.org/pdf/2007.15151)
+> 5. [Spatially Adaptive Computation Time for Residual Networks](https://openaccess.thecvf.com/content_cvpr_2017/papers/Figurnov_Spatially_Adaptive_Computation_CVPR_2017_paper.pdf) sact 残差网络的
+> 6. [Convolutional Networks with Adaptive Inference Graphs](https://openaccess.thecvf.com/content_ECCV_2018/papers/Andreas_Veit_Convolutional_Networks_with_ECCV_2018_paper.pdf)：残差网络的空间自适应计算时间 ResNet 自适应地确定在哪一层之后停止计算。
+> 7. [A Heterogeneous Dynamic Convolutional Neural Network for Image Super-resolution](https://arxiv.org/pdf/2402.15704) 超分的看不太懂
+> 8. [SkipNet: Learning Dynamic Routing in Convolutional Networks](https://arxiv.org/pdf/1711.09485)
 
 > 前向训练参考文献：
 > 1. The Forward-Forward Algorithm: Some Preliminary Investigations
