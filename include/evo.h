@@ -168,6 +168,7 @@ struct tensor {
     void* datas;                                        /* Tensor data addr             */
     size_t ndata;                                       /* Tensor data size             */
     int16_t pnode;                                      /* Tensor parent node index     */
+    struct tensor* grad;                                /* */
 
     uint8_t is_constant : 1;                            /* Tensor is constant           */
     uint8_t is_iallocated: 1;                           /* Tensor is iallocated         */

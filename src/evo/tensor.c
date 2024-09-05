@@ -86,6 +86,8 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->ndim = 0;
     // data
     ts->datas = NULL;
+    // grad
+    ts->grad = NULL;
 }
 
 tensor_t *tensor_new(const char *name, tensor_type_t type) {
