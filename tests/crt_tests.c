@@ -143,7 +143,6 @@ UnitTest_fn_def(test_model_create) {
             printf("[%4d] Training: %.2f%%, Test: %.2f%%\n", epoch, train_error * 100, test_error * 100);
         }
     }
-
     return NULL;
 }
 
