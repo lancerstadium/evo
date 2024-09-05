@@ -137,7 +137,6 @@ image_t* image_load_mnist(const char* image_filename, const char* label_filename
     sprintf(key, "label");
     attribute_t* attr = attribute_bytes(key, lbl_data, num_labels);
     vector_add(&(image->attr_vec), attr);
-    free(lbl_data);
 
     return image;
 }

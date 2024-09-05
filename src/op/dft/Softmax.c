@@ -236,6 +236,55 @@ static void Softmax_forward_v1_11_float64(node_t *nd) {
     }
 }
 
+static void Softmax_backward_v13_float32(node_t *nd) {
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t *x = nd->in[0];        // 输入
+    tensor_t *y = nd->out[0];       // Softmax 正向传播的输出
+    if(!nd->out[0]->grad) return;
+    if(!nd->in[0]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", op_name(nd->type));
+        nd->in[0]->grad = tensor_new(name_buf, y->type);
+        tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
+    }
+    tensor_t *dy = nd->out[0]->grad; // 从上层传递过来的梯度（dL/dY）
+    tensor_t *dx = nd->in[0]->grad;  // 需要计算的梯度（dL/dX）
+    
+    // float *px = (float *)x->datas;
+    float *py = (float *)y->datas;
+    float *pdy = (float *)dy->datas;
+    float *pdx = (float *)dx->datas;
+
+    int i, j, k, o, oo, io;
+
+    // 计算 Softmax 的反向传播梯度
+    for (i = 0; i < pdat->outter; i++) {
+        oo = i * pdat->current * pdat->inner;
+        for (k = 0; k < pdat->inner; k++) {
+            io = oo + k;
+
+            // 计算 dx 的梯度
+            for (j = 0; j < pdat->current; j++) {
+                o = io + j * pdat->inner;
+                // 计算 Softmax 反向传播的梯度
+                float grad = 0;
+                for (int m = 0; m < pdat->current; m++) {
+                    int om = io + m * pdat->inner;
+                    if (j == m) {
+                        // 对角元素
+                        grad += pdy[om] * py[o] * (1.0f - py[o]);
+                    } else {
+                        // 非对角元素
+                        grad -= pdy[om] * py[o] * py[om];
+                    }
+                }
+                pdx[o] = grad;  // 将梯度写入 dx
+            }
+        }
+    }
+}
+
+
 
 void Softmax_init(node_t *nd) {
     if (!nd || !nd->in) {
@@ -329,6 +378,42 @@ void Softmax_forward(node_t *nd) {
     }
 }
 
+void Softmax_backward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if (nd->opset >= 13) {
+        switch (nd->in[0]->type) {
+            case TENSOR_TYPE_BFLOAT16:
+                // Softmax_backward_v13_bfloat16(nd);
+                break;
+            case TENSOR_TYPE_FLOAT16:
+                // Softmax_backward_v13_float16(nd);
+                break;
+            case TENSOR_TYPE_FLOAT32:
+                Softmax_backward_v13_float32(nd);
+                break;
+            case TENSOR_TYPE_FLOAT64:
+                // Softmax_backward_v13_float64(nd);
+                break;
+            default:
+                break;
+        }
+    } else {
+        switch (nd->in[0]->type) {
+            case TENSOR_TYPE_FLOAT16:
+                // Softmax_backward_v1_11_float16(nd);
+                break;
+            case TENSOR_TYPE_FLOAT32:
+                // Softmax_backward_v1_11_float32(nd);
+                break;
+            case TENSOR_TYPE_FLOAT64:
+                // Softmax_backward_v1_11_float64(nd);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 void Softmax_exit(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -343,6 +428,6 @@ void op_Softmax_dft(node_t *nd) {
     nd->op->init        = Softmax_init;
     nd->op->reshape     = Softmax_reshape;
     nd->op->forward     = Softmax_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = Softmax_backward;
     nd->op->exit        = Softmax_exit;
 }

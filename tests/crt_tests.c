@@ -62,22 +62,6 @@ float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
     return logf(1 + expf(-alpha * Delta));
 }
 
-void update_parameters(node_t* layer, float loss, float learning_rate) {
-    // 获取权重和偏置的tensor
-    tensor_t* weights = layer->in[1];
-    tensor_t* bias = layer->in[2];
-    float* w_d = weights->datas;
-    float* b_d = bias->datas;
-    
-    // 假设权重和偏置都是1D数组，按元素更新它们
-    for (int i = 0; i < weights->ndata; i++) {
-        w_d[i] -= learning_rate * loss;  // 使用损失直接调整权重
-    }
-    for (int i = 0; i < bias->ndata; i++) {
-        b_d[i] -= learning_rate * loss;  // 使用损失直接调整偏置
-    }
-}
-
 /**
  *  ** Mnist Model ** :
  *      - Flatten           : [1,1,28,28] ->     [1,784]
@@ -95,7 +79,7 @@ void update_parameters(node_t* layer, float loss, float learning_rate) {
 model_t* mnist_model() {
     model_t* mdl = model_new("mnist_model");
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
-    graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
+    // graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
     graph_add_flatten(mdl->graph);
     graph_add_dense(mdl->graph, 500, "relu");
     graph_add_dense(mdl->graph, 10, "softmax");
@@ -114,63 +98,50 @@ UnitTest_fn_def(test_model_create) {
     } else {
         fprintf(stderr, "Load Mnist Success!\n");
     }
+    attribute_t* label = image_get_attr(imgs, "label");
 
     // Model
     model_t* mdl = mnist_model();
     graph_dump(mdl->graph);
     model_show_tensors(mdl);
-    
+
     // Train
     tensor_t *x_tmp, *x;
-    attribute_t* label = image_get_attr(imgs, "label");
-    int num_epochs = 600;
-    int num_batchs = 4096;
+    
+    int num_epochs = 8;
+    int num_batchs = 20;
     int learning_rate = 0.1;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
-        for (int batch = 0; batch < num_batchs; batch++) {
-            x_tmp = image_get_raw(imgs, batch);
+        for (int b = 0; b < num_batchs; b++) {
+            x_tmp = image_get_raw(imgs, b);
             x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
-            uint8_t y = label->bs[batch];
-            // // Positive and negative examples
-            // tensor_t* x_pos = make_examples(mdl, x, y, 1);  // 正样本
-            // tensor_t* x_neg = make_examples(mdl, x, y, 0);  // 负样本
-
-            // Train layers in turn
-            for (int layer_idx = 0; layer_idx < mdl->graph->nnode; layer_idx++) {
-                // node_t* layer = mdl->graph->nodes;
-                // tensor_t* h_pos = node_fotward(layer, x_pos);
-                // tensor_t* h_neg = node_forward(layer, x_neg);
-
-                // // 计算损失
-                // float loss = hinton_loss(h_pos, h_neg, 2.0, 1.0);
-                
-                // 参数更新（不使用反向传播）
-                // update_parameters(layer, loss, learning_rate);
-                
-                // 更新正样本和负样本
-                // x_pos = node_forward(layer, x_pos);
-                // x_neg = node_forward(layer, x_neg);
-            }
+            uint8_t y = label->bs[b];
+            model_set_tensor(mdl, "Input0", x);
+            model_train_label(mdl, y);
         }
 
         // Evaluate the model on the training and test set
-        if (epoch % 5 == 0) {
-            float train_error = 0.0;
-            float test_error = 0.0;
+        if (epoch % 2 == 0) {
+            float train_error = 1.0;
+            float test_error = 1.0;
+            int acc_cnt = 0;
+            for(int b = 0; b < num_batchs; b++) {
+                x_tmp = image_get_raw(imgs, b);
+                x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
+                // image_dump_raw(imgs, b);
+                // fprintf(stderr, "%u\n", label->bs[b]);
+                uint8_t y = label->bs[b];
+                tensor_t* y_ts = model_eval(mdl, x);
+                tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
+                // tensor_t* sss = model_get_tensor(mdl, "Gemm3_kernel");
+                // tensor_dump2(sss);
+                acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
+            }
+            train_error -= (acc_cnt / num_batchs);
             printf("[%4d] Training: %.2f%%, Test: %.2f%%\n", epoch, train_error * 100, test_error * 100);
         }
-    }
-
-    // Inference
-    tensor_t * in = model_get_tensor(mdl, "Input0");
-    for(int i = 0; i < 10; i++) {
-        x_tmp = image_get_raw(imgs, i);
-        x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
-        uint8_t y = label->bs[i];
-        tensor_copy(in, x);
-        model_run(mdl, false);
     }
 
     return NULL;

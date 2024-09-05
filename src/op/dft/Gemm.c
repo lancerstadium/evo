@@ -760,6 +760,137 @@ static void Gemm_forward_float32(node_t *nd) {
     }
 }
 
+static void Gemm_backward_float32(node_t *nd) {
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    if(!nd->out[0]->grad) return;
+    tensor_t *a = nd->in[0];            // Input tensor a
+    tensor_t *b = nd->in[1];            // Input tensor b
+    tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // Input bias c, if present
+    tensor_t *y = nd->out[0];           // Output tensor y
+    tensor_t *dy = nd->out[0]->grad;    // Output gradient (dL/dY)
+
+    char name_buf[54];
+    // Reshape and initialize gradient tensors if necessary
+    // Initialize bias gradient to zero
+    if (!nd->in[0]->grad) {
+        sprintf(name_buf, "%s_grad", a->name);
+        nd->in[0]->grad = tensor_new(name_buf, y->type);
+        tensor_reshape(nd->in[0]->grad, a->ndim, a->dims);
+    }
+    if (!nd->in[1]->grad) {
+        sprintf(name_buf, "%s_grad", b->name);
+        nd->in[1]->grad = tensor_new(name_buf, y->type);
+        tensor_reshape(nd->in[1]->grad, b->ndim, b->dims);
+    }
+    if ((nd->nin > 2) && !nd->in[2]->grad) {
+        sprintf(name_buf, "%s_grad", c->name);
+        nd->in[2]->grad = tensor_new(name_buf, y->type);
+        tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
+    }
+
+    tensor_t *da = nd->in[0]->grad;  // Gradient w.r.t. 'a'
+    tensor_t *db = nd->in[1]->grad;  // Gradient w.r.t. 'b'
+    tensor_t *dc = nd->in[2]->grad;  // Gradient w.r.t. 'c', if present
+
+    float *pdy = (float *)dy->datas;  // Gradient with respect to the output
+    float *pa = (float *)a->datas;    // Input a
+    float *pb = (float *)b->datas;    // Input b
+    float *pda = (float *)da->datas;  // Gradient w.r.t. 'a'
+    float *pdb = (float *)db->datas;  // Gradient w.r.t. 'b'
+    float *pdc = (dc) ? (float *)dc->datas : NULL;  // Gradient w.r.t. 'c'
+
+    int oa = 0, ob = 0, oy = 0;
+    int i, j, k;
+
+    if (pdat->transA && pdat->transB) {
+        for (i = 0; i < pdat->m; i++) {
+            for (j = 0; j < pdat->n; j++) {
+                float dLdy = pdy[oy];
+                for (k = 0; k < pdat->k; k++) {
+                    pda[oa] += dLdy * pb[ob];
+                    pdb[ob] += dLdy * pa[oa];
+                    oa += pdat->m;
+                    ob += 1;
+                }
+                oa -= pdat->m * pdat->k;
+                ob -= pdat->k;
+                if (pdc) {
+                    pdc[oy] += dLdy;  // Update bias gradient
+                }
+                oy++;
+                ob += pdat->k;
+            }
+            ob -= pdat->n * pdat->k;
+            oa++;
+        }
+    } else if (pdat->transA) {
+        for (i = 0; i < pdat->m; i++) {
+            for (j = 0; j < pdat->n; j++) {
+                float dLdy = pdy[oy];
+                for (k = 0; k < pdat->k; k++) {
+                    pda[oa] += dLdy * pb[ob];
+                    pdb[ob] += dLdy * pa[oa];
+                    oa += pdat->m;
+                    ob += pdat->n;
+                }
+                oa -= pdat->m * pdat->k;
+                ob -= pdat->n * pdat->k;
+                if (pdc) {
+                    pdc[oy] += dLdy;
+                }
+                oy++;
+                ob++;
+            }
+            ob -= pdat->n;
+            oa++;
+        }
+    } else if (pdat->transB) {
+        for (i = 0; i < pdat->m; i++) {
+            for (j = 0; j < pdat->n; j++) {
+                float dLdy = pdy[oy];
+                for (k = 0; k < pdat->k; k++) {
+                    pda[oa] += dLdy * pb[ob];
+                    pdb[ob] += dLdy * pa[oa];
+                    oa += 1;
+                    ob += 1;
+                }
+                oa -= pdat->k;
+                ob -= pdat->k;
+                if (pdc) {
+                    pdc[oy] += dLdy;
+                }
+                oy++;
+                ob += pdat->k;
+            }
+            ob -= pdat->n * pdat->k;
+            oa += pdat->k;
+        }
+    } else {
+        for (i = 0; i < pdat->m; i++) {
+            for (j = 0; j < pdat->n; j++) {
+                float dLdy = pdy[oy];
+                for (k = 0; k < pdat->k; k++) {
+                    pda[oa] += dLdy * pb[ob];
+                    pdb[ob] += dLdy * pa[oa];
+                    oa += 1;
+                    ob += pdat->n;
+                }
+                oa -= pdat->k;
+                ob -= pdat->n * pdat->k;
+                if (pdc) {
+                    pdc[oy] += dLdy;
+                }
+                oy++;
+                ob++;
+            }
+            ob -= pdat->n;
+            oa += pdat->k;
+        }
+    }
+}
+
+
+
 static void Gemm_forward_float64(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
@@ -953,6 +1084,38 @@ void Gemm_forward(node_t *nd) {
     }
 }
 
+void Gemm_backward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    switch (nd->in[0]->type) {
+        case TENSOR_TYPE_INT32:
+            // Gemm_backward_int32(nd);
+            break;
+        case TENSOR_TYPE_INT64:
+            // Gemm_backward_int64(nd);
+            break;
+        case TENSOR_TYPE_UINT32:
+            // Gemm_backward_uint32(nd);
+            break;
+        case TENSOR_TYPE_UINT64:
+            // Gemm_backward_uint64(nd);
+            break;
+        case TENSOR_TYPE_BFLOAT16:
+            // Gemm_backward_bfloat16(nd);
+            break;
+        case TENSOR_TYPE_FLOAT16:
+            // Gemm_backward_float16(nd);
+            break;
+        case TENSOR_TYPE_FLOAT32:
+            Gemm_backward_float32(nd);
+            break;
+        case TENSOR_TYPE_FLOAT64:
+            // Gemm_backward_float64(nd);
+            break;
+        default:
+            break;
+    }
+}
+
 void Gemm_exit(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -967,6 +1130,6 @@ void op_Gemm_dft(node_t *nd) {
     nd->op->init        = Gemm_init;
     nd->op->reshape     = Gemm_reshape;
     nd->op->forward     = Gemm_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = Gemm_backward;
     nd->op->exit        = Gemm_exit;
 }

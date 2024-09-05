@@ -12,11 +12,11 @@ UnitTest_fn_def(test_read_mnist) {
         printf("Image type: %d\n", img->type);
         printf("Image dimensions: %d x %d x %d x %d\n", img->raw->dims[0], img->raw->dims[1], img->raw->dims[2], img->raw->dims[3]);
 
-        attribute_t* attr = image_get_attr(img, "label");
-        image_t* new_img = image_get_batch(img, 3, (int[]){1, 4, 7});
-        // image_dump_raw(new_img, 0);
-        // image_save(new_img, "1.png");
-        tensor_dump(img->raw);
+        attribute_t* label = image_get_attr(img, "label");
+        int idxs[] = {1, 4, 7};
+        image_t* new_img = image_get_batch(img, sizeof(idxs)/sizeof(int), idxs);
+        image_dump_raw(new_img, 1);
+        fprintf(stderr, "label: %u\n", label->bs[4]);
         image_free(img);
     } else {
         fprintf(stderr, "Failed to read img\n");

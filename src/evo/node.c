@@ -13,6 +13,7 @@ static void node_init(node_t* nd, op_type_t op_ty, int nd_idx) {
     nd->name = NULL;
     nd->priv = NULL;
     // operater
+    nd->opset = 13;
     nd->op = (op_t*)sys_malloc(sizeof(op_t));
     nd->op->type = op_ty;
     nd->op->bind = NULL;
@@ -30,7 +31,6 @@ node_t * node_temp(const char* name, op_type_t op_ty) {
         return NULL;
     }
     node_init(nd, op_ty, 0);
-    nd->opset = 0;
     nd->graph = NULL;
     nd->mdl = NULL;
     nd->node_proto = NULL;
@@ -47,7 +47,6 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
         return NULL;
     }
     node_init(nd, op_ty, g->nnode);
-    nd->opset = 0;
     nd->graph = g;
     nd->mdl = g->mdl;
     nd->node_proto = NULL;
