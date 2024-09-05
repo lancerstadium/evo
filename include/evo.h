@@ -645,12 +645,9 @@ struct model {
 
 EVO_API model_t * model_new(const char*);
 EVO_API tensor_t* model_get_tensor(model_t*, const char*);
-EVO_API tensor_t* model_eval(model_t*);
+EVO_API tensor_t* model_run(model_t*, bool);
 EVO_API void model_show_tensors(model_t*);
 EVO_API void model_free(model_t*);
-#if defined(EVO_TRAIN_ENB)
-EVO_API void model_train(model_t* mdl);;
-#endif
 
 // ==================================================================================== //
 //                                       evo: predictor

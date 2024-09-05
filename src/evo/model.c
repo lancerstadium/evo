@@ -36,15 +36,10 @@ tensor_t* model_get_tensor(model_t *mdl, const char *name) {
     return NULL;
 }
 
-#if defined(EVO_TRAIN_ENB)
-void model_train(model_t* mdl) {
 
-}
-#endif
-
-tensor_t* model_eval(model_t* mdl) {
+tensor_t* model_run(model_t* mdl, bool train) {
     if(!mdl || !mdl->graph) return NULL;
-    mdl->graph->mode = 0;
+    mdl->graph->mode = train ? 1 : 0;
     graph_prerun(mdl->graph);
     graph_run(mdl->graph);
     graph_posrun(mdl->graph);

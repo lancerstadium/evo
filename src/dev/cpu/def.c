@@ -48,20 +48,25 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         LOG_WARN("CPU Step End: No more node to run!\n");
         return 0;
     }
+
     for(int i = 0; (i < n) && (g->prof->exec_node_idx < g->prof->exec_nnode); i++, g->prof->exec_node_idx++) {
         node_t* nd = g->prof->exec_node_vec[g->prof->exec_node_idx];
-        if(!nd->op) {
+        if(!nd->op || !nd->op->init) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
         double time_st, time_ed;
 
-        if(nd->op->init) nd->op->init(nd);          // --- Init Operator
-        if(nd->op->reshape) nd->op->reshape(nd);    // --- Reshape Operator
+        nd->op->init(nd);                           // --- Init Operator
+        nd->op->reshape(nd);                        // --- Reshape Operator
         time_st = sys_time();                       // --- Clock up
-        if(nd->op->forward) nd->op->forward(nd);    // --- Forward Operator
+        if(g->mode == 1 && nd->op->backward) {
+            nd->op->backward(nd);                   // --- Backward Operator
+        } else if(nd->op->forward) {
+            nd->op->forward(nd);                    // --- Forward Operator
+        }
         time_ed = sys_time();                       // --- Clock down
-        if(nd->op->exit) nd->op->exit(nd);          // --- Exit Operator
+        nd->op->exit(nd);                           // --- Exit Operator
 
         if(g->prof->exec_time_vec) {
             g->prof->exec_time_vec[g->prof->exec_node_idx] = time_ed - time_st;
@@ -82,21 +87,29 @@ static int cpu_run(device_t *dev, graph_t *g) {
         LOG_ERR("CPU Run Fail: No device graph info!\n");
         return -1;
     }
-    for(int i = 0; i < g->prof->exec_nnode; i++) {
+    int start = (g->mode == 1) ? (g->prof->exec_nnode - 1) : 0;
+    int end = (g->mode == 1) ? -1 : g->prof->exec_nnode;
+    int step = (g->mode == 1) ? -1 : 1;
+    double time_st, time_ed;
+
+    for(int i = start; i != end; i += step) {
         g->prof->exec_node_idx = i;
         node_t* nd = g->prof->exec_node_vec[i];
-        if(!nd->op) {
+        if(!nd->op || !nd->op->init) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-        double time_st, time_ed;
-
-        if(nd->op->init) nd->op->init(nd);          // --- Init Operator
-        if(nd->op->reshape) nd->op->reshape(nd);    // --- Reshape Operator
+    
+        nd->op->init(nd);                           // --- Init Operator
+        nd->op->reshape(nd);                        // --- Reshape Operator
         time_st = sys_time();                       // --- Clock up
-        if(nd->op->forward) nd->op->forward(nd);    // --- Forward Operator
+        if(g->mode == 1 && nd->op->backward) {
+            nd->op->backward(nd);                   // --- Backward Operator
+        } else if(nd->op->forward) {
+            nd->op->forward(nd);                    // --- Forward Operator
+        }
         time_ed = sys_time();                       // --- Clock down
-        if(nd->op->exit) nd->op->exit(nd);          // --- Exit Operator
+        nd->op->exit(nd);                           // --- Exit Operator
         
         if(g->prof->exec_time_vec) {
             g->prof->exec_time_vec[i] = time_ed - time_st;

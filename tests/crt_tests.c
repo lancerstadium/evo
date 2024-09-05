@@ -171,7 +171,7 @@ UnitTest_fn_def(test_model_create) {
         x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
         uint8_t y = label->bs[i];
         tensor_copy(in, x);
-        model_eval(mdl);
+        model_run(mdl, false);
     }
 
     return NULL;
