@@ -224,6 +224,12 @@ void graph_add_dense(graph_t *g, int units, const char* activation) {
     graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
     last = g->tensors[g->ntensor - 1];
     // Activation
+    graph_add_activation(g, activation);
+}
+
+void graph_add_activation(graph_t *g, const char* activation) {
+    if(!g || g->ntensor == 0) return;
+    tensor_t* last = g->tensors[g->ntensor - 1];
     if(strcmp(activation, "relu") == 0) {
         graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
     } else if(strcmp(activation, "softmax") == 0){
