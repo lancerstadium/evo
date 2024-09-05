@@ -11,12 +11,7 @@ static void Relu_forward_int8(node_t *nd) {
         py[i] = (px[i] < 0) ? 0 : px[i];
 }
 static void Relu_backward_int8(node_t *nd) {
-    tensor_t *x = nd->in[0];
-    tensor_t *y = nd->out[0];
-    int8_t *px = (int8_t *)x->datas;
-    int8_t *py = (int8_t *)y->datas;
-    for (size_t i = 0, l = y->ndata; i < l; i++)
-        py[i] = (px[i] < 0) ? 0 : px[i];
+    (void)nd;
 }
 static void Relu_forward_int16(node_t *nd) {
     tensor_t *x = nd->in[0];
