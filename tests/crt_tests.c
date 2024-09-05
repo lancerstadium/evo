@@ -133,7 +133,6 @@ UnitTest_fn_def(test_model_create) {
             x_tmp = image_get_raw(imgs, batch);
             x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
             uint8_t y = label->bs[batch];
-
             // // Positive and negative examples
             // tensor_t* x_pos = make_examples(mdl, x, y, 1);  // 正样本
             // tensor_t* x_neg = make_examples(mdl, x, y, 0);  // 负样本
