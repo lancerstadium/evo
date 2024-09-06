@@ -1,6 +1,8 @@
 #include <evo/resolver.h>
 #include <evo/util/math.h>
 
+// Reference: https://zhuanlan.zhihu.com/p/642043155
+
 typedef struct {
     float alpha;
     float beta;

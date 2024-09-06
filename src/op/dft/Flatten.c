@@ -68,6 +68,19 @@ void Flatten_forward(node_t* nd) {
     }
 }
 
+static void Flattem_backward(node_t *nd) {
+    tensor_t *x = nd->in[0];
+    // tensor_t *y = nd->out[0];
+    if(!nd->out[0]->grad) return;
+    if(!nd->in[0]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", op_name(nd->type));
+        nd->in[0]->grad = tensor_new(name_buf, x->type);
+        tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
+    }
+    memcpy(nd->in[0]->grad->datas, nd->out[0]->grad->datas, nd->out[0]->grad->ndata * tensor_type_sizeof(x->type));
+}
+
 void Flatten_exit(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -84,6 +97,6 @@ void op_Flatten_dft(node_t* nd) {
     nd->op->init        = Flatten_init;
     nd->op->reshape     = Flatten_reshape;
     nd->op->forward     = Flatten_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = Flattem_backward;
     nd->op->exit        = Flatten_exit;
 }
