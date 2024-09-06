@@ -243,7 +243,7 @@ static void Softmax_backward_v13_float32(node_t *nd) {
     if(!nd->out[0]->grad) return;
     if(!nd->in[0]->grad) {
         char name_buf[54];
-        sprintf(name_buf, "%s_grad", op_name(nd->type));
+        sprintf(name_buf, "%s_grad", x->name);
         nd->in[0]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
