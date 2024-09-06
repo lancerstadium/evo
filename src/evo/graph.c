@@ -237,6 +237,13 @@ void graph_add_activation(graph_t *g, const char* activation) {
     }
 }
 
+// ref: https://blog.csdn.net/qq_42079689/article/details/102642610
+void graph_add_conv2d(graph_t *g, int out_channel, int group, int64_t kernel_shape[2], int64_t strides[2], int64_t dilations[2], const char* auto_pad) {
+    if(!g || g->ntensor == 0) return;
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    int in_channel = last->dims[1]; // NCHW
+}
+
 
 void graph_add_flatten(graph_t *g) {
     if(!g || g->ntensor == 0) return;
