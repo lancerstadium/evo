@@ -125,7 +125,7 @@ void node_dump(node_t *nd) {
     if(!nd) return;
     int i;
     if(nd) {
-        LOG_INFO("%s: (%s-%d)\r\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "Uninit" , nd->opset);
+        LOG_INFO("%s: (%s v%d)\r\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "Uninit" , nd->opset);
         if(nd->nin > 0) {
             LOG_INFO("  - Inputs: \n");
             for(i = 0; i < nd->nin; i++) {
@@ -143,9 +143,10 @@ void node_dump(node_t *nd) {
         if(vector_size(nd->attr_vec) > 0) {
             LOG_INFO("  - Attributes: \n");
             for(i = 0; i < vector_size(nd->attr_vec); i++) {
-                LOG_INFO("        ");
                 attribute_t* attr = nd->attr_vec[i];
-                LOG_INFO("%s: TODO\n", attr->name);
+                LOG_INFO("        ");
+                attribute_dump(attr);
+                LOG_INFO("\n");
             }
         }
     }

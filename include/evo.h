@@ -497,6 +497,7 @@ EVO_API attribute_t* attribute_floats(char*, float*, size_t);
 EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
 EVO_API attribute_t* attribute_bytes(char*, uint8_t*, size_t);
 EVO_API attribute_t* attribute_tensor(char*, tensor_t*);
+EVO_API void attribute_dump(attribute_t*);
 EVO_API void attribute_free(attribute_t*);
 
 // ==================================================================================== //
@@ -612,7 +613,7 @@ EVO_API void graph_add_layer(graph_t*, op_type_t, tensor_t**, int, int, attribut
 EVO_API void graph_add_input(graph_t*, int, int*);
 EVO_API void graph_add_dense(graph_t*, int, const char*);
 EVO_API void graph_add_activation(graph_t*, const char*);
-EVO_API void graph_add_conv2d(graph_t*, int, int, int64_t[2], int64_t[2], int64_t[2], const char*);
+EVO_API void graph_add_conv2d(graph_t*, int64_t[2], int64_t[2], int64_t*, int64_t[2], int, char*);
 EVO_API void graph_add_maxpool2d(graph_t*, int, int);
 EVO_API void graph_add_flatten(graph_t*);
 EVO_API void graph_add_resize(graph_t*, float*, size_t, char*);
