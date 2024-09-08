@@ -182,13 +182,11 @@ void graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nou
     graph_push_node(g, nd);
     // Bind Operator & reshape
     node_bind_op(nd);
-    LOG_INFO("XXXXXXX\n");
     if(nd->op && nd->op->reshape) {
         nd->op->init(nd);
         nd->op->reshape(nd);
         nd->op->exit(nd);
     }
-    LOG_INFO("XXXXXXX\n");
 }
 
 void graph_add_input(graph_t *g, int in_dim, int* dims) {
@@ -274,6 +272,10 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
     graph_add_layer(g, OP_TYPE_CONV, (tensor_t*[]){last, kernel}, 2, 1, (attribute_t*[]){group_attr, kernel_shape_attr, strides_attr, pads_attr, dilations_attr, auto_pad_attr}, 6);
 }
 
+// ref: https://blog.csdn.net/m0_49963403/article/details/129780289
+void graph_add_maxpool2d(graph_t*, int, int) {
+
+}
 
 void graph_add_flatten(graph_t *g) {
     if(!g || g->ntensor == 0) return;

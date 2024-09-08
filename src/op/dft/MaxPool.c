@@ -391,6 +391,8 @@ void MaxPool_forward(node_t *nd) {
     }
 }
 
+// ref: https://zhuanlan.zhihu.com/p/642116285
+
 void MaxPool_exit(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
