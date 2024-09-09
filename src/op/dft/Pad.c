@@ -25,7 +25,7 @@ void Pad_init(node_t* nd) {
 
 // ref: https://onnx.ai/onnx/operators/onnx__Pad.html
 void Pad_reshape(node_t* nd) {
-    // if(!nd || !nd->in || !nd->out) return;
+    if(!nd || !nd->in || !nd->out) return;
     // operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     // tensor_t* a = nd->in[0];
     // tensor_t* b = nd->in[1];
