@@ -47,6 +47,7 @@ void Gather_reshape(node_t* nd) {
                 dims[i] = b->dims[k];
                 i++; k++;
             }
+            j++;
         } else {
             dims[i] = a->dims[j];
             i++; j++;
