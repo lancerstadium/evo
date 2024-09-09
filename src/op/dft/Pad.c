@@ -25,22 +25,22 @@ void Pad_init(node_t* nd) {
 
 // ref: https://onnx.ai/onnx/operators/onnx__Pad.html
 void Pad_reshape(node_t* nd) {
-    if(!nd || !nd->in || !nd->out) return;
-    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
-    tensor_t* a = nd->in[0];
-    tensor_t* b = nd->in[1];
-    tensor_t* y = nd->out[0];
-    switch(shash(pdat->mode)) {
-        case 0: {   /* constant */
-            int64_t constant = 0;
-            if(nd->nin >= 3 && nd->in[2]->type == a->type) {
-                int64_t* cd = nd->in[2]->datas;
-                constant = cd[0];
-            }
-            break;
-        }
-        default: break;
-    }
+    // if(!nd || !nd->in || !nd->out) return;
+    // operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    // tensor_t* a = nd->in[0];
+    // tensor_t* b = nd->in[1];
+    // tensor_t* y = nd->out[0];
+    // switch(shash(pdat->mode)) {
+    //     case 0: {   /* constant */
+    //         int64_t constant = 0;
+    //         if(nd->nin >= 3 && nd->in[2]->type == a->type) {
+    //             int64_t* cd = nd->in[2]->datas;
+    //             constant = cd[0];
+    //         }
+    //         break;
+    //     }
+    //     default: break;
+    // }
 }
 
 void Pad_exit(node_t* nd) {
