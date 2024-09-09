@@ -318,6 +318,28 @@ tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {
     return nd->out[0];
 }
 
+tensor_t * tensor_gather(tensor_t* ts, tensor_t* idx_ts, int axis) {
+    if(!ts || !idx_ts) return ts;
+    node_t* nd = node_temp("gather", OP_TYPE_GATHER);
+    nd->nin = 2;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->in[1] = idx_ts;
+    nd->out[0] = tensor_new("gather_out", TENSOR_TYPE_FLOAT32);
+    attribute_t* axis_attr = attribute_int("axis", axis);
+    vector_add(&nd->attr_vec, axis_attr);
+    node_bind_op(nd);
+    if(nd->op && nd->op->init) {  
+        nd->op->init(nd);
+        nd->op->reshape(nd);
+        nd->op->forward(nd);
+        nd->op->exit(nd);
+    }
+    return nd->out[0];
+}
+
 tensor_t * tensor_softmax(tensor_t* ts, int axis) {
     if(!ts) return ts;
     node_t* nd = node_temp("softmax", OP_TYPE_SOFTMAX);

@@ -1,4 +1,5 @@
 #include <evo/resolver.h>
+#include <evo/util/log.h>
 #include <string.h>
 
 typedef struct {
@@ -45,7 +46,7 @@ void Gather_reshape(node_t* nd) {
         if(i == axis) {
             for(int k = 0; k < b->ndim; k++) {
                 dims[i] = b->dims[k];
-                i++; k++;
+                i++;
             }
             j++;
         } else {
@@ -57,8 +58,56 @@ void Gather_reshape(node_t* nd) {
     tensor_reshape(c, ndim, dims);
 }
 
+
+void Gather_float32(node_t* nd) {
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t* a = nd->in[0];
+    tensor_t* b = nd->in[1];
+    tensor_t* c = nd->out[0];
+    int axis = pdat->axis;
+    int blocks =  1;
+    for(int i = 0; i < axis; i++) {
+        blocks *= a->dims[i];
+    }
+    int step = a->strides[axis] * sizeof(float);
+    int step2 = axis > 0 ? a->strides[axis - 1] * sizeof(float) : 0;
+    if(b->type == TENSOR_TYPE_INT32) {
+        int32_t* idxs = b->datas;
+        for(int j = 0; j < blocks; j++) {
+            for(int i = 0; i < b->ndata; i++) {
+                if(idxs[i] < 0 || idxs[i] >= a->dims[axis]) {
+                    memset(c->datas + (j * b->ndata + i) * step, 0, step);
+                } else {
+                    memcpy(c->datas + (j * b->ndata + i) * step,
+                     a->datas + j * step2 + idxs[i] * step, 
+                     step);
+                }
+            }
+        }
+    } else if(b->type == TENSOR_TYPE_INT64) {
+        int64_t* idxs = b->datas;
+        for(int j = 0; j < blocks; j++) {
+            for(int i = 0; i < b->ndata; i++) {
+                if(idxs[i] < 0 || idxs[i] >= a->dims[axis]) {
+                    memset(c->datas + (j * b->ndata + i) * step, 0, step);
+                } else {
+                    memcpy(c->datas + (j * b->ndata + i) * step,
+                     a->datas + j * step2 + idxs[i] * step, 
+                     step);
+                }
+            }
+        }
+    } else {
+        LOG_ERR("Gather: unexcept index tensor type!\n");
+    }
+}
+
 void Gather_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    switch(nd->in[0]->type) {
+        case TENSOR_TYPE_FLOAT32:   Gather_float32(nd); break;
+        default: break;
+    }
 }
 
 void Gather_exit(node_t* nd) {
