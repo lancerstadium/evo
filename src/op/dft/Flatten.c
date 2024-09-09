@@ -35,7 +35,7 @@ void Flatten_reshape(node_t* nd) {
     if (axis < 0)
         axis += x->ndim;
     if (axis < 0 || axis >= x->ndim)
-        return;
+        axis = 1;
     for (i = 0, j = 1, ndim = 0; i < x->ndim; i++) {
         if (i != axis)
             j *= x->dims[i];

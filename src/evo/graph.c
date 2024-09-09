@@ -199,7 +199,7 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
-void graph_add_dense(graph_t *g, int units, const char* activation) {
+void graph_add_linear(graph_t *g, int units, const char* activation) {
     if(!g || g->ntensor == 0) return;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];

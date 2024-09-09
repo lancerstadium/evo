@@ -83,8 +83,8 @@ model_t* mnist_model() {
     // graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
     graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_dense(mdl->graph, 500, "relu");
-    graph_add_dense(mdl->graph, 10, "softmax");
+    graph_add_linear(mdl->graph, 500, "relu");
+    graph_add_linear(mdl->graph, 10, "softmax");
     return mdl;
 }
 
@@ -142,7 +142,7 @@ UnitTest_fn_def(test_model_create) {
             // tensor_t* sss = model_get_tensor(mdl, "Gemm3_out0");
             // tensor_dump2(sss->grad);
             train_error -= (acc_cnt / num_batchs);
-            printf("[%4d] Training: %.2f%%, Test: %.2f%%\n", epoch, train_error * 100, test_error * 100);
+            printf("[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n", epoch, train_error * 100, test_error * 100);
         }
     }
     return NULL;
