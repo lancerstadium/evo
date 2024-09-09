@@ -249,6 +249,8 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
     tensor_t* kernel = tensor_new(name_buf, last->type);
     if(last_ndim > 0)
         tensor_reshape(kernel, 4, (int[]){1, 1, kernel_shape[0], kernel_shape[1]});
+        graph_push_tenser(g, kernel);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     attribute_t *group_attr = NULL, *kernel_shape_attr = NULL, *strides_attr = NULL, *pads_attr = NULL, *dilations_attr = NULL, *auto_pad_attr = NULL;
     if(group > 1) group_attr = attribute_int("group", group);
     kernel_shape_attr = attribute_ints("kernel_shape", kernel_shape, 2);
