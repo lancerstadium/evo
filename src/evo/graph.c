@@ -240,14 +240,13 @@ void graph_add_activation(graph_t *g, const char* activation) {
 }
 
 // ref: https://blog.csdn.net/qq_42079689/article/details/102642610
-void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], int64_t* pads, int64_t dilations[2], int group, char* auto_pad) {
+void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int group, char* auto_pad) {
     if(!g || g->ntensor == 0) return;
     tensor_t* last = g->tensors[g->ntensor - 1];
-    int last_ndim = last->ndim;
     char name_buf[54];
     sprintf(name_buf, "Conv%u_kernel", g->nnode);
     tensor_t* kernel = tensor_new(name_buf, last->type);
-    if(last_ndim > 0)
+    if(last->ndim > 0)
         tensor_reshape(kernel, 4, (int[]){1, 1, kernel_shape[0], kernel_shape[1]});
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
@@ -261,13 +260,10 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
         strides_attr = attribute_ints("strides", strides_arr, 2);
     }
     if(pads) { 
-        pads_attr = attribute_ints("pads", pads, last_ndim); 
+        pads_attr = attribute_ints("pads", pads, 4); 
     } else {
-        int64_t pads_arr[last_ndim]; 
-        for(int i = 0; i < last_ndim; i++) {
-            pads_arr[i] = 0;
-        }
-        pads_attr = attribute_ints("pads", pads_arr, last_ndim); 
+        int64_t pads_arr[4] = {0, 0, 0, 0};
+        pads_attr = attribute_ints("pads", pads_arr, 4); 
     }
     if(dilations) dilations_attr = attribute_ints("dilations", dilations, 2);
     if(auto_pad) auto_pad_attr = attribute_string("auto_pad", auto_pad, strlen(auto_pad));
@@ -275,14 +271,13 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
 }
 
 // ref: https://blog.csdn.net/m0_49963403/article/details/129780289
-void graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t* pads, int64_t dilations[2], int ceil_mode, int storge_order) {
+void graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int ceil_mode, int storge_order) {
     if(!g || g->ntensor == 0) return;
     tensor_t* last = g->tensors[g->ntensor - 1];
-    int last_ndim = last->ndim;
     attribute_t *kernel_shape_attr = NULL, *strides_attr = NULL, *pads_attr = NULL, *dilations_attr = NULL, *ceil_mode_attr = NULL, *storge_order_attr = NULL;
     kernel_shape_attr = attribute_ints("kernel_shape", kernel_shape, 2);
     if(strides) strides_attr = attribute_ints("strides", strides, 2);
-    if(pads) pads_attr = attribute_ints("pads", pads, last_ndim); 
+    if(pads) pads_attr = attribute_ints("pads", pads, 4); 
     if(dilations) dilations_attr = attribute_ints("dilations", dilations, 2);
     if(ceil_mode > 0) ceil_mode_attr = attribute_int("ceil_mode", ceil_mode);
     if(storge_order > 0) storge_order_attr = attribute_int("storge_order", storge_order);
