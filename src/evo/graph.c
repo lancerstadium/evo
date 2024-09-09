@@ -275,8 +275,18 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
 }
 
 // ref: https://blog.csdn.net/m0_49963403/article/details/129780289
-void graph_add_maxpool2d(graph_t*, int, int) {
-
+void graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t* pads, int64_t dilations[2], int ceil_mode, int storge_order) {
+    if(!g || g->ntensor == 0) return;
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    int last_ndim = last->ndim;
+    attribute_t *kernel_shape_attr = NULL, *strides_attr = NULL, *pads_attr = NULL, *dilations_attr = NULL, *ceil_mode_attr = NULL, *storge_order_attr = NULL;
+    kernel_shape_attr = attribute_ints("kernel_shape", kernel_shape, 2);
+    if(strides) strides_attr = attribute_ints("strides", strides, 2);
+    if(pads) pads_attr = attribute_ints("pads", pads, last_ndim); 
+    if(dilations) dilations_attr = attribute_ints("dilations", dilations, 2);
+    if(ceil_mode > 0) ceil_mode_attr = attribute_int("ceil_mode", ceil_mode);
+    if(storge_order > 0) storge_order_attr = attribute_int("storge_order", storge_order);
+    graph_add_layer(g, OP_TYPE_MAX_POOL, (tensor_t*[]){last}, 1, 1, (attribute_t*[]){kernel_shape_attr, strides_attr, pads_attr, dilations_attr, ceil_mode_attr, storge_order_attr}, 6);
 }
 
 void graph_add_flatten(graph_t *g) {
