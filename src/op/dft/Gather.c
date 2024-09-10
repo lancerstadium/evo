@@ -58,8 +58,8 @@ void Gather_reshape(node_t* nd) {
     tensor_reshape(c, ndim, dims);
 }
 
-
-void Gather_float32(node_t* nd) {
+void Gather_forward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -69,8 +69,8 @@ void Gather_float32(node_t* nd) {
     for(int i = 0; i < axis; i++) {
         blocks *= a->dims[i];
     }
-    int step = a->strides[axis] * sizeof(float);
-    int step2 = axis > 0 ? a->strides[axis - 1] * sizeof(float) : 0;
+    int step = a->strides[axis] * tensor_type_sizeof(a->type);
+    int step2 = axis > 0 ? a->strides[axis - 1] * tensor_type_sizeof(a->type) : 0;
     if(b->type == TENSOR_TYPE_INT32) {
         int32_t* idxs = b->datas;
         for(int j = 0; j < blocks; j++) {
@@ -99,14 +99,6 @@ void Gather_float32(node_t* nd) {
         }
     } else {
         LOG_ERR("Gather: unexcept index tensor type!\n");
-    }
-}
-
-void Gather_forward(node_t* nd) {
-    if(!nd || !nd->in || !nd->out) return;
-    switch(nd->in[0]->type) {
-        case TENSOR_TYPE_FLOAT32:   Gather_float32(nd); break;
-        default: break;
     }
 }
 

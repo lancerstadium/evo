@@ -345,14 +345,14 @@ void graph_posrun(graph_t *g) {
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
-    LOG_INFO("| --------------------------------------------------------- |\n");
-    LOG_INFO("|     Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
-    LOG_INFO("| -------------------- | --------------- | ---------------- |\n");
+    LOG_INFO("| ----------------------------------------------------------- |\n");
+    LOG_INFO("|       Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
+    LOG_INFO("| ---------------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
         if(g->nodes[i]) {
             char* in = g->nodes[i]->in ? tensor_dump_shape(g->nodes[i]->in[0]) : sys_strdup("[]");
             char* out = g->nodes[i]->out ? tensor_dump_shape(g->nodes[i]->out[0]) : sys_strdup("[]");
-            LOG_INFO("| %20s | %15s | %16s |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out);
+            LOG_INFO("| %22s | %15s | %16s |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out);
             free(in);
             free(out);
         }

@@ -24,6 +24,8 @@ void Pad_init(node_t* nd) {
     }
 }
 
+#include <evo/util/log.h>
+
 // ref: https://onnx.ai/onnx/operators/onnx__Pad.html
 void Pad_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
@@ -31,6 +33,7 @@ void Pad_reshape(node_t* nd) {
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
     tensor_t* y = nd->out[0];
+    LOG_INFO("%08u", shash(pdat->mode));
     switch(shash(pdat->mode)) {
         case 0: {   /* constant */
             int64_t constant = 0;
