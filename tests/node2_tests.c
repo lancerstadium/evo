@@ -29,8 +29,8 @@ UnitTest_fn_def(test_pad) {
         2.3, 3.4,
         4.5, 5.7,
     };
-    tensor_t * ts = tensor_new_float32("input", (int[]){1, 3, 2}, 3, data, 6);
-    tensor_t * ts_p = tensor_pad(ts, (int64_t[]){1, 1, 1, 1, 2, 2}, 6, "constant");
+    tensor_t * ts = tensor_new_float32("input", (int[]){2, 3}, 2, data, 6);
+    tensor_t * ts_p = tensor_pad(ts, (int64_t[]){0, 3, 0, 3}, 4, "reflect");
     tensor_dump2(ts);
     tensor_dump2(ts_p);
 }

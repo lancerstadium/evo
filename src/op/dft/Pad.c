@@ -111,6 +111,104 @@ void Pad_forward(node_t* nd) {
             }
             break;
         }
+        case 0x3e3a6a0a: {  /* reflect mode */
+            int ndim = a->ndim;         /* number of dimensions */
+
+            /* Arrays to track the positions in the input and output tensors */
+            int* input_pos = calloc(ndim, sizeof(int));    /* Track input position */
+            int* output_pos = calloc(ndim, sizeof(int));   /* Track output position */
+            
+            /* Iterate over each element of the output tensor */
+            for (int i = 0; i < y->ndata; i++) {
+                int flat_idx = i;
+
+                /* Convert flat index to multi-dimensional indices for output */
+                for (int d = ndim - 1; d >= 0; d--) {
+                    output_pos[d] = flat_idx % y->dims[d];
+                    flat_idx /= y->dims[d];
+
+                    int pad_before = pads[d];
+                    int original_dim = a->dims[d];
+
+                    if (output_pos[d] < pad_before) {
+                        /* Prefix reflect: move left from the first element, continuous reflection */
+                        int reflect_pos = pad_before - output_pos[d];
+                        input_pos[d] = reflect_pos % original_dim;
+                    } else if (output_pos[d] >= pad_before + original_dim) {
+                        /* Suffix reflect: reflect in a continuous manner from the last element */
+                        int reflect_pos = output_pos[d] - (pad_before + original_dim);
+                        input_pos[d] = ((original_dim * 2 - 2) - (reflect_pos % original_dim)) % original_dim;
+                    } else {
+                        /* Direct copy from original data */
+                        input_pos[d] = output_pos[d] - pad_before;
+                    }
+                }
+
+                /* Compute input/output memory addresses */
+                char* input_ptr = (char *)a->datas;
+                char* output_ptr = (char *)y->datas;
+
+                /* Calculate correct input/output memory positions */
+                for (int d = 0; d < ndim; d++) {
+                    input_ptr += input_pos[d] * a->strides[d] * tensor_type_sizeof(a->type);
+                    output_ptr += output_pos[d] * y->strides[d] * tensor_type_sizeof(a->type);
+                }
+                /* Copy data */
+                memcpy(output_ptr, input_ptr, tensor_type_sizeof(a->type));
+            }
+
+            /* Free allocated memory for tracking positions */
+            free(input_pos);
+            free(output_pos);
+            break;
+        }
+        case 0x7c9628da: {  /* edge mode */
+            int ndim = a->ndim;         /* number of dimensions */
+
+            /* Arrays to track the positions in the input and output tensors */
+            int* input_pos = calloc(ndim, sizeof(int));    /* Track input position */
+            int* output_pos = calloc(ndim, sizeof(int));   /* Track output position */
+
+            /* Iterate over each element of the output tensor */
+            for (int i = 0; i < y->ndata; i++) {
+                int flat_idx = i;
+
+                /* Convert flat index to multi-dimensional indices for output */
+                for (int d = ndim - 1; d >= 0; d--) {
+                    output_pos[d] = flat_idx % y->dims[d];
+                    flat_idx /= y->dims[d];
+
+                    /* Edge padding logic for each dimension */
+                    if (output_pos[d] < pads[d]) {
+                        /* If in prefix padding, use the first element */
+                        input_pos[d] = 0;
+                    } else if (output_pos[d] >= pads[d] + a->dims[d]) {
+                        /* If in suffix padding, use the last element */
+                        input_pos[d] = a->dims[d] - 1;
+                    } else {
+                        /* If within the original input, use the corresponding element */
+                        input_pos[d] = output_pos[d] - pads[d];
+                    }
+                }
+
+                /* Compute the input and output memory addresses */
+                char* input_ptr = (char *)a->datas;
+                char* output_ptr = (char *)y->datas;
+
+                for (int d = 0; d < ndim; d++) {
+                    input_ptr += input_pos[d] * a->strides[d] * tensor_type_sizeof(a->type);
+                    output_ptr += output_pos[d] * y->strides[d] * tensor_type_sizeof(a->type);
+                }
+
+                /* Copy input data to the correct position in the output tensor */
+                memcpy(output_ptr, input_ptr, tensor_type_sizeof(a->type));
+            }
+
+            /* Free allocated memory for tracking positions */
+            free(input_pos);
+            free(output_pos);
+            break;
+        }
         default: break;
     }
 }
