@@ -340,6 +340,29 @@ tensor_t * tensor_gather(tensor_t* ts, tensor_t* idx_ts, int axis) {
     return nd->out[0];
 }
 
+tensor_t * tensor_scatternd(tensor_t* ts, int64_t* idxs, size_t idxs_size, tensor_t* upd_ts, char* reduction) {
+    if(!ts || !idxs || !upd_ts) return ts;
+    node_t* nd = node_temp("scatternd", OP_TYPE_SCATTER_ND);
+    nd->nin = 3;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->in[1] = tensor_new_int64("scatternd_idxs", (int[]){1, idxs_size}, 2, idxs, idxs_size);
+    nd->in[2] = upd_ts;
+    nd->out[0] = tensor_new("scatternd_out", TENSOR_TYPE_FLOAT32);
+    attribute_t* reduction_attr = attribute_string("reduction", reduction, strlen(reduction));
+    vector_add(&nd->attr_vec, reduction_attr);
+    node_bind_op(nd);
+    if(nd->op && nd->op->init) {  
+        nd->op->init(nd);
+        nd->op->reshape(nd);
+        nd->op->forward(nd);
+        nd->op->exit(nd);
+    }
+    return nd->out[0];
+}
+
 tensor_t * tensor_pad(tensor_t* ts, int64_t* pads, size_t pads_size, char* mode) {
     if(!ts) return ts;
     node_t* nd = node_temp("pad", OP_TYPE_PAD);

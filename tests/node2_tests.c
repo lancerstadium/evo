@@ -35,10 +35,40 @@ UnitTest_fn_def(test_pad) {
     tensor_dump2(ts_p);
 }
 
+UnitTest_fn_def(test_scatternd) {
+    // float data1[8] = {
+    //     1, 2, 3, 4, 5, 6, 7, 8
+    // };
+    // float data2[4] = {
+    //     9, 10, 11, 12
+    // };
+    // tensor_t * ts = tensor_new_float32("input", (int[]){1, 8}, 2, data1, 8);
+    // tensor_t * ts_u = tensor_new_float32("update", (int[]){1, 4}, 2, data2, 4);
+    // tensor_t * ts_p = tensor_scatternd(ts, (int64_t[]){4, 3, 1, 7}, 4, ts_u, "none");
+    float data1[64] = {
+        1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1,
+        1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1,
+        8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8,
+        8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3, 4, 5, 6, 7, 8
+    };
+    float data2[32] = {
+        5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8,
+        1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4
+    };
+    tensor_t * ts = tensor_new_float32("input", (int[]){1, 4, 4, 4}, 4, data1, 64);
+    tensor_t * ts_u = tensor_new_float32("update", (int[]){1, 2, 4, 4}, 4, data2, 32);
+    tensor_t * ts_p = tensor_scatternd(ts, (int64_t[]){0}, 1, ts_u, "none");
+    tensor_dump2(ts);
+    tensor_dump2(ts_u);
+    tensor_dump2(ts_p);
+}
+
+
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
-    UnitTest_add(test_gather);
-    UnitTest_add(test_pad);
+    // UnitTest_add(test_gather);
+    // UnitTest_add(test_pad);
+    UnitTest_add(test_scatternd);
     return NULL;
 }
 
