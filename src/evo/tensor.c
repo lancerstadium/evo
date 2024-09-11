@@ -340,15 +340,15 @@ tensor_t * tensor_gather(tensor_t* ts, tensor_t* idx_ts, int axis) {
     return nd->out[0];
 }
 
-tensor_t * tensor_scatternd(tensor_t* ts, int64_t* idxs, size_t idxs_size, tensor_t* upd_ts, char* reduction) {
-    if(!ts || !idxs || !upd_ts) return ts;
+tensor_t * tensor_scatternd(tensor_t* ts, tensor_t* idx_ts, tensor_t* upd_ts, char* reduction) {
+    if(!ts || !idx_ts || !upd_ts) return ts;
     node_t* nd = node_temp("scatternd", OP_TYPE_SCATTER_ND);
     nd->nin = 3;
     nd->nout= 1;
     nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
     nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
     nd->in[0] = ts;
-    nd->in[1] = tensor_new_int64("scatternd_idxs", (int[]){1, idxs_size}, 2, idxs, idxs_size);
+    nd->in[1] = idx_ts;
     nd->in[2] = upd_ts;
     nd->out[0] = tensor_new("scatternd_out", TENSOR_TYPE_FLOAT32);
     attribute_t* reduction_attr = attribute_string("reduction", reduction, strlen(reduction));
