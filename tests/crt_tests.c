@@ -139,7 +139,7 @@ UnitTest_fn_def(test_model_create) {
                 tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
-            tensor_t* sss = model_get_tensor(mdl, "Flatten1_out0");
+            tensor_t* sss = model_get_tensor(mdl, "MaxPool0_out0");
             tensor_dump2(sss->grad);
             train_error -= (acc_cnt / num_batchs);
             printf("[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n", epoch, train_error * 100, test_error * 100);
