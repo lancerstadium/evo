@@ -762,131 +762,98 @@ static void Gemm_forward_float32(node_t *nd) {
     }
 }
 
-static void Gemm_backward_float32(node_t *nd) {
+static void Gemm_backward_float32(node_t *nd) { 
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
-    if(!nd->out[0]->grad) return;
+    if (!nd->out[0]->grad) return;
+
     tensor_t *a = nd->in[0];            // Input tensor a
-    tensor_t *b = nd->in[1];            // Input tensor b
+    tensor_t *b = nd->in[1];            // Input tensor b (kernel)
     tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // Input bias c, if present
     tensor_t *y = nd->out[0];           // Output tensor y
     tensor_t *dy = nd->out[0]->grad;    // Output gradient (dL/dY)
 
-    char name_buf[54];
     // Reshape and initialize gradient tensors if necessary
-    // Initialize bias gradient to zero
     if (!nd->in[0]->grad) {
-        sprintf(name_buf, "%s_grad", a->name);
-        nd->in[0]->grad = tensor_new(name_buf, y->type);
+        nd->in[0]->grad = tensor_new("a_grad", y->type);
         tensor_reshape(nd->in[0]->grad, a->ndim, a->dims);
     }
     if (!nd->in[1]->grad) {
-        sprintf(name_buf, "%s_grad", b->name);
-        nd->in[1]->grad = tensor_new(name_buf, y->type);
+        nd->in[1]->grad = tensor_new("b_grad", y->type);
         tensor_reshape(nd->in[1]->grad, b->ndim, b->dims);
     }
-    if ((nd->nin > 2) && !nd->in[2]->grad) {
-        sprintf(name_buf, "%s_grad", c->name);
-        nd->in[2]->grad = tensor_new(name_buf, y->type);
+    if (c && !nd->in[2]->grad) {
+        nd->in[2]->grad = tensor_new("c_grad", y->type);
         tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
     }
 
     tensor_t *da = nd->in[0]->grad;  // Gradient w.r.t. 'a'
-    tensor_t *db = nd->in[1]->grad;  // Gradient w.r.t. 'b'
-    tensor_t *dc = nd->in[2]->grad;  // Gradient w.r.t. 'c', if present
+    tensor_t *db = nd->in[1]->grad;  // Gradient w.r.t. 'b' (kernel)
+    tensor_t *dc = (c) ? nd->in[2]->grad : NULL;  // Gradient w.r.t. 'c', if present
 
-    float *pdy = (float *)dy->datas;  // Gradient with respect to the output
+    float *pdy = (float *)dy->datas;  // Gradient w.r.t. output
     float *pa = (float *)a->datas;    // Input a
-    float *pb = (float *)b->datas;    // Input b
+    float *pb = (float *)b->datas;    // Input b (kernel)
     float *pda = (float *)da->datas;  // Gradient w.r.t. 'a'
-    float *pdb = (float *)db->datas;  // Gradient w.r.t. 'b'
+    float *pdb = (float *)db->datas;  // Gradient w.r.t. 'b' (kernel)
     float *pdc = (dc) ? (float *)dc->datas : NULL;  // Gradient w.r.t. 'c'
 
-    int oa = 0, ob = 0, oy = 0;
     int i, j, k;
+    int oy = 0;
 
+    // Handle case where both A and B are transposed
     if (pdat->transA && pdat->transB) {
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
                 float dLdy = pdy[oy];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[oa] += dLdy * pb[ob];
-                    pdb[ob] += dLdy * pa[oa];
-                    oa += pdat->m;
-                    ob += 1;
+                    pda[k * pdat->m + i] += dLdy * pb[j * pdat->k + k];  // Transpose A and B
+                    pdb[j * pdat->k + k] += dLdy * pa[k * pdat->m + i];
                 }
-                oa -= pdat->m * pdat->k;
-                ob -= pdat->k;
-                if (pdc) {
-                    pdc[oy] += dLdy;  // Update bias gradient
-                }
+                if (pdc) pdc[oy] += dLdy;  // Update bias gradient
                 oy++;
-                ob += pdat->k;
             }
-            ob -= pdat->n * pdat->k;
-            oa++;
         }
-    } else if (pdat->transA) {
+    }
+    // Handle case where only A is transposed
+    else if (pdat->transA) {
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
                 float dLdy = pdy[oy];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[oa] += dLdy * pb[ob];
-                    pdb[ob] += dLdy * pa[oa];
-                    oa += pdat->m;
-                    ob += pdat->n;
+                    pda[k * pdat->m + i] += dLdy * pb[k * pdat->n + j];  // Transpose A
+                    pdb[k * pdat->n + j] += dLdy * pa[k * pdat->m + i];
                 }
-                oa -= pdat->m * pdat->k;
-                ob -= pdat->n * pdat->k;
-                if (pdc) {
-                    pdc[oy] += dLdy;
-                }
+                if (pdc) pdc[oy] += dLdy;
                 oy++;
-                ob++;
             }
-            ob -= pdat->n;
-            oa++;
         }
-    } else if (pdat->transB) {
+    }
+    // Handle case where only B is transposed
+    else if (pdat->transB) {
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
                 float dLdy = pdy[oy];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[oa] += dLdy * pb[ob];
-                    pdb[ob] += dLdy * pa[oa];
-                    oa += 1;
-                    ob += 1;
+                    pda[i * pdat->k + k] += dLdy * pb[j * pdat->k + k];  // Transpose B
+                    pdb[j * pdat->k + k] += dLdy * pa[i * pdat->k + k];
                 }
-                oa -= pdat->k;
-                ob -= pdat->k;
-                if (pdc) {
-                    pdc[oy] += dLdy;
-                }
+                if (pdc) pdc[oy] += dLdy;
                 oy++;
-                ob += pdat->k;
             }
-            ob -= pdat->n * pdat->k;
-            oa += pdat->k;
         }
-    } else {
+    }
+    // Handle case where neither A nor B are transposed
+    else {
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
                 float dLdy = pdy[oy];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[oa] += dLdy * pb[ob];
-                    pdb[ob] += dLdy * pa[oa];
-                    oa += 1;
-                    ob += pdat->n;
+                    pda[i * pdat->k + k] += dLdy * pb[k * pdat->n + j];
+                    pdb[k * pdat->n + j] += dLdy * pa[i * pdat->k + k];
                 }
-                oa -= pdat->k;
-                ob -= pdat->n * pdat->k;
-                if (pdc) {
-                    pdc[oy] += dLdy;
-                }
+                if (pdc) pdc[oy] += dLdy;
                 oy++;
-                ob++;
             }
-            ob -= pdat->n;
-            oa += pdat->k;
         }
     }
 }
