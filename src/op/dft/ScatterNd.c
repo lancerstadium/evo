@@ -23,6 +23,7 @@ void ScatterNd_init(node_t* nd) {
     }
 }
 
+
 void ScatterNd_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
     tensor_t* a = nd->in[0];    /* data */
