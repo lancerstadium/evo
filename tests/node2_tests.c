@@ -79,6 +79,19 @@ UnitTest_fn_def(test_scatternd) {
     tensor_dump2(ts);
     tensor_dump2(ts_u);
     tensor_dump2(ts_p);
+    return NULL;
+}
+
+UnitTest_fn_def(test_expand) {
+    float data[8] = {
+        1, 9, 1, 3,
+        3, 6, 8, 1
+    };
+    tensor_t * ts = tensor_new_float32("input", (int[]){2, 1, 4}, 3, data, 8);
+    tensor_t * ts_p = tensor_expand(ts, (int64_t[]){2, 2, 3, 4}, 4);
+    tensor_dump2(ts);
+    tensor_dump2(ts_p);
+    return NULL;
 }
 
 
@@ -86,7 +99,8 @@ UnitTest_fn_def(test_all) {
     device_reg("cpu");
     // UnitTest_add(test_gather);
     // UnitTest_add(test_pad);
-    UnitTest_add(test_scatternd);
+    // UnitTest_add(test_scatternd);
+    UnitTest_add(test_expand);
     return NULL;
 }
 

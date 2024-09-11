@@ -68,7 +68,7 @@ void Flatten_forward(node_t* nd) {
     }
 }
 
-static void Flattem_backward(node_t *nd) {
+static void Flatten_backward(node_t *nd) {
     tensor_t *x = nd->in[0];
     // tensor_t *y = nd->out[0];
     if(!nd->out[0]->grad) return;
@@ -97,6 +97,6 @@ void op_Flatten_dft(node_t* nd) {
     nd->op->init        = Flatten_init;
     nd->op->reshape     = Flatten_reshape;
     nd->op->forward     = Flatten_forward;
-    nd->op->backward    = Flattem_backward;
+    nd->op->backward    = Flatten_backward;
     nd->op->exit        = Flatten_exit;
 }

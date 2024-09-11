@@ -185,6 +185,7 @@ EVO_API tensor_t * tensor_resize(tensor_t*, int, int);
 EVO_API tensor_t * tensor_cast(tensor_t*, tensor_type_t);
 EVO_API tensor_t * tensor_gather(tensor_t*, tensor_t*, int);
 EVO_API tensor_t * tensor_scatternd(tensor_t*, tensor_t*, tensor_t*, char*);
+EVO_API tensor_t * tensor_expand(tensor_t*, int64_t*, size_t);
 EVO_API tensor_t * tensor_pad(tensor_t*, int64_t*, size_t, char*);
 EVO_API tensor_t * tensor_softmax(tensor_t*, int);
 EVO_API tensor_t * tensor_squeeze(tensor_t*, int*, int);
