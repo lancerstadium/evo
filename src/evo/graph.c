@@ -357,7 +357,7 @@ void graph_dump(graph_t* g) {
             free(out);
         }
     }
-    LOG_INFO("| --------------------------------------------------------- |\n");
+    LOG_INFO("| ----------------------------------------------------------- |\n");
 }
 
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
