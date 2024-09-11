@@ -770,22 +770,27 @@ static void Gemm_backward_float32(node_t *nd) {
     tensor_t *b = nd->in[1];            // Input tensor b (kernel)
     tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // Input bias c, if present
     tensor_t *y = nd->out[0];           // Output tensor y
-    tensor_t *dy = nd->out[0]->grad;    // Output gradient (dL/dY)
+
+    char name_buf[54];
 
     // Reshape and initialize gradient tensors if necessary
     if (!nd->in[0]->grad) {
-        nd->in[0]->grad = tensor_new("a_grad", y->type);
+        sprintf(name_buf, "%s_grad", a->name);
+        nd->in[0]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[0]->grad, a->ndim, a->dims);
     }
     if (!nd->in[1]->grad) {
-        nd->in[1]->grad = tensor_new("b_grad", y->type);
+        sprintf(name_buf, "%s_grad", a->name);
+        nd->in[1]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[1]->grad, b->ndim, b->dims);
     }
     if (c && !nd->in[2]->grad) {
-        nd->in[2]->grad = tensor_new("c_grad", y->type);
+        sprintf(name_buf, "%s_grad", a->name);
+        nd->in[2]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
     }
 
+    tensor_t *dy = nd->out[0]->grad;    // Output gradient (dL/dY)
     tensor_t *da = nd->in[0]->grad;  // Gradient w.r.t. 'a'
     tensor_t *db = nd->in[1]->grad;  // Gradient w.r.t. 'b' (kernel)
     tensor_t *dc = (c) ? nd->in[2]->grad : NULL;  // Gradient w.r.t. 'c', if present

@@ -239,6 +239,73 @@ static void MaxPool_forward_float64(node_t *nd) {
     } while (dim_next(x->ndim, o_dim, y->dims));
 }
 
+static void MaxPool_backward_float32(node_t *nd) {
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    if (!nd->out[0]->grad) return;
+
+    tensor_t *x = nd->in[0];          // 输入张量 x
+    tensor_t *y = nd->out[0];         // 输出张量 y
+    char name_buf[54];
+
+    // Reshape and initialize gradient tensors if necessary
+    if (!nd->in[0]->grad) {
+        sprintf(name_buf, "%s_grad", x->name);
+        nd->in[0]->grad = tensor_new(name_buf, y->type);
+        tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
+    }
+
+    float *px = (float *)x->datas;    // 输入数据
+    tensor_t *dy = y->grad;           // 输出张量 y 的梯度
+    float *pdx = (float *)x->grad->datas;  // 输入张量 x 的梯度
+    float *pdy = (float *)dy->datas;  // 输出张量 y 的梯度
+
+    float maxv, v;
+    int k_dim[x->ndim - 2];
+    int i_dim[x->ndim];
+    int o_dim[x->ndim];
+    int b_dim[x->ndim];
+    int i;
+
+    // 初始化输出维度
+    memset(o_dim, 0, sizeof(o_dim));
+    
+    do {
+        for (i = 2; i < x->ndim; ++i)
+            b_dim[i] = o_dim[i] * pdat->strides[i - 2] - pdat->cpads[i - 2];
+        
+        maxv = -FLT_MAX;
+        int max_idx = -1;  // 用于记录最大值的位置
+        memset(k_dim, 0, sizeof(k_dim));
+        
+        do {
+            i_dim[0] = o_dim[0];
+            i_dim[1] = o_dim[1];
+            for (i = 2; i < x->ndim; ++i)
+                i_dim[i] = b_dim[i] + k_dim[i - 2];
+            
+            for (i = 0; i < x->ndim; ++i) {
+                if ((i_dim[i] < 0) || (i_dim[i] >= x->dims[i]))
+                    break;
+            }
+
+            if (i >= x->ndim) {
+                v = px[dim_offset(x->ndim, i_dim, x->dims)];
+                if (v > maxv) {
+                    maxv = v;
+                    max_idx = dim_offset(x->ndim, i_dim, x->dims);  // 记录最大值的索引
+                }
+            }
+        } while (dim_next(x->ndim - 2, k_dim, pdat->kernels));
+
+        // 将输出梯度分配给最大值所在的输入位置
+        if (max_idx != -1) {
+            pdx[max_idx] += pdy[dim_offset(x->ndim, o_dim, y->dims)];
+        }
+        
+    } while (dim_next(x->ndim, o_dim, y->dims));
+}
+
+
 void MaxPool_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
@@ -370,6 +437,11 @@ void MaxPool_reshape(node_t *nd) {
 
 void MaxPool_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT32:
             MaxPool_forward_int8(nd);
@@ -385,6 +457,34 @@ void MaxPool_forward(node_t *nd) {
             break;
         case TENSOR_TYPE_FLOAT64:
             MaxPool_forward_float64(nd);
+            break;
+        default:
+            break;
+    }
+}
+
+void MaxPool_backward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    switch (nd->in[0]->type) {
+        case TENSOR_TYPE_INT32:
+            // MaxPool_backward_int8(nd);
+            break;
+        case TENSOR_TYPE_INT64:
+            // MaxPool_backward_uint8(nd);
+            break;
+        case TENSOR_TYPE_FLOAT16:
+            // MaxPool_backward_float16(nd);
+            break;
+        case TENSOR_TYPE_FLOAT32:
+            MaxPool_backward_float32(nd);
+            break;
+        case TENSOR_TYPE_FLOAT64:
+            // MaxPool_backward_float64(nd);
             break;
         default:
             break;
