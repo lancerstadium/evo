@@ -79,9 +79,9 @@ float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
 model_t* mnist_model() {
     model_t* mdl = model_new("mnist_model");
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
-    graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
-    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
+    // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
+    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 500, "relu");
     graph_add_linear(mdl->graph, 10, "softmax");
@@ -104,7 +104,7 @@ UnitTest_fn_def(test_model_create) {
 
     // Model
     model_t* mdl = mnist_model();
-    graph_dump2(mdl->graph);
+    graph_dump(mdl->graph);
     model_show_tensors(mdl);
 
     // Train
@@ -139,8 +139,8 @@ UnitTest_fn_def(test_model_create) {
                 tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
-            // tensor_t* sss = model_get_tensor(mdl, "Gemm3_out0");
-            // tensor_dump2(sss->grad);
+            tensor_t* sss = model_get_tensor(mdl, "Gemm3_out0");
+            tensor_dump2(sss->grad);
             train_error -= (acc_cnt / num_batchs);
             printf("[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n", epoch, train_error * 100, test_error * 100);
         }
