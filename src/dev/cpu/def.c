@@ -29,6 +29,8 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
             vector_add(&(g->prof->exec_node_vec), nd);
             vector_add(&(g->prof->exec_time_vec), 0.0);
             g->prof->exec_nnode++;
+        } else {
+            LOG_ERR("Not Support Node: %s\n", nd->name);
         }
     }
     vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time

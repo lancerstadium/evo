@@ -863,6 +863,11 @@ void Conv_init(node_t *nd) {
 
 void Conv_reshape(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
@@ -919,6 +924,11 @@ void Conv_reshape(node_t *nd) {
 
 void Conv_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
             Conv_forward_float16(nd);

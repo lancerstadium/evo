@@ -3,5 +3,10 @@
 
 
 void op_Nop_dft(node_t* nd) {
-    LOG_WARN("Nop\n");
+    if(!nd || !nd->op) return;
+    nd->op->init        = NULL;
+    nd->op->reshape     = NULL;
+    nd->op->forward     = NULL;
+    nd->op->backward    = NULL;
+    nd->op->exit        = NULL;
 }

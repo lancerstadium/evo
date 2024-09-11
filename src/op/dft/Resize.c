@@ -29,6 +29,11 @@ void Resize_init(node_t* nd) {
 
 void Resize_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type != TENSOR_TYPE_FLOAT32) {
+        return;
+    }
     tensor_t *x = nd->in[0];
     tensor_t *sc = nd->in[1];
     tensor_t *y = nd->out[0];
@@ -43,6 +48,11 @@ void Resize_reshape(node_t* nd) {
 
 void Resize_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type != TENSOR_TYPE_FLOAT32) {
+        return;
+    }
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     switch (nd->in[0]->type) {

@@ -194,6 +194,11 @@ void Sub_init(node_t* nd) {
 
 void Sub_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     tensor_t* y = nd->out[0];
     tensor_t* a = nd->in[0];
     tensor_t* b = nd->in[1];
@@ -202,6 +207,11 @@ void Sub_reshape(node_t* nd) {
 
 void Sub_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:
             Sub_forward_int8(nd);
