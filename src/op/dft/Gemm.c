@@ -766,14 +766,14 @@ static void Gemm_backward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     if (!nd->out[0]->grad) return;
 
-    tensor_t *a = nd->in[0];            // Input tensor a
-    tensor_t *b = nd->in[1];            // Input tensor b (kernel)
-    tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // Input bias c, if present
-    tensor_t *y = nd->out[0];           // Output tensor y
+    tensor_t *a = nd->in[0];  // 输入tensor a
+    tensor_t *b = nd->in[1];  // 输入tensor b（kernel）
+    tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // 输入bias c, 如果存在
+    tensor_t *y = nd->out[0];  // 输出tensor y
 
     char name_buf[54];
 
-    // Reshape and initialize gradient tensors if necessary
+    // 初始化或重塑梯度张量
     if (!nd->in[0]->grad) {
         sprintf(name_buf, "%s_grad", a->name);
         nd->in[0]->grad = tensor_new(name_buf, y->type);
@@ -790,78 +790,77 @@ static void Gemm_backward_float32(node_t *nd) {
         tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
     }
 
-    tensor_t *dy = nd->out[0]->grad;    // Output gradient (dL/dY)
-    tensor_t *da = nd->in[0]->grad;  // Gradient w.r.t. 'a'
-    tensor_t *db = nd->in[1]->grad;  // Gradient w.r.t. 'b' (kernel)
-    tensor_t *dc = (c) ? nd->in[2]->grad : NULL;  // Gradient w.r.t. 'c', if present
+    tensor_t *dy = nd->out[0]->grad;  // 输出梯度 (dL/dY)
+    tensor_t *da = nd->in[0]->grad;  // 梯度 w.r.t. 'a'
+    tensor_t *db = nd->in[1]->grad;  // 梯度 w.r.t. 'b' (kernel)
+    tensor_t *dc = (c) ? nd->in[2]->grad : NULL;  // 梯度 w.r.t. 'c', 如果存在
 
-    float *pdy = (float *)dy->datas;  // Gradient w.r.t. output
-    float *pa = (float *)a->datas;    // Input a
-    float *pb = (float *)b->datas;    // Input b (kernel)
-    float *pda = (float *)da->datas;  // Gradient w.r.t. 'a'
-    float *pdb = (float *)db->datas;  // Gradient w.r.t. 'b' (kernel)
-    float *pdc = (dc) ? (float *)dc->datas : NULL;  // Gradient w.r.t. 'c'
+    float *pdy = (float *)dy->datas;  // 梯度 w.r.t. 输出
+    float *pa = (float *)a->datas;  // 输入 a
+    float *pb = (float *)b->datas;  // 输入 b (kernel)
+    float *pda = (float *)da->datas;  // 梯度 w.r.t. 'a'
+    float *pdb = (float *)db->datas;  // 梯度 w.r.t. 'b' (kernel)
+    float *pdc = (dc) ? (float *)dc->datas : NULL;  // 梯度 w.r.t. 'c'
 
     int i, j, k;
-    int oy = 0;
+    fprintf(stderr, "sdsadasdasd:\n");
+    tensor_dump2(nd->out[0]->grad);
 
-    // Handle case where both A and B are transposed
     if (pdat->transA && pdat->transB) {
+        // A 和 B 都转置的情况
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
-                float dLdy = pdy[oy];
+                float dLdy = pdy[i * pdat->n + j];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[k * pdat->m + i] += dLdy * pb[j * pdat->k + k];  // Transpose A and B
-                    pdb[j * pdat->k + k] += dLdy * pa[k * pdat->m + i];
+                    pda[k * pdat->m + i] += dLdy * pb[j * pdat->k + k];  // 更新 dA
+                    pdb[j * pdat->k + k] += dLdy * pa[k * pdat->m + i];  // 更新 dB
                 }
-                if (pdc) pdc[oy] += dLdy;  // Update bias gradient
-                oy++;
+                if (pdc) pdc[j] += dLdy;  // 更新 bias 梯度
             }
         }
     }
-    // Handle case where only A is transposed
     else if (pdat->transA) {
+        // 只有 A 转置的情况
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
-                float dLdy = pdy[oy];
+                float dLdy = pdy[i * pdat->n + j];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[k * pdat->m + i] += dLdy * pb[k * pdat->n + j];  // Transpose A
-                    pdb[k * pdat->n + j] += dLdy * pa[k * pdat->m + i];
+                    pda[k * pdat->m + i] += dLdy * pb[k * pdat->n + j];  // 更新 dA
+                    pdb[k * pdat->n + j] += dLdy * pa[k * pdat->m + i];  // 更新 dB
                 }
-                if (pdc) pdc[oy] += dLdy;
-                oy++;
+                if (pdc) pdc[j] += dLdy;
             }
         }
     }
-    // Handle case where only B is transposed
     else if (pdat->transB) {
+        // 只有 B 转置的情况
         for (i = 0; i < pdat->m; i++) {
             for (j = 0; j < pdat->n; j++) {
-                float dLdy = pdy[oy];
+                float dLdy = pdy[i * pdat->n + j];
                 for (k = 0; k < pdat->k; k++) {
-                    pda[i * pdat->k + k] += dLdy * pb[j * pdat->k + k];  // Transpose B
-                    pdb[j * pdat->k + k] += dLdy * pa[i * pdat->k + k];
+                    pda[i * pdat->k + k] += dLdy * pb[j * pdat->k + k];  // 更新 dA
+                    pdb[j * pdat->k + k] += dLdy * pa[i * pdat->k + k];  // 更新 dB
                 }
-                if (pdc) pdc[oy] += dLdy;
-                oy++;
+                if (pdc) pdc[j] += dLdy;
             }
         }
     }
-    // Handle case where neither A nor B are transposed
-    else {
-        for (i = 0; i < pdat->m; i++) {
-            for (j = 0; j < pdat->n; j++) {
-                float dLdy = pdy[oy];
-                for (k = 0; k < pdat->k; k++) {
-                    pda[i * pdat->k + k] += dLdy * pb[k * pdat->n + j];
-                    pdb[k * pdat->n + j] += dLdy * pa[i * pdat->k + k];
-                }
-                if (pdc) pdc[oy] += dLdy;
-                oy++;
-            }
-        }
-    }
+    // else {
+    //     // A 和 B 都不转置的情况
+    //     for (i = 0; i < pdat->m; i++) {
+    //         for (j = 0; j < pdat->n; j++) {
+    //             float dLdy = pdy[i * pdat->n + j];
+    //             for (k = 0; k < pdat->k; k++) {
+    //                 pda[i * pdat->k + k] += dLdy * pb[k * pdat->n + j];  // 更新 dA
+    //                 pdb[k * pdat->n + j] += dLdy * pa[i * pdat->k + k];  // 更新 dB
+    //             }
+    //             if (pdc) pdc[j] += dLdy;
+    //         }
+    //     }
+    // }
+    tensor_dump2(nd->out[0]->grad);
 }
+
 
 
 
@@ -987,9 +986,9 @@ void Gemm_init(node_t *nd) {
         pdat->beta = node_get_attr_float(nd, "beta", 1.0);
         pdat->transA = node_get_attr_int(nd, "transA", 0);
         pdat->transB = node_get_attr_int(nd, "transB", 0);
-        pdat->m = 0;
-        pdat->n = 0;
-        pdat->k = 0;
+        pdat->m = pdat->transA ? nd->in[0]->dims[1] : nd->in[0]->dims[0];
+        pdat->n = pdat->transB ? nd->in[1]->dims[0] : nd->in[1]->dims[1];
+        pdat->k = pdat->transA ? nd->in[0]->dims[0] : nd->in[0]->dims[1];
         nd->priv = pdat;
     }
     nd->in[1]->is_param = 1;
@@ -1002,22 +1001,7 @@ void Gemm_reshape(node_t *nd) {
     tensor_t *y = nd->out[0];
     tensor_t *a = nd->in[0];
     tensor_t *b = nd->in[1];
-    int k;
-
-    if (pdat->transA) {
-        pdat->m = a->dims[1];
-        pdat->k = a->dims[0];
-    } else {
-        pdat->m = a->dims[0];
-        pdat->k = a->dims[1];
-    }
-    if (pdat->transB) {
-        pdat->n = b->dims[0];
-        k = 1;
-    } else {
-        pdat->n = b->dims[1];
-        k = 0;
-    }
+    int k = pdat->transB ? 1 : 0;
     if (b->dims[k] != pdat->k)
         return;
     if (pdat->m <= 0 || pdat->n <= 0 || pdat->k <= 0)
