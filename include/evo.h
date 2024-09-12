@@ -794,6 +794,51 @@ struct optimizer {
     void (*graph_optimize)(graph_t*);
 };
 
+
+
+#if defined(EVO_TRAIN_ENB)
+
+// ==================================================================================== //
+//                                  evo: train
+// ==================================================================================== //
+
+// ==================================================================================== //
+//                                  evo: typedef (train)
+// ==================================================================================== //
+
+typedef struct trainer trainer_t;
+
+typedef enum {
+    TRAINER_OPT_SGD,
+    TRAINER_OPT_ADAM
+} trainer_opt_type_t;
+
+typedef enum {
+    TRAINER_LOSS_MSE,
+    TRAINER_LOSS_CROSS_ENTROPY
+} trainer_loss_type_t;
+
+// ==================================================================================== //
+//                                  evo: trainer (train)
+// ==================================================================================== //
+
+struct trainer {
+    float learning_rate;                                /* Learning Rate of Trainer     */
+    float epsilon;                                      /* Little Constant of Trainer   */
+    trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
+    trainer_loss_type_t loss_type;                      /* Loss func Type: MSE,CE...    */
+    void *priv;                                         /* Private Params of Optimizor  */
+    
+    float (*loss)(float*, float*, int);                 /* Loss Function                */
+    void (*update)(struct trainer*, tensor_t*);         /* Update Tensor by Gradient    */
+};
+
+EVO_API trainer_t * trainer_new(trainer_loss_type_t, trainer_opt_type_t);
+EVO_API void trainer_free(trainer_t*);
+
+#endif  // EVO_TRAIN_ENB
+
+
 // ==================================================================================== //
 //                                  evo: widget
 // ==================================================================================== //
