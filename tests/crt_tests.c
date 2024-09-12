@@ -108,11 +108,12 @@ UnitTest_fn_def(test_model_create) {
     model_show_tensors(mdl);
 
     // Train
+    int learning_rate = 0.1;
+    trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
     int num_epochs = 8;
     int num_batchs = 20;
-    int learning_rate = 0.1;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
@@ -121,7 +122,9 @@ UnitTest_fn_def(test_model_create) {
             x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
             uint8_t y = label->bs[b];
             model_set_tensor(mdl, "Input0", x);
-            model_train_label(mdl, y);
+            // model_train_label(mdl, y);
+            tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
+            trainer_step(trn, mdl, y_ts);
         }
 
         // Evaluate the model on the training and test set
@@ -139,10 +142,10 @@ UnitTest_fn_def(test_model_create) {
                 tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
-            tensor_t* sss = model_get_tensor(mdl, "Gemm2_kernel");
+            tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
             tensor_dump2(sss->grad);
             train_error -= (acc_cnt / num_batchs);
-            printf("[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n", epoch, train_error * 100, test_error * 100);
+            fprintf(stderr, "[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, train_error * 100, test_error * 100);
         }
     }
     return NULL;

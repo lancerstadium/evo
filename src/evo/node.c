@@ -56,6 +56,17 @@ node_t * node_new(graph_t* g, const char* name, op_type_t op_ty) {
     return nd;
 }
 
+int node_get_nparam(node_t* nd) {
+    if(!nd || !nd->in) return 0;
+    int nparam = 0;
+    for(int i = 0; i < nd->nin; i++) {
+        if(nd->in[i]->is_param) {
+            nparam += nd->in[i]->ndata;
+        }
+    }
+    return nparam;
+}
+
 attribute_t* node_get_attr(node_t *nd, const char *name) {
     attribute_t *attr;
     int i;
@@ -125,7 +136,7 @@ void node_dump(node_t *nd) {
     if(!nd) return;
     int i;
     if(nd) {
-        LOG_INFO("%s: (%s v%d)\r\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "Uninit" , nd->opset);
+        LOG_INFO("%s: (%s v%d) [%d]\r\n", nd->name, op_name(nd->op->type) ? op_name(nd->op->type) : "Uninit" , nd->opset, node_get_nparam(nd));
         if(nd->nin > 0) {
             LOG_INFO("  - Inputs: \n");
             for(i = 0; i < nd->nin; i++) {

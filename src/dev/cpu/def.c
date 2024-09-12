@@ -57,19 +57,22 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-        double time_st, time_ed;
+        double time_st = 0.0, time_ed = 0.0;
 
         nd->op->init(nd);                           // --- Init Operator
-        nd->op->reshape(nd);                        // --- Reshape Operator
-        time_st = sys_time();                       // --- Clock up
-        nd->op->forward(nd);                        // --- Forward Operator
-        if(g->mode == 1 && nd->op->backward) {
+        if(g->mode == 0 && nd->op->forward) {
+            nd->op->reshape(nd);                    // --- Reshape Operator
+            time_st = sys_time();                   // --- Clock up
+            nd->op->forward(nd);                    // --- Forward Operator
+            time_ed = sys_time();                   // --- Clock down
+        } else if(g->mode == 1 && nd->op->backward) {
+            time_st = sys_time();                   // --- Clock up
             nd->op->backward(nd);                   // --- Backward Operator
+            time_ed = sys_time();                   // --- Clock down
         }
-        time_ed = sys_time();                       // --- Clock down
         nd->op->exit(nd);                           // --- Exit Operator
 
-        if(g->prof->exec_time_vec) {
+        if(g->mode == 0 && nd->op->forward && g->prof->exec_time_vec) {
             g->prof->exec_time_vec[g->prof->exec_node_idx] = time_ed - time_st;
             g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);
             LOG_INFO("[RUN] Node: %s  Op: %s  Time: %f ms\n",nd->name, op_name(nd->op->type), g->prof->exec_time_vec[g->prof->exec_node_idx]);
@@ -91,7 +94,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
     int start = (g->mode == 1) ? (g->prof->exec_nnode - 1) : 0;
     int end = (g->mode == 1) ? -1 : g->prof->exec_nnode;
     int step = (g->mode == 1) ? -1 : 1;
-    double time_st, time_ed;
+    double time_st = 0.0, time_ed = 0.0;
 
     for(int i = start; i != end; i += step) {
         g->prof->exec_node_idx = i;
@@ -102,16 +105,17 @@ static int cpu_run(device_t *dev, graph_t *g) {
         }
     
         nd->op->init(nd);                           // --- Init Operator
-        nd->op->reshape(nd);                        // --- Reshape Operator
-        time_st = sys_time();                       // --- Clock up
-        nd->op->forward(nd);                        // --- Forward Operator
-        if(g->mode == 1 && nd->op->backward) {
+        if(g->mode == 0 && nd->op->forward) {
+            nd->op->reshape(nd);                    // --- Reshape Operator
+            time_st = sys_time();                   // --- Clock up
+            nd->op->forward(nd);                    // --- Forward Operator
+            time_ed = sys_time();                   // --- Clock down
+        } else if(g->mode == 1 && nd->op->backward) {
             nd->op->backward(nd);                   // --- Backward Operator
         }
-        time_ed = sys_time();                       // --- Clock down
         nd->op->exit(nd);                           // --- Exit Operator
         
-        if(g->prof->exec_time_vec) {
+        if(g->mode == 0 && nd->op->forward && g->prof->exec_time_vec) {
             g->prof->exec_time_vec[i] = time_ed - time_st;
             g->prof->exec_time_vec[g->prof->exec_nnode] += (time_ed - time_st);
         }

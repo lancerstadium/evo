@@ -75,8 +75,9 @@ static inline void tensor_init(tensor_t *ts, int idx, int type) {
     ts->name = NULL;
     ts->pnode = -1;
     // option
-    ts->is_constant = 0;    // ts is var
-    ts->is_iallocated = 1;  // ts is internal allocated
+    ts->is_const = 0;       // ts is var
+    ts->is_param = 0;       // ts is not param
+    ts->is_ialloc = 1;      // ts is internal allocated
     ts->layout = 0;         // ts is layout NCHW
     // dim
     for (int i = 0; i < EVO_DIM_MAX; i++) {
@@ -205,6 +206,14 @@ tensor_t *tensor_reinit(tensor_t *ts, tensor_type_t type, int ndim, int *dims) {
             }
         }
     }
+    return ts;
+}
+
+tensor_t * tensor_new_one_hot(int ndim, int *dims, int label) {
+    tensor_t* ts = tensor_new("one_hot", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(ts, ndim, dims);
+    float* tsd = ts->datas;
+    tsd[label] = 1.0;
     return ts;
 }
 

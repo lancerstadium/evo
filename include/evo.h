@@ -168,16 +168,18 @@ struct tensor {
     void* datas;                                        /* Tensor data addr             */
     size_t ndata;                                       /* Tensor data size             */
     int16_t pnode;                                      /* Tensor parent node index     */
-    struct tensor* grad;                                /* */
+    struct tensor* grad;                                /* Tensor Grad                  */
 
-    uint8_t is_constant : 1;                            /* Tensor is constant           */
-    uint8_t is_iallocated: 1;                           /* Tensor is iallocated         */
-    uint8_t layout : 1;                                 /* Tensor is layout 0NCHW/1NHWC */
+    uint8_t is_const    : 1;                            /* Tensor is constant           */
+    uint8_t is_param    : 1;                            /* Tensor is parameter          */
+    uint8_t is_ialloc   : 1;                            /* Tensor is iallocated         */
+    uint8_t layout      : 1;                            /* Tensor is layout 0NCHW/1NHWC */
 };
 
 EVO_API tensor_t * tensor_new(const char*, tensor_type_t);
 EVO_API tensor_t * tensor_new_int64(const char*, int*, int, int64_t*, size_t);
 EVO_API tensor_t * tensor_new_float32(const char*, int*, int, float*, size_t);
+EVO_API tensor_t * tensor_new_one_hot(int, int*, int);
 EVO_API tensor_t * tensor_reinit(tensor_t*, tensor_type_t, int, int*);
 EVO_API tensor_t * tensor_permute(tensor_t*, int, int*);
 EVO_API tensor_t * tensor_argmax(tensor_t*, int, int, int);
@@ -542,6 +544,7 @@ struct node {
 
 EVO_API node_t * node_temp(const char*, op_type_t);
 EVO_API node_t* node_new(graph_t*, const char*, op_type_t);
+EVO_API int node_get_nparam(node_t*);
 EVO_API attribute_t* node_get_attr(node_t*, const char*);
 EVO_API float node_get_attr_float(node_t*, const char*, float);
 EVO_API int64_t node_get_attr_int(node_t*, const char*, int64_t);
@@ -583,7 +586,7 @@ struct graph {
     device_t *dev;                                      /* Device of graph              */
     model_t *mdl;                                       /* Owner model                  */
 
-    uint8_t mode : 1;                                   /* Graph Mode: 0:Eval|1:Train   */
+    uint8_t mode : 1;                                   /* Graph Mode: 0:For|1:Backward */
     uint8_t data_layout : 1;                            /* Data layout: 0NCHW/1NHWC     */
     uint8_t is_sub : 1;                                 /* Graph is sub graph           */
     uint8_t status : 4;                                 /* Status of Graph              */
@@ -610,6 +613,7 @@ struct graph {
 EVO_API graph_t * graph_new(model_t*);
 EVO_API graph_t * graph_sub_new(graph_t*);
 EVO_API graph_t * graph_as_sub(graph_t*);
+EVO_API void graph_set_mode(graph_t*, int);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
@@ -654,8 +658,6 @@ EVO_API model_t * model_new(const char*);
 EVO_API tensor_t* model_get_tensor(model_t*, const char*);
 EVO_API void model_set_tensor(model_t*, const char*, tensor_t*);
 EVO_API tensor_t* model_eval(model_t*, tensor_t*);
-EVO_API void model_train(model_t*, tensor_t*);
-EVO_API void model_train_label(model_t*, int);
 EVO_API void model_show_tensors(model_t*);
 EVO_API void model_free(model_t*);
 
@@ -818,22 +820,26 @@ typedef enum {
     TRAINER_LOSS_CROSS_ENTROPY
 } trainer_loss_type_t;
 
+
 // ==================================================================================== //
 //                                  evo: trainer (train)
 // ==================================================================================== //
 
 struct trainer {
+    int step;                                           /* Step of Trainer              */
     float learning_rate;                                /* Learning Rate of Trainer     */
     float epsilon;                                      /* Little Constant of Trainer   */
     trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
     trainer_loss_type_t loss_type;                      /* Loss func Type: MSE,CE...    */
     void *priv;                                         /* Private Params of Optimizor  */
     
-    float (*loss)(float*, float*, int);                 /* Loss Function                */
-    void (*update)(struct trainer*, tensor_t*);         /* Update Tensor by Gradient    */
+    float (*loss)(float*, float*, int);                 /* Compute Loss Function        */
+    void (*loss_grad)(float*, float*, float*, int);     /* Compute Loss Gradient Func   */
+    void (*update)(struct trainer*, tensor_t*);         /* Update A Tensor by Gradient  */
 };
 
-EVO_API trainer_t * trainer_new(trainer_loss_type_t, trainer_opt_type_t);
+EVO_API trainer_t * trainer_new(float, float, trainer_loss_type_t, trainer_opt_type_t);
+EVO_API float trainer_step(trainer_t*, model_t*, tensor_t*);
 EVO_API void trainer_free(trainer_t*);
 
 #endif  // EVO_TRAIN_ENB

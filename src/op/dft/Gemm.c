@@ -992,6 +992,8 @@ void Gemm_init(node_t *nd) {
         pdat->k = 0;
         nd->priv = pdat;
     }
+    nd->in[1]->is_param = 1;
+    if(nd->nin > 2) nd->in[2]->is_param = 1;
 }
 
 void Gemm_reshape(node_t *nd) {

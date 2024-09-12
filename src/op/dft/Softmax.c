@@ -240,8 +240,8 @@ static void Softmax_backward_v13_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];        // 输入
     tensor_t *y = nd->out[0];       // Softmax 正向传播的输出
-    if(!nd->out[0]->grad) return;
-    if(!nd->in[0]->grad) {
+    if (!nd->out[0]->grad) return;
+    if (!nd->in[0]->grad) {
         char name_buf[54];
         sprintf(name_buf, "%s_grad", x->name);
         nd->in[0]->grad = tensor_new(name_buf, y->type);
@@ -249,11 +249,10 @@ static void Softmax_backward_v13_float32(node_t *nd) {
     }
     tensor_t *dy = nd->out[0]->grad; // 从上层传递过来的梯度（dL/dY）
     tensor_t *dx = nd->in[0]->grad;  // 需要计算的梯度（dL/dX）
-    
-    // float *px = (float *)x->datas;
-    float *py = (float *)y->datas;
-    float *pdy = (float *)dy->datas;
-    float *pdx = (float *)dx->datas;
+
+    float *py = (float *)y->datas;   // Softmax输出
+    float *pdy = (float *)dy->datas; // 反向传递的梯度
+    float *pdx = (float *)dx->datas; // Softmax输入的梯度
 
     int i, j, k, o, oo, io;
 
@@ -266,25 +265,25 @@ static void Softmax_backward_v13_float32(node_t *nd) {
             // 计算 dx 的梯度
             for (j = 0; j < pdat->current; j++) {
                 o = io + j * pdat->inner;
-                // 计算 Softmax 反向传播的梯度
-                float grad = 0;
+                // 初始化 dx 梯度为 0
+                pdx[o] = 0;
+
+                // 对每一个元素计算 Softmax 反向传播的梯度
                 for (int m = 0; m < pdat->current; m++) {
                     int om = io + m * pdat->inner;
+
                     if (j == m) {
                         // 对角元素
-                        grad += pdy[om] * py[o] * (1.0f - py[o]);
+                        pdx[o] += pdy[om] * py[o] * (1.0f - py[o]);
                     } else {
                         // 非对角元素
-                        grad -= pdy[om] * py[o] * py[om];
+                        pdx[o] -= pdy[om] * py[o] * py[om];
                     }
                 }
-                pdx[o] = grad;  // 将梯度写入 dx
             }
         }
     }
 }
-
-
 
 void Softmax_init(node_t *nd) {
     if (!nd || !nd->in) {
@@ -303,13 +302,8 @@ void Softmax_init(node_t *nd) {
         pdat->axis = node_get_attr_int(nd, "axis", 1);
         nd->priv = pdat;
     }
-}
-
-void Softmax_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
-    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    if(!pdat) return;
     tensor_t *x = nd->in[0];
-    tensor_t *y = nd->out[0];
     int i;
     if (nd->opset >= 13) {
         pdat->caxis = pdat->axis;
@@ -325,7 +319,6 @@ void Softmax_reshape(node_t *nd) {
             else
                 pdat->inner *= x->dims[i];
         }
-        tensor_reshape_ident(y, x, x->type);
     } else {
         int axis = pdat->axis;
         if (axis < 0)
@@ -338,8 +331,14 @@ void Softmax_reshape(node_t *nd) {
             else
                 pdat->D *= x->dims[i];
         }
-        tensor_reshape_ident(y, x, x->type);
     }
+}
+
+void Softmax_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    tensor_t *x = nd->in[0];
+    tensor_t *y = nd->out[0];
+    tensor_reshape_ident(y, x, x->type);
 }
 
 void Softmax_forward(node_t *nd) {
