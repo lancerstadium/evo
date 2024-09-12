@@ -16,11 +16,13 @@ static int cpu_init(device_t* dev) {
 }
 
 static int cpu_prerun(device_t *dev, graph_t *g) {
-    if(!dev || !g)
+    if(!dev || !g) {
+        LOG_ERR("CPU Pre Run Fail: No device or graph!\n");
         return -1;
+    }
     g->prof = profiler_new(PROFILER_TYPE_EXEC);
     if(!g->prof) {
-        LOG_ERR("CPU Prerun Fail: No profiler!\n");
+        LOG_ERR("CPU Pre Run Fail: No profiler!\n");
     }
     for(int i = 0; i < g->nnode; i++) {
         node_t * nd = graph_get_node(g, g->nodes_vec[i]);
@@ -30,8 +32,16 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
             vector_add(&(g->prof->exec_time_vec), 0.0);
             g->prof->exec_nnode++;
         } else {
-            LOG_ERR("Not Support Node: %s\n", nd->name);
+            LOG_ERR("CPU Pre Run Fail: Unsupport Node %s\n", nd->name);
         }
+    }
+    for(int i = 0; i < g->prof->exec_nnode; i++) {
+        node_t* nd = g->prof->exec_node_vec[i];
+        if(!nd->op || !nd->op->init) {
+            LOG_ERR("CPU Pre Run Fail: Node %s no operator!\n", nd->name);
+            return -1;
+        }
+        nd->op->init(nd);                           // --- Exit Operator
     }
     vector_add(&(g->prof->exec_time_vec), 0.0);     // Sum Time
     return 0;
@@ -59,18 +69,14 @@ static int cpu_step(device_t *dev, graph_t *g, int n) {
         }
         double time_st = 0.0, time_ed = 0.0;
 
-        nd->op->init(nd);                           // --- Init Operator
         if(g->mode == 0 && nd->op->forward) {
             nd->op->reshape(nd);                    // --- Reshape Operator
             time_st = sys_time();                   // --- Clock up
             nd->op->forward(nd);                    // --- Forward Operator
             time_ed = sys_time();                   // --- Clock down
         } else if(g->mode == 1 && nd->op->backward) {
-            time_st = sys_time();                   // --- Clock up
             nd->op->backward(nd);                   // --- Backward Operator
-            time_ed = sys_time();                   // --- Clock down
         }
-        nd->op->exit(nd);                           // --- Exit Operator
 
         if(g->mode == 0 && nd->op->forward && g->prof->exec_time_vec) {
             g->prof->exec_time_vec[g->prof->exec_node_idx] = time_ed - time_st;
@@ -103,8 +109,7 @@ static int cpu_run(device_t *dev, graph_t *g) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-    
-        nd->op->init(nd);                           // --- Init Operator
+
         if(g->mode == 0 && nd->op->forward) {
             nd->op->reshape(nd);                    // --- Reshape Operator
             time_st = sys_time();                   // --- Clock up
@@ -113,7 +118,6 @@ static int cpu_run(device_t *dev, graph_t *g) {
         } else if(g->mode == 1 && nd->op->backward) {
             nd->op->backward(nd);                   // --- Backward Operator
         }
-        nd->op->exit(nd);                           // --- Exit Operator
         
         if(g->mode == 0 && nd->op->forward && g->prof->exec_time_vec) {
             g->prof->exec_time_vec[i] = time_ed - time_st;
@@ -124,7 +128,23 @@ static int cpu_run(device_t *dev, graph_t *g) {
 }
 
 static int cpu_posrun(device_t *dev, graph_t *g) {
+    if(!dev || !g) {
+        LOG_ERR("CPU Post Run Fail: No device or graph!\n");
+        return -1;
+    }
+    if(!g->prof) {
+        LOG_ERR("CPU Post Run Fail: No device graph info!\n");
+        return -1;
+    }
     /// TODO: Foreach Node in graph should postrun
+    for(int i = 0; i < g->prof->exec_nnode; i++) {
+        node_t* nd = g->prof->exec_node_vec[i];
+        if(!nd->op || !nd->op->init) {
+            LOG_ERR("CPU Post Run Fail: Node %s no operator!\n", nd->name);
+            return -1;
+        }
+        nd->op->exit(nd);                           // --- Exit Operator
+    }
     return 0;
 }
 

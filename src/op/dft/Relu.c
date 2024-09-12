@@ -216,23 +216,26 @@ static void Relu_backward_float64(node_t *nd) {
 
 
 void Relu_init(node_t *nd) {
-    if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+    if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
-        return;
-    } 
 }
 
 void Relu_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
+    if(!nd || !nd->in || !nd->out || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
+        return;
+    } 
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
 }
 
 void Relu_forward(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
+    if(!nd || !nd->in || !nd->out || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) || (nd->in[0]->ndim == 0)) {
+        return;
+    } 
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:      Relu_forward_int8(nd); break;
         case TENSOR_TYPE_INT16:     Relu_forward_int16(nd); break;

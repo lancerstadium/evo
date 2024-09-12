@@ -14,6 +14,7 @@
     tensor_copy(a, t0);                           \
     graph_prerun(mdl->graph);                     \
     graph_run(mdl->graph);                        \
+    graph_posrun(mdl->graph);                     \
     tensor_dump2(b);                              \
     tensor_dump2(t1);                             \
     graph_dump(mdl->graph);                       \
@@ -28,6 +29,7 @@
     tensor_copy(a, t0);                             \
     graph_prerun(mdl->graph);                       \
     graph_run(mdl->graph);                          \
+    graph_posrun(mdl->graph);                       \
     UnitTest_ast(tensor_equal(b, t1), s " failed"); \
     mdl->sez->unload(mdl);
 
@@ -40,6 +42,7 @@
     tensor_copy(a, t0);                           \
     graph_prerun(mdl->graph);                     \
     graph_run(mdl->graph);                        \
+    graph_posrun(mdl->graph);                     \
     UnitTest_ast(tensor_equal(b, t1), s " failed");
 
 #define TEST_NORM_END() \
@@ -57,6 +60,7 @@
     tensor_copy(b, t1);                           \
     graph_prerun(mdl->graph);                     \
     graph_run(mdl->graph);                        \
+    graph_posrun(mdl->graph);                     \
     tensor_dump2(c);                              \
     tensor_dump2(t2);                             \
     mdl->sez->unload(mdl);
@@ -73,6 +77,7 @@
     tensor_copy(b, t1);                             \
     graph_prerun(mdl->graph);                       \
     graph_run(mdl->graph);                          \
+    graph_posrun(mdl->graph);                       \
     UnitTest_ast(tensor_equal(c, t2), s " failed"); \
     mdl->sez->unload(mdl);
 

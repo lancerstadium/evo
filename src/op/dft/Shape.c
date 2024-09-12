@@ -6,15 +6,15 @@ void Shape_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
+}
+
+void Shape_reshape(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
     if (!(nd->nin == 1) || !(nd->nout == 1) 
         || (nd->in[0]->ndim == 0) 
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-}
-
-void Shape_reshape(node_t* nd) {
-    if(!nd || !nd->in || !nd->out) return;
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
     y->type = TENSOR_TYPE_INT64;
@@ -23,7 +23,11 @@ void Shape_reshape(node_t* nd) {
 
 void Shape_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
-    if(nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     tensor_t* x = nd->in[0];
     tensor_t* y = nd->out[0];
     int64_t* py = (int64_t*)y->datas;

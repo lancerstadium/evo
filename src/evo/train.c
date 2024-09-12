@@ -159,7 +159,6 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
     graph_prerun(mdl->graph);
     graph_set_mode(mdl->graph, 0);
     graph_run(mdl->graph);
-    graph_posrun(mdl->graph);
     // 2. calculate loss & grad
     float loss = 0.0;
     tensor_t* out = mdl->graph->tensors[mdl->graph->ntensor - 1];
@@ -188,6 +187,7 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
             }
         }
     }
+    graph_posrun(mdl->graph);
     trn->step++;
     return loss;
 }

@@ -1,5 +1,6 @@
 #include <evo/resolver.h>
 #include <evo/util/math.h>
+#include <string.h>
 #include <math.h>
 
 typedef struct {
@@ -45,12 +46,14 @@ static void BatchNormalization_forward_float32(node_t *nd) {
     tensor_t *mean = nd->in[3];
     tensor_t *var = nd->in[4];
     tensor_t *y = nd->out[0];
+
     float *px = (float *)x->datas;
     float *pscale = (float *)scale->datas;
     float *pb = (float *)b->datas;
     float *pmean = (float *)mean->datas;
     float *pvar = (float *)var->datas;
     float *py = (float *)y->datas;
+
     int N = x->dims[0];
     int C = x->dims[1];
     int NC = N * C;
@@ -98,14 +101,12 @@ static void BatchNormalization_forward_float64(node_t *nd) {
 }
 
 void BatchNormalization_init(node_t *nd) {
-    if (!nd || !nd->in || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+    if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 5) || !(nd->nout >= 1) || (nd->in[0]->ndim == 0)) {
-        return;
-    }
-    operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
+    operator_pdata_t *pdat = sys_malloc(sizeof(operator_pdata_t));
     if (pdat) {
+        memset(pdat, 0, sizeof(operator_pdata_t));
         pdat->epsilon = node_get_attr_float(nd, "epsilon", 1e-5);
         pdat->momentum = node_get_attr_float(nd, "momentum", 0.9);
         nd->priv = pdat;
@@ -113,14 +114,20 @@ void BatchNormalization_init(node_t *nd) {
 }
 
 void BatchNormalization_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
+    if(!nd || !nd->in || !nd->out || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin == 5) || !(nd->nout >= 1) || (nd->in[0]->ndim == 0)) {
+        return;
+    }
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
 }
 
 void BatchNormalization_forward(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
+    if(!nd || !nd->in || !nd->out || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin == 5) || !(nd->nout >= 1) || (nd->in[0]->ndim == 0)) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_FLOAT16:
             BatchNormalization_forward_float16(nd);

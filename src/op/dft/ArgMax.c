@@ -473,11 +473,6 @@ void ArgMax_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
         memset(pdat, 0, sizeof(operator_pdata_t));
@@ -491,6 +486,11 @@ void ArgMax_init(node_t* nd) {
 
 void ArgMax_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
@@ -520,6 +520,11 @@ void ArgMax_reshape(node_t* nd) {
 
 void ArgMax_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT8:
             ArgMax_forward_int8(nd);

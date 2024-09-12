@@ -16,11 +16,6 @@ void Slice_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin >= 3) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) || (nd->in[2]->ndim == 0)
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED || nd->in[2]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
         memset(pdat, 0, sizeof(operator_pdata_t));

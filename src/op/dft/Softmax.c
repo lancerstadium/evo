@@ -289,11 +289,6 @@ void Softmax_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat && nd->opset >= 13) {
         pdat->axis = node_get_attr_int(nd, "axis", -1);
@@ -302,8 +297,18 @@ void Softmax_init(node_t *nd) {
         pdat->axis = node_get_attr_int(nd, "axis", 1);
         nd->priv = pdat;
     }
-    if(!pdat) return;
+}
+
+void Softmax_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *x = nd->in[0];
+    tensor_t *y = nd->out[0];
     int i;
     if (nd->opset >= 13) {
         pdat->caxis = pdat->axis;
@@ -332,17 +337,16 @@ void Softmax_init(node_t *nd) {
                 pdat->D *= x->dims[i];
         }
     }
-}
-
-void Softmax_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
-    tensor_t *x = nd->in[0];
-    tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
 }
 
 void Softmax_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if (nd->opset >= 13) {
         switch (nd->in[0]->type) {
             case TENSOR_TYPE_BFLOAT16:
@@ -379,6 +383,11 @@ void Softmax_forward(node_t *nd) {
 
 void Softmax_backward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if (nd->opset >= 13) {
         switch (nd->in[0]->type) {
             case TENSOR_TYPE_BFLOAT16:

@@ -11,11 +11,6 @@ void Pad_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin >= 2) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
         memset(pdat, 0, sizeof(operator_pdata_t));
@@ -29,6 +24,11 @@ void Pad_init(node_t* nd) {
 // ref: https://onnx.ai/onnx/operators/onnx__Pad.html
 void Pad_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if(nd->nin < 2 || nd->in[1]->type != TENSOR_TYPE_INT64) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* a = nd->in[0];    /* data */
@@ -53,6 +53,11 @@ void Pad_reshape(node_t* nd) {
 
 void Pad_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if(nd->nin < 2 || nd->in[1]->type != TENSOR_TYPE_INT64) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* a = nd->in[0];    /* data */

@@ -35,11 +35,6 @@ void ConstantOfShape_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     attribute_t* attr;
     tensor_t* t = NULL;
@@ -117,6 +112,11 @@ void ConstantOfShape_init(node_t* nd) {
 
 void ConstantOfShape_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
 }
 
 void ConstantOfShape_forward(node_t* nd) {

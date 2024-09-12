@@ -1241,11 +1241,6 @@ void Cast_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 1) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
         pdat->to = (tensor_type_t)node_get_attr_int(nd, "to", nd->in[0]->type);

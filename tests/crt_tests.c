@@ -81,9 +81,9 @@ model_t* mnist_model() {
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
     // graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
-    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
+    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    // graph_add_linear(mdl->graph, 500, "relu");
+    graph_add_linear(mdl->graph, 500, "relu");
     graph_add_linear(mdl->graph, 10, "softmax");
     return mdl;
 }
@@ -112,11 +112,12 @@ UnitTest_fn_def(test_model_create) {
     trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
-    int num_epochs = 8;
-    int num_batchs = 20;
+    int num_epochs = 2;
+    int num_batchs = 10;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
+
         for (int b = 0; b < num_batchs; b++) {
             x_tmp = image_get_raw(imgs, b);
             x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
@@ -124,13 +125,15 @@ UnitTest_fn_def(test_model_create) {
             model_set_tensor(mdl, "Input0", x);
             // model_train_label(mdl, y);
             tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
+            tensor_t* sss = model_get_tensor(mdl, "Gemm3_bias");
+            tensor_dump2(sss->grad);
             trainer_step(trn, mdl, y_ts);
         }
 
         // Evaluate the model on the training and test set
         if (epoch % 2 == 0) {
-            float train_error = 1.0;
-            float test_error = 1.0;
+            float train_acc = 0.0;
+            float test_acc = 0.0;
             int acc_cnt = 0;
             for(int b = 0; b < num_batchs; b++) {
                 x_tmp = image_get_raw(imgs, b);
@@ -142,10 +145,8 @@ UnitTest_fn_def(test_model_create) {
                 tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
-            // tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
-            // tensor_dump2(sss->grad);
-            train_error -= (acc_cnt / num_batchs);
-            fprintf(stderr, "[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, train_error * 100, test_error * 100);
+            train_acc += (acc_cnt / num_batchs);
+            fprintf(stderr, "[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, train_acc * 100, test_acc * 100);
         }
     }
     return NULL;

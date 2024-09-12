@@ -362,6 +362,11 @@ void Transpose_init(node_t *nd) {
 
 void Transpose_reshape(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     int i;
     tensor_t *x = nd->in[0];
@@ -374,6 +379,11 @@ void Transpose_reshape(node_t *nd) {
 
 void Transpose_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BOOL:
             Transpose_bool(nd);

@@ -6,13 +6,13 @@ void Expand_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
 }
 
 void Expand_reshape(node_t* nd) {
     if (!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if(nd->nin < 2 || nd->in[1]->type != TENSOR_TYPE_INT64) return;
 
     tensor_t* x = nd->in[0];            /* 输入张量 */
@@ -45,6 +45,9 @@ void Expand_reshape(node_t* nd) {
 
 void Expand_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin == 2) || !(nd->nout == 1) || (nd->in[0]->ndim == 0) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     if(nd->nin < 2 || nd->in[1]->type != TENSOR_TYPE_INT64) return;
 
     tensor_t* x = nd->in[0];    /* 输入张量 */

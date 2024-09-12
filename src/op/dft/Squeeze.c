@@ -6,15 +6,15 @@ void Squeeze_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
+}
+
+void Squeeze_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     if (!(nd->nin >= 1) || !(nd->nout == 1) 
         || (nd->in[0]->ndim == 0)
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-}
-
-void Squeeze_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
     tensor_t *y = nd->out[0];
     tensor_t *x = nd->in[0];
     tensor_t *a;
@@ -55,7 +55,11 @@ void Squeeze_reshape(node_t *nd) {
 
 void Squeeze_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
-    if(nd->in[0]->type == TENSOR_TYPE_UNDEFINED) return;
+    if (!(nd->nin >= 1) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     char **px = (char **)x->datas;

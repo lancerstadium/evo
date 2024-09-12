@@ -16,9 +16,6 @@ void RandomUniform_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nout == 1) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t* pdat = malloc(sizeof(operator_pdata_t));
     int64_t* ints;
     int i;
@@ -42,6 +39,9 @@ void RandomUniform_init(node_t* nd) {
 
 void RandomUniform_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nout == 1) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t* y = nd->out[0];
     y->type = pdat->dtype;
@@ -50,6 +50,9 @@ void RandomUniform_reshape(node_t* nd) {
 
 void RandomUniform_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nout == 1) || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
 

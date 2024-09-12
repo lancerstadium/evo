@@ -803,8 +803,6 @@ static void Gemm_backward_float32(node_t *nd) {
     float *pdc = (dc) ? (float *)dc->datas : NULL;  // 梯度 w.r.t. 'c'
 
     int i, j, k;
-    fprintf(stderr, "sdsadasdasd:\n");
-    tensor_dump2(nd->out[0]->grad);
 
     if (pdat->transA && pdat->transB) {
         // A 和 B 都转置的情况
@@ -845,20 +843,19 @@ static void Gemm_backward_float32(node_t *nd) {
             }
         }
     }
-    // else {
-    //     // A 和 B 都不转置的情况
-    //     for (i = 0; i < pdat->m; i++) {
-    //         for (j = 0; j < pdat->n; j++) {
-    //             float dLdy = pdy[i * pdat->n + j];
-    //             for (k = 0; k < pdat->k; k++) {
-    //                 pda[i * pdat->k + k] += dLdy * pb[k * pdat->n + j];  // 更新 dA
-    //                 pdb[k * pdat->n + j] += dLdy * pa[i * pdat->k + k];  // 更新 dB
-    //             }
-    //             if (pdc) pdc[j] += dLdy;
-    //         }
-    //     }
-    // }
-    tensor_dump2(nd->out[0]->grad);
+    else {
+        // A 和 B 都不转置的情况
+        for (i = 0; i < pdat->m; i++) {
+            for (j = 0; j < pdat->n; j++) {
+                float dLdy = pdy[i * pdat->n + j];
+                for (k = 0; k < pdat->k; k++) {
+                    pda[i * pdat->k + k] += dLdy * pb[k * pdat->n + j];  // 更新 dA
+                    pdb[k * pdat->n + j] += dLdy * pa[i * pdat->k + k];  // 更新 dB
+                }
+                if (pdc) pdc[j] += dLdy;
+            }
+        }
+    }
 }
 
 
@@ -975,32 +972,35 @@ void Gemm_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
-    if (!(nd->nin >= 2) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
-        return;
-    }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
         pdat->alpha = node_get_attr_float(nd, "alpha", 0.01);
         pdat->beta = node_get_attr_float(nd, "beta", 1.0);
         pdat->transA = node_get_attr_int(nd, "transA", 0);
         pdat->transB = node_get_attr_int(nd, "transB", 0);
-        pdat->m = pdat->transA ? nd->in[0]->dims[1] : nd->in[0]->dims[0];
-        pdat->n = pdat->transB ? nd->in[1]->dims[0] : nd->in[1]->dims[1];
-        pdat->k = pdat->transA ? nd->in[0]->dims[0] : nd->in[0]->dims[1];
+        pdat->m = 0;
+        pdat->n = 0;
+        pdat->k = 0;
         nd->priv = pdat;
     }
-    nd->in[1]->is_param = 1;
-    if(nd->nin > 2) nd->in[2]->is_param = 1;
 }
 
 void Gemm_reshape(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
+    nd->in[1]->is_param = 1;
+    if(nd->nin > 2) nd->in[2]->is_param = 1;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     tensor_t *a = nd->in[0];
     tensor_t *b = nd->in[1];
+    pdat->m = pdat->transA ? nd->in[0]->dims[1] : nd->in[0]->dims[0];
+    pdat->n = pdat->transB ? nd->in[1]->dims[0] : nd->in[1]->dims[1];
+    pdat->k = pdat->transA ? nd->in[0]->dims[0] : nd->in[0]->dims[1];
     int k = pdat->transB ? 1 : 0;
     if (b->dims[k] != pdat->k)
         return;
@@ -1014,6 +1014,11 @@ void Gemm_reshape(node_t *nd) {
 
 void Gemm_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 2) || !(nd->nout == 1) 
+        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT32:
             Gemm_forward_int32(nd);

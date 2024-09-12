@@ -44,15 +44,15 @@ void Dropout_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
     }
+}
+
+void Dropout_reshape(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
     if (!(nd->nin >= 1) || !(nd->nout >= 1) 
         || (nd->in[0]->ndim == 0) 
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
-}
-
-void Dropout_reshape(node_t *nd) {
-    if(!nd || !nd->in || !nd->out) return;
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     tensor_reshape_ident(y, x, x->type);
@@ -60,6 +60,11 @@ void Dropout_reshape(node_t *nd) {
 
 void Dropout_forward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if (!(nd->nin >= 1) || !(nd->nout >= 1) 
+        || (nd->in[0]->ndim == 0) 
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
+        return;
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_BFLOAT16:
             Dropout_bfloat16(nd);
