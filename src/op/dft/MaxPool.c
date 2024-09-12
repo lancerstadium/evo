@@ -516,6 +516,6 @@ void op_MaxPool_dft(node_t *nd) {
     nd->op->init        = MaxPool_init;
     nd->op->reshape     = MaxPool_reshape;
     nd->op->forward     = MaxPool_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = MaxPool_backward;
     nd->op->exit        = MaxPool_exit;
 }

@@ -780,12 +780,12 @@ static void Gemm_backward_float32(node_t *nd) {
         tensor_reshape(nd->in[0]->grad, a->ndim, a->dims);
     }
     if (!nd->in[1]->grad) {
-        sprintf(name_buf, "%s_grad", a->name);
+        sprintf(name_buf, "%s_grad", b->name);
         nd->in[1]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[1]->grad, b->ndim, b->dims);
     }
     if (c && !nd->in[2]->grad) {
-        sprintf(name_buf, "%s_grad", a->name);
+        sprintf(name_buf, "%s_grad", c->name);
         nd->in[2]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
     }
