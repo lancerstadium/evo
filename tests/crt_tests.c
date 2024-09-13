@@ -108,11 +108,11 @@ UnitTest_fn_def(test_model_create) {
     model_show_tensors(mdl);
 
     // Train
-    trainer_t* trn = trainer_new(0.1, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
-    int num_epochs = 20;
-    int num_batchs = 800;
+    int num_epochs = 2;
+    int num_batchs = 8;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
@@ -123,10 +123,11 @@ UnitTest_fn_def(test_model_create) {
             uint8_t y = label->bs[b];
             model_set_tensor(mdl, "Input0", x);
             tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
+            fprintf(stderr, "<%u> ", y);
             trainer_step(trn, mdl, y_ts);
-            // fprintf(stderr, "<%u> ", y);
-            // tensor_t* sss = model_get_tensor(mdl, "Gemm3_kernel");
-            // tensor_dump2(sss);
+            tensor_t* sss = model_get_tensor(mdl, "Gemm3_kernel");
+            if(b == 0)
+                tensor_dump2(sss);
         }
 
         // Evaluate the model on the training and test set

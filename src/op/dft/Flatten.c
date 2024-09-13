@@ -77,7 +77,7 @@ static void Flatten_backward(node_t *nd) {
     if(!nd->out[0]->grad) return;
     if(!nd->in[0]->grad) {
         char name_buf[54];
-        sprintf(name_buf, "%s_grad", nd->name);
+        sprintf(name_buf, "%s_grad", nd->in[0]->name);
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }

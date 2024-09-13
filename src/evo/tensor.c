@@ -134,6 +134,119 @@ tensor_t *tensor_new_float32(const char *name, int* dims, int ndim, float* fs, s
     return NULL;
 }
 
+void tensor_fill_zero(tensor_t *ts) {
+    if(!ts || ts->ndata == 0 || !ts->datas) return;
+    memset(ts->datas, 0, ts->ndata);
+}
+
+void tensor_fill_uniform(tensor_t *ts, float min_val, float max_val) {
+    if(!ts || ts->ndata == 0 || !ts->datas) return;
+    switch(ts->type) {
+        case TENSOR_TYPE_INT8: {
+            int8_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int8_t)(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT16: {
+            int16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int16_t)(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT32: {
+            int32_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int32_t)(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT64: {
+            int64_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int64_t)(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;
+        }
+        case TENSOR_TYPE_BFLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = float32_to_bfloat16(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = float32_to_float16(min_val + ((float) rand() / RAND_MAX) * (max_val - min_val));
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT32: {
+            float* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = min_val + ((float) rand() / RAND_MAX) * (max_val - min_val);
+            }
+            break;
+        }
+        case TENSOR_TYPE_FLOAT64: {
+            double* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (double)min_val + ((double) rand() / RAND_MAX) * ((double)max_val - (double)min_val);
+            }
+            break;
+        }
+        default: break;
+    }
+}
+
+
+void tensor_fill_normal(tensor_t *ts, float mean, float stddev) {
+    if(!ts || ts->ndata == 0 || !ts->datas) return;
+    switch(ts->type) {
+        case TENSOR_TYPE_BFLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                float u = ((float) rand() / RAND_MAX);
+                float v = ((float) rand() / RAND_MAX);
+                data[i] = float32_to_bfloat16(mean + stddev * sqrtf(-2.0f * logf(u)) * cosf(2.0f * M_PI * v));
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                float u = ((float) rand() / RAND_MAX);
+                float v = ((float) rand() / RAND_MAX);
+                data[i] = float32_to_float16(mean + stddev * sqrtf(-2.0f * logf(u)) * cosf(2.0f * M_PI * v));
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT32: {
+            float* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                float u = ((float) rand() / RAND_MAX);
+                float v = ((float) rand() / RAND_MAX);
+                data[i] = mean + stddev * sqrtf(-2.0f * logf(u)) * cosf(2.0f * M_PI * v);
+            }
+            break;
+        }
+        case TENSOR_TYPE_FLOAT64: {
+            double* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                double u = ((double) rand() / RAND_MAX);
+                double v = ((double) rand() / RAND_MAX);
+                data[i] = mean + stddev * sqrt(-2.0 * log(u)) * cos(2.0 * M_PI * v);
+            }
+            break;
+        }
+        default: break;
+    }
+}
+
+
 void tensor_free(tensor_t *ts) {
     if (!ts) return;
     if (ts->name) sys_free(ts->name);
