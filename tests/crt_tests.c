@@ -108,12 +108,11 @@ UnitTest_fn_def(test_model_create) {
     model_show_tensors(mdl);
 
     // Train
-    int learning_rate = 0.1;
-    trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.1, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
-    int num_epochs = 10;
-    int num_batchs = 1000;
+    int num_epochs = 20;
+    int num_batchs = 800;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
