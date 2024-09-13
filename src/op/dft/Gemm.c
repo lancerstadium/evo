@@ -974,7 +974,7 @@ void Gemm_init(node_t *nd) {
     }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
-        pdat->alpha = node_get_attr_float(nd, "alpha", 0.01);
+        pdat->alpha = node_get_attr_float(nd, "alpha", 1.0);
         pdat->beta = node_get_attr_float(nd, "beta", 1.0);
         pdat->transA = node_get_attr_int(nd, "transA", 0);
         pdat->transB = node_get_attr_int(nd, "transB", 0);

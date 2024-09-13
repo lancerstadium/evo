@@ -437,10 +437,10 @@ UnitTest_fn_def(test_gemm_dft_sb) {
 UnitTest_fn_def(test_gemm) {
     UnitTest_add(test_gemm_aa);
     UnitTest_add(test_gemm_a);
-    // UnitTest_add(test_gemm_b);
-    // UnitTest_add(test_gemm_dft_mb);
-    // UnitTest_add(test_gemm_dft_nb);
-    // UnitTest_add(test_gemm_dft_sb);
+    UnitTest_add(test_gemm_b);
+    UnitTest_add(test_gemm_dft_mb);
+    UnitTest_add(test_gemm_dft_nb);
+    UnitTest_add(test_gemm_dft_sb);
     return NULL;
 }
 

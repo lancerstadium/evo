@@ -89,11 +89,13 @@ static void Relu_backward_int8(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    int8_t *pg = (int8_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     int8_t *pd = (int8_t *)delta->datas;
     int8_t *py = (int8_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int16(node_t *nd) {
     tensor_t *x = nd->in[0];
@@ -105,11 +107,13 @@ static void Relu_backward_int16(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    int16_t *pg = (int16_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     int16_t *pd = (int16_t *)delta->datas;
     int16_t *py = (int16_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int32(node_t *nd) {
     tensor_t *x = nd->in[0];
@@ -121,11 +125,13 @@ static void Relu_backward_int32(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    int32_t *pg = (int32_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     int32_t *pd = (int32_t *)delta->datas;
     int32_t *py = (int32_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int64(node_t *nd) {
     tensor_t *x = nd->in[0];
@@ -137,11 +143,13 @@ static void Relu_backward_int64(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    int64_t *pg = (int64_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     int64_t *pd = (int64_t *)delta->datas;
     int64_t *py = (int64_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_bfloat16(node_t *nd) {
     tensor_t *x = nd->in[0];
@@ -153,13 +161,15 @@ static void Relu_backward_bfloat16(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    uint16_t *pg = (uint16_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     uint16_t *pd = (uint16_t *)delta->datas;
     uint16_t *py = (uint16_t *)y->datas;
     float v;
     for (size_t i = 0, l = y->ndata; i < l; i++) {
         v = bfloat16_to_float32(py[i]);
-        pd[i] = float32_to_bfloat16((v > 0) ? 1 : 0);
+        pd[i] = float32_to_bfloat16(((v > 0) ? 1 : 0) * bfloat16_to_float32(pg[i]));
     }
 }
 static void Relu_backward_float16(node_t *nd) {
@@ -172,13 +182,15 @@ static void Relu_backward_float16(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    uint16_t *pg = (uint16_t *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     uint16_t *pd = (uint16_t *)delta->datas;
     uint16_t *py = (uint16_t *)y->datas;
     float v;
     for (size_t i = 0, l = y->ndata; i < l; i++) {
         v = float16_to_float32(py[i]);
-        pd[i] = float32_to_float16((v > 0) ? 1 : 0);
+        pd[i] = float32_to_float16(((v > 0) ? 1 : 0) * float16_to_float32(pg[i]));
     }
 }
 static void Relu_backward_float32(node_t *nd) {
@@ -191,11 +203,14 @@ static void Relu_backward_float32(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    
+    tensor_t *grad = nd->out[0]->grad;
+    float *pg = (float *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     float *pd = (float *)delta->datas;
     float *py = (float *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_float64(node_t *nd) {
     tensor_t *x = nd->in[0];
@@ -207,11 +222,13 @@ static void Relu_backward_float64(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, x->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
+    tensor_t *grad = nd->out[0]->grad;
+    double *pg = (double *)grad->datas;
     tensor_t *delta = nd->in[0]->grad;
     double *pd = (double *)delta->datas;
     double *py = (double *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = (py[i] > 0) ? 1 : 0;
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 
 

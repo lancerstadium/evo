@@ -158,8 +158,8 @@ node_t* graph_get_node(graph_t *g, int i) {
     return NULL;
 }
 
-void graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nout, attribute_t** attr, int nattr) {
-    if(!g) return;
+node_t* graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nout, attribute_t** attr, int nattr) {
+    if(!g) return NULL;
     // Create node
     char name_buf[54];
     sprintf(name_buf, "%s%u", op_name(type), g->nnode);
@@ -198,6 +198,7 @@ void graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int nou
         nd->op->reshape(nd);
         nd->op->exit(nd);
     }
+    return nd;
 }
 
 void graph_add_input(graph_t *g, int in_dim, int* dims) {
@@ -210,8 +211,8 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
-void graph_add_linear(graph_t *g, int units, const char* activation) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
+    if(!g || g->ntensor == 0) return NULL;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
     int last_ndim = last->ndim;
@@ -235,27 +236,30 @@ void graph_add_linear(graph_t *g, int units, const char* activation) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     graph_push_tenser(g, bias);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
-    graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
+    node_t* nd = graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
     last = g->tensors[g->ntensor - 1];
     // Activation
     graph_add_activation(g, activation);
+    return nd;
 }
 
-void graph_add_activation(graph_t *g, const char* activation) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_activation(graph_t *g, const char* activation) {
+    if(!g || g->ntensor == 0 || !activation) return NULL;
+    node_t* nd = NULL;
     tensor_t* last = g->tensors[g->ntensor - 1];
     if(strcmp(activation, "relu") == 0) {
-        graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
+        nd = graph_add_layer(g, OP_TYPE_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
     } else if(strcmp(activation, "softmax") == 0){
-        graph_add_layer(g, OP_TYPE_SOFTMAX, (tensor_t*[]){last}, 1, 1, NULL, 0);
+        nd = graph_add_layer(g, OP_TYPE_SOFTMAX, (tensor_t*[]){last}, 1, 1, NULL, 0);
     } else if(strcmp(activation, "leaky_relu") == 0) {
-        graph_add_layer(g, OP_TYPE_LEAKY_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
+        nd = graph_add_layer(g, OP_TYPE_LEAKY_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
     }
+    return nd;
 }
 
 // ref: https://blog.csdn.net/qq_42079689/article/details/102642610
-void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int group, char* auto_pad) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int group, char* auto_pad) {
+    if(!g || g->ntensor == 0) return NULL;
     tensor_t* last = g->tensors[g->ntensor - 1];
     char name_buf[54];
     sprintf(name_buf, "Conv%u_kernel", g->nnode);
@@ -281,12 +285,13 @@ void graph_add_conv2d(graph_t *g, int64_t kernel_shape[2], int64_t strides[2], i
     }
     if(dilations) dilations_attr = attribute_ints("dilations", dilations, 2);
     if(auto_pad) auto_pad_attr = attribute_string("auto_pad", auto_pad, strlen(auto_pad));
-    graph_add_layer(g, OP_TYPE_CONV, (tensor_t*[]){last, kernel}, 2, 1, (attribute_t*[]){group_attr, kernel_shape_attr, strides_attr, pads_attr, dilations_attr, auto_pad_attr}, 6);
+    node_t* nd = graph_add_layer(g, OP_TYPE_CONV, (tensor_t*[]){last, kernel}, 2, 1, (attribute_t*[]){group_attr, kernel_shape_attr, strides_attr, pads_attr, dilations_attr, auto_pad_attr}, 6);
+    return nd;
 }
 
 // ref: https://blog.csdn.net/m0_49963403/article/details/129780289
-void graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int ceil_mode, int storge_order) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int ceil_mode, int storge_order) {
+    if(!g || g->ntensor == 0) return NULL;
     tensor_t* last = g->tensors[g->ntensor - 1];
     attribute_t *kernel_shape_attr = NULL, *strides_attr = NULL, *pads_attr = NULL, *dilations_attr = NULL, *ceil_mode_attr = NULL, *storge_order_attr = NULL;
     kernel_shape_attr = attribute_ints("kernel_shape", kernel_shape, 2);
@@ -295,18 +300,20 @@ void graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2]
     if(dilations) dilations_attr = attribute_ints("dilations", dilations, 2);
     if(ceil_mode > 0) ceil_mode_attr = attribute_int("ceil_mode", ceil_mode);
     if(storge_order > 0) storge_order_attr = attribute_int("storge_order", storge_order);
-    graph_add_layer(g, OP_TYPE_MAX_POOL, (tensor_t*[]){last}, 1, 1, (attribute_t*[]){kernel_shape_attr, strides_attr, pads_attr, dilations_attr, ceil_mode_attr, storge_order_attr}, 6);
+    node_t* nd = graph_add_layer(g, OP_TYPE_MAX_POOL, (tensor_t*[]){last}, 1, 1, (attribute_t*[]){kernel_shape_attr, strides_attr, pads_attr, dilations_attr, ceil_mode_attr, storge_order_attr}, 6);
+    return nd;
 }
 
-void graph_add_flatten(graph_t *g) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_flatten(graph_t *g) {
+    if(!g || g->ntensor == 0) return NULL;
     tensor_t* last = g->tensors[g->ntensor - 1];
     // y[l * m * n] = x[l, m, n]
-    graph_add_layer(g, OP_TYPE_FLATTEN, (tensor_t*[]){last}, 1, 1, NULL, 0);
+    node_t* nd = graph_add_layer(g, OP_TYPE_FLATTEN, (tensor_t*[]){last}, 1, 1, NULL, 0);
+    return nd;
 }
 
-void graph_add_resize(graph_t *g, float* scales, size_t nscale, char* mode) {
-    if(!g || g->ntensor == 0) return;
+node_t* graph_add_resize(graph_t *g, float* scales, size_t nscale, char* mode) {
+    if(!g || g->ntensor == 0) return NULL;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
     attribute_t* resize_mode_attr = attribute_string("mode", mode, strlen(mode));
@@ -314,7 +321,8 @@ void graph_add_resize(graph_t *g, float* scales, size_t nscale, char* mode) {
     tensor_t* scale = tensor_new_float32(name_buf, (int[]){1, nscale}, 2, scales, nscale);
     graph_push_tenser(g, scale);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(scale->name), (uintptr_t)scale);
-    graph_add_layer(g, OP_TYPE_RESIZE, (tensor_t*[]){last, scale}, 2, 1, (attribute_t*[]){resize_mode_attr}, 1);
+    node_t* nd = graph_add_layer(g, OP_TYPE_RESIZE, (tensor_t*[]){last, scale}, 2, 1, (attribute_t*[]){resize_mode_attr}, 1);
+    return nd;
 }
 
 void graph_prerun(graph_t *g) {

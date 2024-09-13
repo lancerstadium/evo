@@ -15,12 +15,12 @@ float loss_mse(float *output, float *target, int size) {
         float diff = output[i] - target[i];
         loss += diff * diff;
     }
-    return loss / size;
+    return loss / (2.0f * size);
 }
 
 void loss_grad_mse(float *output, float *target, float *grad, int size) {
     for (int i = 0; i < size; i++) {
-        grad[i] = 2.0f * (output[i] - target[i]) / size;
+        grad[i] = (output[i] - target[i]) / size;
     }
 }
 
@@ -83,9 +83,7 @@ void update_sgdm(trainer_t *trn, tensor_t* ts) {
 //                                  train: update adam
 // ==================================================================================== //
 
-typedef struct {
-    float *m;                                           /* 1st moment estimation value  */
-    float *v;                                           /* 2nd moment estimation value  */
+typedef struct {                                         
     float beta1;                                        /* 1st moment estimation coeff  */
     float beta2;                                        /* 2nd moment estimation coeff  */
 } trainer_opt_adam_t;
@@ -101,18 +99,22 @@ void update_adam(trainer_t *trn, tensor_t* ts) {
     float *td = ts->datas;    
     float *gd = ts->grad->datas;
 
-    for (int i = 0; i < ts->ndata; i++) {
-        state->m[i] = beta1 * state->m[i] + (1 - beta1) * gd[i];
-        state->v[i] = beta2 * state->v[i] + (1 - beta2) * gd[i] * gd[i];
+    float m[ts->ndata];
+    float v[ts->ndata];
 
-        float m_hat = state->m[i] / (1 - powf(beta1, trn->cur_step));
-        float v_hat = state->v[i] / (1 - powf(beta2, trn->cur_step));
+    for (int i = 0; i < ts->ndata; i++) {
+
+        m[i] = beta1 * m[i] + (1 - beta1) * gd[i];
+        v[i] = beta2 * v[i] + (1 - beta2) * gd[i] * gd[i];
+
+        float m_hat = m[i] / (1 - powf(beta1, trn->cur_step));
+        float v_hat = v[i] / (1 - powf(beta2, trn->cur_step));
 
         td[i] -= learning_rate * m_hat / (sqrtf(v_hat) + epsilon);
     }
 }
 
-// ==================================================================================== //
+// ====== ============================================================================== //
 //                                  train: API
 // ==================================================================================== //
 
@@ -137,10 +139,14 @@ trainer_t * trainer_new(float learning_rate, float epsilon, trainer_loss_type_t 
             break;
     }
     switch(opt_type) {
-        case TRAINER_OPT_ADAM: {
+        case TRAINER_OPT_ADAM:{
             // adam optim init
             trainer_opt_adam_t* priv = sys_malloc(sizeof(trainer_opt_adam_t));
-            memset(priv, 0, sizeof(trainer_opt_adam_t));
+            if(priv) {
+                memset(priv, 0, sizeof(trainer_opt_adam_t));
+                priv->beta1 = 0.9f;         /* default: */
+                priv->beta2 = 0.999f;       /* default: */
+            }
             trn->priv = priv;
             trn->update = update_adam;
             break;
@@ -197,6 +203,13 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
 void trainer_free(trainer_t* trn) {
     if(trn) {
         if(trn->priv) {
+            switch(trn->opt_type) {
+                case TRAINER_OPT_ADAM:{
+                    // TODO: free
+                    break;
+                }
+                default: break;
+            }
             free(trn->priv);
             trn->priv = NULL;
         }
