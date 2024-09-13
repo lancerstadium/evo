@@ -405,7 +405,7 @@ static void ArgMax_forward_float32(node_t* nd) {
     size_t idx = 0;
     int cnt = 0;
     int i;
-
+    
     while (idx < len) {
         if (cnt < pdat->stride) {
             for (maxv = px[idx], maxi = 0, i = 1, p = px + idx + pdat->stride; i < pdat->dim; i++, p += pdat->stride) {

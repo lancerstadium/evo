@@ -213,7 +213,7 @@ tensor_t * tensor_new_one_hot(int ndim, int *dims, int label) {
     tensor_t* ts = tensor_new("one_hot", TENSOR_TYPE_FLOAT32);
     tensor_reshape(ts, ndim, dims);
     float* tsd = ts->datas;
-    tsd[label] = 1.0;
+    tsd[label - 1] = 1.0;
     return ts;
 }
 

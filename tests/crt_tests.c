@@ -122,11 +122,11 @@ UnitTest_fn_def(test_model_create) {
             x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
             uint8_t y = label->bs[b];
             model_set_tensor(mdl, "Input0", x);
-            // model_train_label(mdl, y);
             tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
-            // tensor_t* sss = model_get_tensor(mdl, "Gemm3_bias");
-            // tensor_dump2(sss->grad);
             trainer_step(trn, mdl, y_ts);
+            // fprintf(stderr, "<%u> ", y);
+            // tensor_t* sss = model_get_tensor(mdl, "Gemm3_kernel");
+            // tensor_dump2(sss);
         }
 
         // Evaluate the model on the training and test set
@@ -141,10 +141,14 @@ UnitTest_fn_def(test_model_create) {
                 // fprintf(stderr, "%u\n", label->bs[b]);
                 uint8_t y = label->bs[b];
                 tensor_t* y_ts = model_eval(mdl, x);
-                tensor_t* y_out = tensor_argmax(y_ts, 0, 1, 0);
-                acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
+                tensor_t* y_us = tensor_squeeze(y_ts, NULL, 0);
+                tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+                int64_t yy = ((int64_t*)y_out->datas)[0];
+                acc_cnt += ((yy == (int64_t)y) ? 1 : 0);
+                // fprintf(stderr, "<%u %ld> ", y, yy);
+                // tensor_dump2(y_out);
             }
-            train_acc += (acc_cnt / num_batchs);
+            train_acc += ((float)acc_cnt / (float)num_batchs);
             fprintf(stderr, "[%4d] Loss: %.2f, Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, trn->cur_loss, train_acc * 100, test_acc * 100);
         }
     }

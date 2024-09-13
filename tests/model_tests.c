@@ -140,8 +140,8 @@ UnitTest_fn_def(test_tinyyolo_v2_8) {
     //     image_t *heat_map = image_heatmap(ts, 0);
     //     image_save(heat_map, path);
     // }
-    image_t *img = image_from_tensor(t0);
-    image_save(img, "tinyyolo_input.png");
+    // image_t *img = image_from_tensor(t0);
+    // image_save(img, "tinyyolo_input.png");
 
     TEST_NORM_END();
     return NULL;

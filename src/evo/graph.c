@@ -210,6 +210,26 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
+
+#include <math.h>
+
+// 均匀分布初始化
+void uniform_fill(float* weights, int size, float min_val, float max_val) {
+    for (int i = 0; i < size; i++) {
+        weights[i] = min_val + ((float) rand() / RAND_MAX) * (max_val - min_val);
+    }
+}
+
+// 正态分布初始化
+void normal_fill(float* weights, int size, float mean, float stddev) {
+    for (int i = 0; i < size; i++) {
+        // 使用 Box-Muller 变换生成正态分布的随机数
+        float u = ((float) rand() / RAND_MAX);
+        float v = ((float) rand() / RAND_MAX);
+        weights[i] = mean + stddev * sqrtf(-2.0f * logf(u)) * cosf(2.0f * M_PI * v);
+    }
+}
+
 void graph_add_linear(graph_t *g, int units, const char* activation) {
     if(!g || g->ntensor == 0) return;
     char name_buf[54];
@@ -221,6 +241,8 @@ void graph_add_linear(graph_t *g, int units, const char* activation) {
     tensor_t* kernel = tensor_new(name_buf, last->type);
     if(last_ndim > 0)
         tensor_reshape(kernel, 2, (int[]){last_dim, units});
+    if(kernel->type == TENSOR_TYPE_FLOAT32)
+        uniform_fill((float*)kernel->datas, kernel->ndata, -1, 1);
     sprintf(name_buf, "Gemm%u_bias", g->nnode);
     tensor_t* bias = tensor_new(name_buf, last->type);
     int bias_dims[last_ndim];

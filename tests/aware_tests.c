@@ -98,6 +98,7 @@ void imagenet_postprocess(tensor_t* out) {
     tensor_t* scores_tmp = tensor_softmax(out, 0);
     tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
     tensor_t* scores_max = tensor_argmax(scores, 0, 1, 0);
+    tensor_dump2(scores_tmp);
     int64_t* scores_idx = scores_max->datas;
     float* scores_res = scores->datas;
     UnitTest_msg("Class: %.2f (%s)", scores_res[scores_idx[0]], labels[scores_idx[0]]);
