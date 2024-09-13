@@ -112,8 +112,8 @@ UnitTest_fn_def(test_model_create) {
     trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
-    int num_epochs = 2;
-    int num_batchs = 10;
+    int num_epochs = 10;
+    int num_batchs = 1000;
 
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         // Mini-batch training
@@ -125,8 +125,8 @@ UnitTest_fn_def(test_model_create) {
             model_set_tensor(mdl, "Input0", x);
             // model_train_label(mdl, y);
             tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
-            tensor_t* sss = model_get_tensor(mdl, "Gemm3_bias");
-            tensor_dump2(sss->grad);
+            // tensor_t* sss = model_get_tensor(mdl, "Gemm3_bias");
+            // tensor_dump2(sss->grad);
             trainer_step(trn, mdl, y_ts);
         }
 
@@ -146,7 +146,7 @@ UnitTest_fn_def(test_model_create) {
                 acc_cnt += (((float*)y_out->datas)[0] == (float)y) ? 1 : 0;
             }
             train_acc += (acc_cnt / num_batchs);
-            fprintf(stderr, "[%4d] Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, train_acc * 100, test_acc * 100);
+            fprintf(stderr, "[%4d] Loss: %.2f, Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, trn->cur_loss, train_acc * 100, test_acc * 100);
         }
     }
     return NULL;

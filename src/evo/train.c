@@ -105,8 +105,8 @@ void update_adam(trainer_t *trn, tensor_t* ts) {
         state->m[i] = beta1 * state->m[i] + (1 - beta1) * gd[i];
         state->v[i] = beta2 * state->v[i] + (1 - beta2) * gd[i] * gd[i];
 
-        float m_hat = state->m[i] / (1 - powf(beta1, trn->step));
-        float v_hat = state->v[i] / (1 - powf(beta2, trn->step));
+        float m_hat = state->m[i] / (1 - powf(beta1, trn->cur_step));
+        float v_hat = state->v[i] / (1 - powf(beta2, trn->cur_step));
 
         td[i] -= learning_rate * m_hat / (sqrtf(v_hat) + epsilon);
     }
@@ -121,7 +121,8 @@ trainer_t * trainer_new(float learning_rate, float epsilon, trainer_loss_type_t 
     memset(trn, 0, sizeof(trainer_t));
     if(learning_rate > 0) trn->learning_rate = learning_rate;
     if(epsilon > 0) trn->epsilon = epsilon;
-    trn->step = 0;
+    trn->cur_step = 0;
+    trn->cur_loss = -1.0;
     trn->loss_type = loss_type;
     trn->opt_type = opt_type;
     switch(loss_type) {
@@ -188,7 +189,8 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
         }
     }
     graph_posrun(mdl->graph);
-    trn->step++;
+    trn->cur_step++;
+    trn->cur_loss = loss;
     return loss;
 }
 

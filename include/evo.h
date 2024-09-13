@@ -826,7 +826,8 @@ typedef enum {
 // ==================================================================================== //
 
 struct trainer {
-    int step;                                           /* Step of Trainer              */
+    int cur_step;                                       /* Current Step of Trainer      */
+    float cur_loss;                                     /* Current loss of Trainer      */
     float learning_rate;                                /* Learning Rate of Trainer     */
     float epsilon;                                      /* Little Constant of Trainer   */
     trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
