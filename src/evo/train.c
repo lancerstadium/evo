@@ -175,7 +175,6 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
         }
         float* gd = out->grad->datas;
         if(trn->loss_grad) trn->loss_grad(od, td, gd, out->ndata);
-        // LOG_INFO("[%4d] Trainer Loss: %.4f\n", trn->step, loss);
     }
     // 3. backward & update param
     graph_set_mode(mdl->graph, 1);
