@@ -52,6 +52,7 @@ tensor_t* model_eval(model_t* mdl, tensor_t* ts) {
     if(mdl->graph->ntensor > 0) {
         tensor_t* first = mdl->graph->tensors[0];
         tensor_copy(first, ts);
+        graph_set_mode(mdl->graph, 0);
         graph_prerun(mdl->graph);
         graph_run(mdl->graph);
         graph_posrun(mdl->graph);

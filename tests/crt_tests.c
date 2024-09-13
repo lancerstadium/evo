@@ -169,30 +169,47 @@ UnitTest_fn_def(test_mnist_create) {
  */
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 2});
+    graph_add_input(mdl->graph, 2, (int[]){1, 4});
     node_t* l1 = graph_add_linear(mdl->graph, 3, "relu");
     node_t* l2 = graph_add_linear(mdl->graph, 1, NULL);
 
     // init
-    float l1_w[6] = {0.5, 0.2, -0.1, -0.3, 0.4, 0.7};
-    float l1_b[3] = {0.1, -0.2, 0.05};
-    float l2_w[3] = {0.7, -0.5, 0.3};
-    float l2_b[1] = {0.2};
-    tensor_apply(l1->in[1], l1_w, sizeof(l1_w));
-    tensor_apply(l1->in[2], l1_b, sizeof(l1_b));
-    tensor_apply(l2->in[1], l2_w, sizeof(l2_w));
-    tensor_apply(l2->in[2], l2_b, sizeof(l2_b));
+    // float l1_w[6] = {0.5, 0.2, -0.1, -0.3, 0.4, 0.7};
+    // float l1_b[3] = {0.1, -0.2, 0.05};
+    // float l2_w[3] = {0.7, -0.5, 0.3};
+    // float l2_b[1] = {0.2};
+    // tensor_apply(l1->in[1], l1_w, sizeof(l1_w));
+    // tensor_apply(l1->in[2], l1_b, sizeof(l1_b));
+    // tensor_apply(l2->in[1], l2_w, sizeof(l2_w));
+    // tensor_apply(l2->in[2], l2_b, sizeof(l2_b));
     return mdl;
 }
 
 UnitTest_fn_def(test_simple_create) {
     // Data
     float X[] = {
-        1, 2
+        0, 0, 0,
+        0, 0, 1,
+        0, 1, 0,
+        1, 0, 0,
+        0, 0, 0,
+        0, 0, 1,
+        0, 1, 0,
+        1, 0, 0,
+        0, 0, 0,
     };
     float y[] = {
-        3
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
     };
+    int X_off = 3, y_off = 1;
     // 0.205
     
     // Model
@@ -201,17 +218,30 @@ UnitTest_fn_def(test_simple_create) {
     model_show_tensors(mdl);
 
     // Train
-    tensor_t* sss = model_get_tensor(mdl, "Gemm0_kernel");
-    tensor_dump2(sss);
-    trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
-    tensor_t* X_ts = tensor_new_float32("X", (int[]){1, 2}, 2, X, sizeof(X)/sizeof(float));
-    tensor_t* y_ts = tensor_new_float32("y", (int[]){1, 1}, 2, y, sizeof(y)/sizeof(float));
-    model_set_tensor(mdl, "Input0", X_ts);
-    trainer_step(trn, mdl, y_ts);
-    // model_eval(mdl, X_ts);
-    sss = model_get_tensor(mdl, "Gemm0_kernel");
-    tensor_dump2(sss);
-    fprintf(stderr, "%f\n", trn->cur_loss);
+    // tensor_t* sss = model_get_tensor(mdl, "Gemm0_kernel");
+    // tensor_dump2(sss);
+    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    tensor_t* X_ts, *y_ts;
+    for(int e = 0; e < 10; e++) {
+        for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
+            X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
+            y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
+            model_set_tensor(mdl, "Input0", X_ts);
+            trainer_step(trn, mdl, y_ts);
+            // model_eval(mdl, X_ts);
+            // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);
+        }
+        fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
+    }
+
+    // Eval
+    for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
+        X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
+        y_ts = model_eval(mdl, X_ts);
+        fprintf(stderr, "<%.0f %2.2f> ", y[b], ((float*)y_ts->datas)[0]);
+        tensor_t* sss = model_get_tensor(mdl, "Relu1_out0");
+        tensor_dump2(sss);
+    }
     return NULL;
 }
 

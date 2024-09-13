@@ -222,7 +222,7 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
     tensor_t* kernel = tensor_new(name_buf, last->type);
     if(last_ndim > 0)
         tensor_reshape(kernel, 2, (int[]){last_dim, units});
-    tensor_fill_uniform(kernel, 0, 1);
+    tensor_fill_uniform(kernel, 0, 0.5);
     sprintf(name_buf, "Gemm%u_bias", g->nnode);
     tensor_t* bias = tensor_new(name_buf, last->type);
     int bias_dims[last_ndim];
@@ -232,6 +232,7 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
     bias_dims[last_ndim - 1] = units;
     if(last_ndim > 0)
         tensor_reshape(bias, last_ndim, bias_dims);
+    tensor_fill_uniform(bias, 0, 0.5);
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     graph_push_tenser(g, bias);

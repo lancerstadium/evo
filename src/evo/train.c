@@ -192,10 +192,11 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
                 trn->update(trn, ts);
             }
         }
+        trn->cur_loss = loss;
     }
     graph_posrun(mdl->graph);
+    graph_set_mode(mdl->graph, 0);
     trn->cur_step++;
-    trn->cur_loss = loss;
     return loss;
 }
 
