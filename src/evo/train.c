@@ -43,39 +43,22 @@ void loss_grad_cross_entropy(float *output, float *target, float *grad, int size
 //                                  train: update sgd
 // ==================================================================================== //
 
-void update_sgd(trainer_t *trn, tensor_t* ts) {
-    if(!trn || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-
-    float learning_rate = trn->learning_rate;
-
-    float *td = ts->datas;
-    float *gd = ts->grad->datas;
-
-    for (int i = 0; i < ts->ndata; i++) {
-        td[i] -= learning_rate * gd[i];
-    }
-}
-
-// ==================================================================================== //
-//                                  train: update sgdm
-// ==================================================================================== //
-
+// ref: https://blog.csdn.net/weixin_39228381/article/details/108310520
 typedef struct {
-    float *v;                                           /* 2nd moment estimation value  */
-    float momentum;                                     /* 2nd moment estimation coeff  */
-} trainer_opt_sgdm_t;
+    float momentum;                                     /* moment estimation coeff: 0   */
+    float dampening;                                    /* mutiply coeff                */
+} trainer_opt_sgd_t;
 
-void update_sgdm(trainer_t *trn, tensor_t* ts) {
-    if(!trn || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-    trainer_opt_sgdm_t *priv = (trainer_opt_sgdm_t *)trn->priv;
-    float learning_rate = trn->learning_rate;
+void update_sgd(trainer_t *trn, tensor_t* ts) {
+    if(!trn || !trn->priv  || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
+    trainer_opt_sgd_t *priv = (trainer_opt_sgd_t *)trn->priv;
+    float lr = trn->lr;
     float momentum = priv->momentum;
     float *td = ts->datas;
     float *gd = ts->grad->datas;
 
     for (int i = 0; i < ts->ndata; i++) {
-        priv->v[i] = momentum * priv->v[i] + learning_rate * gd[i];
-        td[i] -= priv->v[i];
+        td[i] -= lr * gd[i];
     }
 }
 
@@ -93,7 +76,7 @@ void update_adam(trainer_t *trn, tensor_t* ts) {
     trainer_opt_adam_t *priv = (trainer_opt_adam_t *)trn->priv;
     float beta1 = priv->beta1;
     float beta2 = priv->beta2;
-    float learning_rate = trn->learning_rate;
+    float lr = trn->lr;
     float epsilon = trn->epsilon;
 
     float *td = ts->datas;    
@@ -110,7 +93,7 @@ void update_adam(trainer_t *trn, tensor_t* ts) {
         float m_hat = m[i] / (1 - powf(beta1, trn->cur_step));
         float v_hat = v[i] / (1 - powf(beta2, trn->cur_step));
 
-        td[i] -= learning_rate * m_hat / (sqrtf(v_hat) + epsilon);
+        td[i] -= lr * m_hat / (sqrtf(v_hat) + epsilon);
     }
 }
 
@@ -118,13 +101,15 @@ void update_adam(trainer_t *trn, tensor_t* ts) {
 //                                  train: API
 // ==================================================================================== //
 
-trainer_t * trainer_new(float learning_rate, float epsilon, trainer_loss_type_t loss_type, trainer_opt_type_t opt_type) {
+trainer_t * trainer_new(float lr, float epsilon, trainer_loss_type_t loss_type, trainer_opt_type_t opt_type) {
     trainer_t* trn = sys_malloc(sizeof(trainer_t));
     memset(trn, 0, sizeof(trainer_t));
-    if(learning_rate > 0) trn->learning_rate = learning_rate;
-    if(epsilon > 0) trn->epsilon = epsilon;
     trn->cur_step = 0;
     trn->cur_loss = -1.0;
+    trn->lr = lr > 0 ? lr : 1e-2;
+    trn->lr_decay = 0.0;
+    trn->wt_decay = 0.0;
+    trn->epsilon = epsilon > 0 ? epsilon : 1e-8;
     trn->loss_type = loss_type;
     trn->opt_type = opt_type;
     switch(loss_type) {
@@ -144,8 +129,8 @@ trainer_t * trainer_new(float learning_rate, float epsilon, trainer_loss_type_t 
             trainer_opt_adam_t* priv = sys_malloc(sizeof(trainer_opt_adam_t));
             if(priv) {
                 memset(priv, 0, sizeof(trainer_opt_adam_t));
-                priv->beta1 = 0.9f;         /* default: */
-                priv->beta2 = 0.999f;       /* default: */
+                priv->beta1 = 0.9f;             /* default: */
+                priv->beta2 = 0.999f;           /* default: */
             }
             trn->priv = priv;
             trn->update = update_adam;
@@ -153,6 +138,14 @@ trainer_t * trainer_new(float learning_rate, float epsilon, trainer_loss_type_t 
         }
         case TRAINER_OPT_SGD:
         default: {
+            // agd optim init
+            trainer_opt_sgd_t* priv = sys_malloc(sizeof(trainer_opt_sgd_t));
+            if(priv) {
+                memset(priv, 0, sizeof(trainer_opt_sgd_t));
+                priv->momentum = 0.0f;          /* default: */
+                priv->dampening = 0.0f;         /* default: */
+            }
+            trn->priv = priv;
             trn->update = update_sgd;
             break;
         }

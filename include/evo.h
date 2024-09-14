@@ -831,7 +831,10 @@ typedef enum {
 struct trainer {
     int cur_step;                                       /* Current Step of Trainer      */
     float cur_loss;                                     /* Current loss of Trainer      */
-    float learning_rate;                                /* Learning Rate of Trainer     */
+
+    float lr;                                           /* Learning Rate of Trainer     */
+    float lr_decay;                                     /* Learning Rate Dec of Trainer */
+    float wt_decay;                                     /* Weight Dec, L2 Reg Coeff     */
     float epsilon;                                      /* Little Constant of Trainer   */
     trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
     trainer_loss_type_t loss_type;                      /* Loss func Type: MSE,CE...    */
