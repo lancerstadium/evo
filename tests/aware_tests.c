@@ -136,27 +136,27 @@ UnitTest_fn_def(test_mobilenet_v2_7) {
     imagenet_postprocess(output);
 
 
-    // tensor_t * feature_map = runtime_get_tensor(rt, "mobilenetv20_features_conv1_fwd");
-    // const char* relu_layer[] = {
-    //     "mobilenetv20_features_linearbottleneck9_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck9_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck10_relu1_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu0_fwd",
-    //     "mobilenetv20_features_linearbottleneck11_relu1_fwd"
-    // };
-    // int channel = 2;
-    // for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
-    //     char path[64];
-    //     image_t* origin_img = image_load("picture/kitten.jpg");
-    //     sprintf(path, "heatmap_mobilenet_relu_%d_c%d.png", i, channel);
-    //     tensor_t * ts = runtime_get_tensor(rt, relu_layer[i]);
-    //     image_t* heat_map = image_heatmap(ts, channel);
-    //     image_resize(heat_map, width, height);
-    //     if(i == 0) tensor_dump(heat_map->raw);
-    //     image_t* res_img = image_merge(origin_img, heat_map, 0.3);
-    //     image_save(res_img, path);
-    // }
+    tensor_t * feature_map = runtime_get_tensor(rt, "mobilenetv20_features_conv1_fwd");
+    const char* relu_layer[] = {
+        "mobilenetv20_features_linearbottleneck9_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck9_relu1_fwd",
+        "mobilenetv20_features_linearbottleneck10_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck10_relu1_fwd",
+        "mobilenetv20_features_linearbottleneck11_relu0_fwd",
+        "mobilenetv20_features_linearbottleneck11_relu1_fwd"
+    };
+    int channel = 2;
+    for(int i = 0; i < sizeof(relu_layer)/sizeof(relu_layer[0]); i++) {
+        char path[64];
+        image_t* origin_img = image_load("picture/kitten.jpg");
+        sprintf(path, "heatmap_mobilenet_relu_%d_c%d.png", i, channel);
+        tensor_t * ts = runtime_get_tensor(rt, relu_layer[i]);
+        image_t* heat_map = image_heatmap(ts, channel);
+        image_resize(heat_map, width, height);
+        if(i == 0) tensor_dump(heat_map->raw);
+        image_t* res_img = image_merge(origin_img, heat_map, 0.3);
+        image_save(res_img, path);
+    }
 
     runtime_free(rt);
 
