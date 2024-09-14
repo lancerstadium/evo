@@ -233,7 +233,7 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
     bias_dims[last_ndim - 1] = units;
     if(last_ndim > 0) {
         tensor_reshape(bias, last_ndim, bias_dims);
-        tensor_fill_normal(bias, 0, 1);
+        tensor_fill_normal(bias, 0, 0.5);
     }
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);

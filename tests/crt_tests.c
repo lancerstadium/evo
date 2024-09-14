@@ -158,6 +158,8 @@ UnitTest_fn_def(test_mnist_create) {
 /**
  * @brief 
  * 
+ * ref: https://blog.csdn.net/dbat2015/article/details/48463047
+ * 
  * ```
  * Input (x1, x2)
  *   ↓
@@ -169,7 +171,7 @@ UnitTest_fn_def(test_mnist_create) {
  */
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 4});
+    graph_add_input(mdl->graph, 2, (int[]){1, 2});
     node_t* l1 = graph_add_linear(mdl->graph, 3, "tanh");
     node_t* l2 = graph_add_linear(mdl->graph, 1, NULL);
 
@@ -188,28 +190,44 @@ model_t* simple_model() {
 UnitTest_fn_def(test_simple_create) {
     // Data
     float X[] = {
-        0, 0, 0,
-        0, 0, 1,
-        0, 1, 0,
-        1, 0, 0,
-        0, 0, 0,
-        0, 0, 1,
-        0, 1, 0,
-        1, 0, 0,
-        0, 0, 0,
+        -3,     -2,
+        -2.7,   -1.8,
+        -2.4,   -1.6,
+        -2.1,   -1.4,
+        -1.8,   -1.2,
+        -1.5,   -1,
+        -1.2,   -0.8,
+        -0.9,   -0.6,
+        -0.6,   -0.4,
+        -0.3,   -0.2,
+           0,   -2.22,
+         0.3,    0.2,
+         0.6,    0.4,
+         0.9,    0.6,
+         1.2,    0.8,
+         1.5,      1,
+         1.8,    1.2,
     };
     float y[] = {
+        0.6589,
+        0.2206,
+        -0.1635,
+        -0.4712,
+        -0.6858,
+        -0.7975,
+        -0.804,
+        -0.7113,
+        -0.5326,
+        -0.2875,
         0,
-        1,
-        1,
-        1,
-        0,
-        1,
-        1,
-        1,
-        0,
+        0.3035,
+        0.5966,
+        0.8553,
+        1.06,
+        1.1975,
+        1.2618
     };
-    int X_off = 3, y_off = 1;
+    int X_off = 2, y_off = 1;
     // 0.205
     
     // Model
@@ -218,11 +236,11 @@ UnitTest_fn_def(test_simple_create) {
     model_show_tensors(mdl);
 
     // Train
-    // tensor_t* sss = model_get_tensor(mdl, "Gemm0_kernel");
+    // tensor_t* sss = model_get_tensor(mdl, "Gemm0_bias");
     // tensor_dump2(sss);
-    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
-    for(int e = 0; e < 2; e++) {
+    for(int e = 0; e < 15000; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
             X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
@@ -231,16 +249,17 @@ UnitTest_fn_def(test_simple_create) {
             // model_eval(mdl, X_ts);
             // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);
         }
-        fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
+        if(e % 400 == 0)
+            fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
     }
 
     // Eval
     for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
         X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
         y_ts = model_eval(mdl, X_ts);
-        fprintf(stderr, "<%.0f %2.2f> ", y[b], ((float*)y_ts->datas)[0]);
-        tensor_t* sss = model_get_tensor(mdl, "Gemm0_out0");
-        tensor_dump2(sss->grad);
+        fprintf(stderr, "<%f %f> ", y[b], ((float*)y_ts->datas)[0]);
+        tensor_t* sss = model_get_tensor(mdl, "Tanh1_out0");
+        tensor_dump2(sss);
     }
     return NULL;
 }
