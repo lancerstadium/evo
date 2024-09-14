@@ -170,7 +170,7 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 4});
-    node_t* l1 = graph_add_linear(mdl->graph, 3, "relu");
+    node_t* l1 = graph_add_linear(mdl->graph, 3, "tanh");
     node_t* l2 = graph_add_linear(mdl->graph, 1, NULL);
 
     // init
@@ -222,7 +222,7 @@ UnitTest_fn_def(test_simple_create) {
     // tensor_dump2(sss);
     trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
-    for(int e = 0; e < 10; e++) {
+    for(int e = 0; e < 2; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
             X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
@@ -239,8 +239,8 @@ UnitTest_fn_def(test_simple_create) {
         X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
         y_ts = model_eval(mdl, X_ts);
         fprintf(stderr, "<%.0f %2.2f> ", y[b], ((float*)y_ts->datas)[0]);
-        tensor_t* sss = model_get_tensor(mdl, "Relu1_out0");
-        tensor_dump2(sss);
+        tensor_t* sss = model_get_tensor(mdl, "Gemm0_out0");
+        tensor_dump2(sss->grad);
     }
     return NULL;
 }

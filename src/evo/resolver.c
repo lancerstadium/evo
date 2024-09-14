@@ -240,6 +240,7 @@ static resolver_t default_resolver = {
         OP_REG_DFT(SOFTMAX                  , Softmax               ),
         OP_REG_DFT(SUB                      , Sub                   ),
         OP_REG_DFT(SUM                      , Sum                   ),
+        OP_REG_DFT(TANH                     , Tanh                  ),
         OP_REG_DFT(TRANSPOSE                , Transpose             ),
         OP_REG_DFT(UNSQUEEZE                , Unsqueeze             ),
         OP_REG_DFT(UPSAMPLE                 , Upsample              ),

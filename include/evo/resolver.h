@@ -48,6 +48,7 @@ void op_Slice_dft(node_t*);
 void op_Softmax_dft(node_t*);
 void op_Sub_dft(node_t*);
 void op_Sum_dft(node_t*);
+void op_Tanh_dft(node_t*);
 void op_Squeeze_dft(node_t*);
 void op_Transpose_dft(node_t*);
 void op_Unsqueeze_dft(node_t*);

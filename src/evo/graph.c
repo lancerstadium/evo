@@ -220,9 +220,10 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
     // y = x[l, m, n] * kernel[n, k] + bias[l, m, k]
     sprintf(name_buf, "Gemm%u_kernel", g->nnode);
     tensor_t* kernel = tensor_new(name_buf, last->type);
-    if(last_ndim > 0)
+    if(last_ndim > 0) {
         tensor_reshape(kernel, 2, (int[]){last_dim, units});
-    tensor_fill_uniform(kernel, 0, 0.5);
+        tensor_fill_uniform(kernel, 0, 0.5);
+    }
     sprintf(name_buf, "Gemm%u_bias", g->nnode);
     tensor_t* bias = tensor_new(name_buf, last->type);
     int bias_dims[last_ndim];
@@ -230,9 +231,10 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
         bias_dims[i] = last->dims[i];
     }
     bias_dims[last_ndim - 1] = units;
-    if(last_ndim > 0)
+    if(last_ndim > 0) {
         tensor_reshape(bias, last_ndim, bias_dims);
-    tensor_fill_uniform(bias, 0, 0.5);
+        tensor_fill_normal(bias, 0, 1);
+    }
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     graph_push_tenser(g, bias);
@@ -254,6 +256,8 @@ node_t* graph_add_activation(graph_t *g, const char* activation) {
         nd = graph_add_layer(g, OP_TYPE_SOFTMAX, (tensor_t*[]){last}, 1, 1, NULL, 0);
     } else if(strcmp(activation, "leaky_relu") == 0) {
         nd = graph_add_layer(g, OP_TYPE_LEAKY_RELU, (tensor_t*[]){last}, 1, 1, NULL, 0);
+    } else if (strcmp(activation, "tanh") == 0) {
+        nd = graph_add_layer(g, OP_TYPE_TANH, (tensor_t*[]){last}, 1, 1, NULL, 0);
     }
     return nd;
 }
