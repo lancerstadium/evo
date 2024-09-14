@@ -898,6 +898,7 @@ void progressbar_finish(progressbar_t *bar);
 typedef struct font font_t;
 typedef struct image image_t;
 typedef struct canvas canvas_t;
+typedef struct figure figure_t;
 typedef struct renderer renderer_t;
 typedef struct rectangle rectangle_t;
 typedef canvas_t* (*render_fn_t)(canvas_t*, float);
@@ -914,6 +915,7 @@ typedef enum image_type {
     IMAGE_TYPE_TGA,
     IMAGE_TYPE_HDR,
     IMAGE_TYPE_GIF,
+    IMAGE_TYPE_SVG,
 } image_type_t;
 
 // ==================================================================================== //
@@ -1000,6 +1002,27 @@ EVO_API void canvas_ellipse(canvas_t*, int, int, int, int, uint32_t);
 EVO_API void canvas_circle(canvas_t*, int, int, int, uint32_t);
 EVO_API void canvas_text(canvas_t*, const char*, int, int, font_t*, size_t, uint32_t);
 EVO_API void canvas_free(canvas_t*);
+
+// ==================================================================================== //
+//                                  evo: figure (vis)
+// ==================================================================================== //
+
+typedef enum {
+    FIGURE_TYPE_VECTOR,                                         /* Only Support SVG     */
+    FIGURE_TYPE_BITMAP,                                         /* Support Image_t Type */
+} figure_type_t;
+
+struct figure {
+    char* title;
+    figure_type_t type;
+    size_t width;
+    size_t height;
+    void* priv;
+};
+
+EVO_API figure_t* figure_new(const char*, figure_type_t, size_t, size_t);
+EVO_API void figure_save(figure_t*, const char*);
+EVO_API void figure_free(figure_t*);
 
 // ==================================================================================== //
 //                                  evo: font (vis)

@@ -53,7 +53,7 @@ void update_sgd(trainer_t *trn, tensor_t* ts) {
     if(!trn || !trn->priv  || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
     trainer_opt_sgd_t *priv = (trainer_opt_sgd_t *)trn->priv;
     float lr = trn->lr;
-    float momentum = priv->momentum;
+    // float momentum = priv->momentum;
     float *td = ts->datas;
     float *gd = ts->grad->datas;
 
