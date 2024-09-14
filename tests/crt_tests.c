@@ -159,6 +159,7 @@ UnitTest_fn_def(test_mnist_create) {
  * @brief 
  * 
  * ref: https://blog.csdn.net/dbat2015/article/details/48463047
+ * ref: https://blog.csdn.net/ECHOSON/article/details/136149724
  * 
  * ```
  * Input (x1, x2)
