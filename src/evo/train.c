@@ -67,15 +67,15 @@ typedef struct {
 
 void update_sgdm(trainer_t *trn, tensor_t* ts) {
     if(!trn || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-    trainer_opt_sgdm_t *state = (trainer_opt_sgdm_t *)trn->priv;
+    trainer_opt_sgdm_t *priv = (trainer_opt_sgdm_t *)trn->priv;
     float learning_rate = trn->learning_rate;
-    float momentum = state->momentum;
+    float momentum = priv->momentum;
     float *td = ts->datas;
     float *gd = ts->grad->datas;
 
     for (int i = 0; i < ts->ndata; i++) {
-        state->v[i] = momentum * state->v[i] + learning_rate * gd[i];
-        td[i] -= state->v[i];
+        priv->v[i] = momentum * priv->v[i] + learning_rate * gd[i];
+        td[i] -= priv->v[i];
     }
 }
 
@@ -90,9 +90,9 @@ typedef struct {
 
 void update_adam(trainer_t *trn, tensor_t* ts) {
     if(!trn || !trn->priv || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-    trainer_opt_adam_t *state = (trainer_opt_adam_t *)trn->priv;
-    float beta1 = state->beta1;
-    float beta2 = state->beta2;
+    trainer_opt_adam_t *priv = (trainer_opt_adam_t *)trn->priv;
+    float beta1 = priv->beta1;
+    float beta2 = priv->beta2;
     float learning_rate = trn->learning_rate;
     float epsilon = trn->epsilon;
 
