@@ -901,6 +901,9 @@ typedef struct canvas canvas_t;
 typedef struct figure figure_t;
 typedef struct renderer renderer_t;
 typedef struct rectangle rectangle_t;
+typedef struct figure_axis figure_axis_t;
+typedef struct figure_plot figure_plot_t;
+typedef figure_plot_t** figure_plot_vec_t;
 typedef canvas_t* (*render_fn_t)(canvas_t*, float);
 
 // ==================================================================================== //
@@ -1012,15 +1015,64 @@ typedef enum {
     FIGURE_TYPE_BITMAP,                                         /* Support Image_t Type */
 } figure_type_t;
 
+typedef enum {
+    FIGURE_AXIS_TYPE_LINEAR,
+    FIGURE_AXIS_TYPE_LOG,
+} figure_axis_type_t;
+
+typedef enum {
+    FIGURE_PLOT_TYPE_LINE,
+    FIGURE_PLOT_TYPE_SCATTER,
+    FIGURE_PLOT_TYPE_BAR,
+} figure_plot_type_t;
+
+typedef enum {
+    FIGURE_LINE_TYPE_NORMAL,
+    FIGURE_LINE_TYPE_DOTTED,
+    FIGURE_LINE_TYPE_DASHED,
+    FIGURE_LINE_TYPE_DOT_DASH,
+    FIGURE_LINE_TYPE_NOLINE,
+} figure_line_type_t;
+
+struct figure_axis {
+    figure_axis_type_t type;
+    char* label;
+    bool is_auto_scale;
+    float range_min;
+    float range_max;
+};
+
+struct figure_plot {
+    figure_plot_type_t type;
+    char* label;
+    char* color;
+    tensor_t* data;
+
+    figure_line_type_t ltype;
+    char mtype;
+};
+
 struct figure {
     char* title;
     figure_type_t type;
     size_t width;
     size_t height;
+
+    figure_axis_t** axiss;
+    size_t naxis;
+
+    figure_plot_vec_t plot_vec;
+
     void* priv;
 };
 
-EVO_API figure_t* figure_new(const char*, figure_type_t, size_t, size_t);
+EVO_API figure_axis_t* figure_axis_new(char*, figure_axis_type_t, bool);
+EVO_API void figure_axis_free(figure_axis_t*);
+EVO_API figure_plot_t* figure_plot_new(char*, figure_plot_type_t, tensor_t*);
+EVO_API void figure_plot_free(figure_plot_t*);
+EVO_API figure_t* figure_new(const char*, figure_type_t, size_t, size_t, size_t);
+EVO_API figure_t* figure_add_plot(figure_t*, figure_plot_t*);
+EVO_API figure_plot_t* figure_get_plot(figure_t*, size_t);
 EVO_API void figure_save(figure_t*, const char*);
 EVO_API void figure_free(figure_t*);
 
