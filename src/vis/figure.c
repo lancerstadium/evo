@@ -85,10 +85,134 @@ static void svg_axis2d(char* buffer, figure_t* fig) {
     }
 }
 
-static void svg_legend(char* buffer, figure_t*fig) {
+char* svg_get_ltype(figure_line_type_t t) {
+    if (t == FIGURE_LINE_TYPE_DOTTED)
+        return "stroke-dasharray=\"1, 5\"";
+    if (t == FIGURE_LINE_TYPE_DASHED)
+        return "stroke-dasharray=\"5, 5\"";
+    return "";
+}
+
+static float svg_plot2d_x(float x, figure_priv_svg_t* p, figure_axis_t* a) {
+    if(!p || !a) return 0.0f;
+    if (a->type == FIGURE_AXIS_TYPE_LOG) {
+        x = log10f(x);
+    }
+    float dx = p->w / (p->x_max - p->x_min);
+    x -= p->x_min;
+    x *= dx;
+    x += p->x0;
+    return x;
+}
+
+static float svg_plot2d_y(float y, figure_priv_svg_t* p, figure_axis_t* a) {
+    if(!p || !a) return 0.0f;
+    if (a->type == FIGURE_AXIS_TYPE_LOG) {
+        y = log10f(y);
+    }
+    float dy = p->h / (p->y_max - p->y_min);
+    y -= p->y_min;
+    y *= dy;
+    y = p->y0 - y;
+    return y;
+}
+
+static void svg_plot2d_line(char* buffer, figure_t* fig, figure_plot_t* p, size_t idx) {
+    char* color = p->color;
+    if(!color) color = sys_strdup(figure_colormap[idx % 10]);
+    int n = figure_plot_number(p);
+    int na = figure_plot_naxis(p);
+    float* fs = p->data->datas;
+    if(p->ltype != FIGURE_LINE_TYPE_NOLINE) {
+        float* xs = malloc(n * sizeof(float));
+        float* ys = malloc(n * sizeof(float));
+        for(int i = 0; i < n; i++) {
+            float x = fs[i * na];
+            float y = fs[i * na + 1];
+            xs[i] = svg_plot2d_x(x, fig->priv, fig->axiss[0]);
+            ys[i] = svg_plot2d_y(y, fig->priv, fig->axiss[1]);
+        }
+        svg_line_poly(buffer, xs, ys, n, color, p->lwidth, svg_get_ltype(p->ltype), "plot-area");
+        free(xs);
+        free(ys);
+    }
+    if(svg_is_mark(p->mtype)) {
+        for(int i = 0; i < n; i++) {
+            float x = fs[i * na];
+            float y = fs[i * na + 1];
+            svg_point(buffer, p->mtype, color, svg_plot2d_x(x, fig->priv, fig->axiss[0]), svg_plot2d_y(y, fig->priv, fig->axiss[1]), "plot-area");
+        }
+    }
+    if(!p->color) free(color);
+}
+
+
+static void svg_plot2d_scatter(char* buffer, figure_t* fig, figure_plot_t* p, size_t idx) {
+    char* color = p->color;
+    if(!color) color = sys_strdup(figure_colormap[idx % 10]);
+    int n = figure_plot_number(p);
+    int na = figure_plot_naxis(p);
+    float* fs = p->data->datas;
+    for(int i = 0; i < n; i++) {
+        float x = fs[i * na];
+        float y = fs[i * na + 1];
+        svg_point(buffer, p->mtype, color, svg_plot2d_x(x, fig->priv, fig->axiss[0]), svg_plot2d_y(y, fig->priv, fig->axiss[1]), "plot-area");
+    }
+    if(!p->color) free(color);
+}
+
+static void svg_plot2d(char* buffer, figure_t* fig) {
     if(!buffer || !fig || !fig->plot_vec || !fig->priv) return;
     for(int i = 0; i < vector_size(fig->plot_vec); i++) {
-        
+        figure_plot_t* p = figure_get_plot(fig, i);
+        if(!p) continue;
+        if(p->type == FIGURE_PLOT_TYPE_LINE) {
+            svg_plot2d_line(buffer, fig, p, i);
+        } else if(p->type == FIGURE_PLOT_TYPE_SCATTER) {
+            svg_plot2d_scatter(buffer, fig, p, i);
+        } else if(p->type == FIGURE_PLOT_TYPE_BAR) {
+            /// TODO: bar
+        }
+    }
+}
+
+static void svg_legend(char* buffer, figure_t*fig) {
+    if(!buffer || !fig || !fig->plot_vec || !fig->priv) return;
+    int nlabel = 0;
+    for(int i = 0; i < vector_size(fig->plot_vec); i++) {
+        if(!fig->plot_vec[i]) return;
+        nlabel += fig->plot_vec[i]->label ? 1 : 0;
+    }
+    if(nlabel == 0) return;
+    figure_priv_svg_t* priv = fig->priv;
+    int dh = 15;
+    int dw = 40;
+    int h = dh * nlabel + 6;
+    int w = 100;
+    float x = priv->left + priv->w - 10 - w;
+    float y = priv->top + 10;
+    svg_rectangle_alpha(buffer, x, y, w, h, "white", 0.5, "#333", 0.5, NULL);
+    svg_clip_region(buffer, x + dw, y, w - dw - 2, h, "leg-area");
+    for(int i = 0; i < vector_size(fig->plot_vec); i++) {
+        figure_plot_t* p = fig->plot_vec[i];
+        if(p->label) {
+            char* color = p->color;
+            if(!color) color = sys_strdup(figure_colormap[i % 10]);
+            y += dh;
+            if(p->type == FIGURE_PLOT_TYPE_LINE && p->ltype != FIGURE_LINE_TYPE_NOLINE) {
+                svg_line_styled(buffer, x+10, y-4, x+dw, y-4, color, p->lwidth, svg_get_ltype(p->ltype), NULL);
+            }
+            svg_text_regular(buffer, x+dw+30, y, SVG_TXT_MIDDLE, p->label, "leg-area");
+            if((svg_is_mark(p->mtype) && p->type == FIGURE_PLOT_TYPE_LINE) || p->type == FIGURE_PLOT_TYPE_SCATTER) {
+                svg_point(buffer, p->mtype, color, x+10+(dw-10)/2, y-4, "plot-area");
+            }
+            if(p->type == FIGURE_PLOT_TYPE_BAR) {
+                /// TODO: bar
+            }
+            if(!p->color) {
+                free(color);
+            }
+        }
     }
 }
 
@@ -149,6 +273,8 @@ static void figure_save_svg(figure_t* fig, const char* path) {
     svg_clip_region(svg_buf, priv->left, priv->top, priv->w, priv->h, "plot-area");
     svg_title(svg_buf, fig->title, priv->left, priv->w);
     svg_axis2d(svg_buf, fig);
+    svg_plot2d(svg_buf, fig);
+    svg_legend(svg_buf, fig);
     svg_footer(svg_buf);
     // -1. Output to file & Close file & Free svg buffer
     fprintf(fptr, "%s", svg_buf);
@@ -166,8 +292,8 @@ figure_axis_t* figure_axis_new(char* label, figure_axis_type_t type, bool auto_s
     fig_axis->label = label != NULL ? sys_strdup(label) : NULL;
     fig_axis->type = type;
     fig_axis->is_auto_scale = auto_scale;
-    fig_axis->range_min = 0.0;
-    fig_axis->range_max = 0.0;
+    fig_axis->range_min = 0.0f;
+    fig_axis->range_max = 0.0f;
     return fig_axis;
 }
 
@@ -189,12 +315,14 @@ void figure_axis_free(figure_axis_t* fig_axis) {
 }
 
 
-figure_plot_t* figure_plot_new(char* label, figure_plot_type_t type, tensor_t* data) {
+figure_plot_t* figure_plot_new(char* label, figure_plot_type_t type, float* fs, size_t nplot, size_t naxis) {
     figure_plot_t* fig_plot = malloc(sizeof(figure_plot_t));
     memset(fig_plot, 0, sizeof(figure_plot_t));
     fig_plot->label = label != NULL ? sys_strdup(label) : NULL;
     fig_plot->type = type;
+    tensor_t* data = tensor_new_float32(label, (int[]){nplot, naxis}, 2, fs, nplot * naxis);
     fig_plot->data = data;
+    fig_plot->lwidth = 1.0f;
     return fig_plot;
 }
 
@@ -216,6 +344,11 @@ figure_plot_t* figure_plot_new(char* label, figure_plot_type_t type, tensor_t* d
 int figure_plot_number(figure_plot_t* fig_plot) {
     if(!fig_plot || !fig_plot->data || fig_plot->data->ndim != 2) return 0;
     return fig_plot->data->dims[0];
+}
+
+int figure_plot_naxis(figure_plot_t* fig_plot) {
+    if(!fig_plot || !fig_plot->data || fig_plot->data->ndim != 2) return 0;
+    return fig_plot->data->dims[1];
 }
 
 float figure_plot_get_max(figure_plot_t* fig_plot, size_t n) {
@@ -282,7 +415,7 @@ figure_t* figure_new(const char* title, figure_type_t type, size_t width, size_t
 }
 
 void figure_add_plot(figure_t* fig, figure_plot_t* plot) {
-    if(!fig || !plot) return;
+    if(!fig || !plot || fig->naxis != figure_plot_naxis(plot)) return;
     vector_add(&fig->plot_vec, plot);
 }
 

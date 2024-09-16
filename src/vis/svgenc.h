@@ -18,64 +18,64 @@ void svg_header(char* buffer,
 void svg_footer(char* buffer);
 
 void svg_clip_region(char* buffer,
-                     double x,
-                     double y,
-                     double width,
-                     double height,
+                     float x,
+                     float y,
+                     float width,
+                     float height,
                      char* id);
 
 void svg_rectangle(char* buffer,
-                   double x,
-                   double y,
-                   double width,
-                   double heigth,
+                   float x,
+                   float y,
+                   float width,
+                   float heigth,
                    char* fill,
                    char* stroke,
-                   double stroke_width,
+                   float stroke_width,
                    char* clip_id);
 
 void svg_rectangle_alpha(char* buffer,
-                         double x,
-                         double y,
-                         double width,
-                         double heigth,
+                         float x,
+                         float y,
+                         float width,
+                         float heigth,
                          char* fill,
-                         double fill_alpha,
+                         float fill_alpha,
                          char* stroke,
-                         double stroke_width,
+                         float stroke_width,
                          char* clip_id);
 
 void svg_line_styled(char* buffer,
-                     double x1,
-                     double y1,
-                     double x2,
-                     double y2,
+                     float x1,
+                     float y1,
+                     float x2,
+                     float y2,
                      char* color,
-                     double line_width,
+                     float line_width,
                      char* style,
                      char* clip_id);
 
 void svg_line(char* buffer,
-              double x1,
-              double y1,
-              double x2,
-              double y2,
+              float x1,
+              float y1,
+              float x2,
+              float y2,
               char* color,
-              double line_width,
+              float line_width,
               char* clip_id);
 
 void svg_line_poly(char* buffer,
-                   double* xs,
-                   double* ys,
+                   float* xs,
+                   float* ys,
                    unsigned int n,
                    char* color,
-                   double line_width,
+                   float line_width,
                    char* style,
                    char* clip_id);
 
 void svg_text_transform(char* buffer,
-                        double x,
-                        double y,
+                        float x,
+                        float y,
                         svg_txt_align_t anchor,
                         svg_txt_style_t style,
                         char* transform,
@@ -83,32 +83,51 @@ void svg_text_transform(char* buffer,
                         char* clip_id);
 
 void svg_text(char* buffer,
-              double x,
-              double y,
+              float x,
+              float y,
               svg_txt_align_t anchor,
               svg_txt_style_t style,
               char* text,
               char* clip_id);
 
 void svg_text_bold(char* buffer,
-                   double x,
-                   double y,
+                   float x,
+                   float y,
                    svg_txt_align_t anchor,
                    char* text,
                    char* clip_id);
 
 void svg_text_regular(char* buffer,
-                      double x,
-                      double y,
+                      float x,
+                      float y,
                       svg_txt_align_t anchor,
                       char* text,
                       char* clip_id);
 
 void svg_circle(char* buffer,
-                double x,
-                double y,
-                double r,
+                float x,
+                float y,
+                float r,
                 char* color,
                 char* clip_id);
+
+int svg_is_mark(char c);
+
+void svg_bar(char* buffer,
+             float lw,
+             char* color,
+             char* lcolor,
+             float x,
+             float y,
+             float y0,
+             float w,
+             char* clip_id);
+
+void svg_point(char* buffer,
+               char style,
+               char* color,
+               float x,
+               float y,
+               char* clip_id);
 
 #endif  // SVGENC_H
