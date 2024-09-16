@@ -1,21 +1,54 @@
-<svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 600 400">
-<defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="495.00" height="325.00"/>
-</clipPath></defs><text  x="317.50" y="15.00" text-anchor="middle"  font-weight="bold">My figure</text>
-<rect  x="70.00" y="25.00" width="495.00" height="325.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
-<text  x="317.50" y="387.00" text-anchor="middle"  font-weight="regular">x</text>
-<text  transform="rotate(270, 5.00, 187.50) translate(0, 10)"  x="5.00" y="187.50" text-anchor="middle"  font-weight="regular">y</text>
-<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:1.00;"  points="70.00,310.90 173.71,25.00 565.00,149.62 " /><line clip-path="url(#plot-area)"  x1="67.00" y1="307.90" x2="73.00" y2="313.90"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="73.00" y1="307.90" x2="67.00" y2="313.90"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="170.71" y1="22.00" x2="176.71" y2="28.00"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="176.71" y1="22.00" x2="170.71" y2="28.00"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="562.00" y1="146.62" x2="568.00" y2="152.62"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="568.00" y1="146.62" x2="562.00" y2="152.62"  style="stroke: #db5f57;stroke-width:1.50"/>
-<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#dbae57; stroke-width:1.00;"  points="121.86,159.40 244.43,350.00 395.29,188.72 " /><circle clip-path="url(#plot-area)"  cx="121.86" cy="159.40" r="3.00" fill="#dbae57" /><circle clip-path="url(#plot-area)"  cx="244.43" cy="350.00" r="3.00" fill="#dbae57" /><circle clip-path="url(#plot-area)"  cx="395.29" cy="188.72" r="3.00" fill="#dbae57" /><rect  x="455.00" y="35.00" width="100.00" height="36.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
-<defs><clipPath id="leg-area"><rect x="495.00" y="35.00" width="58.00" height="36.00"/>
-</clipPath></defs><line  x1="465.00" y1="46.00" x2="495.00" y2="46.00"  style="stroke: #db5f57;stroke-width:1.00"/>
-<text clip-path="url(#leg-area)"  x="525.00" y="50.00" text-anchor="middle"  font-weight="regular">wuhu</text>
-<line clip-path="url(#plot-area)"  x1="477.00" y1="43.00" x2="483.00" y2="49.00"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line clip-path="url(#plot-area)"  x1="483.00" y1="43.00" x2="477.00" y2="49.00"  style="stroke: #db5f57;stroke-width:1.50"/>
-<line  x1="465.00" y1="61.00" x2="495.00" y2="61.00"  style="stroke: #dbae57;stroke-width:1.00"/>
-<text clip-path="url(#leg-area)"  x="525.00" y="65.00" text-anchor="middle"  font-weight="regular">eihei</text>
-<circle clip-path="url(#plot-area)"  cx="480.00" cy="61.00" r="3.00" fill="#dbae57" /></svg>
+<svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 720 480">
+<defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="615.00" height="405.00"/>
+</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">My figure</text>
+<rect  x="70.00" y="25.00" width="615.00" height="405.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
+<text  x="377.50" y="467.00" text-anchor="middle"  font-weight="regular">x</text>
+<text  transform="rotate(270, 5.00, 227.50) translate(0, 10)"  x="5.00" y="227.50" text-anchor="middle"  font-weight="regular">y</text>
+<line clip-path="url(#plot-area)"  x1="116.86" y1="25.00" x2="116.86" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="116.86" y1="431.00" x2="116.86" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="116.86" y="450.00" text-anchor="middle"  font-weight="regular">2.0</text>
+<line clip-path="url(#plot-area)"  x1="234.00" y1="25.00" x2="234.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="234.00" y1="431.00" x2="234.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="234.00" y="450.00" text-anchor="middle"  font-weight="regular">4.0</text>
+<line clip-path="url(#plot-area)"  x1="351.14" y1="25.00" x2="351.14" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="351.14" y1="431.00" x2="351.14" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="351.14" y="450.00" text-anchor="middle"  font-weight="regular">6.0</text>
+<line clip-path="url(#plot-area)"  x1="468.29" y1="25.00" x2="468.29" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="468.29" y1="431.00" x2="468.29" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="468.29" y="450.00" text-anchor="middle"  font-weight="regular">8.0</text>
+<line clip-path="url(#plot-area)"  x1="585.43" y1="25.00" x2="585.43" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="585.43" y1="431.00" x2="585.43" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="585.43" y="450.00" text-anchor="middle"  font-weight="regular">10.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="378.23" x2="685.00" y2="378.23"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="378.23" x2="69.00" y2="378.23"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="382.23" text-anchor="end"  font-weight="regular">-2.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="317.33" x2="685.00" y2="317.33"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="317.33" x2="69.00" y2="317.33"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="321.33" text-anchor="end"  font-weight="regular">0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="256.43" x2="685.00" y2="256.43"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="256.43" x2="69.00" y2="256.43"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="260.43" text-anchor="end"  font-weight="regular">2.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="195.53" x2="685.00" y2="195.53"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="195.53" x2="69.00" y2="195.53"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="199.53" text-anchor="end"  font-weight="regular">4.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="134.62" x2="685.00" y2="134.62"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="134.62" x2="69.00" y2="134.62"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="138.62" text-anchor="end"  font-weight="regular">6.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="73.72" x2="685.00" y2="73.72"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="73.72" x2="69.00" y2="73.72"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="77.72" text-anchor="end"  font-weight="regular">8.0</text>
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:1.00;"  points="70.00,381.28 198.86,25.00 685.00,180.30 " /><line clip-path="url(#plot-area)"  x1="67.00" y1="378.28" x2="73.00" y2="384.28"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="73.00" y1="378.28" x2="67.00" y2="384.28"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="195.86" y1="22.00" x2="201.86" y2="28.00"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="201.86" y1="22.00" x2="195.86" y2="28.00"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="682.00" y1="177.30" x2="688.00" y2="183.30"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="688.00" y1="177.30" x2="682.00" y2="183.30"  style="stroke: #db5f57;stroke-width:1.50"/>
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#dbae57; stroke-width:1.00;"  points="134.43,192.48 286.71,430.00 474.14,229.02 " /><circle clip-path="url(#plot-area)"  cx="134.43" cy="192.48" r="3.00" fill="#dbae57" /><circle clip-path="url(#plot-area)"  cx="286.71" cy="430.00" r="3.00" fill="#dbae57" /><circle clip-path="url(#plot-area)"  cx="474.14" cy="229.02" r="3.00" fill="#dbae57" /><rect  x="575.00" y="35.00" width="100.00" height="36.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
+<defs><clipPath id="leg-area"><rect x="615.00" y="35.00" width="58.00" height="36.00"/>
+</clipPath></defs><line  x1="585.00" y1="46.00" x2="615.00" y2="46.00"  style="stroke: #db5f57;stroke-width:1.00"/>
+<text clip-path="url(#leg-area)"  x="645.00" y="50.00" text-anchor="middle"  font-weight="regular">wuhu</text>
+<line clip-path="url(#plot-area)"  x1="597.00" y1="43.00" x2="603.00" y2="49.00"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line clip-path="url(#plot-area)"  x1="603.00" y1="43.00" x2="597.00" y2="49.00"  style="stroke: #db5f57;stroke-width:1.50"/>
+<line  x1="585.00" y1="61.00" x2="615.00" y2="61.00"  style="stroke: #dbae57;stroke-width:1.00"/>
+<text clip-path="url(#leg-area)"  x="645.00" y="65.00" text-anchor="middle"  font-weight="regular">eihei</text>
+<circle clip-path="url(#plot-area)"  cx="600.00" cy="61.00" r="3.00" fill="#dbae57" /></svg>

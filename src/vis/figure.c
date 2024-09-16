@@ -28,8 +28,10 @@ static const char * figure_colormap[10] = {
 // ==================================================================================== //
 
 #define FIGURE_SVG_BUF_SIZE 1024 * 1024
-#define FIGURE_SVG_X_MARGIN 35
-#define FIGURE_SVG_Y_MARGIN 25
+#define FIGURE_SVG_MARGIN_X 35
+#define FIGURE_SVG_MARGIN_Y 25
+#define FIGURE_SVG_TICK_MIN 3
+#define FIGURE_SVG_TICK_MAX 8
 
 typedef struct {
     float *     vals;
@@ -38,7 +40,7 @@ typedef struct {
     size_t      n;
     int         t_exp;
     int         tick;
-} svg_ticks_t;
+} svg_tick_t;
 
 typedef struct {
     float x_min;
@@ -53,6 +55,114 @@ typedef struct {
     float h;
 } figure_priv_svg_t;
 
+svg_tick_t* svg_tick_new(float min, float max, float origin, float size, bool vertical, bool log_mode) {
+    svg_tick_t* r = malloc(sizeof(svg_tick_t));
+    r->labels = NULL;
+    r->vals = NULL;
+    r->pos = NULL;
+
+    float range = max - min;
+    int r_xp = (int)floorf(log10f(range));
+    int r_np = r_xp;
+    bool done = false;
+    int tick_mul[3] = {5, 2, 1};
+    float tick;
+    int t0;
+    for (r_np = r_xp + 2; r_np >= r_xp - 2; r_np--) {
+        int i;
+        for (i = 0; i < 3; i++) {
+            tick = tick_mul[i] * powf(10, r_np);
+            int count = (int)floorf(range / tick);
+            if (count >= FIGURE_SVG_TICK_MIN && count <= FIGURE_SVG_TICK_MAX) {
+                t0 = floorf(min / tick);
+                r->n = count + 3;
+                r->tick = tick_mul[i];
+                r->t_exp = r_np;
+                done = true;
+                break;
+            }
+        }
+        if (done) {
+            break;
+        }
+    }
+    if(!done) {
+        return r;
+    }
+
+    float* vals = malloc(r->n * sizeof(float));
+    float* pos = malloc(r->n * sizeof(float));
+
+    char** labels = malloc(r->n * sizeof(char*));
+    float dx = size / range;
+    int i;
+    for (i = 0; i < r->n; i++) {
+        float v = r->tick * powf(10, r->t_exp) * (t0 + i - 1);
+        int e = (int)floorf(log10f(fabsf(v)));
+        float d = v / powf(10, e);
+
+        vals[i] = v;
+        char* l;
+        if (log_mode) {
+            l = malloc(128 * sizeof(char));
+            memset(l, 0, 128);
+            if (v - roundf(v) == 0) {
+                sprintf(l, "<tspan>10<tspan  font-size=\"10\" dy=\"-5\" dx=\"1\">%d</tspan></tspan>", (int)v);
+            }
+            if (vertical) {
+                pos[i] = origin - dx * ((vals[i]) - min);
+            } else {
+                pos[i] = origin + dx * ((vals[i]) - min);
+            }
+        } else {
+            if (v == 0) {
+                l = malloc(8 * sizeof(char));
+                memset(l, 0, 8);
+                sprintf(l, "0");
+            } else if (e > -2 && e < 2) {
+                l = malloc(8 * sizeof(char));
+                memset(l, 0, 8);
+                sprintf(l, "%.1f", v);
+            } else {
+                l = malloc(128 * sizeof(char));
+                memset(l, 0, 128);
+                sprintf(l, "<tspan>%.1fe<tspan  font-size=\"10\" dy=\"-5\" dx=\"1\">%d</tspan></tspan>", d, e);
+            }
+            if (vertical) {
+                pos[i] = origin - dx * (vals[i] - min);
+            } else {
+                pos[i] = origin + dx * (vals[i] - min);
+            }
+        }
+        labels[i] = l;
+    }
+    r->vals = vals;
+    r->pos = pos;
+    r->labels = labels;
+    return r;
+}
+
+void svg_tick_free(svg_tick_t* t) {
+    if(!t) return;
+    if (t->n > 0) {
+        if (t->vals)
+            free(t->vals);
+        if (t->pos)
+            free(t->pos);
+        if (t->labels) {
+            int i;
+            for (i = 0; i < t->n; i++) {
+                free(t->labels[i]);
+            }
+            free(t->labels);   
+        }
+        t->vals = NULL;
+        t->pos = NULL;
+        t->labels = NULL;
+    }
+    free(t);
+    t = NULL;
+}
 
 static void svg_title(char* buffer, char* title, float left, float width) {
     if(!buffer) return;
@@ -71,7 +181,7 @@ static void svg_axis2d(char* buffer, figure_t* fig) {
     svg_rectangle(buffer, p_w, p_h, w, h, "none", "black", 0.5, NULL);
     if(fig->axiss[0]->label != NULL) {
         float tx = p_w + priv->w / 2;
-        float ty = FIGURE_SVG_Y_MARGIN + priv->y0 + FIGURE_SVG_Y_MARGIN / 2;
+        float ty = FIGURE_SVG_MARGIN_Y + priv->y0 + FIGURE_SVG_MARGIN_Y / 2;
         svg_text_regular(buffer, tx, ty, SVG_TXT_MIDDLE, fig->axiss[0]->label, NULL);
     }
     if(fig->axiss[1]->label != NULL) {
@@ -83,6 +193,52 @@ static void svg_axis2d(char* buffer, figure_t* fig) {
         svg_text_transform(buffer, tx, ty, SVG_TXT_MIDDLE, SVG_TXT_NORMAL, transform, fig->axiss[1]->label, NULL);
         free(transform);
     }
+}
+
+static void svg_grid2d(char* buffer, figure_t* fig) {
+    if(!buffer || !fig || !fig->priv) return;
+    figure_priv_svg_t* priv = fig->priv;
+    svg_tick_t* xt = svg_tick_new(priv->x_min, priv->x_max, priv->x0, priv->w, false, fig->axiss[0]->type == FIGURE_AXIS_TYPE_LOG);
+    svg_tick_t* yt = svg_tick_new(priv->y_min, priv->y_max, priv->y0, priv->h, true, fig->axiss[0]->type == FIGURE_AXIS_TYPE_LOG);
+
+    if(xt && xt->vals && priv->x_max != priv->x_min) {
+        // Plot X Grid & Tick X
+        float sy = priv->top;
+        float se = priv->y0;
+        float ty = 20 + priv->y0;
+
+        for(int i =0; i < xt->n; i++) {
+            if(xt->vals[i] < priv->x_min || xt->vals[i] > priv->x_max) {
+                continue;
+            }
+            // Grid
+            svg_line(buffer, xt->pos[i], sy, xt->pos[i], se, "#ccc", 0.5, "plot-area");
+            // Tick
+            svg_line(buffer, xt->pos[i], priv->y0+1, xt->pos[i], priv->y0+6, "black", 1.0, NULL);
+            svg_text_regular(buffer, xt->pos[i], ty, SVG_TXT_MIDDLE, xt->labels[i], NULL);
+        }
+    }
+
+    // Plot Y Grid & Tick Y
+    if(yt && yt->vals && priv->y_max != priv->y_min) {
+        float sy = priv->top;
+        float se = priv->x0 + priv->w;
+        float tx = priv->left - 10;
+
+        for(int i =0; i < yt->n; i++) {
+            if(yt->vals[i] < priv->y_min || yt->vals[i] > priv->y_max) {
+                continue;
+            }
+            // Grid
+            svg_line(buffer, sy, yt->pos[i], se, yt->pos[i], "#ccc", 0.5, "plot-area");
+            // Tick
+            svg_line(buffer, priv->left-6, yt->pos[i], priv->left-1, yt->pos[i], "black", 1.0, NULL);
+            svg_text_regular(buffer, tx, yt->pos[i]+4, SVG_TXT_RIGHT, yt->labels[i], NULL);
+        }
+    }
+
+    svg_tick_free(xt);
+    svg_tick_free(yt);
 }
 
 char* svg_get_ltype(figure_line_type_t t) {
@@ -224,8 +380,8 @@ static figure_priv_svg_t* figure_priv_svg(figure_t* fig) {
     figure_priv_svg_t* priv = malloc(sizeof(figure_priv_svg_t));
     memset(priv, 0, sizeof(figure_priv_svg_t));
     // 1. Region
-    int p_h = FIGURE_SVG_Y_MARGIN ;
-    int p_w = FIGURE_SVG_X_MARGIN ;
+    int p_h = FIGURE_SVG_MARGIN_Y ;
+    int p_w = FIGURE_SVG_MARGIN_X ;
     int w = fig->width -  (fig->axiss[1]->label ? 3.0f * p_w : 2.5f * p_w);
     int h = fig->height - (fig->axiss[0]->label ? 3.0f * p_h : 2.0f * p_h);
 
@@ -273,6 +429,7 @@ static void figure_save_svg(figure_t* fig, const char* path) {
     svg_clip_region(svg_buf, priv->left, priv->top, priv->w, priv->h, "plot-area");
     svg_title(svg_buf, fig->title, priv->left, priv->w);
     svg_axis2d(svg_buf, fig);
+    svg_grid2d(svg_buf, fig);
     svg_plot2d(svg_buf, fig);
     svg_legend(svg_buf, fig);
     svg_footer(svg_buf);
@@ -410,6 +567,7 @@ figure_t* figure_new(const char* title, figure_type_t type, size_t width, size_t
     }
 
     fig->plot_vec = vector_create();
+    fig->priv = NULL;
 
     return fig;
 }
