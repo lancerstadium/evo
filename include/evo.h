@@ -1082,6 +1082,8 @@ EVO_API void figure_add_plot(figure_t*, figure_plot_t*);
 EVO_API figure_plot_t* figure_get_plot(figure_t*, size_t);
 EVO_API float figure_get_max(figure_t*, size_t);
 EVO_API float figure_get_min(figure_t*, size_t);
+EVO_API void figure_set_xlabel(figure_t*, char*);
+EVO_API void figure_set_ylabel(figure_t*, char*);
 EVO_API void figure_save(figure_t*, const char*);
 EVO_API void figure_free(figure_t*);
 

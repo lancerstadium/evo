@@ -156,7 +156,7 @@ void svg_text_transform(char* buffer,
 
     sprintf(buffer,
             "%s x=\"%.2f\" y=\"%.2f\" text-anchor=\"%s\"  font-weight=\"%s\">%s</text>\n",
-            buffer, x, y, txt_align_to_char(anchor), txt_style_to_char(style), txt);
+            buffer, x, y, txt_align_to_char(anchor), txt_style_to_char(style), txt ? txt : "");
 }
 
 void svg_text(char* buffer,

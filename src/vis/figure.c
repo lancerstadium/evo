@@ -168,7 +168,7 @@ static void svg_title(char* buffer, char* title, float left, float width) {
     if(!buffer) return;
     float tx = left + width / 2.0f;
     float ty = 15.0f;
-    svg_text_bold(buffer, tx, ty, SVG_TXT_MIDDLE, title ? title : "title", NULL);
+    svg_text_bold(buffer, tx, ty, SVG_TXT_MIDDLE, title, NULL);
 }
 
 static void svg_axis2d(char* buffer, figure_t* fig) {
@@ -555,7 +555,7 @@ void figure_plot_free(figure_plot_t* fig_plot) {
 
 figure_t* figure_new(const char* title, figure_type_t type, size_t width, size_t height, size_t naxis) {
     figure_t* fig = sys_malloc(sizeof(figure_t));
-    fig->title = sys_strdup(title);
+    fig->title = title ? sys_strdup(title) : NULL;
     fig->type = type;
     fig->width = width;
     fig->height = height;
@@ -626,6 +626,15 @@ float figure_get_min(figure_t* fig, size_t n) {
         return min_n;
     }
     return fig->axiss[n]->range_min;
+}
+
+void figure_set_xlabel(figure_t* fig, char* label) {
+    if(!fig || fig->naxis < 1) return;
+    figure_axis_set_label(fig->axiss[0], label);
+}
+void figure_set_ylabel(figure_t* fig, char* label) {
+    if(!fig || fig->naxis < 2) return;
+    figure_axis_set_label(fig->axiss[1], label);
 }
 
 void figure_save(figure_t* fig, const char* path) {
