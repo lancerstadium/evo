@@ -164,6 +164,14 @@ void svg_tick_free(svg_tick_t* t) {
     t = NULL;
 }
 
+char* svg_get_ltype(figure_line_type_t t) {
+    if (t == FIGURE_LINE_TYPE_DOTTED)
+        return "stroke-dasharray=\"1, 5\"";
+    if (t == FIGURE_LINE_TYPE_DASHED)
+        return "stroke-dasharray=\"5, 5\"";
+    return "";
+}
+
 static void svg_title(char* buffer, char* title, float left, float width) {
     if(!buffer) return;
     float tx = left + width / 2.0f;
@@ -241,14 +249,6 @@ static void svg_grid2d(char* buffer, figure_t* fig) {
     svg_tick_free(yt);
 }
 
-char* svg_get_ltype(figure_line_type_t t) {
-    if (t == FIGURE_LINE_TYPE_DOTTED)
-        return "stroke-dasharray=\"1, 5\"";
-    if (t == FIGURE_LINE_TYPE_DASHED)
-        return "stroke-dasharray=\"5, 5\"";
-    return "";
-}
-
 static float svg_plot2d_x(float x, figure_priv_svg_t* p, figure_axis_t* a) {
     if(!p || !a) return 0.0f;
     if (a->type == FIGURE_AXIS_TYPE_LOG) {
@@ -317,6 +317,15 @@ static void svg_plot2d_scatter(char* buffer, figure_t* fig, figure_plot_t* p, si
     if(!p->color) free(color);
 }
 
+static void svg_plot2d_bar(char* buffer, figure_t* fig, figure_plot_t* p, size_t idx) {
+    char* color = p->color;
+    if(!color) color = sys_strdup(figure_colormap[idx % 10]);
+    int n = figure_plot_number(p);
+    int na = figure_plot_naxis(p);
+    float* fs = p->data->datas;
+    if(!p->color) free(color);
+}
+
 static void svg_plot2d(char* buffer, figure_t* fig) {
     if(!buffer || !fig || !fig->plot_vec || !fig->priv) return;
     for(int i = 0; i < vector_size(fig->plot_vec); i++) {
@@ -327,7 +336,7 @@ static void svg_plot2d(char* buffer, figure_t* fig) {
         } else if(p->type == FIGURE_PLOT_TYPE_SCATTER) {
             svg_plot2d_scatter(buffer, fig, p, i);
         } else if(p->type == FIGURE_PLOT_TYPE_BAR) {
-            /// TODO: bar
+            svg_plot2d_bar(buffer, fig, p, i);
         }
     }
 }
