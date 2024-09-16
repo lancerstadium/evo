@@ -1067,12 +1067,18 @@ struct figure {
 };
 
 EVO_API figure_axis_t* figure_axis_new(char*, figure_axis_type_t, bool);
+EVO_API void figure_axis_set_label(figure_axis_t*, char*);
 EVO_API void figure_axis_free(figure_axis_t*);
 EVO_API figure_plot_t* figure_plot_new(char*, figure_plot_type_t, tensor_t*);
+EVO_API int figure_plot_number(figure_plot_t*);
+EVO_API float figure_plot_get_max(figure_plot_t*, size_t);
+EVO_API float figure_plot_get_min(figure_plot_t*, size_t);
 EVO_API void figure_plot_free(figure_plot_t*);
 EVO_API figure_t* figure_new(const char*, figure_type_t, size_t, size_t, size_t);
-EVO_API figure_t* figure_add_plot(figure_t*, figure_plot_t*);
+EVO_API void figure_add_plot(figure_t*, figure_plot_t*);
 EVO_API figure_plot_t* figure_get_plot(figure_t*, size_t);
+EVO_API float figure_get_max(figure_t*, size_t);
+EVO_API float figure_get_min(figure_t*, size_t);
 EVO_API void figure_save(figure_t*, const char*);
 EVO_API void figure_free(figure_t*);
 
