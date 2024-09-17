@@ -83,8 +83,8 @@ model_t* mnist_model() {
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 500, "relu");
-    graph_add_linear(mdl->graph, 10, "softmax");
+    graph_add_linear(mdl->graph, 500, false, "relu");
+    graph_add_linear(mdl->graph, 10, false, "softmax");
     return mdl;
 }
 
@@ -173,8 +173,8 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 2});
-    graph_add_linear(mdl->graph, 3, "tanh");
-    graph_add_linear(mdl->graph, 1, NULL);
+    graph_add_linear(mdl->graph, 3, false, "tanh");
+    graph_add_linear(mdl->graph, 1, false, NULL);
     return mdl;
 }
 
@@ -254,12 +254,82 @@ UnitTest_fn_def(test_simple_create) {
     return NULL;
 }
 
+/**
+ * @brief
+ * 
+ * ref: https://www.bilibili.com/video/BV1QV4y1E7eA
+ * 
+ * ```
+ * Input (x1, x2)
+ *   ↓
+ * Hidden Layer (2 Neurons, None Activation)
+ *   ↓
+ * Output (1 Neuron, Linear Activation)
+ * 
+ * Init:
+ *  - [x1, x2]  = [0.5, 1.0]
+ *  - [y]       = [0.8]
+ *  - l1_w[2,2] = [[1.0, 0.5], [0.5, 0.7]]
+ *  - l2_w[2,1] = [[1.0], [2.0]]
+ * 
+ * Forward 1:
+ *  - l1_o[1,2] = [[1, 0.95]]
+ *  - l2_o[1,1] = [2.9]
+ * 
+ * Backward 1:
+ *  - loss(MSE) = 2.205
+ *  - l1_w[2,2] = [[0.895, 0.29], [0.29, 0.28]]
+ *  - l2_w[2,1] = [[0.79], [1.8005]]
+ * 
+ * Forward 2:
+ *  - l1_o[1,2] = [[0.7375, 0.425]]
+ *  - l2_o[1,1] = [1.3478]
+ * 
+ * ```
+ */
+model_t* dummy_model() {
+    model_t* mdl = model_new("dummy_model");
+    graph_add_input(mdl->graph, 2, (int[]){1, 2});
+    node_t* l1 = graph_add_linear(mdl->graph, 2, true, NULL);
+    node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
+    
+    // Init Params
+    tensor_apply(l1->in[1], (float[]){1.0, 0.5, 0.5, 0.7}   , 4 * sizeof(float));
+    tensor_apply(l2->in[1], (float[]){1.0, 2.0}             , 2 * sizeof(float));
+    return mdl;
+}
+
+UnitTest_fn_def(test_dummy_create) {
+    // Model
+    tensor_t* ts, *x, *y;
+    model_t* mdl = dummy_model();
+    graph_dump(mdl->graph);
+    model_show_tensors(mdl);
+
+    // Train
+    trainer_t* trn = trainer_new(0.1, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    x = tensor_new_float32("x", (int[]){1, 2}, 2, (float[]){0.5, 1.0} , 2);
+    y = tensor_new_float32("y", (int[]){1, 1}, 2, (float[]){0.8}      , 1);
+    model_set_tensor(mdl, "Input0", x);
+    float loss1 = trainer_step(trn, mdl, y);
+    fprintf(stderr, "Loss: %f\n", loss1);
+    model_eval(mdl, x);
+    float loss2 = trainer_loss(trn, mdl, y, true);
+    fprintf(stderr, "Loss: %f\n", loss2);
+
+    ts = model_get_tensor(mdl, "Gemm1_out0");
+    tensor_dump2(ts);
+
+
+    return NULL;
+}
 
 
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
     // UnitTest_add(test_mnist_create);
     UnitTest_add(test_simple_create);
+    // UnitTest_add(test_dummy_create);
     return NULL;
 }
 

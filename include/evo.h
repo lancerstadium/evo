@@ -622,7 +622,7 @@ EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
 EVO_API void graph_add_input(graph_t*, int, int*);
 EVO_API node_t* graph_add_layer(graph_t*, op_type_t, tensor_t**, int, int, attribute_t**, int);
-EVO_API node_t* graph_add_linear(graph_t*, int, const char*);
+EVO_API node_t* graph_add_linear(graph_t*, int, bool, const char*);
 EVO_API node_t* graph_add_activation(graph_t*, const char*);
 EVO_API node_t* graph_add_conv2d(graph_t*, int64_t[2], int64_t[2], int64_t[4], int64_t[2], int, char*);
 EVO_API node_t* graph_add_maxpool2d(graph_t*, int64_t[2], int64_t[2], int64_t[4], int64_t[2], int, int);
@@ -846,6 +846,7 @@ struct trainer {
 };
 
 EVO_API trainer_t * trainer_new(float, float, trainer_loss_type_t, trainer_opt_type_t);
+EVO_API float trainer_loss(trainer_t*, model_t*, tensor_t*, bool);
 EVO_API float trainer_step(trainer_t*, model_t*, tensor_t*);
 EVO_API void trainer_free(trainer_t*);
 

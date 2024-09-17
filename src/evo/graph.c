@@ -211,7 +211,7 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
-node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
+node_t* graph_add_linear(graph_t *g, int units, bool no_bias, const char* activation) {
     if(!g || g->ntensor == 0) return NULL;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
@@ -224,22 +224,27 @@ node_t* graph_add_linear(graph_t *g, int units, const char* activation) {
         tensor_reshape(kernel, 2, (int[]){last_dim, units});
         tensor_fill_uniform(kernel, 0, 0.5);
     }
-    sprintf(name_buf, "Gemm%u_bias", g->nnode);
-    tensor_t* bias = tensor_new(name_buf, last->type);
-    int bias_dims[last_ndim];
-    for(int i = 0; i < last_ndim - 1; i++) {
-        bias_dims[i] = last->dims[i];
-    }
-    bias_dims[last_ndim - 1] = units;
-    if(last_ndim > 0) {
-        tensor_reshape(bias, last_ndim, bias_dims);
-        tensor_fill_normal(bias, 0, 0.5);
-    }
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
-    graph_push_tenser(g, bias);
-    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
-    node_t* nd = graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
+    node_t* nd = NULL;
+    if(!no_bias) {
+        sprintf(name_buf, "Gemm%u_bias", g->nnode);
+        tensor_t* bias = tensor_new(name_buf, last->type);
+        int bias_dims[last_ndim];
+        for(int i = 0; i < last_ndim - 1; i++) {
+            bias_dims[i] = last->dims[i];
+        }
+        bias_dims[last_ndim - 1] = units;
+        if(last_ndim > 0) {
+            tensor_reshape(bias, last_ndim, bias_dims);
+            tensor_fill_normal(bias, 0, 0.5);
+        }
+        graph_push_tenser(g, bias);
+        hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
+        nd = graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel, bias}, 3, 1, NULL, 0);
+    } else {
+        nd = graph_add_layer(g, OP_TYPE_GEMM, (tensor_t*[]){last, kernel}, 2, 1, NULL, 0);
+    }
     last = g->tensors[g->ntensor - 1];
     // Activation
     graph_add_activation(g, activation);

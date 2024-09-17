@@ -153,14 +153,9 @@ trainer_t * trainer_new(float lr, float epsilon, trainer_loss_type_t loss_type, 
     return trn;
 }
 
-float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
+float trainer_loss(trainer_t* trn, model_t* mdl, tensor_t* trg, bool no_grad) {
     if(!trn || !mdl || !mdl->graph || mdl->graph->ntensor <= 0 || !trg) return 0;
-    // 1. set train mode & forward
-    graph_prerun(mdl->graph);
-    graph_set_mode(mdl->graph, 0);
-    graph_run(mdl->graph);
-    // 2. calculate loss & grad
-    float loss = 0.0;
+    float loss = 0.0f;
     tensor_t* out = mdl->graph->tensors[mdl->graph->ntensor - 1];
     if(out->type == TENSOR_TYPE_FLOAT32 && trg->type == TENSOR_TYPE_FLOAT32 && out->ndata == trg->ndata) {
         float* od = out->datas;
@@ -173,8 +168,19 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
             tensor_reshape(out->grad, out->ndim, out->dims);
         }
         float* gd = out->grad->datas;
-        if(trn->loss_grad) trn->loss_grad(od, td, gd, out->ndata);
+        if(!no_grad && trn->loss_grad) trn->loss_grad(od, td, gd, out->ndata);
     }
+    return loss;
+}
+
+float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
+    if(!trn || !mdl || !mdl->graph || mdl->graph->ntensor <= 0 || !trg) return 0;
+    // 1. set train mode & forward
+    graph_prerun(mdl->graph);
+    graph_set_mode(mdl->graph, 0);
+    graph_run(mdl->graph);
+    // 2. calculate loss & grad
+    float loss = trainer_loss(trn, mdl, trg, false);
     // 3. backward & update param
     graph_set_mode(mdl->graph, 1);
     graph_run(mdl->graph);
