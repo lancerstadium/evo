@@ -83,8 +83,8 @@ model_t* mnist_model() {
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 500, false, "relu");
-    graph_add_linear(mdl->graph, 10, false, "softmax");
+    graph_add_linear(mdl->graph, 500, true, "relu");
+    graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
 
@@ -160,6 +160,7 @@ UnitTest_fn_def(test_mnist_create) {
  * 
  * ref: https://blog.csdn.net/dbat2015/article/details/48463047
  * ref: https://blog.csdn.net/ECHOSON/article/details/136149724
+ * ref: https://www.bilibili.com/video/BV1a14y167vh
  * 
  * ```
  * Input (x1, x2)
@@ -173,8 +174,8 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 2});
-    graph_add_linear(mdl->graph, 3, false, "tanh");
-    graph_add_linear(mdl->graph, 1, false, NULL);
+    graph_add_linear(mdl->graph, 3, true, "tanh");
+    graph_add_linear(mdl->graph, 1, true, NULL);
     return mdl;
 }
 

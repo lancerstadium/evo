@@ -211,7 +211,7 @@ void graph_add_input(graph_t *g, int in_dim, int* dims) {
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
 }
 
-node_t* graph_add_linear(graph_t *g, int units, bool no_bias, const char* activation) {
+node_t* graph_add_linear(graph_t *g, int units, bool has_bias, const char* activation) {
     if(!g || g->ntensor == 0) return NULL;
     char name_buf[54];
     tensor_t* last = g->tensors[g->ntensor - 1];
@@ -227,7 +227,7 @@ node_t* graph_add_linear(graph_t *g, int units, bool no_bias, const char* activa
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
     node_t* nd = NULL;
-    if(!no_bias) {
+    if(has_bias) {
         sprintf(name_buf, "Gemm%u_bias", g->nnode);
         tensor_t* bias = tensor_new(name_buf, last->type);
         int bias_dims[last_ndim];
