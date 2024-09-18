@@ -863,6 +863,8 @@ void Conv_reshape(node_t *nd) {
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
+    nd->in[1]->is_param = 1;
+    if(nd->nin > 2) nd->in[2]->is_param = 1;
     operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];

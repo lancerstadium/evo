@@ -78,7 +78,7 @@ float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
  */
 model_t* mnist_model() {
     model_t* mdl = model_new("mnist_model");
-    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28});
+    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, false);
     // graph_add_resize(mdl->graph, (float[]){1, 1, 0.5, 0.5}, 4, "bilinear");
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
@@ -173,7 +173,7 @@ UnitTest_fn_def(test_mnist_create) {
  */
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 2});
+    graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
     graph_add_linear(mdl->graph, 3, true, "tanh");
     graph_add_linear(mdl->graph, 1, true, NULL);
     return mdl;
@@ -232,10 +232,10 @@ UnitTest_fn_def(test_simple_create) {
     // tensor_dump2(sss);
     trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
-    for(int e = 0; e < 40; e++) {
+    for(int e = 0; e < 13; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
-            X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
-            y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
+            X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off * 5, X_off * 5);
+            y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off * 5);
             model_set_tensor(mdl, "Input0", X_ts);
             trainer_step(trn, mdl, y_ts);
             // model_eval(mdl, X_ts);
@@ -248,8 +248,8 @@ UnitTest_fn_def(test_simple_create) {
     for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
         X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
         y_ts = model_eval(mdl, X_ts);
-        fprintf(stderr, "<%f %f> ", y[b], ((float*)y_ts->datas)[0]);
-        tensor_t* sss = model_get_tensor(mdl, "Tanh1_out0");
+        fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
+        tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
         tensor_dump2(sss);
     }
     return NULL;
@@ -290,7 +290,7 @@ UnitTest_fn_def(test_simple_create) {
  */
 model_t* dummy_model() {
     model_t* mdl = model_new("dummy_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 2});
+    graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
     node_t* l1 = graph_add_linear(mdl->graph, 2, true, NULL);
     node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
     

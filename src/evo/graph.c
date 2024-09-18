@@ -201,11 +201,16 @@ node_t* graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int 
     return nd;
 }
 
-void graph_add_input(graph_t *g, int in_dim, int* dims) {
+void graph_add_input(graph_t *g, int in_dim, int* dims, bool flex) {
     if(!g) return;
     char name_buf[20];
     sprintf(name_buf, "Input%u", g->ntensor);
-    tensor_t* in = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
+    tensor_t* in = NULL;
+    if(!flex) {
+        in = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
+    } else {
+        in = tensor_new(name_buf, TENSOR_TYPE_UNDEFINED);
+    }
     tensor_reshape(in, in_dim, dims);
     graph_push_tenser(g, in);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);

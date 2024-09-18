@@ -1,48 +1,35 @@
-import numpy as np  
-  
-# 目标函数（损失函数）和其梯度  
-def loss_function(w, b, x, y):  
-    return np.sum((y - (w * x + b)) ** 2) / len(x)  
-  
-def gradient_function(w, b, x, y):  
-    dw = -2 * np.sum((y - (w * x + b)) * x) / len(x)  
-    db = -2 * np.sum(y - (w * x + b)) / len(x)  
-    return dw, db  
-  
-# SGD算法  
-def sgd(x, y, learning_rate=0.01, epochs=1000):  
-    # 初始化参数  
-    w = np.random.rand()  
-    b = np.random.rand()  
-      
-    # 存储每次迭代的损失值，用于可视化  
-    losses = []  
-      
-    for i in range(epochs):  
-        # 随机选择一个样本（在这个示例中，我们没有实际进行随机选择，而是使用了整个数据集。在大数据集上，你应该随机选择一个样本或小批量样本。）  
-        # 注意：为了简化示例，这里我们实际上使用的是批量梯度下降。在真正的SGD中，你应该在这里随机选择一个样本。  
-          
-        # 计算梯度  
-        dw, db = gradient_function(w, b, x, y)  
-          
-        # 更新参数  
-        w = w - learning_rate * dw  
-        b = b - learning_rate * db  
-          
-        # 记录损失值  
-        loss = loss_function(w, b, x, y)  
-        losses.append(loss)  
-          
-        # 每隔一段时间打印损失值（可选）  
-        if i % 100 == 0:  
-            print(f"Epoch {i}, Loss: {loss}")  
-      
-    return w, b, losses  
-  
-# 示例数据（你可以替换为自己的数据）  
-x = np.array([1, 2, 3, 4, 5])  
-y = np.array([2, 4, 6, 8, 10])  
-  
-# 运行SGD算法  
-w, b, losses = sgd(x, y)  
-print(f"Optimized parameters: w = {w}, b = {b}")
+import numpy as np
+
+def sgd_update(parameters, gradients, learning_rate):
+    """
+    对模型参数进行一次SGD更新。
+    :param parameters: 当前的模型参数，numpy数组。
+    :param gradients: 对应于这些参数的梯度，numpy数组。
+    :param learning_rate: 学习率，控制更新的步长。
+    :return: 更新后的模型参数。
+    """
+    parameters -= learning_rate * gradients
+    return parameters
+
+# 示例: 线性回归模型 y = wx + b
+# 损失函数：min((y - y')^2)
+# 梯度：gead_w = 2x(wx + b - y)， grad_b = 2(wx + b - y)
+w, b = 0.0, 0.0  # 初始化参数
+learning_rate = 0.01  # 设置学习率
+
+# 假设我们有一些训练数据
+x_train = np.array([1, 2, 3, 4])
+y_train = np.array([2, 4, 6, 8])
+
+# 执行SGD优化
+for epoch in range(100):  # 训练100轮
+    for x, y in zip(x_train, y_train):
+        # 计算当前参数下的梯度
+        grad_w = 2 * x * (w * x + b - y)
+        grad_b = 2 * (w * x + b - y)
+        
+        # 使用SGD更新参数
+        w = sgd_update(w, grad_w, learning_rate)
+        b = sgd_update(b, grad_b, learning_rate)
+
+print(f"训练后的参数: w={w}, b={b}")

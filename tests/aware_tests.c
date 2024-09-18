@@ -98,7 +98,7 @@ void imagenet_postprocess(tensor_t* out) {
     tensor_t* scores_tmp = tensor_softmax(out, 0);
     tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
     tensor_t* scores_max = tensor_argmax(scores, 0, 1, 0);
-    tensor_dump2(scores_tmp);
+    // tensor_dump2(scores_tmp);
     int64_t* scores_idx = scores_max->datas;
     float* scores_res = scores->datas;
     UnitTest_msg("Class: %.2f (%s)", scores_res[scores_idx[0]], labels[scores_idx[0]]);
@@ -175,6 +175,7 @@ UnitTest_fn_def(test_squeezenet_v11_7) {
 
     // 2. Model Inference
     runtime_load(rt, MD("squeezenet_v11_7"));
+    graph_dump2(rt->mdl->graph);
     tensor_t* input = ts_pre;
     // tensor_t* input = runtime_load_tensor(rt, TI("squeezenet_v11_7", 0, 0));
     // tensor_t* output_ref = runtime_load_tensor(rt, TO("squeezenet_v11_7", 0, 0));
@@ -224,8 +225,8 @@ UnitTest_fn_def(test_resnet_18_v1_7) {
 // ---------------------- All    ----------------------
 
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_mobilenet_v2_7);
-    // UnitTest_add(test_squeezenet_v11_7);
+    // UnitTest_add(test_mobilenet_v2_7);
+    UnitTest_add(test_squeezenet_v11_7);
     // UnitTest_add(test_resnet_18_v1_7);
     return NULL;
 }

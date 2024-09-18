@@ -427,7 +427,7 @@ UnitTest_fn_def(test_gemm_dft_mb) {
     return NULL;
 }
 UnitTest_fn_def(test_gemm_dft_nb) {
-    TEST_3I("test_gemm_default_no_bias", a, b, c, y);
+    TEST_2I("test_gemm_default_no_bias", a, b, y);
     return NULL;
 }
 UnitTest_fn_def(test_gemm_dft_sb) {
@@ -871,7 +871,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_dropout);
     UnitTest_add(test_flatten);
     UnitTest_add(test_gemm);
-    // UnitTest_add(test_globalaveragepool);    // Failed
+    UnitTest_add(test_globalaveragepool);    // Failed
     UnitTest_add(test_leakyrelu);
     UnitTest_add(test_log);
     UnitTest_add(test_matmul);

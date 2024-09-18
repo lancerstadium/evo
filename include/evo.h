@@ -620,7 +620,7 @@ EVO_API void graph_set_mode(graph_t*, int);
 EVO_API void graph_push_tenser(graph_t*, tensor_t*);
 EVO_API void graph_push_node(graph_t*, node_t*);
 EVO_API node_t* graph_get_node(graph_t*, int);
-EVO_API void graph_add_input(graph_t*, int, int*);
+EVO_API void graph_add_input(graph_t*, int, int*, bool);
 EVO_API node_t* graph_add_layer(graph_t*, op_type_t, tensor_t**, int, int, attribute_t**, int);
 EVO_API node_t* graph_add_linear(graph_t*, int, bool, const char*);
 EVO_API node_t* graph_add_activation(graph_t*, const char*);
