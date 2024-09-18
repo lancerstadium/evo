@@ -83,7 +83,7 @@ model_t* mnist_model() {
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 500, true, "relu");
+    graph_add_linear(mdl->graph, 500, true, "tanh");
     graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
@@ -107,7 +107,7 @@ UnitTest_fn_def(test_mnist_create) {
     model_show_tensors(mdl);
 
     // Train
-    trainer_t* trn = trainer_new(1e-6, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_tmp, *x;
     
     int num_epochs = 20;
@@ -174,7 +174,7 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
-    node_t* l1 = graph_add_linear(mdl->graph, 3, true, "tanh");
+    node_t* l1 = graph_add_linear(mdl->graph, 3, true, "relu");
     node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
 
     // Init Param
@@ -247,14 +247,6 @@ UnitTest_fn_def(test_simple_create) {
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
             model_set_tensor(mdl, "Input0", X_ts);
             trainer_step(trn, mdl, y_ts);
-            if(e == 0) {
-                tensor_dump1(X_ts);
-                sss = model_get_tensor(mdl, "Gemm0_out0");      tensor_dump1(sss);
-                sss = model_get_tensor(mdl, "Tanh1_out0");      tensor_dump1(sss);
-                sss = model_get_tensor(mdl, "Gemm2_out0");      tensor_dump1(sss);
-                sss = model_get_tensor(mdl, "Gemm0_bias");      tensor_dump1(sss);
-                fprintf(stderr, "--\n");
-            }
             trainer_zero_grad(trn, mdl);
             // model_eval(mdl, X_ts);
             // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);

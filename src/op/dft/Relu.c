@@ -81,73 +81,91 @@ static void Relu_forward_float64(node_t *nd) {
 
 static void Relu_backward_int8(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    int8_t *pd = (int8_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    int8_t *pd = (int8_t *)d->datas;
+    int8_t *pg = (int8_t *)g->datas;
     int8_t *py = (int8_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int16(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    int16_t *pd = (int16_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    int16_t *pd = (int16_t *)d->datas;
+    int16_t *pg = (int16_t *)g->datas;
     int16_t *py = (int16_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int32(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    int32_t *pd = (int32_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    int32_t *pd = (int32_t *)d->datas;
+    int32_t *pg = (int32_t *)g->datas;
     int32_t *py = (int32_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_int64(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    int64_t *pd = (int64_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    int64_t *pd = (int64_t *)d->datas;
+    int64_t *pg = (int64_t *)g->datas;
     int64_t *py = (int64_t *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_bfloat16(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    uint16_t *pd = (uint16_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    uint16_t *pd = (uint16_t *)d->datas;
+    uint16_t *pg = (uint16_t *)g->datas;
     uint16_t *py = (uint16_t *)y->datas;
-    float v;
+    float v, m;
     for (size_t i = 0, l = y->ndata; i < l; i++) {
         v = bfloat16_to_float32(py[i]);
-        pd[i] = float32_to_bfloat16((v > 0) ? 1 : 0);
+        m = bfloat16_to_float32(pg[i]);
+        pd[i] = float32_to_bfloat16(((v > 0) ? 1 : 0) * m);
     }
 }
 static void Relu_backward_float16(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    uint16_t *pd = (uint16_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    uint16_t *pd = (uint16_t *)d->datas;
+    uint16_t *pg = (uint16_t *)g->datas;
     uint16_t *py = (uint16_t *)y->datas;
-    float v;
+    float v, m;
     for (size_t i = 0, l = y->ndata; i < l; i++) {
         v = float16_to_float32(py[i]);
-        pd[i] = float32_to_float16((v > 0) ? 1 : 0);
+        m = float16_to_float32(pg[i]);
+        pd[i] = float32_to_float16(((v > 0) ? 1 : 0) * m);
     }
 }
 static void Relu_backward_float32(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    float *pd = (float *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    float *pd = (float *)d->datas;
+    float *pg = (float *)g->datas;
     float *py = (float *)y->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 static void Relu_backward_float64(node_t *nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    double *pd = (double *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
+    double *pd = (double *)d->datas;
     double *py = (double *)y->datas;
+    double *pg = (double *)g->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = ((py[i] > 0) ? 1 : 0);
+        pd[i] = ((py[i] > 0) ? 1 : 0) * pg[i];
 }
 
 
