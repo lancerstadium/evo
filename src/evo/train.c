@@ -168,9 +168,31 @@ float trainer_loss(trainer_t* trn, model_t* mdl, tensor_t* trg, bool no_grad) {
             tensor_reshape(out->grad, out->ndim, out->dims);
         }
         float* gd = out->grad->datas;
-        if(!no_grad && trn->loss_grad) trn->loss_grad(od, td, gd, out->ndata);
+        if(!no_grad && trn->loss_grad) {
+            trn->loss_grad(od, td, gd, out->ndata);
+        }
     }
     return loss;
+}
+
+void trainer_update_grad(trainer_t* trn, model_t* mdl) {
+    if(!trn || !mdl || !mdl->graph || mdl->graph->ntensor <= 0) return;
+    if(trn->update) {
+        for(int i = 0; i < mdl->graph->ntensor; i++) {
+            tensor_t* ts = mdl->graph->tensors[i];
+            if(ts && ts->grad && ts->is_param) {
+                trn->update(trn, ts);
+            }
+        }
+    }
+}
+
+void trainer_zero_grad(trainer_t* trn, model_t* mdl) {
+    if(!trn || !mdl || !mdl->graph || mdl->graph->ntensor <= 0) return;
+    for(int i = 0; i < mdl->graph->ntensor; i++) {
+        tensor_t* ts = mdl->graph->tensors[i];
+        tensor_fill_zero(ts->grad);
+    }
 }
 
 float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
@@ -184,18 +206,10 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
     // 3. backward & update param
     graph_set_mode(mdl->graph, 1);
     graph_run(mdl->graph);
-    if(trn->update) {
-        for(int i = 0; i < mdl->graph->ntensor; i++) {
-            tensor_t* ts = mdl->graph->tensors[i];
-            if(ts && ts->grad && ts->is_param) {
-                trn->update(trn, ts);
-            }
-            tensor_fill_zero(ts->grad);
-        }
-        trn->cur_loss = loss;
-    }
+    trainer_update_grad(trn, mdl);
     graph_posrun(mdl->graph);
     graph_set_mode(mdl->graph, 0);
+    trn->cur_loss = loss;
     trn->cur_step++;
     return loss;
 }

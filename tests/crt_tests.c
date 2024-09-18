@@ -174,8 +174,14 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
-    graph_add_linear(mdl->graph, 3, true, "tanh");
-    graph_add_linear(mdl->graph, 1, true, NULL);
+    node_t* l1 = graph_add_linear(mdl->graph, 3, true, "tanh");
+    node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
+
+    // Init Param
+    tensor_apply(l1->in[1], (float[]){0.1, 0.2, 0.3, 0.4, 0.5, 0.6}     , 6 * sizeof(float));
+    tensor_apply(l1->in[2], (float[]){0.01, 0.02, 0.03}                 , 3 * sizeof(float));
+    tensor_apply(l2->in[1], (float[]){0.1, 0.2, 0.3}                    , 3 * sizeof(float));
+    tensor_apply(l2->in[2], (float[]){0.05}                             , 1 * sizeof(float));
     return mdl;
 }
 
@@ -228,13 +234,12 @@ UnitTest_fn_def(test_simple_create) {
     model_show_tensors(mdl);
 
     // Train
-    // tensor_t* sss = model_get_tensor(mdl, "Gemm0_bias");
-    // tensor_dump2(sss);
-    int nepoch = 15000;
+    tensor_t* sss = NULL;
+    int nepoch = 10;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
-    trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
     for(int e = 0; e < nepoch; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
@@ -242,6 +247,16 @@ UnitTest_fn_def(test_simple_create) {
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off * 5);
             model_set_tensor(mdl, "Input0", X_ts);
             trainer_step(trn, mdl, y_ts);
+            if(e == 0) {
+                sss = model_get_tensor(mdl, "Gemm0_out0");
+                tensor_dump1(sss);
+                sss = model_get_tensor(mdl, "Tanh1_out0");
+                tensor_dump1(sss);
+                sss = model_get_tensor(mdl, "Gemm2_out0");
+                tensor_dump1(sss);
+                fprintf(stderr, "--\n");
+            }
+            trainer_zero_grad(trn, mdl);
             // model_eval(mdl, X_ts);
             // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);
         }
@@ -256,13 +271,13 @@ UnitTest_fn_def(test_simple_create) {
     figure_save(fig, "loss.svg");
 
     // Eval
-    for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
-        X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
-        y_ts = model_eval(mdl, X_ts);
-        fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
-        tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
-        tensor_dump2(sss);
-    }
+    // for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
+    //     X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
+    //     y_ts = model_eval(mdl, X_ts);
+    //     fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
+    //     tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
+    //     tensor_dump2(sss);
+    // }
     return NULL;
 }
 

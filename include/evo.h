@@ -201,6 +201,7 @@ EVO_API void tensor_copy(tensor_t*, tensor_t*);
 EVO_API bool tensor_equal(tensor_t*, tensor_t*);
 EVO_API char* tensor_dump_shape(tensor_t*);
 EVO_API void tensor_dump(tensor_t*);
+EVO_API void tensor_dump1(tensor_t*);
 EVO_API void tensor_dump2(tensor_t*);
 EVO_API char* tensor_to_string(tensor_t*);
 EVO_API int tensor_index2offset(tensor_t*, int*);
@@ -847,6 +848,8 @@ struct trainer {
 
 EVO_API trainer_t * trainer_new(float, float, trainer_loss_type_t, trainer_opt_type_t);
 EVO_API float trainer_loss(trainer_t*, model_t*, tensor_t*, bool);
+EVO_API void trainer_update_grad(trainer_t*, model_t*);
+EVO_API void trainer_zero_grad(trainer_t*, model_t*);
 EVO_API float trainer_step(trainer_t*, model_t*, tensor_t*);
 EVO_API void trainer_free(trainer_t*);
 

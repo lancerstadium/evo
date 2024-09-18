@@ -939,6 +939,184 @@ void tensor_dump(tensor_t *ts) {
     LOG_INFO("\n");
 }
 
+
+void tensor_dump1(tensor_t *ts) {
+    if (!ts) return;
+    int *sizes, *levels;
+    char *lbuf, *rbuf;
+    char *lp, *rp;
+    void *p;
+    int i, j, k;
+    if (ts->ndata > 1 && ts->datas) {
+        for (i = 0; i < ts->ndim; i++) {
+            if (ts->dims[i] <= 0)
+                return;
+        }
+        sizes = malloc(sizeof(int) * ts->ndim);
+        levels = malloc(sizeof(int) * ts->ndim);
+        sizes[ts->ndim - 1] = ts->dims[ts->ndim - 1];
+        levels[ts->ndim - 1] = 0;
+        lbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        rbuf = malloc(sizeof(char) * (ts->ndim + 1));
+        lp = lbuf;
+        rp = rbuf;
+        for (i = ts->ndim - 2; i >= 0; i--) {
+            sizes[i] = ts->dims[i] * sizes[i + 1];
+            levels[i] = 0;
+        }
+        for (size_t idx = 0; idx < ts->ndata; idx++) {
+            for (j = 0; j < ts->ndim; j++) {
+                if ((idx % sizes[j]) == 0)
+                    levels[j]++;
+                if (levels[j] == 1) {
+                    *lp++ = '[';
+                    levels[j]++;
+                }
+                if (levels[j] == 3) {
+                    *rp++ = ']';
+                    if ((j != 0) && (levels[j] > levels[j - 1])) {
+                        *lp++ = '[';
+                        levels[j] = 2;
+                    } else {
+                        levels[j] = 0;
+                    }
+                }
+            }
+            *lp = *rp = '\0';
+            LOG_INFO("%s", rbuf);
+            if (*rbuf != '\0') {
+                LOG_INFO("\r\n");
+                for (k = ts->ndim - strlen(rbuf); k > 0; k--)
+                    LOG_INFO(" ");
+            }
+            LOG_INFO("%s", lbuf);
+            if (*lbuf == '\0')
+                LOG_INFO(" ");
+            p = (void *)(ts->datas + tensor_type_sizeof(ts->type) * idx);
+            switch (ts->type) {
+                case TENSOR_TYPE_BOOL:
+                    LOG_INFO("%s,", *((uint8_t *)p) ? "true" : "false");
+                    break;
+                case TENSOR_TYPE_INT8:
+                    LOG_INFO("%d,", *((int8_t *)p));
+                    break;
+                case TENSOR_TYPE_INT16:
+                    LOG_INFO("%d,", *((int16_t *)p));
+                    break;
+                case TENSOR_TYPE_INT32:
+                    LOG_INFO("%d,", *((int32_t *)p));
+                    break;
+                case TENSOR_TYPE_INT64:
+                    LOG_INFO("%ld,", *((int64_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT8:
+                    LOG_INFO("%u,", *((uint8_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT16:
+                    LOG_INFO("%u,", *((uint16_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT32:
+                    LOG_INFO("%u,", *((uint32_t *)p));
+                    break;
+                case TENSOR_TYPE_UINT64:
+                    LOG_INFO("%lu,", *((uint64_t *)p));
+                    break;
+                case TENSOR_TYPE_BFLOAT16:
+                    LOG_INFO("%g,", bfloat16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT16:
+                    LOG_INFO("%g,", float16_to_float32(*((uint16_t *)p)));
+                    break;
+                case TENSOR_TYPE_FLOAT32:
+                    LOG_INFO("%g,", *((float *)p));
+                    break;
+                case TENSOR_TYPE_FLOAT64:
+                    LOG_INFO("%g,", *((double *)p));
+                    break;
+                case TENSOR_TYPE_COMPLEX64:
+                    LOG_INFO("%g + %gi,", *((float *)p), *((float *)(p + sizeof(float))));
+                    break;
+                case TENSOR_TYPE_COMPLEX128:
+                    LOG_INFO("%g + %gi,", *((double *)p), *((double *)(p + sizeof(double))));
+                    break;
+                case TENSOR_TYPE_STRING:
+                    LOG_INFO("%s,", (char *)(((char **)p)[0]));
+                    break;
+                default:
+                    LOG_INFO("?,");
+                    break;
+            }
+            lp = lbuf;
+            rp = rbuf;
+        }
+        for (j = 0; j < ts->ndim; j++)
+            LOG_INFO("]");
+        free(sizes);
+        free(levels);
+        free(lbuf);
+        free(rbuf);
+        LOG_INFO("\n");
+    } else if (ts->ndata == 1 && ts->datas) {
+        p = (void *)(ts->datas);
+        switch (ts->type) {
+            case TENSOR_TYPE_BOOL:
+                LOG_INFO("%s", *((uint8_t *)p) ? "true" : "false");
+                break;
+            case TENSOR_TYPE_INT8:
+                LOG_INFO("%d", *((int8_t *)p));
+                break;
+            case TENSOR_TYPE_INT16:
+                LOG_INFO("%d", *((int16_t *)p));
+                break;
+            case TENSOR_TYPE_INT32:
+                LOG_INFO("%d", *((int32_t *)p));
+                break;
+            case TENSOR_TYPE_INT64:
+                LOG_INFO("%ld", *((int64_t *)p));
+                break;
+            case TENSOR_TYPE_UINT8:
+                LOG_INFO("%u", *((uint8_t *)p));
+                break;
+            case TENSOR_TYPE_UINT16:
+                LOG_INFO("%u", *((uint16_t *)p));
+                break;
+            case TENSOR_TYPE_UINT32:
+                LOG_INFO("%u", *((uint32_t *)p));
+                break;
+            case TENSOR_TYPE_UINT64:
+                LOG_INFO("%lu", *((uint64_t *)p));
+                break;
+            case TENSOR_TYPE_BFLOAT16:
+                LOG_INFO("%g", bfloat16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT16:
+                LOG_INFO("%g", float16_to_float32(*((uint16_t *)p)));
+                break;
+            case TENSOR_TYPE_FLOAT32:
+                LOG_INFO("%g", *((float *)p));
+                break;
+            case TENSOR_TYPE_FLOAT64:
+                LOG_INFO("%g", *((double *)p));
+                break;
+            case TENSOR_TYPE_COMPLEX64:
+                LOG_INFO("%g + %gi", *((float *)p), *((float *)(p + sizeof(float))));
+                break;
+            case TENSOR_TYPE_COMPLEX128:
+                LOG_INFO("%g + %gi", *((double *)p), *((double *)(p + sizeof(double))));
+                break;
+            case TENSOR_TYPE_STRING:
+                LOG_INFO("%s", (char *)(((char **)p)[0]));
+                break;
+            default:
+                LOG_INFO("?");
+                break;
+        }
+        LOG_INFO("\r\n");
+    } else {
+        LOG_INFO("[]\n");
+    }
+}
+
 void tensor_dump2(tensor_t *ts) {
     if (!ts) return;
     int *sizes, *levels;

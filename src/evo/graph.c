@@ -242,7 +242,6 @@ node_t* graph_add_linear(graph_t *g, int units, bool has_bias, const char* activ
         bias_dims[last_ndim - 1] = units;
         if(last_ndim > 0) {
             tensor_reshape(bias, last_ndim, bias_dims);
-            tensor_fill_normal(bias, 0, 0.5);
         }
         graph_push_tenser(g, bias);
         hashmap_set(g->mdl->tensor_map, hashmap_str_lit(bias->name), (uintptr_t)bias);
