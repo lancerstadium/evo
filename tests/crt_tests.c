@@ -267,6 +267,7 @@ UnitTest_fn_def(test_simple_create) {
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
     fig->axiss[1]->range_max = 0.2;
+    fig->plot_vec[0]->lwidth = 2.0f;
     figure_save(fig, "loss.svg");
 
     // Eval
