@@ -275,7 +275,7 @@ UnitTest_fn_def(test_simple_create) {
         y_ts = model_eval(mdl, X_ts);
         fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
         tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
-        tensor_dump2(sss);
+        // tensor_dump2(sss);
     }
     return NULL;
 }
