@@ -85,9 +85,11 @@ for epoch in range(epochs):
         b1 -= learning_rate * db1
 
         if epoch == 0:
+            print(xi)
             print(Z1)
             print(A1)
             print(Z2)
+            print(b1)
             print('--')
 
     loss_epoch /= X.shape[0]

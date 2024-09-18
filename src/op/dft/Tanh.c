@@ -50,39 +50,48 @@ static void Tanh_foward_float64(node_t *nd) {
 
 
 static void Tanh_backward_bfloat16(node_t* nd) {
-    tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    uint16_t *pd = (uint16_t *)delta->datas;
+    tensor_t *y = nd->in[0];
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
     uint16_t *py = (uint16_t *)y->datas;
+    uint16_t *pd = (uint16_t *)d->datas;
+    uint16_t *pg = (uint16_t *)g->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = float32_to_bfloat16(1.0f - bfloat16_to_float32(py[i]) * bfloat16_to_float32(py[i]));
+        pd[i] = float32_to_bfloat16((1.0f - bfloat16_to_float32(py[i]) * bfloat16_to_float32(py[i])) * bfloat16_to_float32(pg[i]));
 }
 
 static void Tanh_backward_float16(node_t* nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    uint16_t *pd = (uint16_t *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
     uint16_t *py = (uint16_t *)y->datas;
+    uint16_t *pd = (uint16_t *)d->datas;
+    uint16_t *pg = (uint16_t *)g->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = float32_to_float16(1.0f - float16_to_float32(py[i]) * float16_to_float32(py[i]));
+        pd[i] = float32_to_float16((1.0f - float16_to_float32(py[i]) * float16_to_float32(py[i])) * float16_to_float32(pg[i]));
 }
 
 static void Tanh_backward_float32(node_t* nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    float *pd = (float *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
     float *py = (float *)y->datas;
+    float *pd = (float *)d->datas;
+    float *pg = (float *)g->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = 1 - py[i] * py[i];
+        pd[i] = (1.0f - py[i] * py[i]) * pg[i];
 }
 
 static void Tanh_backward_float64(node_t* nd) {
     tensor_t *y = nd->out[0];
-    tensor_t *delta = nd->in[0]->grad;
-    double *pd = (double *)delta->datas;
+    tensor_t *d = nd->in[0]->grad;
+    tensor_t *g = nd->out[0]->grad;
     double *py = (double *)y->datas;
+    double *pd = (double *)d->datas;
+    double *pg = (double *)g->datas;
     for (size_t i = 0, l = y->ndata; i < l; i++)
-        pd[i] = 1 - py[i] * py[i];
+        pd[i] = (1.0 - py[i] * py[i]) * pg[i];
+        
 }
 
 void Tanh_init(node_t *nd) {

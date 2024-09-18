@@ -235,7 +235,7 @@ UnitTest_fn_def(test_simple_create) {
 
     // Train
     tensor_t* sss = NULL;
-    int nepoch = 10;
+    int nepoch = 15000;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
@@ -243,17 +243,16 @@ UnitTest_fn_def(test_simple_create) {
     tensor_t* X_ts, *y_ts;
     for(int e = 0; e < nepoch; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
-            X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off * 5, X_off * 5);
-            y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off * 5);
+            X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
+            y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
             model_set_tensor(mdl, "Input0", X_ts);
             trainer_step(trn, mdl, y_ts);
             if(e == 0) {
-                sss = model_get_tensor(mdl, "Gemm0_out0");
-                tensor_dump1(sss);
-                sss = model_get_tensor(mdl, "Tanh1_out0");
-                tensor_dump1(sss);
-                sss = model_get_tensor(mdl, "Gemm2_out0");
-                tensor_dump1(sss);
+                tensor_dump1(X_ts);
+                sss = model_get_tensor(mdl, "Gemm0_out0");      tensor_dump1(sss);
+                sss = model_get_tensor(mdl, "Tanh1_out0");      tensor_dump1(sss);
+                sss = model_get_tensor(mdl, "Gemm2_out0");      tensor_dump1(sss);
+                sss = model_get_tensor(mdl, "Gemm0_bias");      tensor_dump1(sss);
                 fprintf(stderr, "--\n");
             }
             trainer_zero_grad(trn, mdl);
@@ -266,18 +265,18 @@ UnitTest_fn_def(test_simple_create) {
 
     figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
-    fig->axiss[1]->range_min = -0.1;
-    fig->axiss[1]->range_max = 2;
+    fig->axiss[1]->range_min = -0.02;
+    fig->axiss[1]->range_max = 0.5;
     figure_save(fig, "loss.svg");
 
     // Eval
-    // for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
-    //     X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
-    //     y_ts = model_eval(mdl, X_ts);
-    //     fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
-    //     tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
-    //     tensor_dump2(sss);
-    // }
+    for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
+        X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
+        y_ts = model_eval(mdl, X_ts);
+        fprintf(stderr, "<%f %f> ", y[b], y_ts->datas ? ((float*)y_ts->datas)[0] : 0.0f);
+        tensor_t* sss = model_get_tensor(mdl, "Gemm2_out0");
+        tensor_dump2(sss);
+    }
     return NULL;
 }
 
