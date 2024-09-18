@@ -190,6 +190,7 @@ float trainer_step(trainer_t* trn, model_t* mdl, tensor_t* trg) {
             if(ts && ts->grad && ts->is_param) {
                 trn->update(trn, ts);
             }
+            tensor_fill_zero(ts->grad);
         }
         trn->cur_loss = loss;
     }

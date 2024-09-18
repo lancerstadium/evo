@@ -230,11 +230,11 @@ UnitTest_fn_def(test_simple_create) {
     // Train
     // tensor_t* sss = model_get_tensor(mdl, "Gemm0_bias");
     // tensor_dump2(sss);
-    int nepoch = 50;
+    int nepoch = 15000;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
-    trainer_t* trn = trainer_new(0.00001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
     for(int e = 0; e < nepoch; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
@@ -250,6 +250,9 @@ UnitTest_fn_def(test_simple_create) {
     }
 
     figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
+    fig->axiss[1]->is_auto_scale = false;
+    fig->axiss[1]->range_min = -0.1;
+    fig->axiss[1]->range_max = 2;
     figure_save(fig, "loss.svg");
 
     // Eval

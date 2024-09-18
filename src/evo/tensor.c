@@ -136,7 +136,68 @@ tensor_t *tensor_new_float32(const char *name, int* dims, int ndim, float* fs, s
 
 void tensor_fill_zero(tensor_t *ts) {
     if(!ts || ts->ndata == 0 || !ts->datas) return;
-    memset(ts->datas, 0, ts->ndata);
+    switch(ts->type) {
+        case TENSOR_TYPE_INT8: {
+            int8_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int8_t)0;
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT16: {
+            int16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int16_t)0;
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT32: {
+            int32_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int32_t)0;
+            }
+            break;
+        }
+        case TENSOR_TYPE_INT64: {
+            int64_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = (int64_t)0;
+            }
+            break;
+        }
+        case TENSOR_TYPE_BFLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = float32_to_bfloat16(0.0f);
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT16: {
+            uint16_t* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = float32_to_float16(0.0f);
+            }
+            break;            
+        }
+        case TENSOR_TYPE_FLOAT32: {
+            float* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = 0.0f;
+            }
+            break;
+        }
+        case TENSOR_TYPE_FLOAT64: {
+            double* data = ts->datas;
+            for (int i = 0; i < ts->ndata; i++) {
+                data[i] = 0.0;
+            }
+            break;
+        }
+        default: {
+            memset(ts->datas, 0, ts->ndata * tensor_type_sizeof(ts->type));
+            break;
+        }
+    }
 }
 
 void tensor_fill_uniform(tensor_t *ts, float min_val, float max_val) {
