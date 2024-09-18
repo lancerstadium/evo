@@ -1,0 +1,41 @@
+<svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 720 480">
+<defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="615.00" height="405.00"/>
+</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">loss</text>
+<rect  x="70.00" y="25.00" width="615.00" height="405.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
+<text  x="377.50" y="467.00" text-anchor="middle"  font-weight="regular">n</text>
+<text  transform="rotate(270, 5.00, 227.50) translate(0, 10)"  x="5.00" y="227.50" text-anchor="middle"  font-weight="regular">loss</text>
+<line clip-path="url(#plot-area)"  x1="70.00" y1="25.00" x2="70.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="70.00" y1="431.00" x2="70.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="70.00" y="450.00" text-anchor="middle"  font-weight="regular">0</text>
+<line clip-path="url(#plot-area)"  x1="195.51" y1="25.00" x2="195.51" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="195.51" y1="431.00" x2="195.51" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="195.51" y="450.00" text-anchor="middle"  font-weight="regular">10.0</text>
+<line clip-path="url(#plot-area)"  x1="321.02" y1="25.00" x2="321.02" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="321.02" y1="431.00" x2="321.02" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="321.02" y="450.00" text-anchor="middle"  font-weight="regular">20.0</text>
+<line clip-path="url(#plot-area)"  x1="446.53" y1="25.00" x2="446.53" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="446.53" y1="431.00" x2="446.53" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="446.53" y="450.00" text-anchor="middle"  font-weight="regular">30.0</text>
+<line clip-path="url(#plot-area)"  x1="572.04" y1="25.00" x2="572.04" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="572.04" y1="431.00" x2="572.04" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="572.04" y="450.00" text-anchor="middle"  font-weight="regular">40.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="353.97" x2="685.00" y2="353.97"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="353.97" x2="69.00" y2="353.97"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="357.97" text-anchor="end"  font-weight="regular">0.5</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="277.89" x2="685.00" y2="277.89"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="277.89" x2="69.00" y2="277.89"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="281.89" text-anchor="end"  font-weight="regular">1.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="201.81" x2="685.00" y2="201.81"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="201.81" x2="69.00" y2="201.81"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="205.81" text-anchor="end"  font-weight="regular">1.5</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="125.73" x2="685.00" y2="125.73"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="125.73" x2="69.00" y2="125.73"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="129.73" text-anchor="end"  font-weight="regular">2.0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="49.65" x2="685.00" y2="49.65"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="49.65" x2="69.00" y2="49.65"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="53.65" text-anchor="end"  font-weight="regular">2.5</text>
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:1.00;"  points="70.00,25.00 82.55,29.89 95.10,38.32 107.65,50.11 120.20,65.03 132.76,82.78 145.31,103.02 157.86,125.34 170.41,149.32 182.96,174.51 195.51,200.41 208.06,226.57 220.61,252.52 233.16,277.79 245.71,301.98 258.27,324.71 270.82,345.64 283.37,364.50 295.92,381.08 308.47,395.23 321.02,406.89 333.57,416.05 346.12,422.78 358.67,427.21 371.22,429.54 383.78,430.00 396.33,428.90 408.88,426.54 421.43,423.29 433.98,419.49 446.53,415.49 459.08,411.62 471.63,408.19 484.18,405.43 496.73,403.57 509.29,402.73 521.84,402.99 534.39,404.35 546.94,406.70 559.49,409.91 572.04,413.73 584.59,417.86 597.14,421.96 609.69,425.62 622.24,428.42 634.80,429.91 647.35,429.66 659.90,427.24 672.45,422.29 685.00,414.49 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
+<defs><clipPath id="leg-area"><rect x="615.00" y="35.00" width="58.00" height="21.00"/>
+</clipPath></defs><line  x1="585.00" y1="46.00" x2="615.00" y2="46.00"  style="stroke: #db5f57;stroke-width:1.00"/>
+<text clip-path="url(#leg-area)"  x="645.00" y="50.00" text-anchor="middle"  font-weight="regular">loss</text>
+</svg>

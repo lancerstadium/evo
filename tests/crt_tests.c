@@ -230,9 +230,13 @@ UnitTest_fn_def(test_simple_create) {
     // Train
     // tensor_t* sss = model_get_tensor(mdl, "Gemm0_bias");
     // tensor_dump2(sss);
-    trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    int nepoch = 50;
+    tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
+    float* loss_data = loss_vec->datas;
+    trainer_t* trn = trainer_new(0.00001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t* X_ts, *y_ts;
-    for(int e = 0; e < 13; e++) {
+    for(int e = 0; e < nepoch; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
             X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off * 5, X_off * 5);
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off * 5);
@@ -241,8 +245,12 @@ UnitTest_fn_def(test_simple_create) {
             // model_eval(mdl, X_ts);
             // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);
         }
-        fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
+        // fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
+        loss_data[e] = trn->cur_loss;
     }
+
+    figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
+    figure_save(fig, "loss.svg");
 
     // Eval
     for(int b = 0; b < sizeof(y)/sizeof(float); b++) {

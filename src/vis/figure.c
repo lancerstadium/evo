@@ -562,7 +562,7 @@ void figure_plot_free(figure_plot_t* fig_plot) {
     }
 }
 
-figure_t* figure_new(const char* title, figure_type_t type, size_t width, size_t height, size_t naxis) {
+figure_t* figure_new(char* title, figure_type_t type, size_t width, size_t height, size_t naxis) {
     figure_t* fig = sys_malloc(sizeof(figure_t));
     fig->title = title ? sys_strdup(title) : NULL;
     fig->type = type;
@@ -578,6 +578,24 @@ figure_t* figure_new(const char* title, figure_type_t type, size_t width, size_t
     fig->plot_vec = vector_create();
     fig->priv = NULL;
 
+    return fig;
+}
+
+figure_t* figure_new_1d(char* title, figure_type_t type, tensor_t* ts) {
+    if(!ts || ts->ndim < 1 || ts->type != TENSOR_TYPE_FLOAT32) return NULL;
+    figure_t* fig = figure_new(title, type, 720, 480, 2);
+    int n = ts->dims[0];
+    int s = ts->strides[0];
+    float data[n * 2];
+    float* datas = ts->datas;
+    for(int i = 0; i < n; i++) {
+        data[i * 2]     = i;
+        data[i * 2 + 1] = datas[i * s];
+    }
+    figure_set_xlabel(fig, "n");
+    figure_set_ylabel(fig, title);
+    figure_plot_t* p = figure_plot_new(ts->name, FIGURE_PLOT_TYPE_LINE, data, n, 2);
+    figure_add_plot(fig, p);
     return fig;
 }
 
