@@ -122,7 +122,7 @@ svg_tick_t* svg_tick_new(float min, float max, float origin, float size, bool ve
             } else if (e > -2 && e < 2) {
                 l = malloc(8 * sizeof(char));
                 memset(l, 0, 8);
-                sprintf(l, "%.1f", v);
+                sprintf(l, "%.2f", v);
             } else {
                 l = malloc(128 * sizeof(char));
                 memset(l, 0, 128);

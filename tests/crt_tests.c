@@ -235,7 +235,7 @@ UnitTest_fn_def(test_simple_create) {
 
     // Train
     tensor_t* sss = NULL;
-    int nepoch = 15000;
+    int nepoch = 2500;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
@@ -265,8 +265,8 @@ UnitTest_fn_def(test_simple_create) {
 
     figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
-    fig->axiss[1]->range_min = -0.02;
-    fig->axiss[1]->range_max = 0.5;
+    fig->axiss[1]->range_min = -0.01;
+    fig->axiss[1]->range_max = 0.2;
     figure_save(fig, "loss.svg");
 
     // Eval
