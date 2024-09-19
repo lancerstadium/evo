@@ -63,11 +63,14 @@ float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
 }
 
 /**
+ * 
+ * ref: https://blog.csdn.net/weixin_45954454/article/details/114455209
+ * 
  *  ** Mnist Model ** :
  *      - Flatten           : [1,1,28,28] ->     [1,784]
- *      - FC                :     [1,784] ->     [1,500]
- *      - ReLU              :     [1,500] ->     [1,500]
- *      - FC                :     [1,500] ->      [1,10]
+ *      - FC                :     [1,784] ->     [1,128]
+ *      - ReLU              :     [1,128] ->     [1,128]
+ *      - FC                :     [1,128] ->      [1,10]
  *      - Softmax           :      [1,10] ->      [1,10]
  *
  *  ** Train Config ** :
@@ -83,8 +86,8 @@ model_t* mnist_model() {
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 500, true, "tanh");
-    graph_add_linear(mdl->graph, 10, true, "softmax");
+    graph_add_linear(mdl->graph, 128, true, "relu");
+    graph_add_linear(mdl->graph, 10, true, NULL);
     return mdl;
 }
 
@@ -108,8 +111,8 @@ UnitTest_fn_def(test_mnist_create) {
     model_show_tensors(mdl);
 
     // Train
-    int nepoch = 10;
-    int nbatch = 30;
+    int nepoch = 300;
+    int nbatch = 140;
     trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
@@ -121,8 +124,8 @@ UnitTest_fn_def(test_mnist_create) {
     float* yd = y_ts->datas;
     float* loss_data = loss_vec->datas;
 
-    progressbar_t *bar = progressbar_new("Train:", nepoch);
-    figure_t* fig = figure_new_1d("xxxx", FIGURE_TYPE_VECTOR, loss_vec);
+    progressbar_t *bar = progressbar_new_format("Train:", nepoch, "[=]");
+    figure_t* fig = figure_new_1d("Mnist Loss", FIGURE_TYPE_VECTOR, FIGURE_PLOT_TYPE_LINE, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
     fig->axiss[1]->range_max = 0.2;
@@ -133,11 +136,13 @@ UnitTest_fn_def(test_mnist_create) {
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
-            // if(e == 0 && b < 2) {
-            //     fprintf(stderr, "<%u> ", label->bs[b]);
-            //     image_dump_raw(imgs, b);
-            // }
             trainer_step(trn, mdl, y_ts);
+            if(e == 3 && b < 17 && b > 12) {
+                // fprintf(stderr, "<%u> ", label->bs[b]);
+                // image_dump_raw(imgs, b);
+                // tensor_t* ts = model_get_tensor(mdl, "Softmax4_out0");
+                // tensor_dump1(ts->grad);
+            }
             trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             // tensor_dump2(sss);
@@ -151,8 +156,7 @@ UnitTest_fn_def(test_mnist_create) {
         sprintf(bar_label, "Train: %d/%d Loss: %.6f", e, nepoch, trn->cur_loss);
         progressbar_update_label(bar, bar_label);
         progressbar_update(bar, e);
-        figure_update_plot_1d(fig, loss_vec);
-        fig->plot_vec[0]->lwidth = 2.0f;
+        figure_update_plot_1d(fig, loss_vec, e);
         figure_save(fig, "loss.svg");
     }
     progressbar_finish(bar);
@@ -173,7 +177,7 @@ UnitTest_fn_def(test_mnist_create) {
         tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
         int64_t yy = ((int64_t*)y_out->datas)[0];
         acc_cnt += ((yy == (int64_t)label->bs[b]) ? 1 : 0);
-        // fprintf(stderr, "<%u %ld> ", y, yy);
+        // fprintf(stderr, "<%u %ld> ", label->bs[b], yy);
         // tensor_dump2(y_out);
     }
     train_acc += ((float)acc_cnt / (float)nbatch);
@@ -263,7 +267,7 @@ UnitTest_fn_def(test_simple_create) {
 
     // Train
     tensor_t* sss = NULL;
-    int nepoch = 2500;
+    int nepoch = 3000;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
@@ -283,11 +287,10 @@ UnitTest_fn_def(test_simple_create) {
         loss_data[e] = trn->cur_loss;
     }
 
-    figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
+    figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, FIGURE_PLOT_TYPE_LINE, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
     fig->axiss[1]->range_max = 0.2;
-    fig->plot_vec[0]->lwidth = 2.0f;
     figure_save(fig, "loss.svg");
 
     // Eval

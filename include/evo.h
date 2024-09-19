@@ -1068,6 +1068,8 @@ struct figure_plot {
     float lwidth;
 
     char mtype;
+
+    void* priv;
 };
 
 struct figure {
@@ -1094,8 +1096,9 @@ EVO_API float figure_plot_get_max(figure_plot_t*, size_t);
 EVO_API float figure_plot_get_min(figure_plot_t*, size_t);
 EVO_API void figure_plot_free(figure_plot_t*);
 EVO_API figure_t* figure_new(char*, figure_type_t, size_t, size_t, size_t);
-EVO_API void figure_add_plot_1d(figure_t*, tensor_t*);
-EVO_API void figure_update_plot_1d(figure_t*, tensor_t*);
+EVO_API figure_t* figure_new_1d(char*, figure_type_t, figure_plot_type_t, tensor_t*);
+EVO_API void figure_add_plot_1d(figure_t*, figure_plot_type_t, tensor_t*, int);
+EVO_API void figure_update_plot_1d(figure_t*, tensor_t*, int);
 EVO_API void figure_add_plot(figure_t*, figure_plot_t*);
 EVO_API void figure_pop_plot(figure_t*);
 EVO_API figure_plot_t* figure_get_plot(figure_t*, size_t);
@@ -1103,7 +1106,6 @@ EVO_API float figure_get_max(figure_t*, size_t);
 EVO_API float figure_get_min(figure_t*, size_t);
 EVO_API void figure_set_xlabel(figure_t*, char*);
 EVO_API void figure_set_ylabel(figure_t*, char*);
-EVO_API figure_t* figure_new_1d(char*, figure_type_t, tensor_t*);
 EVO_API void figure_save(figure_t*, const char*);
 EVO_API void figure_free(figure_t*);
 
