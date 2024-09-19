@@ -29,6 +29,7 @@ Welcome to Evo Page
 |    bindle   | [evo-bind.md](./evo-bind.md)        |  Bindle API  |
 |    tools    | [evo-tool.md](./evo-tool.md)        |  Useful Tools|
 |   profile   | [evo-profile.md](./evo-profile.md)  |   profiler   |
+|    quant    | [evo-quant.md](./evo-quant.md)      |   quant      |
 |  reference  | [evo-ref.md](./evo-ref.md)          |  reference   |
 
 

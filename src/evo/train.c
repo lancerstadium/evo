@@ -44,14 +44,8 @@ void loss_grad_cross_entropy(float *output, float *target, float *grad, int size
 // ==================================================================================== //
 
 // ref: https://blog.csdn.net/weixin_39228381/article/details/108310520
-typedef struct {
-    float momentum;                                     /* moment estimation coeff: 0   */
-    float dampening;                                    /* mutiply coeff                */
-} trainer_opt_sgd_t;
-
 void update_sgd(trainer_t *trn, tensor_t* ts) {
-    if(!trn || !trn->priv  || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-    trainer_opt_sgd_t *priv = (trainer_opt_sgd_t *)trn->priv;
+    if(!trn || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
     float lr = trn->lr;
     // float momentum = priv->momentum;
     float *td = ts->datas;
@@ -66,16 +60,10 @@ void update_sgd(trainer_t *trn, tensor_t* ts) {
 //                                  train: update adam
 // ==================================================================================== //
 
-typedef struct {                                         
-    float beta1;                                        /* 1st moment estimation coeff  */
-    float beta2;                                        /* 2nd moment estimation coeff  */
-} trainer_opt_adam_t;
-
 void update_adam(trainer_t *trn, tensor_t* ts) {
-    if(!trn || !trn->priv || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
-    trainer_opt_adam_t *priv = (trainer_opt_adam_t *)trn->priv;
-    float beta1 = priv->beta1;
-    float beta2 = priv->beta2;
+    if(!trn || !ts || !ts->grad || ts->type != TENSOR_TYPE_FLOAT32) return;
+    float beta1 = trn->adam.beta1;
+    float beta2 = trn->adam.beta2;
     float lr = trn->lr;
     float epsilon = trn->epsilon;
 
@@ -126,27 +114,17 @@ trainer_t * trainer_new(float lr, float epsilon, trainer_loss_type_t loss_type, 
     switch(opt_type) {
         case TRAINER_OPT_ADAM:{
             // adam optim init
-            trainer_opt_adam_t* priv = sys_malloc(sizeof(trainer_opt_adam_t));
-            if(priv) {
-                memset(priv, 0, sizeof(trainer_opt_adam_t));
-                priv->beta1 = 0.9f;             /* default: */
-                priv->beta2 = 0.999f;           /* default: */
-            }
-            trn->priv = priv;
             trn->update = update_adam;
+            trn->adam.beta1 = 0.9f;             /* default: */
+            trn->adam.beta2 = 0.999f;           /* default: */
             break;
         }
         case TRAINER_OPT_SGD:
         default: {
             // agd optim init
-            trainer_opt_sgd_t* priv = sys_malloc(sizeof(trainer_opt_sgd_t));
-            if(priv) {
-                memset(priv, 0, sizeof(trainer_opt_sgd_t));
-                priv->momentum = 0.0f;          /* default: */
-                priv->dampening = 0.0f;         /* default: */
-            }
-            trn->priv = priv;
             trn->update = update_sgd;
+            trn->sgd.momentum = 0.0f;          /* default: */
+            trn->sgd.dampening = 0.0f;         /* default: */
             break;
         }
     }

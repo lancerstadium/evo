@@ -128,6 +128,20 @@ static inline uint32_t __swahb32(uint32_t x) {
 #define be16_to_cpu(x) (__swab16((uint16_t)(x)))
 #endif
 
+
+// ==================================================================================== //
+//                                    string hash
+// ==================================================================================== //
+
+static inline unsigned int shash(const char* s) {
+    unsigned int v = 5381;
+    if (s) {
+        while (*s)
+            v = (v << 5) + v + (*s++);
+    }
+    return v;
+}
+
 // ==================================================================================== //
 //                                     interger
 // ==================================================================================== //
@@ -272,17 +286,25 @@ static inline float bfloat16_to_float32(uint16_t v) {
 }
 
 // ==================================================================================== //
-//                                    string hash
+//                                    quantize
 // ==================================================================================== //
 
-static inline unsigned int shash(const char* s) {
-    unsigned int v = 5381;
-    if (s) {
-        while (*s)
-            v = (v << 5) + v + (*s++);
-    }
-    return v;
-}
+void symmetric_quantize_float32_to_int16(float *input, int16_t *output, int size, float scale);
+void symmetric_dequantize_int16_to_float32(int16_t *input, float *output, int size, float scale);
+void symmetric_quantize_float32_to_int8(float *input, int8_t *output, int size, float scale);
+void symmetric_dequantize_int8_to_float32(int8_t *input, float *output, int size, float scale);
+void asymmetric_quantize_float32_to_int16(float *input, int16_t *output, int size, float scale, int16_t zero_point);
+void asymmetric_dequantize_int16_to_float32(int16_t *input, float *output, int size, float scale, int16_t zero_point);
+void asymmetric_quantize_float32_to_int8(float *input, int8_t *output, int size, float scale, int8_t zero_point);
+void asymmetric_dequantize_int8_to_float32(int8_t *input, float *output, int size, float scale, int8_t zero_point);
+void dynamic_range_quantize_float32_to_int16(float *input, int16_t *output, int size);
+void dynamic_range_dequantize_int16_to_float32(int16_t *input, float *output, int size, float min, float max);
+void dynamic_range_quantize_float32_to_int8(float *input, int8_t *output, int size);
+void dynamic_range_dequantize_int8_to_float32(int8_t *input, float *output, int size, float min, float max);
+void log_quantize_float32_to_int16(float *input, int16_t *output, int size);
+void log_dequantize_int16_to_float32(int16_t *input, float *output, int size);
+void log_quantize_float32_to_int8(float *input, int8_t *output, int size);
+void log_dequantize_int8_to_float32(int8_t *input, float *output, int size);
 
 #ifdef __cplusplus
 }

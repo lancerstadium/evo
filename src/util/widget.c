@@ -2,6 +2,7 @@
 #include <evo/util/log.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 /* Function to initialize a new progress bar */
 progressbar_t *progressbar_new(const char *label, size_t max) {

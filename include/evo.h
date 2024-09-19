@@ -841,6 +841,17 @@ struct trainer {
     trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
     trainer_loss_type_t loss_type;                      /* Loss func Type: MSE,CE...    */
     void *priv;                                         /* Private Params of Optimizor  */
+
+    union {
+        struct {
+            float momentum;                             /* moment estimation coeff: 0   */
+            float dampening;                            /* mutiply coeff                */
+        } sgd;
+        struct {
+            float beta1;                                /* 1st moment estimation coeff  */
+            float beta2;                                /* 2nd moment estimation coeff  */
+        } adam;
+    };
     
     float (*loss)(float*, float*, int);                 /* Compute Loss Function        */
     void (*loss_grad)(float*, float*, float*, int);     /* Compute Loss Gradient Func   */

@@ -133,10 +133,10 @@ UnitTest_fn_def(test_mnist_create) {
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
-            if(e == 0 && b < 2) {
-                fprintf(stderr, "<%u> ", label->bs[b]);
-                image_dump_raw(imgs, b);
-            }
+            // if(e == 0 && b < 2) {
+            //     fprintf(stderr, "<%u> ", label->bs[b]);
+            //     image_dump_raw(imgs, b);
+            // }
             trainer_step(trn, mdl, y_ts);
             trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
