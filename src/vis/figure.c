@@ -584,6 +584,14 @@ figure_t* figure_new(char* title, figure_type_t type, size_t width, size_t heigh
 figure_t* figure_new_1d(char* title, figure_type_t type, tensor_t* ts) {
     if(!ts || ts->ndim < 1 || ts->type != TENSOR_TYPE_FLOAT32) return NULL;
     figure_t* fig = figure_new(title, type, 720, 480, 2);
+    figure_set_xlabel(fig, "n");
+    figure_set_ylabel(fig, title);
+    figure_add_plot_1d(fig, ts);
+    return fig;
+}
+
+void figure_add_plot_1d(figure_t* fig, tensor_t* ts) {
+    if(!fig || !ts || ts->ndim < 1 || ts->type != TENSOR_TYPE_FLOAT32) return;
     int n = ts->dims[0];
     int s = ts->strides[0];
     float data[n * 2];
@@ -592,16 +600,24 @@ figure_t* figure_new_1d(char* title, figure_type_t type, tensor_t* ts) {
         data[i * 2]     = i;
         data[i * 2 + 1] = datas[i * s];
     }
-    figure_set_xlabel(fig, "n");
-    figure_set_ylabel(fig, title);
     figure_plot_t* p = figure_plot_new(ts->name, FIGURE_PLOT_TYPE_LINE, data, n, 2);
     figure_add_plot(fig, p);
-    return fig;
+}
+
+void figure_update_plot_1d(figure_t* fig, tensor_t* ts) {
+    if(!fig || !ts) return;
+    figure_pop_plot(fig);
+    figure_add_plot_1d(fig, ts);
 }
 
 void figure_add_plot(figure_t* fig, figure_plot_t* plot) {
     if(!fig || !plot || fig->naxis != figure_plot_naxis(plot)) return;
     vector_add(&fig->plot_vec, plot);
+}
+
+void figure_pop_plot(figure_t* fig) {
+    if(!fig || !fig->plot_vec || vector_size(fig->plot_vec) <= 0) return;
+    vector_pop(fig->plot_vec);
 }
 
 figure_plot_t* figure_get_plot(figure_t* fig, size_t i) {

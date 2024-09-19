@@ -48,6 +48,7 @@ extern "C" {
 
 #define EVO_DIM_MAX         8
 #define EVO_ALIGN_SIZE      16
+#define EVO_BAR_LABEL_LEN   256
 
 #include "evo/config.h"
 
@@ -872,10 +873,10 @@ typedef struct progressbar progressbar_t;
 
 
 struct progressbar {
-    unsigned long max;                                  /* maximum iter value           */
-    unsigned long value;                                /* current iter value           */
+    size_t max;                                         /* maximum iter value           */
+    size_t value;                                       /* current iter value           */
     time_t start;                                       /* time bar was started         */
-    const char *label;                                  /* labels show in bar           */               
+    char label[EVO_BAR_LABEL_LEN];                      /* labels show in bar           */            
     struct {                                            /* E.g. |###    | has |#|       */
         char begin;                                     /* char for the beginning       */
         char fill;                                      /* char for the filling         */
@@ -883,11 +884,11 @@ struct progressbar {
     } format;
 };
 
-progressbar_t *progressbar_new(const char *label, unsigned long max);
-progressbar_t *progressbar_new_format(const char *label, unsigned long max, const char *format);
+progressbar_t *progressbar_new(const char *label, size_t max);
+progressbar_t *progressbar_new_format(const char *label, size_t max, const char *format);
 void progressbar_free(progressbar_t *bar);
 void progressbar_inc(progressbar_t *bar);
-void progressbar_update(progressbar_t *bar, unsigned long value);
+void progressbar_update(progressbar_t *bar, size_t value);
 void progressbar_update_label(progressbar_t *bar, const char *label);
 void progressbar_finish(progressbar_t *bar);
 
@@ -1082,7 +1083,10 @@ EVO_API float figure_plot_get_max(figure_plot_t*, size_t);
 EVO_API float figure_plot_get_min(figure_plot_t*, size_t);
 EVO_API void figure_plot_free(figure_plot_t*);
 EVO_API figure_t* figure_new(char*, figure_type_t, size_t, size_t, size_t);
+EVO_API void figure_add_plot_1d(figure_t*, tensor_t*);
+EVO_API void figure_update_plot_1d(figure_t*, tensor_t*);
 EVO_API void figure_add_plot(figure_t*, figure_plot_t*);
+EVO_API void figure_pop_plot(figure_t*);
 EVO_API figure_plot_t* figure_get_plot(figure_t*, size_t);
 EVO_API float figure_get_max(figure_t*, size_t);
 EVO_API float figure_get_min(figure_t*, size_t);

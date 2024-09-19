@@ -100,6 +100,7 @@ UnitTest_fn_def(test_mnist_create) {
         fprintf(stderr, "Load Mnist Success!\n");
     }
     attribute_t* label = image_get_attr(imgs, "label");
+    tensor_t* imgs_f32 = tensor_cast(imgs->raw, TENSOR_TYPE_FLOAT32);
 
     // Model
     model_t* mdl = mnist_model();
@@ -107,50 +108,77 @@ UnitTest_fn_def(test_mnist_create) {
     model_show_tensors(mdl);
 
     // Train
+    int nepoch = 40;
+    int nbatch = 800;
     trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
-    tensor_t *x_tmp, *x;
-    
-    int num_epochs = 20;
-    int num_batchs = 800;
+    tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
+    tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
+    tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(x_ts     , 4, (int[]){1, 1, 28, 28});
+    tensor_reshape(y_ts     , 2, (int[]){1, 10});
+    tensor_reshape(loss_vec , 2, (int[]){nepoch, 1});
+    float* xd = x_ts->datas;
+    float* yd = y_ts->datas;
+    float* loss_data = loss_vec->datas;
 
-    for (int epoch = 0; epoch < num_epochs; epoch++) {
+    progressbar_t *bar = progressbar_new("Train:", nepoch);
+    figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
+    fig->axiss[1]->is_auto_scale = false;
+    fig->axiss[1]->range_min = -0.01;
+    fig->axiss[1]->range_max = 0.2;
+    fig->plot_vec[0]->lwidth = 2.0f;
+    for (int e = 0; e < nepoch; e++) {
         // Mini-batch training
-        for (int b = 0; b < num_batchs; b++) {
-            x_tmp = image_get_raw(imgs, b);
-            x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
-            uint8_t y = label->bs[b];
-            model_set_tensor(mdl, "Input0", x);
-            tensor_t* y_ts = tensor_new_one_hot(2, (int[]){1, 10}, y);
-            // image_dump_raw(imgs, b);
-            // fprintf(stderr, "<%u> ", y);
+        for (int b = 0; b < nbatch; b++) {
+            tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+            model_set_tensor(mdl, "Input0", x_ts);
+            tensor_fill_zero(y_ts);
+            ((float*)y_ts->datas)[label->bs[b]] = 1;
+            // if(b < 2) {
+            //     fprintf(stderr, "<%u> ", label->bs[b]);
+            //     image_dump_raw(imgs, b);
+            // }
             trainer_step(trn, mdl, y_ts);
+            trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             // tensor_dump2(sss);
         }
-
+        loss_data[e] = trn->cur_loss;
         // Evaluate the model on the training and test set
-        if (epoch % 2 == 0) {
-            float train_acc = 0.0;
-            float test_acc = 0.0;
-            int acc_cnt = 0;
-            for(int b = 0; b < num_batchs; b++) {
-                x_tmp = image_get_raw(imgs, b);
-                x  = tensor_cast(x_tmp, TENSOR_TYPE_FLOAT32);
-                // image_dump_raw(imgs, b);
-                // fprintf(stderr, "%u\n", label->bs[b]);
-                uint8_t y = label->bs[b];
-                tensor_t* y_ts = model_eval(mdl, x);
-                tensor_t* y_us = tensor_squeeze(y_ts, NULL, 0);
-                tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
-                int64_t yy = ((int64_t*)y_out->datas)[0];
-                acc_cnt += ((yy == (int64_t)y) ? 1 : 0);
-                // fprintf(stderr, "<%u %ld> ", y, yy);
-                // tensor_dump2(y_out);
-            }
-            train_acc += ((float)acc_cnt / (float)num_batchs);
-            fprintf(stderr, "[%4d] Loss: %.2f, Train acc: %.2f%%, Test acc: %.2f%%\n--\n", epoch, trn->cur_loss, train_acc * 100, test_acc * 100);
+        if (e % 2 == 0) {
+
         }
+        char bar_label[50];
+        sprintf(bar_label, "Train: %d/%d Loss: %.6f", e, nepoch, trn->cur_loss);
+        progressbar_update_label(bar, bar_label);
+        progressbar_update(bar, e);
+        figure_update_plot_1d(fig, loss_vec);
+        figure_save(fig, "loss.svg");
     }
+    progressbar_finish(bar);
+    progressbar_free(bar);
+    figure_free(fig);
+
+    // Paint
+
+    // Eval
+    float train_acc = 0.0;
+    float test_acc = 0.0;
+    int acc_cnt = 0;
+    for(int b = 0; b < nbatch; b++) {
+        tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+        model_set_tensor(mdl, "Input0", x_ts);
+        tensor_t* y_res = model_eval(mdl, x_ts);
+        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
+        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+        int64_t yy = ((int64_t*)y_out->datas)[0];
+        acc_cnt += ((yy == (int64_t)label->bs[b]) ? 1 : 0);
+        // fprintf(stderr, "<%u %ld> ", y, yy);
+        // tensor_dump2(y_out);
+    }
+    train_acc += ((float)acc_cnt / (float)nbatch);
+    fprintf(stderr, "Train acc: %.2f%%, Test acc: %.2f%%\n", train_acc * 100, test_acc * 100);
+
     return NULL;
 }
 
@@ -174,14 +202,14 @@ UnitTest_fn_def(test_mnist_create) {
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
     graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
-    node_t* l1 = graph_add_linear(mdl->graph, 3, true, "relu");
+    node_t* l1 = graph_add_linear(mdl->graph, 3, true, "tanh");
     node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
 
     // Init Param
-    tensor_apply(l1->in[1], (float[]){0.1, 0.2, 0.3, 0.4, 0.5, 0.6}     , 6 * sizeof(float));
-    tensor_apply(l1->in[2], (float[]){0.01, 0.02, 0.03}                 , 3 * sizeof(float));
-    tensor_apply(l2->in[1], (float[]){0.1, 0.2, 0.3}                    , 3 * sizeof(float));
-    tensor_apply(l2->in[2], (float[]){0.05}                             , 1 * sizeof(float));
+    // tensor_apply(l1->in[1], (float[]){0.1, 0.2, 0.3, 0.4, 0.5, 0.6}     , 6 * sizeof(float));
+    // tensor_apply(l1->in[2], (float[]){0.01, 0.02, 0.03}                 , 3 * sizeof(float));
+    // tensor_apply(l2->in[1], (float[]){0.1, 0.2, 0.3}                    , 3 * sizeof(float));
+    // tensor_apply(l2->in[2], (float[]){0.05}                             , 1 * sizeof(float));
     return mdl;
 }
 
@@ -346,8 +374,8 @@ UnitTest_fn_def(test_dummy_create) {
 
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
-    // UnitTest_add(test_mnist_create);
-    UnitTest_add(test_simple_create);
+    UnitTest_add(test_mnist_create);
+    // UnitTest_add(test_simple_create);
     // UnitTest_add(test_dummy_create);
     return NULL;
 }
