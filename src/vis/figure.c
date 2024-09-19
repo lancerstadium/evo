@@ -585,7 +585,7 @@ figure_t* figure_new_1d(char* title, figure_type_t type, tensor_t* ts) {
     if(!ts || ts->ndim < 1 || ts->type != TENSOR_TYPE_FLOAT32) return NULL;
     figure_t* fig = figure_new(title, type, 720, 480, 2);
     figure_set_xlabel(fig, "n");
-    figure_set_ylabel(fig, title);
+    figure_set_ylabel(fig, ts->name);
     figure_add_plot_1d(fig, ts);
     return fig;
 }

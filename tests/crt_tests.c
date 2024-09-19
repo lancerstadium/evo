@@ -122,7 +122,7 @@ UnitTest_fn_def(test_mnist_create) {
     float* loss_data = loss_vec->datas;
 
     progressbar_t *bar = progressbar_new("Train:", nepoch);
-    figure_t* fig = figure_new_1d("loss", FIGURE_TYPE_VECTOR, loss_vec);
+    figure_t* fig = figure_new_1d("xxxx", FIGURE_TYPE_VECTOR, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
     fig->axiss[1]->range_max = 0.2;

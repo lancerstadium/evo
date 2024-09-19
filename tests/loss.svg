@@ -1,6 +1,6 @@
 <svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 720 480">
 <defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="615.00" height="405.00"/>
-</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">loss</text>
+</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">xxxx</text>
 <rect  x="70.00" y="25.00" width="615.00" height="405.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
 <text  x="377.50" y="467.00" text-anchor="middle"  font-weight="regular">n</text>
 <text  transform="rotate(270, 5.00, 227.50) translate(0, 10)"  x="5.00" y="227.50" text-anchor="middle"  font-weight="regular">loss</text>
