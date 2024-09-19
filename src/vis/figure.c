@@ -687,7 +687,7 @@ void figure_save(figure_t* fig, const char* path) {
             break;
         case FIGURE_TYPE_VECTOR:
             figure_save_svg(fig, path);
-            LOG_INFO("Figure save: %s\n", path);
+            // LOG_INFO("Figure save: %s\n", path);
             break;
         default:
             break;

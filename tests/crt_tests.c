@@ -108,8 +108,8 @@ UnitTest_fn_def(test_mnist_create) {
     model_show_tensors(mdl);
 
     // Train
-    int nepoch = 40;
-    int nbatch = 800;
+    int nepoch = 10;
+    int nbatch = 30;
     trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
@@ -126,7 +126,6 @@ UnitTest_fn_def(test_mnist_create) {
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
     fig->axiss[1]->range_max = 0.2;
-    fig->plot_vec[0]->lwidth = 2.0f;
     for (int e = 0; e < nepoch; e++) {
         // Mini-batch training
         for (int b = 0; b < nbatch; b++) {
@@ -134,10 +133,10 @@ UnitTest_fn_def(test_mnist_create) {
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
-            // if(b < 2) {
-            //     fprintf(stderr, "<%u> ", label->bs[b]);
-            //     image_dump_raw(imgs, b);
-            // }
+            if(e == 0 && b < 2) {
+                fprintf(stderr, "<%u> ", label->bs[b]);
+                image_dump_raw(imgs, b);
+            }
             trainer_step(trn, mdl, y_ts);
             trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
@@ -153,6 +152,7 @@ UnitTest_fn_def(test_mnist_create) {
         progressbar_update_label(bar, bar_label);
         progressbar_update(bar, e);
         figure_update_plot_1d(fig, loss_vec);
+        fig->plot_vec[0]->lwidth = 2.0f;
         figure_save(fig, "loss.svg");
     }
     progressbar_finish(bar);
