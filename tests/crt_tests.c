@@ -93,6 +93,7 @@ model_t* mnist_model() {
 
 UnitTest_fn_def(test_mnist_create) {
     // Train Dataset
+    srand((unsigned)time(NULL));
     const char* image_filename = "picture/mnist/train-images-idx3-ubyte";
     const char* label_filename = "picture/mnist/train-labels-idx1-ubyte";
     image_t* imgs = image_load_mnist(image_filename, label_filename);
@@ -209,7 +210,8 @@ UnitTest_fn_def(test_mnist_create) {
 
     float test_acc = 0.0;
     acc_cnt = 0;
-    for(int b = 0; b < 10000; b++) {
+    nbatch = 10000;
+    for(int b = 0; b < nbatch; b++) {
         tensor_apply(x_ts, imgs_test_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
         model_set_tensor(mdl, "Input0", x_ts);
         tensor_t* y_res = model_eval(mdl, x_ts);
