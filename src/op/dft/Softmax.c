@@ -264,13 +264,14 @@ static void Softmax_backward_v13_float32(node_t *nd) {
             dot_prod = 0;
             for (j = 0; j < pdat->current; j++) {
                 o = io + j * pdat->inner;
-                dot_prod += py[o] * pgy[o];  // py[o] 是 Softmax 输出，pgy[o] 是上层传回的梯度
+                dot_prod += py[o] * pgy[o];  // 计算加权和
             }
 
-            // 2. 计算输入的梯度
+            // 2. 计算 Softmax 输入的梯度 (结合 MSE 梯度)
             for (j = 0; j < pdat->current; j++) {
                 o = io + j * pdat->inner;
-                pgx[o] = py[o] * (pgy[o] - dot_prod);  // 计算 Softmax 输入的梯度
+                // Softmax 输入的梯度（结合 MSE 梯度），使用没有归一化的 MSE 梯度
+                pgx[o] = py[o] * (pgy[o] - dot_prod);  // 计算 Softmax 的输入梯度
             }
         }
     }

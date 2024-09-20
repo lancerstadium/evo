@@ -15,27 +15,31 @@ float loss_mse(float *output, float *target, int size) {
         float diff = output[i] - target[i];
         loss += diff * diff;
     }
-    return loss / (2.0f * size);
+    return loss / size;  // 对应 PyTorch 的 MSE 实现，这里不需要除以2
 }
 
+// Gradient of MSE Loss
 void loss_grad_mse(float *output, float *target, float *grad, int size) {
     for (int i = 0; i < size; i++) {
-        grad[i] = (output[i] - target[i]) / size;
+        grad[i] = 2 * (output[i] - target[i]) / size;  // PyTorch 中 MSE 的梯度是 2 倍误差
     }
 }
 
-// Loss Function: cross entropy
+// Loss Function: Cross Entropy (general case, no Softmax involved)
 float loss_cross_entropy(float *output, float *target, int size) {
     float loss = 0.0f;
     for (int i = 0; i < size; i++) {
-        loss -= target[i] * logf(output[i] + 1e-10);  // 加1e-10防止log(0)
+        // 加上一个较小的值以避免 log(0) 导致的数值不稳定问题
+        loss -= target[i] * logf(output[i] + 1e-10);  
     }
     return loss / size;
 }
 
+// Gradient of Cross Entropy Loss (general case)
 void loss_grad_cross_entropy(float *output, float *target, float *grad, int size) {
     for (int i = 0; i < size; i++) {
-        grad[i] = - (target[i] / (output[i] + 1e-10)) + ((1.0f - target[i]) / (1.0f - output[i] + 1e-10));
+        // 使用标准的交叉熵梯度公式
+        grad[i] = - target[i] / (output[i] + 1e-10);  // 加1e-10避免除以0
     }
 }
 

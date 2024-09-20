@@ -227,7 +227,21 @@ node_t* graph_add_linear(graph_t *g, int units, bool has_bias, const char* activ
     tensor_t* kernel = tensor_new(name_buf, last->type);
     if(last_ndim > 0) {
         tensor_reshape(kernel, 2, (int[]){last_dim, units});
-        tensor_fill_uniform(kernel, 0, 0.5);
+        if(activation) {
+            if(strcmp(activation, "relu") == 0) {
+                tensor_fill_he(kernel, last_dim);
+            } else if(strcmp(activation, "softmax") == 0){
+                tensor_fill_lecun(kernel, last_dim);
+            } else if(strcmp(activation, "leaky_relu") == 0) {
+                tensor_fill_he(kernel, last_dim);
+            } else if (strcmp(activation, "tanh") == 0) {
+                tensor_fill_xavier(kernel, last_dim, units);
+            } else {
+                tensor_fill_normal(kernel, 0, 0.01);
+            }
+        } else {
+            tensor_fill_normal(kernel, 0, 0.01);
+        }
     }
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);

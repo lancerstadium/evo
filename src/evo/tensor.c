@@ -308,6 +308,26 @@ void tensor_fill_normal(tensor_t *ts, float mean, float stddev) {
 }
 
 
+// Xavier Initialization: tanh & sigmoid
+void tensor_fill_xavier(tensor_t *ts, int n_in, int n_out) {
+    float stddev = sqrtf(2.0f / (n_in + n_out));  // Xavier's stddev
+    tensor_fill_normal(ts, 0.0f, stddev);
+}
+
+// He Initialization: ReLU & Leaky ReLU
+void tensor_fill_he(tensor_t *ts, int n_in) {
+    float stddev = sqrtf(2.0f / n_in);  // He's stddev
+    tensor_fill_normal(ts, 0.0f, stddev);
+}
+
+// LeCun Initialization: sigmoid & softmax
+void tensor_fill_lecun(tensor_t *ts, int n_in) {
+    float stddev = sqrtf(1.0f / n_in);  // LeCun's stddev
+    tensor_fill_normal(ts, 0.0f, stddev);
+}
+
+
+
 void tensor_free(tensor_t *ts) {
     if (!ts) return;
     if (ts->name) sys_free(ts->name);
