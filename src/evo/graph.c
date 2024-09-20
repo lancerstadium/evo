@@ -332,6 +332,19 @@ node_t* graph_add_maxpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides
     return nd;
 }
 
+// ref: https://blog.csdn.net/qq_50001789/article/details/120537858
+node_t* graph_add_avgpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int ceil_mode) {
+    if(!g || g->ntensor == 0) return NULL;
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    attribute_t *kernel_shape_attr = NULL, *strides_attr = NULL, *pads_attr = NULL, *ceil_mode_attr = NULL;
+    kernel_shape_attr = attribute_ints("kernel_shape", kernel_shape, 2);
+    if(strides) strides_attr = attribute_ints("strides", strides, 2);
+    if(pads) pads_attr = attribute_ints("pads", pads, 4); 
+    if(ceil_mode > 0) ceil_mode_attr = attribute_int("ceil_mode", ceil_mode);
+    node_t* nd = graph_add_layer(g, OP_TYPE_AVERAGE_POOL, (tensor_t*[]){last}, 1, 1, (attribute_t*[]){kernel_shape_attr, strides_attr, pads_attr, ceil_mode_attr}, 4);
+    return nd;
+}
+
 node_t* graph_add_flatten(graph_t *g) {
     if(!g || g->ntensor == 0) return NULL;
     tensor_t* last = g->tensors[g->ntensor - 1];
