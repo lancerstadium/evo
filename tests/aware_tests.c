@@ -95,7 +95,7 @@ void imagenet_postprocess(tensor_t* out) {
     if(!labels) {
         return;
     }
-    tensor_t* scores_tmp = tensor_softmax(out, 0);
+    tensor_t* scores_tmp = tensor_softmax(out, -1);
     tensor_t* scores = tensor_squeeze(scores_tmp, NULL, 0);
     tensor_t* scores_max = tensor_argmax(scores, 0, 1, 0);
     // tensor_dump2(scores_tmp);
@@ -175,7 +175,6 @@ UnitTest_fn_def(test_squeezenet_v11_7) {
 
     // 2. Model Inference
     runtime_load(rt, MD("squeezenet_v11_7"));
-    graph_dump2(rt->mdl->graph);
     tensor_t* input = ts_pre;
     // tensor_t* input = runtime_load_tensor(rt, TI("squeezenet_v11_7", 0, 0));
     // tensor_t* output_ref = runtime_load_tensor(rt, TO("squeezenet_v11_7", 0, 0));
@@ -183,6 +182,7 @@ UnitTest_fn_def(test_squeezenet_v11_7) {
     image_save(img_input, "squeezenet_input.jpg");
     runtime_set_tensor(rt, "data", input);
     runtime_run(rt);
+    graph_dump(rt->mdl->graph);
 
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "squeezenet0_flatten0_reshape0");

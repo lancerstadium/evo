@@ -86,8 +86,8 @@ model_t* mnist_model() {
     // graph_add_conv2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, NULL);
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 128, true, "relu");
-    graph_add_linear(mdl->graph, 10, true, NULL);
+    graph_add_linear(mdl->graph, 128, true, "tanh");
+    graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
 
@@ -107,7 +107,7 @@ UnitTest_fn_def(test_mnist_create) {
 
     // Model
     model_t* mdl = mnist_model();
-    graph_dump(mdl->graph);
+    graph_dump2(mdl->graph);
     model_show_tensors(mdl);
 
     // Train
@@ -140,8 +140,8 @@ UnitTest_fn_def(test_mnist_create) {
             if(e == 3 && b < 17 && b > 12) {
                 // fprintf(stderr, "<%u> ", label->bs[b]);
                 // image_dump_raw(imgs, b);
-                // tensor_t* ts = model_get_tensor(mdl, "Softmax4_out0");
-                // tensor_dump1(ts->grad);
+                tensor_t* ts = model_get_tensor(mdl, "Softmax4_out0");
+                tensor_dump1(ts);
             }
             trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");

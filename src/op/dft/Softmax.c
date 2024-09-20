@@ -247,39 +247,30 @@ static void Softmax_backward_v13_float32(node_t *nd) {
         nd->in[0]->grad = tensor_new(name_buf, y->type);
         tensor_reshape(nd->in[0]->grad, x->ndim, x->dims);
     }
-    tensor_t *dy = nd->out[0]->grad; // 从上层传递过来的梯度（dL/dY）
-    tensor_t *dx = nd->in[0]->grad;  // 需要计算的梯度（dL/dX）
-
-    float *py = (float *)y->datas;   // Softmax输出
-    float *pdy = (float *)dy->datas; // 反向传递的梯度
-    float *pdx = (float *)dx->datas; // Softmax输入的梯度
-
+    tensor_t *gx = nd->in[0]->grad;  // 需要计算的梯度（dL/dX）
+    tensor_t *gy = nd->out[0]->grad; // 从上层传递过来的梯度（dL/dY）
+    float *py = (float *)y->datas;  // 输出数据 (Softmax后的结果)
+    float *pgy = (float *)gy->datas;  // 上层传回的梯度
+    float *pgx = (float *)gx->datas;  // 输入梯度 (需要计算的部分)
+    float dot_prod;
     int i, j, k, o, oo, io;
 
-    // 计算 Softmax 的反向传播梯度
     for (i = 0; i < pdat->outter; i++) {
         oo = i * pdat->current * pdat->inner;
         for (k = 0; k < pdat->inner; k++) {
             io = oo + k;
 
-            // 计算 dx 的梯度
+            // 1. 计算 Softmax 输出的点积 (dot product)
+            dot_prod = 0;
             for (j = 0; j < pdat->current; j++) {
                 o = io + j * pdat->inner;
-                // 初始化 dx 梯度为 0
-                pdx[o] = 0;
+                dot_prod += py[o] * pgy[o];  // py[o] 是 Softmax 输出，pgy[o] 是上层传回的梯度
+            }
 
-                // 对每一个元素计算 Softmax 反向传播的梯度
-                for (int m = 0; m < pdat->current; m++) {
-                    int om = io + m * pdat->inner;
-
-                    if (j == m) {
-                        // 对角元素
-                        pdx[o] += pdy[om] * py[o] * (1.0f - py[o]);
-                    } else {
-                        // 非对角元素
-                        pdx[o] -= pdy[om] * py[o] * py[om];
-                    }
-                }
+            // 2. 计算输入的梯度
+            for (j = 0; j < pdat->current; j++) {
+                o = io + j * pdat->inner;
+                pgx[o] = py[o] * (pgy[o] - dot_prod);  // 计算 Softmax 输入的梯度
             }
         }
     }
