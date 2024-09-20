@@ -87,7 +87,7 @@ model_t* mnist_model() {
     // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, NULL, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 128, true, "tanh");
-    graph_add_linear(mdl->graph, 10, true, "softmax");
+    graph_add_linear(mdl->graph, 10, true, NULL);
     return mdl;
 }
 
@@ -107,13 +107,13 @@ UnitTest_fn_def(test_mnist_create) {
 
     // Model
     model_t* mdl = mnist_model();
-    graph_dump2(mdl->graph);
+    graph_dump(mdl->graph);
     model_show_tensors(mdl);
 
     // Train
-    int nepoch = 300;
-    int nbatch = 140;
-    trainer_t* trn = trainer_new(0.01, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    int nepoch = 3000;
+    int nbatch = 15;
+    trainer_t* trn = trainer_new(0.0001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
@@ -128,9 +128,10 @@ UnitTest_fn_def(test_mnist_create) {
     figure_t* fig = figure_new_1d("Mnist Loss", FIGURE_TYPE_VECTOR, FIGURE_PLOT_TYPE_LINE, loss_vec);
     fig->axiss[1]->is_auto_scale = false;
     fig->axiss[1]->range_min = -0.01;
-    fig->axiss[1]->range_max = 0.2;
+    fig->axiss[1]->range_max = 0.1;
     for (int e = 0; e < nepoch; e++) {
         // Mini-batch training
+        float sum_loss = 0.0f;
         for (int b = 0; b < nbatch; b++) {
             tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
             model_set_tensor(mdl, "Input0", x_ts);
@@ -140,14 +141,15 @@ UnitTest_fn_def(test_mnist_create) {
             if(e == 3 && b < 17 && b > 12) {
                 // fprintf(stderr, "<%u> ", label->bs[b]);
                 // image_dump_raw(imgs, b);
-                tensor_t* ts = model_get_tensor(mdl, "Softmax4_out0");
+                tensor_t* ts = model_get_tensor(mdl, "Relu2_out0");
                 tensor_dump1(ts);
             }
             trainer_zero_grad(trn, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             // tensor_dump2(sss);
+            sum_loss += trn->cur_loss;
         }
-        loss_data[e] = trn->cur_loss;
+        loss_data[e] = sum_loss / nbatch;
         // Evaluate the model on the training and test set
         if (e % 2 == 0) {
 
