@@ -16,7 +16,7 @@ model_t* letnet_model() {
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 120, true, "tanh");
     graph_add_linear(mdl->graph, 84, true, "tanh");
-    graph_add_linear(mdl->graph, 10, true, NULL);
+    graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
 
@@ -74,16 +74,16 @@ UnitTest_fn_def(test_letnet) {
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
             trainer_step(trn, mdl, y_ts);
-            // if(e == 3 && b >= 0 && b < 1) {
-            //     fprintf(stderr, "<%u> ", label->bs[b]);
-            //     // image_dump_raw(imgs, b);
-            //     tensor_dump1(y_ts);
-            //     ts = model_get_tensor(mdl, "Softmax4_out0"); tensor_dump1(ts);
-            //     tensor_dump1(ts->grad);
-            //     ts = model_get_tensor(mdl, "Gemm3_out0");
-            //     tensor_dump1(ts->grad);
-            //     fprintf(stderr, "--\n");
-            // }
+            if(e == 0 && b >= 0 && b < 1) {
+                // fprintf(stderr, "<%u> ", label->bs[b]);
+                // image_dump_raw(imgs, b);
+                // tensor_dump1(y_ts);
+                ts = model_get_tensor(mdl, "Flatten6_out0");
+                tensor_dump1(ts);
+                ts = model_get_tensor(mdl, "Gemm11_out0");
+                tensor_dump1(ts);
+                fprintf(stderr, "--\n");
+            }
             trainer_zero_grad(trn, mdl);
             tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             tensor_dump2(sss);

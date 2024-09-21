@@ -286,18 +286,36 @@ node_t* graph_add_activation(graph_t *g, const char* activation) {
 }
 
 // ref: https://blog.csdn.net/qq_42079689/article/details/102642610
-node_t* graph_add_conv2d(graph_t *g, int64_t out_channels, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int group, char* auto_pad, const char* activation) {
+node_t* graph_add_conv2d(graph_t *g, int out_channels, int64_t kernel_shape[2], int64_t strides[2], int64_t pads[4], int64_t dilations[2], int group, char* auto_pad, const char* activation) {
     if(!g || g->ntensor == 0) return NULL;
 
     tensor_t* last = g->tensors[g->ntensor - 1];
-    if (last->ndim < 4 || !kernel_shape) return NULL;  // (N, C, H, W)
+    int last_ndim = last->ndim;
+    if (last_ndim < 4 || !kernel_shape) return NULL;  // (N, C, H, W)
     int in_channels = last->dims[1]; 
     int kernel_dims[4] = {out_channels, in_channels / group, kernel_shape[0], kernel_shape[1]};
 
     char name_buf[54];
     sprintf(name_buf, "Conv%u_kernel", g->nnode);
     tensor_t* kernel = tensor_new(name_buf, last->type);
-    tensor_reshape(kernel, 4, kernel_dims);
+    if(last_ndim > 0) {
+        tensor_reshape(kernel, 4, kernel_dims);
+        if(activation) {
+            if(strcmp(activation, "relu") == 0) {
+                tensor_fill_he(kernel, in_channels * kernel_shape[0] * kernel_shape[1]);
+            } else if(strcmp(activation, "softmax") == 0){
+                tensor_fill_lecun(kernel, in_channels * kernel_shape[0] * kernel_shape[1]);
+            } else if(strcmp(activation, "leaky_relu") == 0) {
+                tensor_fill_he(kernel, in_channels * kernel_shape[0] * kernel_shape[1]);
+            } else if (strcmp(activation, "tanh") == 0) {
+                tensor_fill_xavier(kernel, in_channels * kernel_shape[0] * kernel_shape[1], out_channels);
+            } else {
+                tensor_fill_normal(kernel, 0, 0.01);
+            }
+        } else {
+            tensor_fill_normal(kernel, 0, 0.01);
+        }
+    }
     graph_push_tenser(g, kernel);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(kernel->name), (uintptr_t)kernel);
 
