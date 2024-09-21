@@ -767,7 +767,7 @@ static void Gemm_backward_float32(node_t *nd) {
     tensor_t *a = nd->in[0];  // 输入tensor a
     tensor_t *b = nd->in[1];  // 输入tensor b（kernel）
     tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // 输入bias c, 如果存在
-    tensor_t *y = nd->out[0];  // 输出tensor y
+    // tensor_t *y = nd->out[0];  // 输出tensor y
 
     tensor_t *dy = nd->out[0]->grad;  // 输出梯度 (dL/dY)
     tensor_t *da = nd->in[0]->grad;  // 梯度 w.r.t. 'a'
@@ -1043,7 +1043,7 @@ void Gemm_backward(node_t *nd) {
         nd->in[1]->grad = tensor_new(name_buf, nd->in[1]->type);
         tensor_reshape(nd->in[1]->grad, nd->in[1]->ndim, nd->in[1]->dims);
     }
-    if (nd->nin >= 2 && !nd->in[2]->grad) {
+    if (nd->nin > 2 && !nd->in[2]->grad) {
         char name_buf[54];
         sprintf(name_buf, "%s_grad", nd->in[2]->name);
         nd->in[2]->grad = tensor_new(name_buf, nd->in[2]->type);

@@ -1054,7 +1054,7 @@ void Conv_backward(node_t *nd) {
         nd->in[1]->grad = tensor_new(name_buf, nd->in[1]->type);
         tensor_reshape(nd->in[1]->grad, nd->in[1]->ndim, nd->in[1]->dims);
     }
-    if (nd->nin >= 2 && !nd->in[2]->grad) {
+    if (nd->nin > 2 && !nd->in[2]->grad) {
         char name_buf[54];
         sprintf(name_buf, "%s_grad", nd->in[2]->name);
         nd->in[2]->grad = tensor_new(name_buf, nd->in[2]->type);
