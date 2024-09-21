@@ -792,6 +792,104 @@ static void Conv_forward_float64(node_t *nd) {
     }
 }
 
+static void Conv_backward_float32(node_t *nd) {
+    operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
+    tensor_t *dy = nd->out[0]->grad;  // 输出的梯度 (dL/dy)
+    tensor_t *x = nd->in[0];          // 输入张量 (x)
+    tensor_t *w = nd->in[1];          // 卷积核 (w)
+    tensor_t *dx = nd->in[0]->grad;   // 输入的梯度 (dL/dx)
+    tensor_t *dw = nd->in[1]->grad;   // 卷积核的梯度 (dL/dw)
+    tensor_t *b = (nd->nin > 2) ? nd->in[2] : NULL;  // 偏置项 (b)
+    tensor_t *db = (b) ? b->grad : NULL;             // 偏置项的梯度 (dL/db)
+
+    float *px = (float *)x->datas;
+    float *pw = (float *)w->datas;
+    float *pdy = (float *)dy->datas;
+    float *pdx = (float *)dx->datas;
+    float *pdw = (float *)dw->datas;
+    // float *pb = (b) ? (float *)b->datas : NULL;
+    float *pdb = (db) ? (float *)db->datas : NULL;
+
+    // int M = w->dims[0];  // 输出通道数
+    int C = w->dims[1];  // 输入通道数
+    int H = w->dims[2];  // 卷积核高度
+    int W = w->dims[3];  // 卷积核宽度
+
+    int oN = dy->dims[0];  // 输出张量的批大小
+    int oC = dy->dims[1];  // 输出张量的通道数
+    int oH = dy->dims[2];  // 输出张量的高度
+    int oW = dy->dims[3];  // 输出张量的宽度
+
+    int iC = x->dims[1];  // 输入张量的通道数
+    int iH = x->dims[2];  // 输入张量的高度
+    int iW = x->dims[3];  // 输入张量的宽度
+
+    int strideH = pdat->strides[0];  // 高度方向的步长
+    int strideW = pdat->strides[1];  // 宽度方向的步长
+    int padH = pdat->cpads[0];       // 高度方向的填充
+    int padW = pdat->cpads[1];       // 宽度方向的填充
+    int dilationH = pdat->dilations[0];  // 高度方向的膨胀
+    int dilationW = pdat->dilations[1];  // 宽度方向的膨胀
+
+    // 反向传播计算卷积核的梯度 dL/dw
+    for (int n = 0; n < oN; ++n) {
+        for (int c = 0; c < oC; ++c) {
+            for (int h = 0; h < oH; ++h) {
+                for (int w = 0; w < oW; ++w) {
+                    float grad_output_value = pdy[n * oC * oH * oW + c * oH * oW + h * oW + w];
+
+                    // 计算偏置梯度 dL/db
+                    if (db) {
+                        pdb[c] += grad_output_value;
+                    }
+
+                    // 计算卷积核梯度 dL/dw
+                    for (int kh = 0; kh < H; ++kh) {
+                        for (int kw = 0; kw < W; ++kw) {
+                            for (int kc = 0; kc < C; ++kc) {
+                                int ih = h * strideH - padH + kh * dilationH;
+                                int iw = w * strideW - padW + kw * dilationW;
+                                if (ih >= 0 && ih < iH && iw >= 0 && iw < iW) {
+                                    int input_index = n * iC * iH * iW + kc * iH * iW + ih * iW + iw;
+                                    int kernel_index = c * C * H * W + kc * H * W + kh * W + kw;
+                                    pdw[kernel_index] += px[input_index] * grad_output_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 反向传播计算输入的梯度 dL/dx
+    for (int n = 0; n < oN; ++n) {
+        for (int c = 0; c < oC; ++c) {
+            for (int h = 0; h < oH; ++h) {
+                for (int w = 0; w < oW; ++w) {
+                    float grad_output_value = pdy[n * oC * oH * oW + c * oH * oW + h * oW + w];
+
+                    // 反卷积传播梯度到输入
+                    for (int kh = 0; kh < H; ++kh) {
+                        for (int kw = 0; kw < W; ++kw) {
+                            for (int kc = 0; kc < C; ++kc) {
+                                int ih = h * strideH - padH + kh * dilationH;
+                                int iw = w * strideW - padW + kw * dilationW;
+                                if (ih >= 0 && ih < iH && iw >= 0 && iw < iW) {
+                                    int input_index = n * iC * iH * iW + kc * iH * iW + ih * iW + iw;
+                                    int kernel_index = c * C * H * W + kc * H * W + kh * W + kw;
+                                    pdx[input_index] += pw[kernel_index] * grad_output_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 void Conv_init(node_t *nd) {
     if (!nd || !nd->in) {
         return;
@@ -941,6 +1039,43 @@ void Conv_forward(node_t *nd) {
     }
 }
 
+void Conv_backward(node_t *nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if(!nd->out[0]->grad) return;
+    if(!nd->in[0]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[0]->name);
+        nd->in[0]->grad = tensor_new(name_buf, nd->in[0]->type);
+        tensor_reshape(nd->in[0]->grad, nd->in[0]->ndim, nd->in[0]->dims);
+    }
+    if (!nd->in[1]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[1]->name);
+        nd->in[1]->grad = tensor_new(name_buf, nd->in[1]->type);
+        tensor_reshape(nd->in[1]->grad, nd->in[1]->ndim, nd->in[1]->dims);
+    }
+    if (nd->nin >= 2 && !nd->in[2]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[2]->name);
+        nd->in[2]->grad = tensor_new(name_buf, nd->in[2]->type);
+        tensor_reshape(nd->in[2]->grad, nd->in[2]->ndim, nd->in[2]->dims);
+    }
+
+    switch (nd->in[0]->type) {
+        case TENSOR_TYPE_FLOAT16:
+            // Conv_backward_float16(nd);
+            break;
+        case TENSOR_TYPE_FLOAT32:
+            Conv_backward_float32(nd);
+            break;
+        case TENSOR_TYPE_FLOAT64:
+            // Conv_backward_float64(nd);
+            break;
+        default:
+            break;
+    }
+}
+
 void Conv_exit(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -964,6 +1099,6 @@ void op_Conv_dft(node_t* nd) {
     nd->op->init        = Conv_init;
     nd->op->reshape     = Conv_reshape;
     nd->op->forward     = Conv_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = Conv_backward;
     nd->op->exit        = Conv_exit;
 }

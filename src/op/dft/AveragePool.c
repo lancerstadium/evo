@@ -195,6 +195,70 @@ static void AveragePool_forward_float64(node_t* nd) {
 }
 
 
+static void AveragePool_backward_float32(node_t* nd) {
+    operator_pdata_t* pdat = (operator_pdata_t*)nd->priv;
+    tensor_t* x = nd->in[0];         // 输入张量
+    tensor_t* y = nd->out[0];        // 输出张量
+    tensor_t* gy = nd->out[0]->grad; // 输出的梯度 (dL/dy)
+    tensor_t* gx = nd->in[0]->grad;  // 输入的梯度 (dL/dx)
+    // float* px = (float*)x->datas;
+    // float* py = (float*)y->datas;
+    float* pgx = (float*)gx->datas;
+    float* pgy = (float*)gy->datas;
+    
+    int k_dim[x->ndim - 2];
+    int i_dim[x->ndim];
+    int o_dim[x->ndim];
+    int b_dim[x->ndim];
+    int padcnt, ispad, size;
+    int i;
+
+    // 计算池化窗口大小
+    for (i = 0, size = 1; i < x->ndim - 2; ++i)
+        size *= pdat->kernels[i];
+
+    memset(o_dim, 0, sizeof(o_dim));
+    do {
+        // 根据输出维度计算对应的输入开始位置
+        for (i = 2; i < x->ndim; i++)
+            b_dim[i] = o_dim[i] * pdat->strides[i - 2] - pdat->cpads[i - 2];
+
+        // 遍历池化窗口
+        memset(k_dim, 0, sizeof(k_dim));
+        padcnt = 0;
+        do {
+            i_dim[0] = o_dim[0];
+            i_dim[1] = o_dim[1];
+            for (i = 2; i < x->ndim; ++i)
+                i_dim[i] = b_dim[i] + k_dim[i - 2];
+
+            // 检查是否填充区域
+            ispad = 0;
+            for (i = 0; i < x->ndim; i++) {
+                if ((i_dim[i] < 0) || (i_dim[i] >= x->dims[i])) {
+                    ispad = 1;
+                    break;
+                }
+            }
+
+            // 如果不在填充区域，则分配梯度
+            if (!ispad) {
+                int input_offset = dim_offset(x->ndim, i_dim, x->dims);
+                int output_offset = dim_offset(x->ndim, o_dim, y->dims);
+                if (pdat->count_include_pad)
+                    pgx[input_offset] += pgy[output_offset] / size;
+                else
+                    pgx[input_offset] += pgy[output_offset] / (size - padcnt);
+            } else {
+                padcnt++;
+            }
+
+        } while (dim_next(x->ndim - 2, k_dim, pdat->kernels));
+
+    } while (dim_next(x->ndim, o_dim, y->dims));
+}
+
+
 void AveragePool_init(node_t* nd) {
     if (!nd || !nd->in) {
         return;
@@ -337,6 +401,30 @@ void AveragePool_forward(node_t* nd) {
     }
 }
 
+void AveragePool_backward(node_t* nd) {
+    if(!nd || !nd->in || !nd->out) return;
+    if(!nd->out[0]->grad) return;
+    if(!nd->in[0]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[0]->name);
+        nd->in[0]->grad = tensor_new(name_buf, nd->in[0]->type);
+        tensor_reshape(nd->in[0]->grad, nd->in[0]->ndim, nd->in[0]->dims);
+    }
+    switch (nd->in[0]->type) {
+        case TENSOR_TYPE_FLOAT16:
+            // AveragePool_backward_float16(nd);
+            break;
+        case TENSOR_TYPE_FLOAT32:
+            AveragePool_backward_float32(nd);
+            break;
+        case TENSOR_TYPE_FLOAT64:
+            // AveragePool_backward_float64(nd);
+            break;
+        default:
+            break;
+    }
+}
+
 void AveragePool_exit(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -359,6 +447,6 @@ void op_AveragePool_dft(node_t* nd) {
     nd->op->init        = AveragePool_init;
     nd->op->reshape     = AveragePool_reshape;
     nd->op->forward     = AveragePool_forward;
-    nd->op->backward    = NULL;
+    nd->op->backward    = AveragePool_backward;
     nd->op->exit        = AveragePool_exit;
 }

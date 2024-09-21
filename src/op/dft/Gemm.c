@@ -764,31 +764,10 @@ static void Gemm_forward_float32(node_t *nd) {
 
 static void Gemm_backward_float32(node_t *nd) { 
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
-    if (!nd->out[0]->grad) return;
-
     tensor_t *a = nd->in[0];  // 输入tensor a
     tensor_t *b = nd->in[1];  // 输入tensor b（kernel）
     tensor_t *c = (nd->nin > 2) ? nd->in[2] : NULL;  // 输入bias c, 如果存在
     tensor_t *y = nd->out[0];  // 输出tensor y
-
-    char name_buf[54];
-
-    // 初始化或重塑梯度张量
-    if (!nd->in[0]->grad) {
-        sprintf(name_buf, "%s_grad", a->name);
-        nd->in[0]->grad = tensor_new(name_buf, y->type);
-        tensor_reshape(nd->in[0]->grad, a->ndim, a->dims);
-    }
-    if (!nd->in[1]->grad) {
-        sprintf(name_buf, "%s_grad", b->name);
-        nd->in[1]->grad = tensor_new(name_buf, y->type);
-        tensor_reshape(nd->in[1]->grad, b->ndim, b->dims);
-    }
-    if (c && !nd->in[2]->grad) {
-        sprintf(name_buf, "%s_grad", c->name);
-        nd->in[2]->grad = tensor_new(name_buf, y->type);
-        tensor_reshape(nd->in[2]->grad, c->ndim, c->dims);
-    }
 
     tensor_t *dy = nd->out[0]->grad;  // 输出梯度 (dL/dY)
     tensor_t *da = nd->in[0]->grad;  // 梯度 w.r.t. 'a'
@@ -1051,6 +1030,25 @@ void Gemm_forward(node_t *nd) {
 
 void Gemm_backward(node_t *nd) {
     if(!nd || !nd->in || !nd->out) return;
+    if(!nd->out[0]->grad) return;
+    if(!nd->in[0]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[0]->name);
+        nd->in[0]->grad = tensor_new(name_buf, nd->in[0]->type);
+        tensor_reshape(nd->in[0]->grad, nd->in[0]->ndim, nd->in[0]->dims);
+    }
+    if (!nd->in[1]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[1]->name);
+        nd->in[1]->grad = tensor_new(name_buf, nd->in[1]->type);
+        tensor_reshape(nd->in[1]->grad, nd->in[1]->ndim, nd->in[1]->dims);
+    }
+    if (nd->nin >= 2 && !nd->in[2]->grad) {
+        char name_buf[54];
+        sprintf(name_buf, "%s_grad", nd->in[2]->name);
+        nd->in[2]->grad = tensor_new(name_buf, nd->in[2]->type);
+        tensor_reshape(nd->in[2]->grad, nd->in[2]->ndim, nd->in[2]->dims);
+    }
     switch (nd->in[0]->type) {
         case TENSOR_TYPE_INT32:
             // Gemm_backward_int32(nd);

@@ -37,7 +37,7 @@
 <line clip-path="url(#plot-area)"  x1="25.00" y1="25.00" x2="685.00" y2="25.00"  style="stroke: #ccc;stroke-width:0.50"/>
 <line  x1="64.00" y1="25.00" x2="69.00" y2="25.00"  style="stroke: black;stroke-width:1.00"/>
 <text  x="60.00" y="29.00" text-anchor="end"  font-weight="regular">0.10</text>
-<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:2.00;"  points="70.00,225.68 146.88,292.94 223.75,309.75 300.62,321.72 377.50,330.64 454.38,337.53 531.25,343.04 608.12,347.57 685.00,351.36 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:2.00;"  points="70.00,226.79 146.88,292.61 223.75,309.28 300.62,321.22 377.50,330.26 454.38,337.31 531.25,342.97 608.12,347.60 685.00,351.47 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
 <defs><clipPath id="leg-area"><rect x="615.00" y="35.00" width="58.00" height="21.00"/>
 </clipPath></defs><line  x1="585.00" y1="46.00" x2="615.00" y2="46.00"  style="stroke: #db5f57;stroke-width:2.00"/>
 <text clip-path="url(#leg-area)"  x="645.00" y="50.00" text-anchor="middle"  font-weight="regular">loss</text>
