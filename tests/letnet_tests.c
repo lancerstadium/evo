@@ -7,11 +7,11 @@
  * 
  */
 model_t* letnet_model() {
-    model_t* mdl = model_new("mnist_model");
+    model_t* mdl = model_new("letnet_model");
     graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, false);
-    // conv2d
+    graph_add_conv2d(mdl->graph, 6, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "tanh");
     graph_add_avgpool2d(mdl->graph, (int64_t[]){2, 2}, (int64_t[]){2, 2}, NULL, 0);
-    // conv2d
+    graph_add_conv2d(mdl->graph, 16, (int64_t[]){5, 5}, NULL, NULL, NULL, 1, NULL, "tanh");
     graph_add_avgpool2d(mdl->graph, (int64_t[]){2, 2}, (int64_t[]){2, 2}, NULL, 0);
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 120, true, "tanh");
@@ -24,7 +24,7 @@ model_t* letnet_model() {
 UnitTest_fn_def(test_letnet) {
 
     model_t* mdl = letnet_model();
-    graph_dump2(mdl->graph);
+    graph_dump(mdl->graph);
 
     return NULL;
 }
