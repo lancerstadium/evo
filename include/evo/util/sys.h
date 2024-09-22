@@ -65,6 +65,7 @@ int cpu_get_cluster_mask(int cluster);
 char* sys_strdup(const char* src);
 char* sys_get_file_ext(const char* path);
 char* sys_get_file_name(const char* path);
+char* sys_memory_size(int size);
 
 // ==================================================================================== //
 //                                       system time

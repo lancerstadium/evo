@@ -56,6 +56,28 @@ char* sys_get_file_name(const char* path) {
     return trg && *trg != '\0' ? (trg + 1) : NULL;
 }
 
+
+char* sys_memory_size(int size) {
+    const char* units[] = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // 定义内存单位
+    int unit_index = 0;  // 当前单位的索引
+    double display_size = size;  // 将size转换为浮点数以便进行单位转换
+
+    // 持续将字节数转换为更大的单位，直到找到合适的单位
+    while (display_size >= 1024 && unit_index < 6) {
+        display_size /= 1024;
+        unit_index++;
+    }
+
+    // 分配用于存储结果的字符串
+    char* result = (char*)malloc(20 * sizeof(char));  // 预留足够的空间
+    if (result != NULL) {
+        // 将结果格式化为字符串，保留两位小数
+        snprintf(result, 20, "%.2f %s", display_size, units[unit_index]);
+    }
+
+    return result;  // 返回内存字符串
+}
+
 // ==================================================================================== //
 //                                       system time
 // ==================================================================================== //

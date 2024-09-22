@@ -67,6 +67,17 @@ int node_get_nparam(node_t* nd) {
     return nparam;
 }
 
+int node_get_nmemory(node_t* nd) {
+    if(!nd || !nd->in) return 0;
+    int nmemory = 0;
+    for(int i = 0; i < nd->nin; i++) {
+        if(nd->in[i]->is_param) {
+            nmemory += (nd->in[i]->ndata * tensor_type_sizeof(nd->in[i]->type));
+        }
+    }
+    return nmemory;
+}
+
 attribute_t* node_get_attr(node_t *nd, const char *name) {
     attribute_t *attr;
     int i;

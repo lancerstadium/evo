@@ -458,20 +458,26 @@ void graph_dump1(graph_t* g) {
     LOG_INFO("|       Layers(%3d)      |      Input      |      Output      |     Param     |\n", g->nnode);
     LOG_INFO("| ---------------------- | --------------- | ---------------- | ------------- |\n");
     int sum_nparam = 0;
+    int sum_nmemory = 0;
     for(int i=0; i < g->nnode; i++) {
         if(g->nodes[i]) {
             int cur_nparam = node_get_nparam(g->nodes[i]);
+            int cur_nmemory = node_get_nmemory(g->nodes[i]);
             char* in = g->nodes[i]->in ? tensor_dump_shape(g->nodes[i]->in[0]) : sys_strdup("[]");
             char* out = g->nodes[i]->out ? tensor_dump_shape(g->nodes[i]->out[0]) : sys_strdup("[]");
             LOG_INFO("| %22s | %15s | %16s | %13d |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out, cur_nparam);
             sum_nparam += cur_nparam;
+            sum_nmemory += cur_nmemory;
             free(in);
             free(out);
         }
     }
+    char* mem = sys_memory_size(sum_nmemory);
     LOG_INFO("| --------------------------------------------------------------------------- |\n");
-    LOG_INFO("| Params: %d |\n", sum_nparam);
+    LOG_INFO("| + Param: %d \n", sum_nparam);
+    LOG_INFO("| + Mem: %s \n", mem);
     LOG_INFO("| --------------------------------------------------------------------------- |\n");
+    free(mem);
 }
 
 // Atterntion: Node's Operate Type May Be Changed After `graph_prerun`
