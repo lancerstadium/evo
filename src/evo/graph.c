@@ -474,8 +474,8 @@ void graph_dump1(graph_t* g) {
     }
     char* mem = sys_memory_size(sum_nmemory);
     LOG_INFO("| --------------------------------------------------------------------------- |\n");
-    LOG_INFO("| + Param: %d \n", sum_nparam);
-    LOG_INFO("| + Mem: %s \n", mem);
+    LOG_INFO("| + Param : %d \n", sum_nparam);
+    LOG_INFO("| + Mem   : %s \n", mem);
     LOG_INFO("| --------------------------------------------------------------------------- |\n");
     free(mem);
 }
