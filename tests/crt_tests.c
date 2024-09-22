@@ -81,7 +81,7 @@ float symba_loss(tensor_t* h_pos, tensor_t* h_neg, float alpha) {
  */
 model_t* mnist_model() {
     model_t* mdl = model_new("mnist_model");
-    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, false);
+    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, TENSOR_TYPE_FLOAT32);
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 128, true, "tanh");
     graph_add_linear(mdl->graph, 10, true, "softmax");
@@ -248,7 +248,7 @@ UnitTest_fn_def(test_mnist_create) {
  */
 model_t* simple_model() {
     model_t* mdl = model_new("simple_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
+    graph_add_input(mdl->graph, 2, (int[]){1, 2}, TENSOR_TYPE_FLOAT32);
     node_t* l1 = graph_add_linear(mdl->graph, 3, true, "tanh");
     node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
 
@@ -382,7 +382,7 @@ UnitTest_fn_def(test_simple_create) {
  */
 model_t* dummy_model() {
     model_t* mdl = model_new("dummy_model");
-    graph_add_input(mdl->graph, 2, (int[]){1, 2}, false);
+    graph_add_input(mdl->graph, 2, (int[]){1, 2}, TENSOR_TYPE_FLOAT32);
     node_t* l1 = graph_add_linear(mdl->graph, 2, true, NULL);
     node_t* l2 = graph_add_linear(mdl->graph, 1, true, NULL);
     

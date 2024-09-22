@@ -8,7 +8,7 @@
  */
 model_t* letnet_model() {
     model_t* mdl = model_new("letnet_model");
-    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, false);
+    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, TENSOR_TYPE_FLOAT32);
     graph_add_conv2d(mdl->graph, 6, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "tanh");
     graph_add_avgpool2d(mdl->graph, (int64_t[]){2, 2}, (int64_t[]){2, 2}, NULL, 0);
     graph_add_conv2d(mdl->graph, 16, (int64_t[]){5, 5}, NULL, NULL, NULL, 1, NULL, "tanh");
@@ -100,6 +100,60 @@ UnitTest_fn_def(test_letnet) {
     progressbar_finish(bar);
     progressbar_free(bar);
     figure_free(fig);
+
+
+    // Eval
+    float train_acc = 0.0;
+    int acc_cnt = 0;
+    for(int b = 0; b < nbatch; b++) {
+        tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+        model_set_tensor(mdl, "Input0", x_ts);
+        tensor_t* y_res = model_eval(mdl, x_ts);
+        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
+        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+        int64_t yy = ((int64_t*)y_out->datas)[0];
+        acc_cnt += ((yy == (int64_t)label->bs[b]) ? 1 : 0);
+        // fprintf(stderr, "<%u %ld> ", label->bs[b], yy);
+        // tensor_dump2(y_out);
+    }
+    train_acc += ((float)acc_cnt / (float)nbatch);
+
+    // Test Dataset
+    const char* image_test_filename = "picture/mnist/t10k-images-idx3-ubyte";
+    const char* label_test_filename = "picture/mnist/t10k-labels-idx1-ubyte";
+    image_t* imgs_test = image_load_mnist(image_test_filename, label_test_filename);
+    if(!imgs_test) {
+        fprintf(stderr, "Load mnist fail, please exec `download_mnist.sh` in Dir `picture`.\n");
+        return "Load Mnist Fail!";
+    } else {
+        fprintf(stderr, "Load Mnist Success!\n");
+    }
+    attribute_t* label_test = image_get_attr(imgs_test, "label");
+    tensor_t* imgs_test_f32 = tensor_cast(imgs_test->raw, TENSOR_TYPE_FLOAT32);
+    for(int i = 0; i < imgs_test_f32->ndata; i++) {
+        ((float*)(imgs_test_f32->datas))[i] /= 255.0f;
+    }
+
+    float test_acc = 0.0;
+    acc_cnt = 0;
+    nbatch = 10000;
+    for(int b = 0; b < nbatch; b++) {
+        tensor_apply(x_ts, imgs_test_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+        model_set_tensor(mdl, "Input0", x_ts);
+        tensor_t* y_res = model_eval(mdl, x_ts);
+        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
+        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+        int64_t yy = ((int64_t*)y_out->datas)[0];
+        acc_cnt += ((yy == (int64_t)label_test->bs[b]) ? 1 : 0);
+        if(b < 10) {
+            fprintf(stderr, "<%u %ld> ", label_test->bs[b], yy);
+            // tensor_dump2(y_out);
+        }
+    }
+    test_acc += ((float)acc_cnt / (float)nbatch);
+
+    // Summary
+    fprintf(stderr, "Train acc: %.2f%%, Test acc: %.2f%%\n", train_acc * 100, test_acc * 100);
 
     return NULL;
 }

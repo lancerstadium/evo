@@ -201,16 +201,12 @@ node_t* graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int 
     return nd;
 }
 
-void graph_add_input(graph_t *g, int in_dim, int* dims, bool flex) {
+void graph_add_input(graph_t *g, int in_dim, int* dims, tensor_type_t dtype) {
     if(!g) return;
     char name_buf[20];
     sprintf(name_buf, "Input%u", g->ntensor);
     tensor_t* in = NULL;
-    if(!flex) {
-        in = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
-    } else {
-        in = tensor_new(name_buf, TENSOR_TYPE_UNDEFINED);
-    }
+    in = tensor_new(name_buf, dtype);
     tensor_reshape(in, in_dim, dims);
     graph_push_tenser(g, in);
     hashmap_set(g->mdl->tensor_map, hashmap_str_lit(in->name), (uintptr_t)in);
@@ -292,6 +288,7 @@ node_t* graph_add_conv2d(graph_t *g, int out_channels, int64_t kernel_shape[2], 
     tensor_t* last = g->tensors[g->ntensor - 1];
     int last_ndim = last->ndim;
     if (last_ndim < 4 || !kernel_shape) return NULL;  // (N, C, H, W)
+    if (group <= 0) group = 1;
     int in_channels = last->dims[1]; 
     int kernel_dims[4] = {out_channels, in_channels / group, kernel_shape[0], kernel_shape[1]};
 
@@ -439,18 +436,41 @@ void graph_posrun(graph_t *g) {
 void graph_dump(graph_t* g) {
     if(!g) return;
     LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
-    LOG_INFO("| --------------------------------------------------------------------------- |\n");
-    LOG_INFO("|       Layers(%3d)      |      Input      |      Output      |     Param     |\n", g->nnode);
-    LOG_INFO("| ---------------------- | --------------- | ---------------- | ------------- |\n");
+    LOG_INFO("| ----------------------------------------------------------- |\n");
+    LOG_INFO("|       Layers(%3d)      |      Input      |      Output      |\n", g->nnode);
+    LOG_INFO("| ---------------------- | --------------- | ---------------- |\n");
     for(int i=0; i < g->nnode; i++) {
         if(g->nodes[i]) {
             char* in = g->nodes[i]->in ? tensor_dump_shape(g->nodes[i]->in[0]) : sys_strdup("[]");
             char* out = g->nodes[i]->out ? tensor_dump_shape(g->nodes[i]->out[0]) : sys_strdup("[]");
-            LOG_INFO("| %22s | %15s | %16s | %13d |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out, node_get_nparam(g->nodes[i]));
+            LOG_INFO("| %22s | %15s | %16s |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out);
             free(in);
             free(out);
         }
     }
+    LOG_INFO("| ----------------------------------------------------------- |\n");
+}
+
+void graph_dump1(graph_t* g) {
+    if(!g) return;
+    LOG_INFO("[Graph: %s (%s)]\n", g->name, graph_status_tbl[g->status]);
+    LOG_INFO("| --------------------------------------------------------------------------- |\n");
+    LOG_INFO("|       Layers(%3d)      |      Input      |      Output      |     Param     |\n", g->nnode);
+    LOG_INFO("| ---------------------- | --------------- | ---------------- | ------------- |\n");
+    int sum_nparam = 0;
+    for(int i=0; i < g->nnode; i++) {
+        if(g->nodes[i]) {
+            int cur_nparam = node_get_nparam(g->nodes[i]);
+            char* in = g->nodes[i]->in ? tensor_dump_shape(g->nodes[i]->in[0]) : sys_strdup("[]");
+            char* out = g->nodes[i]->out ? tensor_dump_shape(g->nodes[i]->out[0]) : sys_strdup("[]");
+            LOG_INFO("| %22s | %15s | %16s | %13d |\n", g->nodes[i]->op ? op_name(g->nodes[i]->op->type) : NULL, in, out, cur_nparam);
+            sum_nparam += cur_nparam;
+            free(in);
+            free(out);
+        }
+    }
+    LOG_INFO("| --------------------------------------------------------------------------- |\n");
+    LOG_INFO("| Params: %d |\n", sum_nparam);
     LOG_INFO("| --------------------------------------------------------------------------- |\n");
 }
 
