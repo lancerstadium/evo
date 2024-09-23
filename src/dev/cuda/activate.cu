@@ -18,6 +18,7 @@ __device__ float reluForwardKernelFloat32(float x) {
     return x*(x>0);
 }
 
+
 __device__ float leakyReluForwardKernelFloat32(float x) {
     return (x>0) ? x : 0.1f*x;
 }
