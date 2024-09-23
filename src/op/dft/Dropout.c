@@ -1,17 +1,25 @@
 #include <evo/resolver.h>
+#include <evo/util/math.h>
 
 static void Dropout_forward_bfloat16(node_t *nd) {
     tensor_t *x = nd->in[0];
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
     uint16_t *py = (uint16_t *)y->datas;
+    float ratio = 0.0f;
     bool is_train = false;
     if(nd->nin >= 3) {
+        tensor_t* r = nd->in[1];
         tensor_t* m = nd->in[2];
+        ratio = ((float*)(r->datas))[0];
         is_train = ((bool*)(m->datas))[0];
     }
     for (size_t i = 0, l = y->ndata; i < l; i++) {
-        py[i] = px[i];
+        if(is_train) {
+            py[i] = (rand() % 2 == 0) ? 0 : float32_to_bfloat16(bfloat16_to_float32(px[i]) / (1 - ratio));
+        } else {
+            py[i] = px[i];
+        }
     }
 }
 
@@ -20,13 +28,20 @@ static void Dropout_forward_float16(node_t *nd) {
     tensor_t *y = nd->out[0];
     uint16_t *px = (uint16_t *)x->datas;
     uint16_t *py = (uint16_t *)y->datas;
+    float ratio = 0.0f;
     bool is_train = false;
     if(nd->nin >= 3) {
+        tensor_t* r = nd->in[1];
         tensor_t* m = nd->in[2];
+        ratio = ((float*)(r->datas))[0];
         is_train = ((bool*)(m->datas))[0];
     }
     for (size_t i = 0, l = y->ndata; i < l; i++) {
-        py[i] = px[i];
+        if(is_train) {
+            py[i] = (rand() % 2 == 0) ? 0 : float32_to_float16(float16_to_float32(px[i]) / (1 - ratio));
+        } else {
+            py[i] = px[i];
+        }
     }
 }
 
@@ -35,13 +50,20 @@ static void Dropout_forward_float32(node_t *nd) {
     tensor_t *y = nd->out[0];
     float *px = (float *)x->datas;
     float *py = (float *)y->datas;
+    float ratio = 0.0f;
     bool is_train = false;
     if(nd->nin >= 3) {
+        tensor_t* r = nd->in[1];
         tensor_t* m = nd->in[2];
+        ratio = ((float*)(r->datas))[0];
         is_train = ((bool*)(m->datas))[0];
     }
     for (size_t i = 0, l = y->ndata; i < l; i++) {
-        py[i] = px[i];
+        if(is_train) {
+            py[i] = (rand() % 2 == 0) ? 0 : px[i] / (1 - ratio);
+        } else {
+            py[i] = px[i];
+        }
     }
 }
 
@@ -50,13 +72,20 @@ static void Dropout_forward_float64(node_t *nd) {
     tensor_t *y = nd->out[0];
     double *px = (double *)x->datas;
     double *py = (double *)y->datas;
+    float ratio = 0.0f;
     bool is_train = false;
     if(nd->nin >= 3) {
+        tensor_t* r = nd->in[1];
         tensor_t* m = nd->in[2];
+        ratio = ((float*)(r->datas))[0];
         is_train = ((bool*)(m->datas))[0];
     }
     for (size_t i = 0, l = y->ndata; i < l; i++) {
-        py[i] = px[i];
+        if(is_train) {
+            py[i] = (rand() % 2 == 0) ? 0 : px[i] / (1 - ratio);
+        } else {
+            py[i] = px[i];
+        }
     }
 }
 
