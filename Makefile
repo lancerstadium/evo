@@ -3,6 +3,7 @@
 # System Build Tool
 CROSS_COMPILE	?= 
 
+# compile tool
 AS			:= $(CROSS_COMPILE)gcc -x assembler-with-cpp
 CC			:= $(CROSS_COMPILE)gcc
 CXX			:= $(CROSS_COMPILE)g++
@@ -11,6 +12,7 @@ AR			:= $(CROSS_COMPILE)ar
 OC			:= $(CROSS_COMPILE)objcopy
 OD			:= $(CROSS_COMPILE)objdump
 RM			:= rm -fr
+NVCC		:= nvcc
 
 # Application Information
 NAME		:= evo
@@ -27,15 +29,7 @@ else ifeq ($(OS),Windows)
     PLATFORM = Windows
 endif
 
-DEVICE      ?=
-ifeq ($(DEVICE),npu)
-	DEVICE	:= npu
-else ifeq ($(DEVICE), gpu)
-	DEVICE	:= gpu
-else
-	DEVICE	:= cpu
-endif
-
+DEVICE      := cpu
 # File & Dependence
 LIBS		:= 
 LIBDIRS     := 
@@ -52,6 +46,7 @@ endif
 # Options
 GUI_ENB		:= 				# Compile with evo-gui
 TRAIN_ENB	:=				# Compile with train-mode
+ACC_ENB 	:=				# Compile with acclerator
 
 # Options: GUI
 GUI_DEP		?=
@@ -71,6 +66,14 @@ ifneq ($(TRAIN_ENB),)
 	TRAIN_DEP		:=
 endif
 
+ACC_DEP		:=
+ifeq ($(ACC_ENB),cuda)
+	ACC_DEP			:=  -gencode arch=compute_30,code=sm_30 \
+						-gencode arch=compute_35,code=sm_35 \
+						-gencode arch=compute_50,code=[sm_50,compute_50] \
+						-gencode arch=compute_52,code=[sm_52,compute_52]
+endif
+
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
 OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
@@ -83,16 +86,19 @@ LIBTRG		:= $(TRGDIR)/lib$(NAME).a
 
 SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
+CUFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cu))
 CPPFILES	:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 CFGFILE		:= include/evo/config.h
 
 SDEPS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o.d))
 CDEPS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o.d))
+CUDEPS     	:= $(patsubst %, %, $(CUFILES:src/%.cu=$(OBJDIR)/%.o.d))
 CPPDEPS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o.d))
 DEPS        := $(SDEPS) $(CDEPS) $(CPPDEPS)
 
 SOBJS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o))
 COBJS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o))
+CUOBJS		:= $(patsubst %, %, $(CUFILES:src/%.cu=$(OBJDIR)/%.o))
 CPPOBJS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o)) 
 OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
 
@@ -127,6 +133,13 @@ ifneq ($(TRAIN_ENB),)
 else
 	@echo "  - train:  \t\t\e[31;1moff\e[0m"
 endif
+ifneq ($(ACC_ENB),)
+	@echo "#define EVO_ACC_ENB" >> $(CFGFILE)
+	@echo "  - acc:    \t\t\e[32;1m$(ACC_ENB)\e[0m"
+else
+	@echo "  - acc:    \t\t\e[31;1moff\e[0m"
+endif
+
 
 $(CFGFILE):
 	@echo "Creating $(CFGFILE)..."
@@ -146,6 +159,11 @@ $(OBJDIR)/%.o : src/%.c
 	@echo [CC] $<
 	@mkdir -p $(dir $@)
 	@$(CC) -MD -MP -MF $@.d $(INCDIRS) -c $< -o $@ $(CFLAGS)
+
+$(OBJDIR)/%.o : src/%.cu
+	@echo [CU] $<
+	@mkdir -p $(dir $@)
+	@$(NVCC) --compiler-options "-MD -MP -MF $@.d $(INCDIRS) $(CFLAGS)" -c $< -o $@
 
 $(OBJDIR)/%.o : src/%.cpp
 	@echo [CXX] $<
