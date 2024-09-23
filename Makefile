@@ -49,7 +49,7 @@ TRAIN_ENB	:=				# Compile with train-mode
 ACC_ENB 	:=				# Compile with acclerator
 
 # Options: GUI
-GUI_DEP		?=
+GUI_DEP			?=
 ifneq ($(GUI_ENB),)
 	ifeq ($(PLATFORM),Linux)
 		GUI_DEP		:= -lX11
@@ -61,22 +61,41 @@ ifneq ($(GUI_ENB),)
 endif
 
 # Options: TRAIN
-TRAIN_DEP	:=
+TRAIN_DEP		:=
 ifneq ($(TRAIN_ENB),)
 	TRAIN_DEP		:=
 endif
 
-ACC_DEP		:=
-ifeq ($(ACC_ENB),cuda)
-	ACC_DEP			:=  -gencode arch=compute_30,code=sm_30 \
+# Options: ACC
+COMMA			:=,
+ACC_ENB_LIST 	:= $(subst $(COMMA), ,$(ACC_ENB))
+ACC_ENB_RES		:=
+ACC_ENB_CUDA	:=
+ACC_ENB_X86_64	:=
+ACC_DEP 		:=
+ACC_DEP_CUDA	:=
+ACC_DEP_X86_64	:=
+ifneq ($(ACC_ENB),)
+define set_acc_dep
+	ifeq ($(strip $(1)),cuda)
+		ACC_DEP_CUDA 	+= -gencode arch=compute_30,code=sm_30 \
 						-gencode arch=compute_35,code=sm_35 \
 						-gencode arch=compute_50,code=[sm_50,compute_50] \
 						-gencode arch=compute_52,code=[sm_52,compute_52]
+		ACC_ENB_RES		+= cuda 
+		ACC_ENB_CUDA 	:= 1
+	else ifeq ($(strip $(1)),x86_64)
+		ACC_DEP_X86_64 	+= 
+		ACC_ENB_RES		+= x86_64 
+		ACC_ENB_X86_64	:= 1
+	endif
+endef
+$(foreach arch,$(ACC_ENB_LIST),$(eval $(call set_acc_dep,$(arch))))
 endif
 
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
+OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(ACC_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
 ASFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
 CFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
 CXXFLAGS	:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
@@ -100,7 +119,11 @@ SOBJS       := $(patsubst %, %, $(SFILES:src/%.S=$(OBJDIR)/%.o))
 COBJS       := $(patsubst %, %, $(CFILES:src/%.c=$(OBJDIR)/%.o))
 CUOBJS		:= $(patsubst %, %, $(CUFILES:src/%.cu=$(OBJDIR)/%.o))
 CPPOBJS     := $(patsubst %, %, $(CPPFILES:src/%.cpp=$(OBJDIR)/%.o)) 
-OBJS        := $(SOBJS) $(COBJS) $(CPPOBJS)
+OBJS 		:= $(SOBJS) $(COBJS) $(CPPOBJS)
+# Check config if defined EVO_ACC_CUDA
+ifneq (,$(findstring EVO_ACC_CUDA,$(shell cat $(CFGFILE))))
+    OBJS 	+= $(CUOBJS)
+endif
 
 CURTIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
@@ -133,9 +156,14 @@ ifneq ($(TRAIN_ENB),)
 else
 	@echo "  - train:  \t\t\e[31;1moff\e[0m"
 endif
-ifneq ($(ACC_ENB),)
-	@echo "#define EVO_ACC_ENB" >> $(CFGFILE)
-	@echo "  - acc:    \t\t\e[32;1m$(ACC_ENB)\e[0m"
+ifneq ($(ACC_ENB_RES),)
+ifeq ($(ACC_ENB_CUDA),1)
+	@echo "#define EVO_ACC_CUDA" >> $(CFGFILE)
+endif
+ifeq ($(ACC_ENB_X86_64),1)
+	@echo "#define EVO_ACC_X86_64" >> $(CFGFILE)
+endif
+	@echo "  - acc:    \t\t\e[32;1m$(ACC_ENB_RES)\e[0m"
 else
 	@echo "  - acc:    \t\t\e[31;1moff\e[0m"
 endif
@@ -163,7 +191,7 @@ $(OBJDIR)/%.o : src/%.c
 $(OBJDIR)/%.o : src/%.cu
 	@echo [CU] $<
 	@mkdir -p $(dir $@)
-	@$(NVCC) --compiler-options "-MD -MP -MF $@.d $(INCDIRS) $(CFLAGS)" -c $< -o $@
+	@$(NVCC) $(ACC_DEP_CUDA) --compiler-options "-MD -MP -MF $@.d $(INCDIRS) $(CFLAGS)" -c $< -o $@
 
 $(OBJDIR)/%.o : src/%.cpp
 	@echo [CXX] $<

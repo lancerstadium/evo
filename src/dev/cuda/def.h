@@ -16,7 +16,7 @@ extern "C" {
 
 #include <evo.h>
 
-
+void arr_sum_cuda();
 
 
 #ifdef __cplusplus
