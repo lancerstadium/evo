@@ -74,19 +74,19 @@ UnitTest_fn_def(test_letnet) {
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
             trainer_step(trn, mdl, y_ts);
-            if(e == 0 && b >= 0 && b < 1) {
-                // fprintf(stderr, "<%u> ", label->bs[b]);
-                // image_dump_raw(imgs, b);
-                // tensor_dump1(y_ts);
-                ts = model_get_tensor(mdl, "Flatten6_out0");
-                tensor_dump1(ts);
-                ts = model_get_tensor(mdl, "Gemm11_out0");
-                tensor_dump1(ts);
-                fprintf(stderr, "--\n");
-            }
+            // if(e == 0 && b >= 0 && b < 1) {
+            //     // fprintf(stderr, "<%u> ", label->bs[b]);
+            //     // image_dump_raw(imgs, b);
+            //     // tensor_dump1(y_ts);
+            //     ts = model_get_tensor(mdl, "Flatten6_out0");
+            //     tensor_dump1(ts);
+            //     ts = model_get_tensor(mdl, "Gemm11_out0");
+            //     tensor_dump1(ts);
+            //     fprintf(stderr, "--\n");
+            // }
             trainer_zero_grad(trn, mdl);
-            tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
-            tensor_dump2(sss);
+            // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
+            // tensor_dump2(sss);
             sum_loss += trn->cur_loss;
         }
         loss_data[e] = sum_loss / nbatch;

@@ -40,6 +40,7 @@ Welcome to Evo Page
 |  Infer Engine |  [ppt-01](./ppt-01.html)    |    Engine    |
 |  Domin Engine |  [ppt-02](./ppt-02.html)    |    Engine    |
 |  Dynamic Eng  |  [ppt-04](./ppt-04.html)    |    Engine    |
+|  Model Quant |  [ppt-04](./ppt-05.html)    |    Model    |
 
 
 ### 2 Build

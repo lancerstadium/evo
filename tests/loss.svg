@@ -1,24 +1,24 @@
 <svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 720 480">
 <defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="615.00" height="405.00"/>
-</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">Mnist Loss</text>
+</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">LeNet Loss</text>
 <rect  x="70.00" y="25.00" width="615.00" height="405.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
 <text  x="377.50" y="467.00" text-anchor="middle"  font-weight="regular">n</text>
 <text  transform="rotate(270, 5.00, 227.50) translate(0, 10)"  x="5.00" y="227.50" text-anchor="middle"  font-weight="regular">loss</text>
 <line clip-path="url(#plot-area)"  x1="70.00" y1="25.00" x2="70.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
 <line  x1="70.00" y1="431.00" x2="70.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
 <text  x="70.00" y="450.00" text-anchor="middle"  font-weight="regular">0</text>
-<line clip-path="url(#plot-area)"  x1="206.67" y1="25.00" x2="206.67" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
-<line  x1="206.67" y1="431.00" x2="206.67" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
-<text  x="206.67" y="450.00" text-anchor="middle"  font-weight="regular">2.00</text>
-<line clip-path="url(#plot-area)"  x1="343.33" y1="25.00" x2="343.33" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
-<line  x1="343.33" y1="431.00" x2="343.33" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
-<text  x="343.33" y="450.00" text-anchor="middle"  font-weight="regular">4.00</text>
-<line clip-path="url(#plot-area)"  x1="480.00" y1="25.00" x2="480.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
-<line  x1="480.00" y1="431.00" x2="480.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
-<text  x="480.00" y="450.00" text-anchor="middle"  font-weight="regular">6.00</text>
-<line clip-path="url(#plot-area)"  x1="616.67" y1="25.00" x2="616.67" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
-<line  x1="616.67" y1="431.00" x2="616.67" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
-<text  x="616.67" y="450.00" text-anchor="middle"  font-weight="regular">8.00</text>
+<line clip-path="url(#plot-area)"  x1="223.75" y1="25.00" x2="223.75" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="223.75" y1="431.00" x2="223.75" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="223.75" y="450.00" text-anchor="middle"  font-weight="regular">2.00</text>
+<line clip-path="url(#plot-area)"  x1="377.50" y1="25.00" x2="377.50" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="377.50" y1="431.00" x2="377.50" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="377.50" y="450.00" text-anchor="middle"  font-weight="regular">4.00</text>
+<line clip-path="url(#plot-area)"  x1="531.25" y1="25.00" x2="531.25" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="531.25" y1="431.00" x2="531.25" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="531.25" y="450.00" text-anchor="middle"  font-weight="regular">6.00</text>
+<line clip-path="url(#plot-area)"  x1="685.00" y1="25.00" x2="685.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="685.00" y1="431.00" x2="685.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="685.00" y="450.00" text-anchor="middle"  font-weight="regular">8.00</text>
 <line clip-path="url(#plot-area)"  x1="25.00" y1="393.18" x2="685.00" y2="393.18"  style="stroke: #ccc;stroke-width:0.50"/>
 <line  x1="64.00" y1="393.18" x2="69.00" y2="393.18"  style="stroke: black;stroke-width:1.00"/>
 <text  x="60.00" y="397.18" text-anchor="end"  font-weight="regular">0</text>
@@ -37,7 +37,7 @@
 <line clip-path="url(#plot-area)"  x1="25.00" y1="25.00" x2="685.00" y2="25.00"  style="stroke: #ccc;stroke-width:0.50"/>
 <line  x1="64.00" y1="25.00" x2="69.00" y2="25.00"  style="stroke: black;stroke-width:1.00"/>
 <text  x="60.00" y="29.00" text-anchor="end"  font-weight="regular">0.10</text>
-<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:2.00;"  points="70.00,225.49 138.33,393.18 206.67,393.18 275.00,393.18 343.33,393.18 411.67,393.18 480.00,393.18 548.33,393.18 616.67,393.18 685.00,393.18 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:2.00;"  points="70.00,266.98 146.88,349.53 223.75,364.40 300.62,370.71 377.50,374.43 454.38,376.99 531.25,378.92 608.12,380.47 685.00,381.75 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
 <defs><clipPath id="leg-area"><rect x="615.00" y="35.00" width="58.00" height="21.00"/>
 </clipPath></defs><line  x1="585.00" y1="46.00" x2="615.00" y2="46.00"  style="stroke: #db5f57;stroke-width:2.00"/>
 <text clip-path="url(#leg-area)"  x="645.00" y="50.00" text-anchor="middle"  font-weight="regular">loss</text>
