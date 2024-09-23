@@ -19,9 +19,9 @@ model_t* alexnet_model() {
     graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
     graph_add_linear(mdl->graph, 4096, true, "relu");
-    // Dropout
+    graph_add_dropout(mdl->graph, 0.5);
     graph_add_linear(mdl->graph, 4096, true, "relu");
-    // Dropout
+    graph_add_dropout(mdl->graph, 0.5);
     graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
@@ -31,6 +31,7 @@ UnitTest_fn_def(test_alexnet) {
 
     model_t* mdl = alexnet_model();
     graph_dump1(mdl->graph);
+    model_show_tensors(mdl);
 
     return NULL;
 }

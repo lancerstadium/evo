@@ -633,6 +633,7 @@ EVO_API node_t* graph_add_activation(graph_t*, const char*);
 EVO_API node_t* graph_add_conv2d(graph_t*, int, int64_t[2], int64_t[2], int64_t[4], int64_t[2], int, char*, const char*);
 EVO_API node_t* graph_add_maxpool2d(graph_t*, int64_t[2], int64_t[2], int64_t[4], int64_t[2], int, int);
 EVO_API node_t* graph_add_avgpool2d(graph_t*, int64_t[2], int64_t[2], int64_t[4], int);
+EVO_API node_t* graph_add_dropout(graph_t*, float);
 EVO_API node_t* graph_add_flatten(graph_t*);
 EVO_API node_t* graph_add_resize(graph_t*, float*, size_t, char*);
 EVO_API void graph_prerun(graph_t*);

@@ -176,7 +176,7 @@ node_t* graph_add_layer(graph_t *g, op_type_t type, tensor_t** in, int nin, int 
     if(nout > 0 && nout) {
         nd->nout = nout;
         nd->out = malloc(nout * sizeof(tensor_t*));
-        for(int i = 0; i < nout; i++) {
+        for(int i = nout - 1; i >= 0; i--) {
             sprintf(name_buf, "%s%u_out%d", op_name(type), g->nnode, i);
             nd->out[i] = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
             graph_push_tenser(g, nd->out[i]);
@@ -370,6 +370,27 @@ node_t* graph_add_avgpool2d(graph_t* g, int64_t kernel_shape[2], int64_t strides
     if(pads) pads_attr = attribute_ints("pads", pads, 4); 
     if(ceil_mode > 0) ceil_mode_attr = attribute_int("ceil_mode", ceil_mode);
     node_t* nd = graph_add_layer(g, OP_TYPE_AVERAGE_POOL, (tensor_t*[]){last}, 1, 1, (attribute_t*[]){kernel_shape_attr, strides_attr, pads_attr, ceil_mode_attr}, 4);
+    return nd;
+}
+
+node_t* graph_add_dropout(graph_t *g, float ratio) {
+    if(!g || g->ntensor == 0) return NULL;
+    if(ratio < 0 || ratio >= 1) ratio = 0.5;
+    tensor_t* last = g->tensors[g->ntensor - 1];
+    char name_buf[54];
+    sprintf(name_buf, "Dropout%u_ratio", g->nnode);
+    tensor_t* ratio_ts = tensor_new(name_buf, TENSOR_TYPE_FLOAT32);
+    tensor_reshape(ratio_ts, 2, (int[]){1, 1});
+    ((float*)ratio_ts->datas)[0] = ratio;
+    sprintf(name_buf, "Dropout%u_training_mode", g->nnode);
+    tensor_t* training_mode_ts = tensor_new(name_buf, TENSOR_TYPE_BOOL);
+    tensor_reshape(training_mode_ts, 2, (int[]){1, 1});
+    ((bool*)ratio_ts->datas)[0] = false;
+    graph_push_tenser(g, ratio_ts);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(ratio_ts->name), (uintptr_t)ratio_ts);
+    graph_push_tenser(g, training_mode_ts);
+    hashmap_set(g->mdl->tensor_map, hashmap_str_lit(training_mode_ts->name), (uintptr_t)training_mode_ts);
+    node_t* nd = graph_add_layer(g, OP_TYPE_DROPOUT, (tensor_t*[]){last, ratio_ts, training_mode_ts}, 3, 2, NULL, 0);
     return nd;
 }
 
