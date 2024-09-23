@@ -16,8 +16,15 @@ extern "C" {
 
 #include <evo.h>
 
-void arr_sum_cuda();
+// ==================================================================================== //
+//                                       cuda blas
+// ==================================================================================== //
 
+#ifdef EVO_ACC_CUDA
+
+void cuda_sum_float32(float *a_h, float *b_h, float *res_h, int nElem);
+
+#endif 
 
 #ifdef __cplusplus
 }
