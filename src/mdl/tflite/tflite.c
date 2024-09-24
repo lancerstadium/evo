@@ -145,51 +145,96 @@ graph_t *load_graph_tflite(model_t *mdl) {
         sg->name = sys_strdup(ns(SubGraph_name(subgraph)));
         // Add Tensors: NHWC
         ns(Tensor_vec_t) tensors = ns(SubGraph_tensors(subgraph));
-        sg->ntensor = ns(Tensor_vec_len(tensors));
-        sg->tensors = (tensor_t **)sys_malloc(sizeof(tensor_t *) * sg->ntensor);
-        if(!sg->tensors) {
-            sys_free(sg);
-            return NULL;
-        }
-        for(size_t j = 0; j < sg->ntensor; j++) {
+        tensor_vec_t sgts_vec = vector_create();
+        for(size_t j = 0; j < ns(Tensor_vec_len(tensors)); j++) {
             ns(Tensor_table_t) tensor = ns(Tensor_vec_at(tensors, j));
             tensor_t * t = tensor_from_proto(tensor);
-            sg->tensors[j] = t;
+            vector_add(&sgts_vec, t);
             hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
         }
         // Add Nodes: from Operator
         ns(Operator_vec_t) operators = ns(SubGraph_operators(subgraph));
-        sg->nnode = ns(Operator_vec_len(operators));
-        sg->nodes = (node_t **)sys_malloc(sizeof(node_t *) * sg->nnode);
-        if(!sg->nodes) {
-            sys_free(sg);
-            return NULL;
-        }
-        for(size_t j = 0; j < sg->nnode; j++) {
+        node_vec_t sgnd_vec = vector_create();
+        for(size_t j = 0; j < ns(Operator_vec_len(operators)); j++) {
             ns(Operator_table_t) operator = ns(Operator_vec_at(operators, j));
-            char nd_name[20];
-            sprintf(nd_name, "%s_%d", sg->name, (int)j);
-            node_t * nd = node_new(sg, nd_name, op_map_tflite(ns(OperatorCode_vec_at(opcodes, ns(Operator_opcode_index(operator))))));
-            sg->nodes[j] = nd;
+            op_type_t optype = op_map_tflite(ns(OperatorCode_vec_at(opcodes, ns(Operator_opcode_index(operator)))));
+            char nd_name[32];
+            sprintf(nd_name, "%s_%s%d", sg->name, op_name(optype), (int)vector_size(sgnd_vec));
+            node_t * nd = node_new(sg, nd_name, optype);
             flatbuffers_int32_vec_t inputs = ns(Operator_inputs(operator));
             flatbuffers_int32_vec_t outputs = ns(Operator_outputs(operator));
             size_t ninput = flatbuffers_int32_vec_len(inputs);
             size_t noutput = flatbuffers_int32_vec_len(outputs);
             nd->in = (tensor_t **)sys_malloc(ninput * sizeof(tensor_t*));
             nd->out = (tensor_t **)sys_malloc(noutput * sizeof(tensor_t*));
+            int32_t last_idx = 0;
             if(nd->in) {
                 nd->nin = ninput;
                 for(size_t k = 0; k < nd->nin; k++) {
-                    nd->in[k] = sg->tensors[flatbuffers_int32_vec_at(inputs, k)];
+                    nd->in[k] = sgts_vec[flatbuffers_int32_vec_at(inputs, k)];
                 }
             }
             if(nd->out) {
                 nd->nout = noutput;
                 for(size_t k = 0; k < nd->nout; k++) {
-                    nd->out[k] = sg->tensors[flatbuffers_int32_vec_at(outputs, k)];
+                    nd->out[k] = sgts_vec[flatbuffers_int32_vec_at(outputs, k)];
+                    if(k == 0) last_idx = k;
+                }
+            }
+            vector_add(&sgnd_vec, nd);
+            if(nd->op->type == OP_TYPE_CONV) {
+                ns(Conv2DOptions_table_t) opt = ns(Operator_builtin_options(operator));
+                int sw = ns(Conv2DOptions_stride_w)(opt);
+                int sh = ns(Conv2DOptions_stride_h)(opt);
+                op_type_t act_optype = OP_TYPE_NOP;
+                switch(ns(Conv2DOptions_fused_activation_function(opt))){
+                    case ns(ActivationFunctionType_RELU): act_optype = OP_TYPE_RELU; break;
+                    case ns(ActivationFunctionType_NONE):
+                    default: break;
+                }
+                if(act_optype != OP_TYPE_NOP) {
+                    sprintf(nd_name, "%s_%s%d", sg->name, op_name(act_optype), (int)vector_size(sgnd_vec));
+                    node_t* nda = node_new(sg, nd_name, act_optype);
+                    nda->in = (tensor_t **)sys_malloc(1 * sizeof(tensor_t*));
+                    nda->out = (tensor_t **)sys_malloc(1 * sizeof(tensor_t*));
+                    nda->in = (tensor_t **)sys_malloc(1 * sizeof(tensor_t*));
+                    nda->out = (tensor_t **)sys_malloc(1 * sizeof(tensor_t*));
+                    if(nda->out) {
+                        nda->nout = 1;
+                        nda->out[0] = sgts_vec[flatbuffers_int32_vec_at(inputs, last_idx)];
+                    }
+                    if(nda->in) {
+                        sprintf(nd_name, "%s_%s%d_out0", sg->name, op_name(optype), (int)vector_size(sgnd_vec) - 1);
+                        nda->nin = 1;
+                        nda->in[0] = tensor_new(nd_name, nda->out[0]->type);
+                        tensor_reshape(nda->in[0], nda->out[0]->ndim, nda->out[0]->dims);
+                        vector_add(&sgts_vec, nda->out[0]);
+                        hashmap_set(mdl->tensor_map, hashmap_str_lit(nda->in[0]->name), (uintptr_t)nda->in[0]);
+                        nd->out[0] = nda->in[0];
+                    }
+                    vector_add(&sgnd_vec, nda);
                 }
             }
         }
+        // node
+        sg->nnode = vector_size(sgnd_vec);
+        sg->nodes = (node_t **)sys_malloc(sizeof(node_t *) * sg->nnode);
+        if(!sg->nodes) {
+            sys_free(sg);
+            return NULL;
+        }
+        for(int i = 0; i < sg->nnode; i++) {
+            sg->nodes[i] = sgnd_vec[i];
+        }
+        // tensor
+        sg->ntensor = vector_size(sgts_vec);
+        sg->tensors = (tensor_t **)sys_malloc(sizeof(tensor_t *) * sg->ntensor);
+        if(!sg->tensors) {
+            sys_free(sg);
+            return NULL;
+        }
+        vector_free(sgnd_vec);
+        vector_free(sgts_vec);
         // Add subgraph
         vector_add(&(g->sub_vec), sg);
     }

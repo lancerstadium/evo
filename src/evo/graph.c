@@ -20,8 +20,8 @@ static void graph_init(graph_t *g, model_t *mdl) {
     g->name = NULL;
     g->tensors = NULL;
     g->nodes = NULL;
-    g->input_inodes_vec = vector_create();
-    g->output_inodes_vec = vector_create();
+    g->input_inodes = vector_create();
+    g->output_inodes = vector_create();
 
     g->mdl = mdl;
 
@@ -559,15 +559,15 @@ void graph_free(graph_t *g) {
     if(g->is_sub) {
         if(g->prof) profiler_free(g->prof);
         if(g->nodes_vec) { vector_free(g->nodes_vec); g->nodes_vec = NULL; }
-        if(g->input_itensors_vec) { vector_free(g->input_itensors_vec); g->input_inodes_vec = NULL; }
+        if(g->input_itensors_vec) { vector_free(g->input_itensors_vec); g->input_inodes = NULL; }
         if(g->output_itensors_vec) { vector_free(g->output_itensors_vec); g->output_itensors_vec = NULL; }
     } else {
         if(g->sub_vec) {
             vector_free(g->sub_vec); 
             g->sub_vec = NULL; 
         }
-        if(g->input_inodes_vec) { vector_free(g->input_inodes_vec); g->input_inodes_vec = NULL; }
-        if(g->output_inodes_vec) { vector_free(g->output_inodes_vec); g->output_inodes_vec = NULL; }
+        if(g->input_inodes) { vector_free(g->input_inodes); g->input_inodes = NULL; }
+        if(g->output_inodes) { vector_free(g->output_inodes); g->output_inodes = NULL; }
     }
     if(g) sys_free(g);
     g = NULL;
