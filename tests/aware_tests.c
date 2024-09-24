@@ -182,7 +182,7 @@ UnitTest_fn_def(test_squeezenet_v11_7) {
     image_save(img_input, "squeezenet_input.jpg");
     runtime_set_tensor(rt, "data", input);
     runtime_run(rt);
-    graph_dump(rt->mdl->graph);
+    graph_dump1(rt->mdl->graph);
 
     // 3. Post Process
     tensor_t* output = runtime_get_tensor(rt, "squeezenet0_flatten0_reshape0");
