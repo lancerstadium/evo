@@ -53,6 +53,8 @@ enum AttributeType: int {
     Graphs
 }
 
+
+
 table Attribute {
     name: string;
     type: AttributeType;
@@ -268,12 +270,12 @@ table Node {
 // ==================================================================================== //
 
 table Graph {
-    tensors: [Tensor];              // Graph tensors list
-    nodes: [Node];                  // Graph nodes list
+    // tensors: [Tensor];              // Graph tensors list
+    // nodes: [Node];                  // Graph nodes list
 
     dataLayout: ushort;             // Data layout: 0NCHW/1NHWC
-    inputItensorsVec: [ushort];     // Input tensors index Vector
-    outputItensorsVec: [ushort];    // Output tensors index Vector
+    inTensors: [ushort];            // Input tensors index Vector
+    outTensors: [ushort];           // Output tensors index Vector
 }
 
 // ==================================================================================== //

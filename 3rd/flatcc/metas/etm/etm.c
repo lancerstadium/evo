@@ -8,9 +8,11 @@
 
 int Model_create(flatcc_builder_t *B) {
 
+    flatbuffers_uint16_vec_ref_t inTS = flatbuffers_uint16_vec_create(B, (const uint16_t[]){0}, 1);
+    flatbuffers_uint16_vec_ref_t outTS = flatbuffers_uint16_vec_create(B, (const uint16_t[]){1}, 1);
 
     // Create Graph
-    ns(Graph_ref_t) graph = etm_Graph_create(B, NULL, NULL, );
+    ns(Graph_ref_t) graph = etm_Graph_create(B, 0, inTS, outTS);
 
 
     // 6. Create Etm
