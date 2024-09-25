@@ -6,6 +6,10 @@
 #include <evo/util/math.h>
 #include <stdio.h>
 
+/**
+ * tflite mobilenet: https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.md
+ * 
+ */
 
 #undef ns
 #define ns(x) FLATBUFFERS_WRAP_NAMESPACE(tflite, x)  // Specified in the schema.
@@ -92,17 +96,19 @@ static inline tensor_type_t tensor_type_map(ns(TensorType_enum_t) type) {
 
 static op_type_t op_map_tflite(ns(OperatorCode_table_t) opcode) {
     switch(ns(OperatorCode_builtin_code(opcode))) {
-        case ns(BuiltinOperator_ABS): return OP_TYPE_ABS;
-        case ns(BuiltinOperator_ADD): return OP_TYPE_ADD;
-        case ns(BuiltinOperator_ADD_N): return OP_TYPE_ADD;
-        case ns(BuiltinOperator_ARG_MAX): return OP_TYPE_ARG_MAX;
-        case ns(BuiltinOperator_ARG_MIN): return OP_TYPE_ARG_MIN;
-        case ns(BuiltinOperator_CONV_2D): return OP_TYPE_CONV;
+        case ns(BuiltinOperator_ABS):               return OP_TYPE_ABS;
+        case ns(BuiltinOperator_ADD):               return OP_TYPE_ADD;
+        case ns(BuiltinOperator_ADD_N):             return OP_TYPE_ADD;
+        case ns(BuiltinOperator_ARG_MAX):           return OP_TYPE_ARG_MAX;
+        case ns(BuiltinOperator_ARG_MIN):           return OP_TYPE_ARG_MIN;
+        case ns(BuiltinOperator_AVERAGE_POOL_2D):   return OP_TYPE_MAX_POOL;
+        case ns(BuiltinOperator_CONV_2D):           return OP_TYPE_CONV;
         case ns(BuiltinOperator_DEPTHWISE_CONV_2D): return OP_TYPE_CONV;
-        case ns(BuiltinOperator_MEAN): return OP_TYPE_MEAN;
-        case ns(BuiltinOperator_FULLY_CONNECTED): return OP_TYPE_GEMM;
-        case ns(BuiltinOperator_SOFTMAX): return OP_TYPE_SOFTMAX;
-        case ns(BuiltinOperator_RELU): return OP_TYPE_RELU;
+        case ns(BuiltinOperator_MEAN):              return OP_TYPE_MEAN;
+        case ns(BuiltinOperator_FULLY_CONNECTED):   return OP_TYPE_GEMM;
+        case ns(BuiltinOperator_SHAPE):             return OP_TYPE_SHAPE;
+        case ns(BuiltinOperator_SOFTMAX):           return OP_TYPE_SOFTMAX;
+        case ns(BuiltinOperator_RELU):              return OP_TYPE_RELU;
         default: return OP_TYPE_NOP;
     }
 }

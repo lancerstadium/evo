@@ -28,18 +28,11 @@ enum TensorType: int {
 table Tensor {
     type: TensorType;            // Tensor data type
     name: string;                // Tensor name
-    index: int;                  // Tensor index
     dims: [int];                 // Shape of dim array
     datas: [ubyte];              // Tensor data addr (byte array to represent raw data)
     ndata: ulong;                // Tensor data size
-    szElem: uint8;               // Tensor element size
     nElem: uint;                 // Tensor element number
-    pNode: short;                // Tensor parent node index
-    isReshaped: bool;            // Tensor is reshaped
-    isConstant: bool;            // Tensor is constant
-    isInput: bool;               // Tensor is input
-    isOutput: bool;              // Tensor is output
-    isIallocated: bool;          // Tensor is iallocated
+    isParam: bool;               // Tensor is parameter
     layout: ushort;              // Tensor is layout 0NCHW/1NHWC
 }
 
@@ -76,7 +69,178 @@ table Attribute {
 
 
 // ==================================================================================== //
-//                                       etm: node
+//                                       etm: Operator Type
+// ==================================================================================== //
+
+enum OpType: int {
+    Nop,
+    Abs,
+    Acos,
+    Acosh,
+    Add,
+    And,
+    ArgMax,
+    ArgMin,
+    Asin,
+    Asinh,
+    Atan,
+    Atanh,
+    AveragePool,
+    BatchNormalization,
+    BitShift,
+    Cast,
+    Ceil,
+    Clip,
+    Compress,
+    Concat,
+    ConcatFromSequence,
+    Constant,
+    ConstantOfShape,
+    Conv,
+    ConvInteger,
+    ConvTranspose,
+    Cos,
+    Cosh,
+    CumSum,
+    DepthToSpace,
+    DequantizeLinear,
+    Det,
+    Div,
+    Dropout,
+    Einsum,
+    Elu,
+    Equal,
+    Erf,
+    Exp,
+    Expand,
+    EyeLike,
+    Flatten,
+    Floor,
+    GRU,
+    Gather,
+    GatherElements,
+    GatherND,
+    Gemm,
+    GlobalAveragePool,
+    GlobalLpPool,
+    GlobalMaxPool,
+    Greater,
+    HardSigmoid,
+    Hardmax,
+    Identity,
+    If,
+    InstanceNormalization,
+    IsInf,
+    IsNaN,
+    LRN,
+    LSTM,
+    LeakyRelu,
+    Less,
+    Log,
+    Loop,
+    LpNormalization,
+    LpPool,
+    MatMul,
+    MatMulInteger,
+    Max,
+    MaxPool,
+    MaxRoiPool,
+    MaxUnpool,
+    Mean,
+    Min,
+    Mod,
+    Mul,
+    Multinomial,
+    Neg,
+    NonMaxSuppression,
+    NonZero,
+    Not,
+    OneHot,
+    Or,
+    PRelu,
+    Pad,
+    Pow,
+    QLinearConv,
+    QLinearMatMul,
+    QuantizeLinear,
+    RNN,
+    RandomNormal,
+    RandomNormalLike,
+    RandomUniform,
+    RandomUniformLike,
+    Reciprocal,
+    ReduceL1,
+    ReduceL2,
+    ReduceLogSum,
+    ReduceLogSumExp,
+    ReduceMax,
+    ReduceMean,
+    ReduceMin,
+    ReduceProd,
+    ReduceSum,
+    ReduceSumSquare,
+    Relu,
+    Reshape,
+    Resize,
+    ReverseSequence,
+    RoiAlign,
+    Round,
+    Scan,
+    Scatter,
+    ScatterElements,
+    ScatterND,
+    Selu,
+    SequenceAt,
+    SequenceConstruct,
+    SequenceEmpty,
+    SequenceErase,
+    SequenceInsert,
+    SequenceLength,
+    Shape,
+    Shrink,
+    Sigmoid,
+    Sign,
+    Sin,
+    Sinh,
+    Size,
+    Slice,
+    Softplus,
+    Softsign,
+    SpaceToDepth,
+    Split,
+    SplitToSequence,
+    Sqrt,
+    Squeeze,
+    StringNormalizer,
+    Sub,
+    Sum,
+    Tan,
+    Tanh,
+    TfIdfVectorizer,
+    ThresholdedRelu,
+    Tile,
+    TopK,
+    Transpose,
+    Unique,
+    Unsqueeze,
+    Upsample,
+    Where,
+    Xor,
+    Celu,
+    DynamicQuantizeLinear,
+    GreaterOrEqual,
+    LessOrEqual,
+    LogSoftmax,
+    MeanVarianceNormalization,
+    NegativeLogLikelihoodLoss,
+    Range,
+    Softmax,
+    SoftmaxCrossEntropyLoss,
+    // Add more
+}
+
+// ==================================================================================== //
+//                                       etm: Node
 // ==================================================================================== //
 
 enum NodeType: int {
@@ -88,86 +252,38 @@ enum NodeType: int {
 }
 
 table Node {
-    name: string;                // Node name
-    index: ushort;               // Index of Node in Graph
-    type: NodeType;              // Type of Node
+    name: string;                   // Node name
+    type: NodeType;                 // Type of Node
 
-    in: [Tensor] (deprecated);   // Input Tensor List
-    out: [Tensor] (deprecated);  // Output Tensor List
+    in: [Tensor] (deprecated);      // Input Tensor List
+    out: [Tensor] (deprecated);     // Output Tensor List
 
-    op: Op (deprecated);         // Operator
-    graph: Graph (deprecated);   // Owner Graph
-
-    attrVec: [Attribute];        // Attribute Vec of node
+    optype: OpType (deprecated);    // Operator
+    attrVec: [Attribute];           // Attribute Vec of node
 }
 
 
 // ==================================================================================== //
-//                                       etm: graph
+//                                       etm: Graph
 // ==================================================================================== //
-
-union GraphInfo {
-    PGraphInfo,
-    SGraphInfo
-}
-
-table PGraphInfo {
-    subVec: [Graph];              // Vector of sub graphs
-    inputInodesVec: [ushort];     // Input nodes index Vector
-    outputInodesVec: [ushort];    // Output nodes index Vector
-    ninputNode: ushort;           // Input nodes number
-    noutputNode: ushort;          // Output nodes number
-}
-
-table SGraphInfo {
-    idx: int;                     // Index in sub vector
-    nodesVec: [ushort];           // Node index Vec from parents
-    inputItensorsVec: [ushort];   // Input tensors index Vector
-    outputItensorsVec: [ushort];  // Output tensors index Vector
-    pgraph: Graph (deprecated);   // Parent graph of this sub
-}
 
 table Graph {
-    tensors: [Tensor];            // Graph tensors list
-    nodes: [Node];                // Graph nodes list
+    tensors: [Tensor];              // Graph tensors list
+    nodes: [Node];                  // Graph nodes list
 
-    dataLayout: ushort;           // Data layout: 0NCHW/1NHWC
-    isSub: bool;                  // Graph is sub graph
-
-    // Union for different graph types
-    more: GraphInfo;
+    dataLayout: ushort;             // Data layout: 0NCHW/1NHWC
+    inputItensorsVec: [ushort];     // Input tensors index Vector
+    outputItensorsVec: [ushort];    // Output tensors index Vector
 }
 
 // ==================================================================================== //
-//                                       etm: op
-// ==================================================================================== //
-
-enum OpType: int {
-    Undefined,
-    Conv,
-    Pool,
-    // Add more
-}
-
-table Op {
-    type: OpType;                   // Operator type
-    name: string;                   // Operator name
-    inputIndexes: [int];
-    outputIndexs: [int];
-}
-
-
-// ==================================================================================== //
-//                                       etm: model
+//                                       etm: Model
 // ==================================================================================== //
 
 // Evo Tiny Model
 table Model {
-    name: string;
-    oplists: [Op];
-    tensorName: [string];
-    // graph: Graph;
-    // tensorMap: map<string, Tensor>;  // Context tensor map
+    name: string;                   // Name of Model
+    graphVec: [Graph];              // Vector of sub graphs
 }
 
 root_type Model;
