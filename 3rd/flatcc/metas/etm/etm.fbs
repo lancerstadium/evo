@@ -26,14 +26,13 @@ enum TensorType: int {
 }
 
 table Tensor {
-    type: TensorType;            // Tensor data type
-    name: string;                // Tensor name
-    dims: [int];                 // Shape of dim array
-    datas: [ubyte];              // Tensor data addr (byte array to represent raw data)
-    ndata: ulong;                // Tensor data size
-    nElem: uint;                 // Tensor element number
-    isParam: bool;               // Tensor is parameter
-    layout: ushort;              // Tensor is layout 0NCHW/1NHWC
+    type: TensorType;               // Tensor data type
+    name: string;                   // Tensor name
+    dims: [int];                    // Shape of dim array
+    datas: [ubyte];                 // Tensor data addr (byte array to represent raw data)
+    ndata: ulong;                   // Tensor data size
+    isParam: bool;                  // Tensor is parameter
+    layout: ushort;                 // Tensor is layout 0NCHW/1NHWC
 }
 
 
@@ -52,21 +51,48 @@ enum AttributeType: int {
     Tensors,
     Graphs
 }
-
-
-
+table AttributeDateFloat {
+    f: float;                           // When type is Float
+}
+table AttributeDateInt {
+    i: long;                            // When type is Int
+}
+table AttributeDateString {
+    s: string;                          // When type is String
+}
+table AttributeDateTensor {
+    t: Tensor (deprecated);             // When type is Tensor
+}
+table AttributeDateGraph {
+    g: Graph (deprecated);              // When type is Graph
+}
+table AttributeDateFloats {
+    fs: [float];                        // When type is Floats
+}
+table AttributeDateInts {
+    is: [long];                         // When type is Ints
+}
+table AttributeDateTensors {
+    ts: [Tensor] (deprecated);          // When type is Tensors
+}
+table AttributeDateGraphs {
+    gs: [Graph] (deprecated);           // When type is Graphs
+}
+union AttributeDate {
+    AttributeDateFloat,
+    AttributeDateInt,
+    AttributeDateString,
+    AttributeDateTensor,
+    AttributeDateGraph,
+    AttributeDateFloats,
+    AttributeDateInts,
+    AttributeDateTensors,
+    AttributeDateGraphs
+}
 table Attribute {
     name: string;
-    type: AttributeType;
-    f: float;                           // When type is Float
-    i: long;                            // When type is Int
-    s: string;                          // When type is String
-    t: Tensor (deprecated);             // When type is Tensor
-    g: Graph (deprecated);              // When type is Graph
-    fs: [float];                        // When type is Floats
-    is: [long];                         // When type is Ints
-    ts: [Tensor] (deprecated);          // When type is Tensors
-    gs: [Graph] (deprecated);           // When type is Graphs
+    type: AttributeType (deprecated);
+    data: AttributeDate;
 }
 
 
@@ -245,23 +271,15 @@ enum OpType: int {
 //                                       etm: Node
 // ==================================================================================== //
 
-enum NodeType: int {
-    Generic,
-    Input,
-    Output,
-    Hidden,
-    // add more types as needed
-}
 
 table Node {
     name: string;                       // Node name
-    type: NodeType;                     // Type of Node
 
-    in: [Tensor] (deprecated);          // Input Tensor List
-    out: [Tensor] (deprecated);         // Output Tensor List
+    in: [ushort];                       // Input Tensor List
+    out: [ushort];                      // Output Tensor List
 
     optype: OpType (deprecated);        // Operator
-    attrs: [Attribute];                 // Attribute Vec of node
+    attrs: [Attribute] (deprecated);    // Attribute Vec of node
 }
 
 
@@ -270,12 +288,12 @@ table Node {
 // ==================================================================================== //
 
 table Graph {
-    // tensors: [Tensor];               // Graph tensors list
-    // nodes: [Node];                   // Graph nodes list
+    tensors: [Tensor];                  // Graph tensors list
+    nodes: [Node];                      // Graph nodes list
 
-    dataLayout: ushort;                 // Data layout: 0NCHW/1NHWC
-    inIdx: [ushort];                    // Input tensors index Vector
-    outIdx: [ushort];                   // Output tensors index Vector
+    layout: ushort;                     // Data layout: 0NCHW/1NHWC
+    in: [ushort];                       // Input tensors index Vector
+    out: [ushort];                      // Output tensors index Vector
 }
 
 // ==================================================================================== //

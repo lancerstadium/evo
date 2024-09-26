@@ -8,15 +8,45 @@
 
 int Model_create(flatcc_builder_t *B) {
 
-    flatbuffers_uint16_vec_ref_t inTS = flatbuffers_uint16_vec_create(B, (const uint16_t[]){0}, 1);
-    flatbuffers_uint16_vec_ref_t outTS = flatbuffers_uint16_vec_create(B, (const uint16_t[]){1}, 1);
+    // create tensors
+    etm_Tensor_ref_t ts1 = etm_Tensor_create(B,
+        etm_TensorType_Uint8,
+        flatbuffers_string_create(B, "ts1", 3), 
+        flatbuffers_int32_vec_create(B, (const int32_t[]){1, 4}, 2),
+        flatbuffers_uint8_vec_create(B, (const uint8_t[]){1, 2, 3, 4}, 4),
+        4,
+        0,
+        0
+    );
+    etm_Tensor_ref_t ts2 = etm_Tensor_create(B, 
+        etm_TensorType_Uint8,
+        flatbuffers_string_create(B, "ts2", 3), 
+        flatbuffers_int32_vec_create(B, (const int32_t[]){1, 4}, 2),
+        flatbuffers_uint8_vec_create(B, (const uint8_t[]){4, 3, 2, 1}, 4),
+        4,
+        0,
+        0
+    );
+    etm_Tensor_vec_ref_t ts = etm_Tensor_vec_create(B, (etm_Tensor_ref_t[]){ts1}, 1);
+
+    // create nodes
+    etm_Node_ref_t nd1 = etm_Node_create(B,
+        flatbuffers_string_create(B, "nd1", 3),
+        flatbuffers_uint16_vec_create(B, (const uint16_t[]){0}, 1),
+        flatbuffers_uint16_vec_create(B, (const uint16_t[]){1}, 1)
+    );
+    etm_Node_vec_ref_t nd = etm_Node_vec_create(B, (etm_Node_ref_t[]){nd1}, 1);
+
+    // create index
+    flatbuffers_uint16_vec_ref_t inIdx = flatbuffers_uint16_vec_create(B, (const uint16_t[]){0}, 1);
+    flatbuffers_uint16_vec_ref_t outIdx = flatbuffers_uint16_vec_create(B, (const uint16_t[]){1}, 1);
 
     // Create Graph
-    ns(Graph_ref_t) graph = etm_Graph_create(B, 0, inTS, outTS);
-
+    etm_Graph_ref_t g1 = etm_Graph_create(B, ts, nd, 0, inIdx, outIdx);
+    etm_Graph_vec_ref_t graph = etm_Graph_vec_create(B, (etm_Graph_ref_t[]){g1}, 1);
 
     // 6. Create Etm
-    ns(Model_create_as_root(B, flatbuffers_string_create_str(B, "etm"), graph));
+    etm_Model_create_as_root(B, flatbuffers_string_create_str(B, "etm_model"), graph);
 
     return 0;
 }
@@ -34,6 +64,9 @@ int Model_print(const void *buffer) {
 
 int main() {
 
+    FILE* fp;
+    char path[] = "demo.etm";
+
     // 1. Flat Buffer Init
     flatcc_builder_t builder;
     flatcc_builder_init(&builder);
@@ -45,13 +78,18 @@ int main() {
     // 3. Create etm
     Model_create(&builder);
 
-    // 4. Print etm
+    // 4. Save etm
     buf = flatcc_builder_finalize_aligned_buffer(&builder, &size);
-    Model_print(buf);
+    fp = fopen(path, "wb");
+    fwrite(buf, 1, size, fp);
+    fclose(fp);
     flatcc_builder_aligned_free(buf);
-
-    // -1. Flat Buffer Release
     flatcc_builder_clear(&builder);
-    printf("Hello: etm!\n");
+
+    // 5. Print etm
+    fp = fopen(path, "rb");
+    size = fread(buf, 1, size, fp);
+    Model_print(buf);
+
     return 0;
 }
