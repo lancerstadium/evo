@@ -14,11 +14,11 @@ runtime_t* runtime_new(const char* fmt) {
 
 model_t* runtime_load(runtime_t *rt, const char *path) {
     if(!rt) return NULL;
-    if(rt->sez && rt->sez->load_model) {
+    if(rt->sez && rt->sez->load_file) {
         if(rt->mdl) {
             runtime_unload(rt);
         }
-        rt->mdl = rt->sez->load_model(rt->sez, path);
+        rt->mdl = rt->sez->load_file(rt->sez, path);
         return rt->mdl;
     }
     return NULL;
@@ -26,7 +26,7 @@ model_t* runtime_load(runtime_t *rt, const char *path) {
 
 model_t* runtime_load_raw(runtime_t *rt, const void* buf, size_t size) {
     if(!rt) return NULL;
-    if(rt->sez && rt->sez->load_model) {
+    if(rt->sez && rt->sez->load_file) {
         if(rt->mdl) {
             runtime_unload(rt);
         }

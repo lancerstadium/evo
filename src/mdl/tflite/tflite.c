@@ -67,8 +67,16 @@ model_t *load_model_tflite(struct serializer *sez, const char *path) {
 }
 
 void unload_tflite(model_t *mdl) {
-    if (mdl && mdl->cmodel) {
-        mdl->model_size = 0;
+    if (mdl) {
+        if(mdl->cmodel) {
+            mdl->model_size = 0;
+        }
+        if(mdl->graph) {
+            graph_free(mdl->graph);
+        }
+        mdl->cmodel = NULL;
+        free(mdl);
+        mdl = NULL;
     }
 }
 
@@ -130,12 +138,9 @@ graph_t *load_graph_tflite(model_t *mdl) {
     if (!mdl || !mdl->cmodel) {
         return NULL;
     }
-    graph_t *g;
     ns(SubGraph_vec_t) subgraphs = ns(Model_subgraphs(mdl->cmodel));
-    if (!subgraphs)
-        return NULL;
-    g = graph_new(mdl);
-    if (!g)
+    graph_t *g = graph_new(mdl);
+    if (!subgraphs || !g)
         return NULL;
     // Print cur Operator codes
     ns(OperatorCode_vec_t) opcodes = ns(Model_operator_codes(mdl->cmodel));

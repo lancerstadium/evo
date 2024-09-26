@@ -15,7 +15,7 @@ model_t * model_new(const char *name) {
     mdl->scd = scheduler_get_default();         /* Default: sync scheduler  */
     mdl->dev = internal_device_find("cpu");     /* Default: device cpu      */
     // load model
-    mdl->model_proto = NULL;
+    mdl->vmodel = NULL;
     mdl->model_size = 0;
     // init graph
     mdl->graph = graph_new(mdl);
@@ -72,13 +72,23 @@ void model_show_tensors(model_t *mdl) {
     LOG_INFO("]\n");
 }
 
+void model_save(model_t *mdl, const char* path) {
+    if(!mdl) return;
+    char* ext = sys_get_file_ext(path);
+    serializer_t* sez = NULL;
+    sez = serializer_get(ext);
+    if(sez && sez->save) {
+        sez->save(mdl, path);
+    }
+}
+
 void model_free(model_t *mdl) {
     if(mdl) {
         if(mdl->name) free(mdl->name);
-        if(mdl->model_proto) mdl->sez->unload(mdl);
+        if(mdl->vmodel) mdl->sez->unload(mdl);
         if(mdl->tensor_map) hashmap_free(mdl->tensor_map);
         mdl->name = NULL;
-        mdl->model_proto = NULL;
+        mdl->vmodel = NULL;
         mdl->tensor_map = NULL;
         sys_free(mdl);
     }

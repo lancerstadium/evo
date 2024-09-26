@@ -18,7 +18,7 @@ model_t* internal_model_init() {
     internal_context_info.mdl->sez = serializer_get("onnx"),
     internal_context_info.mdl->graph = graph_new(internal_context_info.mdl),
     internal_context_info.mdl->tensor_map = hashmap_create();
-    internal_context_info.mdl->model_proto = NULL;
+    internal_context_info.mdl->vmodel = NULL;
     internal_context_info.mdl->model_size = 0;
     return internal_context_info.mdl;
 }

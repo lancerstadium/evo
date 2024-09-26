@@ -44,6 +44,7 @@ extern "C" {
 #elif  // __GNUC__ || __clang__
 #define EVO_API
 #define EVO_UNUSED
+#define EVO_PACKED(D)   D
 #endif  // __GNUC__ || __clang__
 
 #define EVO_DIM_MAX         8
@@ -655,7 +656,7 @@ struct model {
     serializer_t *sez;                                  /* Serializer of Model          */
     device_t *dev;                                      /* model device                 */
     union {
-        void* model_proto;                              /* model model proto            */
+        void* vmodel;                                   /* model var model proto        */
         const void* cmodel;                             /* model const model proto      */
     };
     uint32_t model_size;                                /* model model size             */
@@ -667,6 +668,7 @@ EVO_API tensor_t* model_get_tensor(model_t*, const char*);
 EVO_API void model_set_tensor(model_t*, const char*, tensor_t*);
 EVO_API tensor_t* model_eval(model_t*, tensor_t*);
 EVO_API void model_show_tensors(model_t*);
+EVO_API void model_save(model_t*, const char*);
 EVO_API void model_free(model_t*);
 
 // ==================================================================================== //
@@ -727,7 +729,7 @@ struct serializer {
     const char* fmt;                                    /* Serializer format name       */
 
     model_t * (*load) (struct serializer*, const void *, size_t);
-    model_t * (*load_model) (struct serializer*, const char*);
+    model_t * (*load_file) (struct serializer*, const char*);
     tensor_t * (*load_tensor) (const char*);            /* Serializer load tenosr       */
     graph_t* (*load_graph) (model_t*);                  /* Serializer load mdl to graph */
     void (*unload) (model_t*);                          /* Serializer unload model      */

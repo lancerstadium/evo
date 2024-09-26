@@ -6,7 +6,7 @@
 #define TO(s, i)    "node/"s"/test_data_set_0/output_"#i".pb"
 
 #define TESTD_1I(s, i, o)                       \
-    model_t* mdl = sez->load_model(sez, MD(s)); \
+    model_t* mdl = sez->load_file(sez, MD(s)); \
     tensor_t* i = model_get_tensor(mdl, #i);    \
     tensor_t* o = model_get_tensor(mdl, #o);    \
     tensor_t* t0 = sez->load_tensor(TI(s, 0));  \
@@ -19,7 +19,7 @@
     mdl->sez->unload(mdl);
 
 #define TEST_1I(s, i, o)                            \
-    model_t* mdl = sez->load_model(sez, MD(s));     \
+    model_t* mdl = sez->load_file(sez, MD(s));     \
     tensor_t* i = model_get_tensor(mdl, #i);        \
     tensor_t* o = model_get_tensor(mdl, #o);        \
     tensor_t* t0 = sez->load_tensor(TI(s, 0));      \
@@ -31,7 +31,7 @@
     mdl->sez->unload(mdl);
 
 #define TESTD_2I(s, i0, i1, o)                  \
-    model_t* mdl = sez->load_model(sez, MD(s)); \
+    model_t* mdl = sez->load_file(sez, MD(s)); \
     tensor_t* i0 = model_get_tensor(mdl, #i0);  \
     tensor_t* i1 = model_get_tensor(mdl, #i1);  \
     tensor_t* o = model_get_tensor(mdl, #o);    \
@@ -47,7 +47,7 @@
     mdl->sez->unload(mdl);
 
 #define TEST_2I(s, i0, i1, o)                       \
-    model_t* mdl = sez->load_model(sez, MD(s));     \
+    model_t* mdl = sez->load_file(sez, MD(s));     \
     tensor_t* i0 = model_get_tensor(mdl, #i0);      \
     tensor_t* i1 = model_get_tensor(mdl, #i1);      \
     tensor_t* o = model_get_tensor(mdl, #o);        \
@@ -62,7 +62,7 @@
     mdl->sez->unload(mdl);
 
 #define TESTD_3I(s, i0, i1, i2, o)              \
-    model_t* mdl = sez->load_model(sez, MD(s)); \
+    model_t* mdl = sez->load_file(sez, MD(s)); \
     tensor_t* i0 = model_get_tensor(mdl, #i0);  \
     tensor_t* i1 = model_get_tensor(mdl, #i1);  \
     tensor_t* i2 = model_get_tensor(mdl, #i2);  \
@@ -81,7 +81,7 @@
     mdl->sez->unload(mdl);
 
 #define TEST_3I(s, i0, i1, i2, o)                   \
-    model_t* mdl = sez->load_model(sez, MD(s));     \
+    model_t* mdl = sez->load_file(sez, MD(s));     \
     tensor_t* i0 = model_get_tensor(mdl, #i0);      \
     tensor_t* i1 = model_get_tensor(mdl, #i1);      \
     tensor_t* i2 = model_get_tensor(mdl, #i2);      \
@@ -99,7 +99,7 @@
     mdl->sez->unload(mdl);
 
 #define TEST_5I(s, i0, i1, i2, i3, i4, o)           \
-    model_t* mdl = sez->load_model(sez, MD(s));     \
+    model_t* mdl = sez->load_file(sez, MD(s));     \
     tensor_t* i0 = model_get_tensor(mdl, #i0);      \
     tensor_t* i1 = model_get_tensor(mdl, #i1);      \
     tensor_t* i2 = model_get_tensor(mdl, #i2);      \

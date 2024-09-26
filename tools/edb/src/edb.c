@@ -135,7 +135,7 @@ static size_t edb_model_init() {
         edb.model_file = "../../tests/model/mnist_8/model.onnx";
         edb.in = edb.sez->load_tensor("../../tests/model/mnist_8/test_data_set_0/input_0.pb");
     }
-    edb.mdl = edb.sez->load_model(edb.sez, edb.model_file);
+    edb.mdl = edb.sez->load_file(edb.sez, edb.model_file);
     if(edb.mdl && edb.mdl->model_size > 0) {
         printf("Load model: %s(%u Byte) success!\n", edb.model_file, edb.mdl->model_size);
         if(edb.mdl->graph) {
