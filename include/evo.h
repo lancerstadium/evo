@@ -606,9 +606,9 @@ struct graph {
         };
         struct {                                        /* When is_sub = 1              */
             int idx;                                    /* S|Index in sub vector        */
-            uint16_t *nodes_vec;                        /* S|Node index Vec from parents*/
-            uint16_t *input_itensors_vec;               /* S|Input tensors index Vector */
-            uint16_t *output_itensors_vec;              /* S|Output tensors index Vector*/
+            uint16_t *ndx;                              /* S|Node index Vec from parents*/
+            uint16_t *inx;                              /* S|Input tensors index Vector */
+            uint16_t *outx;                             /* S|Output tensors index Vector*/
             struct graph * pgraph;                      /* S|Parent graph of this sub   */
             profiler_t *prof;                           /* S|RunTime Profile on device  */
         };

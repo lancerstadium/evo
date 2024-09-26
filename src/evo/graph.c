@@ -47,9 +47,9 @@ static void graph_sub_init(graph_t *g, graph_t *pg) {
     g->nodes = pg->nodes;
     g->ntensor = pg->ntensor;
     g->nnode = pg->nnode;
-    g->nodes_vec = vector_create();
-    g->input_itensors_vec = vector_create();
-    g->output_itensors_vec = vector_create();
+    g->ndx = vector_create();
+    g->inx = vector_create();
+    g->outx = vector_create();
 
     g->mdl = pg->mdl;
     g->sez = pg->sez;
@@ -102,7 +102,7 @@ graph_t * graph_as_sub(graph_t* g) {
     }
     graph_sub_init(sg, g);
     for(int i = 0; i < sg->nnode; i++) {             // Copy All nodes from parent
-        vector_add(&(sg->nodes_vec), i);
+        vector_add(&(sg->ndx), i);
     }
     return sg;
 }
@@ -553,7 +553,9 @@ void graph_free(graph_t *g) {
     if(g->name) sys_free(g->name);
     if(g->is_sub) {
         if(g->prof) profiler_free(g->prof);
-        if(g->nodes_vec) { vector_free(g->nodes_vec); g->nodes_vec = NULL; }
+        if(g->ndx) { vector_free(g->ndx); g->ndx = NULL; }
+        if(g->inx) { vector_free(g->inx); g->inx = NULL; }
+        if(g->outx) { vector_free(g->outx); g->outx = NULL; }
     } else {
         if(g->sub_vec) {
             vector_free(g->sub_vec); 

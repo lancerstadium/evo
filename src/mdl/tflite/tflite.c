@@ -1,6 +1,5 @@
 #include <evo/mdl/tflite/tflite.h>
-#include <evo/mdl/tflite/tflite_builder.h>
-#include <evo/mdl/tflite/tflite_reader.h>
+#include <evo/mdl/tflite/tflite.flat.h>
 #include <evo/util/sys.h>
 #include <evo/util/log.h>
 #include <evo/util/math.h>

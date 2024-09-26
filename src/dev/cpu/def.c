@@ -25,7 +25,7 @@ static int cpu_prerun(device_t *dev, graph_t *g) {
         LOG_ERR("CPU Pre Run Fail: No profiler!\n");
     }
     for(int i = 0; i < g->nnode; i++) {
-        node_t * nd = graph_get_node(g, g->nodes_vec[i]);
+        node_t * nd = graph_get_node(g, g->ndx[i]);
         node_bind_op(nd);
         if(nd->op && nd->op->init) {
             vector_add(&(g->prof->exec_node_vec), nd);
