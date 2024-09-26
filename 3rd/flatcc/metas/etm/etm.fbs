@@ -58,15 +58,15 @@ enum AttributeType: int {
 table Attribute {
     name: string;
     type: AttributeType;
-    f: float;                     // When type is Float
-    i: long;                      // When type is Int
-    s: string;                    // When type is String
-    t: Tensor (deprecated);       // When type is Tensor
-    g: Graph (deprecated);        // When type is Graph
-    fs: [float];                  // When type is Floats
-    is: [long];                   // When type is Ints
-    ts: [Tensor] (deprecated);    // When type is Tensors
-    gs: [Graph] (deprecated);     // When type is Graphs
+    f: float;                           // When type is Float
+    i: long;                            // When type is Int
+    s: string;                          // When type is String
+    t: Tensor (deprecated);             // When type is Tensor
+    g: Graph (deprecated);              // When type is Graph
+    fs: [float];                        // When type is Floats
+    is: [long];                         // When type is Ints
+    ts: [Tensor] (deprecated);          // When type is Tensors
+    gs: [Graph] (deprecated);           // When type is Graphs
 }
 
 
@@ -254,14 +254,14 @@ enum NodeType: int {
 }
 
 table Node {
-    name: string;                   // Node name
-    type: NodeType;                 // Type of Node
+    name: string;                       // Node name
+    type: NodeType;                     // Type of Node
 
-    in: [Tensor] (deprecated);      // Input Tensor List
-    out: [Tensor] (deprecated);     // Output Tensor List
+    in: [Tensor] (deprecated);          // Input Tensor List
+    out: [Tensor] (deprecated);         // Output Tensor List
 
-    optype: OpType (deprecated);    // Operator
-    attrVec: [Attribute];           // Attribute Vec of node
+    optype: OpType (deprecated);        // Operator
+    attrs: [Attribute];                 // Attribute Vec of node
 }
 
 
@@ -270,12 +270,12 @@ table Node {
 // ==================================================================================== //
 
 table Graph {
-    // tensors: [Tensor];              // Graph tensors list
-    // nodes: [Node];                  // Graph nodes list
+    // tensors: [Tensor];               // Graph tensors list
+    // nodes: [Node];                   // Graph nodes list
 
-    dataLayout: ushort;             // Data layout: 0NCHW/1NHWC
-    inTensors: [ushort];            // Input tensors index Vector
-    outTensors: [ushort];           // Output tensors index Vector
+    dataLayout: ushort;                 // Data layout: 0NCHW/1NHWC
+    inIdx: [ushort];                    // Input tensors index Vector
+    outIdx: [ushort];                   // Output tensors index Vector
 }
 
 // ==================================================================================== //
@@ -284,8 +284,8 @@ table Graph {
 
 // Evo Tiny Model
 table Model {
-    name: string;                   // Name of Model
-    graphVec: [Graph];              // Vector of sub graphs
+    name: string;                       // Name of Model
+    graphs: [Graph];                    // Vector of sub graphs
 }
 
 root_type Model;

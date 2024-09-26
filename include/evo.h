@@ -603,10 +603,6 @@ struct graph {
     union {
         struct {                                        /* When is_sub = 0              */
             graph_vec_t sub_vec;                        /* P|Vector of sub graphs       */
-            uint16_t *input_inodes;                     /* P|Input nodes index Vector   */
-            uint16_t *output_inodes;                    /* P|Output nodes index Vector  */
-            uint16_t ninput_node;                       /* P|Input nodes number         */
-            uint16_t noutput_node;                      /* P|Output nodes umber         */
         };
         struct {                                        /* When is_sub = 1              */
             int idx;                                    /* S|Index in sub vector        */
