@@ -50,7 +50,7 @@ static serializer_t etm_serializer = {
 //                                    serializer API
 // ==================================================================================== //
 
-serializer_t *serializer_new(const char *fmt) {
+serializer_t *serializer_get(const char *fmt) {
     if (strcmp(fmt, "onnx") == 0) {
         return &onnx_serializer;
     } else if(strcmp(fmt, "tflite") == 0) {
@@ -60,17 +60,5 @@ serializer_t *serializer_new(const char *fmt) {
     } else {  // default load by onnx
         LOG_WARN("Unsupport model format %s , use onnx as default\n", fmt);
         return &onnx_serializer;
-    }
-}
-
-void serializer_free(serializer_t *sez) {
-    if (sez) {
-        sez->fmt = NULL;
-        sez->load = NULL;
-        sez->load_model = NULL;
-        sez->load_graph = NULL;
-        sez->unload = NULL;
-        sez->save = NULL;
-        sez = NULL;
     }
 }

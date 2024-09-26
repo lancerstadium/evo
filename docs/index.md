@@ -61,11 +61,10 @@ make
 
 int main() {
     // ...
-    serializer_t * sez = serializer_new("onnx");
+    serializer_t * sez = serializer_get("onnx");
     model_t * mdl = sez->load_model(sez, "model/mnist_8/model.onnx");
     tensor_t * t1 = model_get_tensor(mdl, "Input3");
     tensor_dump(t1);
-    serializer_free(sez);
     // ...
     return 0;
 }

@@ -7,7 +7,7 @@ runtime_t* runtime_new(const char* fmt) {
     device_reg(EVO_DEVICE);
     runtime_t * rt = (runtime_t*)sys_malloc(sizeof(runtime_t));
     rt->dev_reg_vec = internal_context_info.dev_vec;
-    rt->sez = serializer_new(fmt);
+    rt->sez = serializer_get(fmt);
     rt->mdl = NULL;
     return rt;
 }
@@ -86,7 +86,7 @@ void runtime_unload(runtime_t *rt) {
 void runtime_free(runtime_t *rt) {
     if(!rt) return;
     runtime_unload(rt);
-    if(rt->sez) serializer_free(rt->sez);
+    if(rt->sez) rt->sez = NULL;
     sys_free(rt);
     rt = NULL;
     device_unreg(EVO_DEVICE);

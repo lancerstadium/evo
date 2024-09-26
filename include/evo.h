@@ -734,8 +734,7 @@ struct serializer {
     void (*save) (model_t*, const char*);               /* Serializer save mdl to path  */
 };
 
-EVO_API serializer_t *serializer_new(const char*);
-EVO_API void serializer_free(serializer_t *);
+EVO_API serializer_t *serializer_get(const char*);
 
 
 // ==================================================================================== //

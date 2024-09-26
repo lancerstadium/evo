@@ -15,7 +15,7 @@ model_t* internal_model_init() {
     internal_context_info.mdl->name = "internal_context_info.mdl",
     internal_context_info.mdl->dev = dft_dev,
     internal_context_info.mdl->scd = scheduler_get_default(),
-    internal_context_info.mdl->sez = serializer_new("onnx"),
+    internal_context_info.mdl->sez = serializer_get("onnx"),
     internal_context_info.mdl->graph = graph_new(internal_context_info.mdl),
     internal_context_info.mdl->tensor_map = hashmap_create();
     internal_context_info.mdl->model_proto = NULL;

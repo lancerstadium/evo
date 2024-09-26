@@ -128,7 +128,7 @@ serializer_t * sez;
 
 UnitTest_fn_def(test_node_init) {
     device_reg("cpu");
-    sez = serializer_new("onnx");
+    sez = serializer_get("onnx");
     return NULL;
 }
 
@@ -848,7 +848,6 @@ UnitTest_fn_def(test_where) {
 // ---------------------- Exit   ----------------------
 
 UnitTest_fn_def(test_node_exit) {
-    serializer_free(sez);
     device_unreg("cpu");
     return NULL;
 }

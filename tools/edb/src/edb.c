@@ -130,7 +130,7 @@ static edb_wp_t *head = NULL, *free_ = NULL;
 
 static size_t edb_model_init() {
     device_reg(STR(EDB_DEVICE));
-    edb.sez = serializer_new("onnx");
+    edb.sez = serializer_get("onnx");
     if(!edb.model_file) {
         edb.model_file = "../../tests/model/mnist_8/model.onnx";
         edb.in = edb.sez->load_tensor("../../tests/model/mnist_8/test_data_set_0/input_0.pb");
@@ -849,7 +849,6 @@ void edb_exit() {
         printf("Unload model: %s(%u Byte) success!\n", edb.model_file, edb.mdl->model_size);
         edb.sez->unload(edb.mdl);
     }
-    serializer_free(edb.sez);
     device_unreg(STR(EDB_DEVICE));
 }
 
