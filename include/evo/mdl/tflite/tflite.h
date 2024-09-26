@@ -10,6 +10,7 @@ model_t *load_model_tflite(struct serializer *sez, const char *path);
 void unload_tflite(model_t *mdl);
 tensor_t *load_tensor_tflite(const char *path);
 graph_t *load_graph_tflite(model_t *mdl);
+void save_tflite(model_t *mdl, const char* path);
 
 
 

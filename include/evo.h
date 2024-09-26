@@ -728,9 +728,10 @@ struct serializer {
 
     model_t * (*load) (struct serializer*, const void *, size_t);
     model_t * (*load_model) (struct serializer*, const char*);
-    tensor_t * (*load_tensor) (const char*);
+    tensor_t * (*load_tensor) (const char*);            /* Serializer load tenosr       */
     graph_t* (*load_graph) (model_t*);                  /* Serializer load mdl to graph */
     void (*unload) (model_t*);                          /* Serializer unload model      */
+    void (*save) (model_t*, const char*);               /* Serializer save mdl to path  */
 };
 
 EVO_API serializer_t *serializer_new(const char*);

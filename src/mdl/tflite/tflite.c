@@ -247,8 +247,8 @@ graph_t *load_graph_tflite(model_t *mdl) {
     return g;
 }
 
-EVO_UNUSED int save_tflite() {
-    return 0;
+EVO_UNUSED void save_tflite(model_t *mdl, const char* path) {
+
 }
 
 

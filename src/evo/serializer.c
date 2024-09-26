@@ -1,5 +1,6 @@
 #include <evo/mdl/onnx/onnx.h>
 #include <evo/mdl/tflite/tflite.h>
+#include <evo/mdl/etm/etm.h>
 #include <evo/util/log.h>
 #include <string.h>
 
@@ -14,6 +15,7 @@ static serializer_t onnx_serializer = {
     .load_tensor = load_tensor_onnx,
     .unload = unload_onnx,
     .load_graph = load_graph_onnx,
+    .save = NULL,
 };
 
 // ==================================================================================== //
@@ -27,8 +29,22 @@ static serializer_t tflite_serializer = {
     .load_tensor = NULL,
     .unload = unload_tflite,
     .load_graph = load_graph_tflite,
+    .save = NULL,
 };
 
+// ==================================================================================== //
+//                                      etm
+// ==================================================================================== //
+
+static serializer_t etm_serializer = {
+    .fmt = "etm",
+    .load = load_etm,
+    .load_model = load_model_etm,
+    .load_tensor = NULL,
+    .unload = unload_etm,
+    .load_graph = load_graph_etm,
+    .save = save_etm,
+};
 
 // ==================================================================================== //
 //                                    serializer API
@@ -39,6 +55,8 @@ serializer_t *serializer_new(const char *fmt) {
         return &onnx_serializer;
     } else if(strcmp(fmt, "tflite") == 0) {
         return &tflite_serializer;
+    } else if(strcmp(fmt, "etm") == 0) {
+        return &etm_serializer;
     } else {  // default load by onnx
         LOG_WARN("Unsupport model format %s , use onnx as default\n", fmt);
         return &onnx_serializer;
@@ -52,6 +70,7 @@ void serializer_free(serializer_t *sez) {
         sez->load_model = NULL;
         sez->load_graph = NULL;
         sez->unload = NULL;
+        sez->save = NULL;
         sez = NULL;
     }
 }
