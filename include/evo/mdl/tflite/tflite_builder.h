@@ -7,9 +7,9 @@
 #include "tflite_reader.h"
 #endif
 #ifndef FLATBUFFERS_COMMON_BUILDER_H
-#include "flatbuffers_common_builder.h"
+#include "../flatbuffers_common_builder.h"
 #endif
-#include "flatcc/flatcc_prologue.h"
+#include "../flatcc/flatcc_prologue.h"
 #undef flatbuffers_identifier
 #define flatbuffers_identifier "TFL3"
 #undef flatbuffers_extension
@@ -5083,5 +5083,5 @@ static tflite_Model_ref_t tflite_Model_clone(flatbuffers_builder_t *B, tflite_Mo
     __flatbuffers_memoize_end(B, t, tflite_Model_end(B));
 }
 
-#include "flatcc/flatcc_epilogue.h"
+#include "../flatcc/flatcc_epilogue.h"
 #endif /* TFLITE_BUILDER_H */

@@ -190,8 +190,8 @@ graph_t *load_graph_tflite(model_t *mdl) {
             vector_add(&sgnd_vec, nd);
             if(nd->op->type == OP_TYPE_CONV) {
                 ns(Conv2DOptions_table_t) opt = ns(Operator_builtin_options(operator));
-                int sw = ns(Conv2DOptions_stride_w)(opt);
-                int sh = ns(Conv2DOptions_stride_h)(opt);
+                // int sw = ns(Conv2DOptions_stride_w)(opt);
+                // int sh = ns(Conv2DOptions_stride_h)(opt);
                 op_type_t act_optype = OP_TYPE_NOP;
                 switch(ns(Conv2DOptions_fused_activation_function(opt))){
                     case ns(ActivationFunctionType_RELU): act_optype = OP_TYPE_RELU; break;

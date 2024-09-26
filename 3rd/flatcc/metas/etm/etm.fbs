@@ -32,7 +32,7 @@ table Tensor {
     datas: [ubyte];                 // Tensor data addr (byte array to represent raw data)
     ndata: ulong;                   // Tensor data size
     isParam: bool;                  // Tensor is parameter
-    layout: ushort;                 // Tensor is layout 0NCHW/1NHWC
+    layout: ubyte;                  // Tensor is layout 0NCHW/1NHWC
 }
 
 
@@ -40,59 +40,51 @@ table Tensor {
 //                                       etm: attribute
 // ==================================================================================== //
 
-enum AttributeType: int {
-    Float,
-    Int,
-    String,
-    Tensor,
-    Graph,
-    Floats,
-    Int64s,
-    Tensors,
-    Graphs
-}
-table AttributeDateFloat {
+table AttrDataFloat {
     f: float;                           // When type is Float
 }
-table AttributeDateInt {
+table AttrDataInt {
     i: long;                            // When type is Int
 }
-table AttributeDateString {
+table AttrDataString {
     s: string;                          // When type is String
 }
-table AttributeDateTensor {
-    t: Tensor (deprecated);             // When type is Tensor
+table AttrDataTensor {
+    t: Tensor;                          // When type is Tensor
 }
-table AttributeDateGraph {
-    g: Graph (deprecated);              // When type is Graph
+table AttrDataGraph {
+    g: Graph;                           // When type is Graph
 }
-table AttributeDateFloats {
+table AttrDataFloats {
     fs: [float];                        // When type is Floats
 }
-table AttributeDateInts {
+table AttrDataInts {
     is: [long];                         // When type is Ints
 }
-table AttributeDateTensors {
-    ts: [Tensor] (deprecated);          // When type is Tensors
+table AttrDataBytes {
+    is: [ubyte];                        // When type is Bytes
 }
-table AttributeDateGraphs {
-    gs: [Graph] (deprecated);           // When type is Graphs
+table AttrDataTensors {
+    ts: [Tensor];                       // When type is Tensors
 }
-union AttributeDate {
-    AttributeDateFloat,
-    AttributeDateInt,
-    AttributeDateString,
-    AttributeDateTensor,
-    AttributeDateGraph,
-    AttributeDateFloats,
-    AttributeDateInts,
-    AttributeDateTensors,
-    AttributeDateGraphs
+table AttrDataGraphs {
+    gs: [Graph];                        // When type is Graphs
 }
-table Attribute {
-    name: string;
-    type: AttributeType (deprecated);
-    data: AttributeDate;
+union AttrData {
+    AttrDataFloat,
+    AttrDataInt,
+    AttrDataString,
+    AttrDataTensor,
+    AttrDataGraph,
+    AttrDataFloats,
+    AttrDataInts,
+    AttrDataBytes,
+    AttrDataTensors,
+    AttrDataGraphs
+}
+table Attr {
+    k: string;
+    v: AttrData;
 }
 
 
@@ -278,8 +270,8 @@ table Node {
     in: [ushort];                       // Input Tensor List
     out: [ushort];                      // Output Tensor List
 
-    optype: OpType (deprecated);        // Operator
-    attrs: [Attribute] (deprecated);    // Attribute Vec of node
+    optype: OpType;                     // Operator
+    attrs: [Attr];                      // Attr Vec of node
 }
 
 
@@ -291,7 +283,7 @@ table Graph {
     tensors: [Tensor];                  // Graph tensors list
     nodes: [Node];                      // Graph nodes list
 
-    layout: ushort;                     // Data layout: 0NCHW/1NHWC
+    layout: ubyte;                      // Data layout: 0NCHW/1NHWC
     in: [ushort];                       // Input tensors index Vector
     out: [ushort];                      // Output tensors index Vector
 }

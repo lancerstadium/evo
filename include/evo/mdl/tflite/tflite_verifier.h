@@ -6,8 +6,8 @@
 #ifndef TFLITE_READER_H
 #include "tflite_reader.h"
 #endif
-#include "flatcc/flatcc_verifier.h"
-#include "flatcc/flatcc_prologue.h"
+#include "../flatcc/flatcc_verifier.h"
+#include "../flatcc/flatcc_prologue.h"
 
 static int tflite_CustomQuantization_verify_table(flatcc_table_verifier_descriptor_t *td);
 static int tflite_QuantizationParameters_verify_table(flatcc_table_verifier_descriptor_t *td);
@@ -6736,5 +6736,5 @@ static inline int tflite_Model_verify_as_root_with_type_hash_and_size(const void
     return flatcc_verify_table_as_typed_root_with_size(buf, bufsiz, thash, &tflite_Model_verify_table);
 }
 
-#include "flatcc/flatcc_epilogue.h"
+#include "../flatcc/flatcc_epilogue.h"
 #endif /* TFLITE_VERIFIER_H */
