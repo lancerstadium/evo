@@ -280,12 +280,10 @@ void save_etm(model_t *mdl, const char* path) {
         etm_Tensor_vec_ref_t s_tss = etm_Tensor_vec_create(&B, s_ts, g->ntensor);
         // Create Nodes
         etm_Node_ref_t s_nd[g->nnode];
-        LOG_INFO("ASDSADSAD\n");
         for(int i = 0; i < g->nnode; i++) {
             nd = g->nodes[i];
             uint16_t in[nd->nin];
             uint16_t out[nd->nout];
-            LOG_INFO("ASDSADSAD: %d\n", i);
             etm_Attr_ref_t s_attr[vector_size(nd->attr_vec)];
             for(int j = 0; j < nd->nin; j++) {
                 in[j] = nd->in[j]->index;
@@ -293,10 +291,8 @@ void save_etm(model_t *mdl, const char* path) {
             for(int j = 0; j < nd->nout; j++) {
                 out[j] = nd->out[j]->index;
             }
-            LOG_INFO("ASDSADSAD: %d %lu\n", i, vector_size(nd->attr_vec));
             for(int j = 0; j < vector_size(nd->attr_vec); j++) {
                 attribute_t* attr = nd->attr_vec[j];
-                LOG_INFO("ASDSAD: %s %d\n", attr->name, attr->type);
                 switch(attr->type) {
                     case ATTRIBUTE_TYPE_FLOAT: {
                         s_attr[j] = etm_Attr_create(&B, 
@@ -336,9 +332,7 @@ void save_etm(model_t *mdl, const char* path) {
                     default: break;
                 }
             }
-            LOG_INFO("ASDSADSAD: %d\n", i);
             etm_Attr_vec_ref_t s_attrs = etm_Attr_vec_create(&B, s_attr, vector_size(nd->attr_vec));
-            LOG_INFO("ASDSADSAD: %d\n", i);
             s_nd[i] = etm_Node_create(&B,
                 flatbuffers_string_create_str(&B, nd->name),
                 flatbuffers_uint16_vec_create(&B, (const uint16_t*)in, nd->nin),
@@ -347,7 +341,6 @@ void save_etm(model_t *mdl, const char* path) {
                 s_attrs
             );
         }
-        LOG_INFO("ASDSADSAD\n");
         etm_Node_vec_ref_t s_nds = etm_Node_vec_create(&B, s_nd, g->nnode);
         // Create Graph
         s_g[a] = etm_Graph_create(&B, s_tss, s_nds, g->data_layout, s_ins, s_outs);
