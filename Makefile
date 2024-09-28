@@ -36,7 +36,7 @@ LIBDIRS     :=
 INCDIRS		:= -I./include
 SRCDIRS		:= src src/** src/**/**
 
-ARCH_DEP	?=
+ARCH_DEP		?=
 ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
 	ARCH_DEP	:= 
 else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
@@ -44,9 +44,16 @@ else ifeq ($(CROSS_COMPILE), aarch64-linux-gnu-)
 endif
 
 # Options
+DEV_ENB		:=				# Compile with develop
 GUI_ENB		:= 				# Compile with evo-gui
 TRAIN_ENB	:=				# Compile with train-mode
 ACC_ENB 	:=				# Compile with acclerator
+
+# Options: DEV
+DEV_DEP		?=
+ifneq ($(GUI_ENB),)
+	DEV_DEP		:= -g -ggdb
+endif
 
 # Options: GUI
 GUI_DEP			?=
@@ -95,10 +102,10 @@ endif
 
 
 NOWARNS		:= -Wno-misleading-indentation -Wno-unused-result
-OPTIONS		:= $(LIBDIRS) $(LIBS) $(ARCH_DEP) $(ACC_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
-ASFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
-CFLAGS		:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
-CXXFLAGS	:= $(OPTIONS) -g -ggdb -Wall -O3 -fPIC
+OPTIONS		:= $(LIBDIRS) $(LIBS) $(DEV_ENB) $(ARCH_DEP) $(ACC_DEP) $(GUI_DEP) $(TRAIN_DEP) $(NOWARNS)
+ASFLAGS		:= $(OPTIONS) -Wall -O3 -fPIC
+CFLAGS		:= $(OPTIONS) -Wall -O3 -fPIC
+CXXFLAGS	:= $(OPTIONS) -Wall -O3 -fPIC
 TRGDIR 		:= build
 OBJDIR		:= $(TRGDIR)/obj
 LIBTRG		:= $(TRGDIR)/lib$(NAME).a
