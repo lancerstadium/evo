@@ -23,21 +23,22 @@ model_t* alexnet_model() {
 
 UnitTest_fn_def(test_tflite_load) {
     device_reg("cpu");
-    serializer_t * sez = serializer_get("onnx");
-    model_t * mdl = sez->load_file(sez, "model/mobilenet_v2_7/model.onnx");
-    // model_t* mdl = alexnet_model();
+    // serializer_t * sez = serializer_get("onnx");
+    // model_t * mdl = sez->load_file(sez, "model/mobilenet_v2_7/model.onnx");
+    model_t* mdl = alexnet_model();
 
     graph_prerun(mdl->graph);
+    graph_run(mdl->graph);
 
     graph_dump1(mdl->graph->sub_vec[0]);
 
     model_save(mdl, "wuhu.etm");
 
-    mdl->sez->unload(mdl);
+    // mdl->sez->unload(mdl);
 
-    // serializer_t* esez = serializer_get("etm");
-    // model_t* emdl = esez->load_file(esez, "wuhu.etm");
-    // graph_dump(mdl->graph);
+    serializer_t* esez = serializer_get("etm");
+    model_t* emdl = esez->load_file(esez, "wuhu.etm");
+    graph_dump1(emdl->graph->sub_vec[0]);
 
     device_unreg("cpu");
     return NULL;
