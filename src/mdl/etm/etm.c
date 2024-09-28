@@ -176,7 +176,6 @@ graph_t *load_graph_etm(model_t *mdl) {
         etm_Graph_table_t s_sg = etm_Graph_vec_at(s_sgs, i);
         graph_t *sg = graph_sub_new(g);
         sprintf(name_buf, "%s%lu", etm_Model_name(mdl->cmodel), i);
-        sg->name = sys_strdup(name_buf);
         // Add Tensors: NCHW
         etm_Tensor_vec_t s_tss = etm_Graph_tensors(s_sg);
         sg->ntensor = etm_Tensor_vec_len(s_tss);
@@ -248,7 +247,8 @@ void save_etm(model_t *mdl, const char* path) {
     node_t* nd;
     graph_t* g;
     flatcc_builder_t B;
-    
+
+    LOG_INFO("model name save: %s\n", mdl->name);
 
     // Create
     graph_t* pg = mdl->graph;
