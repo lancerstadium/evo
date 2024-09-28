@@ -829,6 +829,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                         break;
                     }
                 }
+                graph_push_tenser(g, t);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -839,6 +840,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
         if (!model_get_tensor(mdl, v->name)) {
             t = tensor_from_value_info(v);
             if (t) {
+                graph_push_tenser(g, t);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -849,6 +851,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
         if (!model_get_tensor(mdl, v->name)) {
             t = tensor_from_value_info(v);
             if (t) {
+                graph_push_tenser(g, t);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -860,6 +863,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
             if (!model_get_tensor(mdl, name)) {
                 t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                 if (t) {
+                    graph_push_tenser(g, t);
                     hashmap_set(mdl->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                 }
             }
@@ -887,6 +891,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                             if (t) {
                                 tensor_reshape(t, ndim, dims);
                                 tensor_copy_proto_onnx(t, o);
+                                graph_push_tenser(g, t);
                                 hashmap_set(mdl->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                             }
                             break;
