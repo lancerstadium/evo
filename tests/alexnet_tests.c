@@ -8,20 +8,20 @@
  */
 model_t* alexnet_model() {
     model_t* mdl = model_new("alexnet_model");
-    graph_add_input(mdl->graph, 4, (int[]){1, 1, 224, 224}, TENSOR_TYPE_FLOAT32);
-    graph_add_conv2d(mdl->graph, 96, (int64_t[]){11, 11}, (int64_t[]){4, 4}, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    graph_add_input(mdl->graph, 4, (int[]){1, 4, 224, 224}, TENSOR_TYPE_FLOAT32);
+    graph_add_conv2d(mdl->graph, 6, (int64_t[]){11, 11}, (int64_t[]){4, 4}, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
     graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
-    graph_add_conv2d(mdl->graph, 256, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "relu");
-    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
-    graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    graph_add_conv2d(mdl->graph, 256, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
+    // graph_add_conv2d(mdl->graph, 256, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "relu");
+    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
+    // graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    // graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    // graph_add_conv2d(mdl->graph, 256, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
-    graph_add_linear(mdl->graph, 4096, true, "relu");
-    graph_add_dropout(mdl->graph, 0.5);
-    graph_add_linear(mdl->graph, 4096, true, "relu");
-    graph_add_dropout(mdl->graph, 0.5);
+    // graph_add_linear(mdl->graph, 4096, true, "relu");
+    // graph_add_dropout(mdl->graph, 0.5);
+    // graph_add_linear(mdl->graph, 4096, true, "relu");
+    // graph_add_dropout(mdl->graph, 0.5);
     graph_add_linear(mdl->graph, 10, true, "softmax");
     return mdl;
 }
