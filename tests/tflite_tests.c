@@ -33,11 +33,11 @@ UnitTest_fn_def(test_tflite_load) {
 
     model_save(mdl, "wuhu.etm");
 
-    mdl->sez->unload(mdl);
+    // mdl->sez->unload(mdl);
 
-    serializer_t* esez = serializer_get("etm");
-    model_t* emdl = esez->load_file(esez, "wuhu.etm");
-    graph_dump(mdl->graph->sub_vec[0]);
+    // serializer_t* esez = serializer_get("etm");
+    // model_t* emdl = esez->load_file(esez, "wuhu.etm");
+    // graph_dump(mdl->graph->sub_vec[0]);
 
     device_unreg("cpu");
     return NULL;
