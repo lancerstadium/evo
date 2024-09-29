@@ -655,6 +655,8 @@ static void Gemm_forward_float16(node_t *nd) {
     }
 }
 
+// #include <evo/dev/cpu/def.h>
+
 static void Gemm_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
@@ -664,12 +666,14 @@ static void Gemm_forward_float32(node_t *nd) {
     float *py = (float *)y->datas;
     float *pa = (float *)a->datas;
     float *pb = (float *)b->datas;
-    float *pc;
+    float *pc = (c != NULL) ? (float *)c->datas : NULL;  // 偏置矩阵 C 的数据指针（如果存在）
     float sum;
     int oa = 0;
     int ob = 0;
     int oy = 0;
     int i, j, k;
+
+    // Gemm_forward_float32_cpu(pa, pb, pc, py, pdat->alpha, pdat->beta, pdat->m, pdat->n, pdat->k, pdat->transA, pdat->transB);
 
     if (pdat->transA && pdat->transB) {
         for (i = 0; i < pdat->m; i++) {

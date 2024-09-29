@@ -60,35 +60,45 @@ void cuda_check(cudaError_t status) {
 }
 
 // ==================================================================================== //
-//                                       cuda blas kernels: Sum
+//                                       cuda blas kernels
 // ==================================================================================== //
 
 
-__global__ void cudaSumFloat32(float *a, float *b, float *res, int N) {
+__global__ void cudaSumForwardFloat32(float *a, float *b, float *res, int N) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if(i < N)
         res[i] = a[i] + b[i];
 }
 
 
-// ==================================================================================== //
-//                                       cuda blas kernels: Gemm
-// ==================================================================================== //
+__global__ void cudaGemmForwardFloat32(float* A, float* B, float* C, float* Y, float alpha, float beta, 
+                                       unsigned M, unsigned N, unsigned K, int transA, int transB) {
+    unsigned int m = threadIdx.x + blockDim.x * blockIdx.x;  // Row index of Y (or A)
+    unsigned int n = threadIdx.y + blockDim.y * blockIdx.y;  // Column index of Y (or B)
+    
+    if (m >= M || n >= N)
+        return;
 
-
-__global__ void cudaGemmFloat32(float *A, float *B, float *C, int N) {
-    int col = blockIdx.x * blockDim.x + threadIdx.x;  
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if (row < M && col < N) {  
-        float val = 0.;  
-        for (int k = 0; k < K; ++k) {  
-            val += A[OFFSET(row, k, K)] * B[OFFSET(k, col, N)];  
-        }  
-        C[OFFSET(row, col, N)] = alpha * val + beta * C[OFFSET(row, col, N)];  
+    float c = 0;
+    for (unsigned k = 0; k < K; ++k) {
+        // Handle different cases of transA and transB
+        float a_val = transA ? A[k * M + m] : A[m * K + k]; // Transpose A if transA is true
+        float b_val = transB ? B[n * K + k] : B[k * N + n]; // Transpose B if transB is true
+        
+        c += a_val * b_val;
     }
-}
 
+    // Apply alpha and calculate final result
+    float res = alpha * c;
+    
+    // Apply beta and add bias if C is not NULL
+    if (C != NULL && beta != 0) {
+        res += beta * C[m * N + n];
+    }
+
+    // Write result to output matrix Y
+    Y[m * N + n] = res;
+}
 
 
 // ==================================================================================== //
@@ -96,26 +106,55 @@ __global__ void cudaGemmFloat32(float *A, float *B, float *C, int N) {
 // ==================================================================================== //
 
 
-extern "C" void cuda_sum_float32(float *a_h, float *b_h, float *res_h, int nElem) {
+extern "C" void Sum_forward_float32_cuda(float *a, float *b, float *c, int nElem) {
     int nByte = sizeof(float) * nElem;
 
-    float *a_d, *b_d, *res_d;
+    float *a_d, *b_d, *c_d;
     cudaMalloc((float **)&a_d, nByte);
     cudaMalloc((float **)&b_d, nByte);
-    cudaMalloc((float **)&res_d, nByte);
+    cudaMalloc((float **)&c_d, nByte);
 
-    cudaMemcpy(a_d, a_h, nByte, cudaMemcpyHostToDevice);
-    cudaMemcpy(b_d, b_h, nByte, cudaMemcpyHostToDevice);
+    cudaMemcpy(a_d, a, nByte, cudaMemcpyHostToDevice);
+    cudaMemcpy(b_d, b, nByte, cudaMemcpyHostToDevice);
 
     dim3 block(512);
     dim3 grid((nElem - 1) / block.x + 1);
 
-    cudaSumFloat32<<<grid, block>>>(a_d, b_d, res_d, nElem);
+    cudaSumForwardFloat32<<<grid, block>>>(a_d, b_d, c_d, nElem);
     cudaDeviceSynchronize();
-    cudaMemcpy(res_h, res_d, nElem, cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, c_d, nElem, cudaMemcpyDeviceToHost);
 
     // free
     cudaFree(a_d);
     cudaFree(b_d);
-    cudaFree(res_d);
+    cudaFree(c_d);
+}
+
+
+extern "C" void Gemm_forward_float32_cuda(float* A, float* B, float* C, float* Y, float alpha, float beta, 
+                                       unsigned M, unsigned N, unsigned K, int transA, int transB) {
+
+    float *A_d, *B_d, *C_d, *Y_d;
+    cudaMalloc((void**)&A_d, M * K * sizeof(float));
+    cudaMalloc((void**)&B_d, K * N * sizeof(float));
+    cudaMalloc((void**)&C_d, M * N * sizeof(float));
+    cudaMalloc((void**)&Y_d, M * N * sizeof(float));
+    cudaMemcpy(A_d, A, M * K * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(B_d, B, K * N * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(C_d, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(Y_d, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
+
+
+    dim3 block(32, 32);
+    dim3 grid((M - 1)/ block.x + 1, (N - 1) / block.y + 1);
+
+    cudaGemmForwardFloat32<<<grid, block>>>(A_d, B_d, C_d, Y_d, alpha, beta, M, N, K, transA, transB);
+    cudaDeviceSynchronize();
+    cudaMemcpy(Y, Y_d, M * N * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free
+    cudaFree(A_d);
+    cudaFree(B_d);
+    cudaFree(C_d);
+    cudaFree(Y_d);
 }

@@ -80,6 +80,6 @@ __global__ void reluForwardFloat32(float *x, int n) {
 //                                       cuda activate API
 // ==================================================================================== //
 
-extern "C" void cuda_relu_forward_float32(float *x, int n) {
+extern "C" void Relu_forward_float32_cuda(float *x, int n) {
     reluForwardFloat32<<<cuda_grid(n), EVO_CUDA_BLOCK>>>(x, n);
 }

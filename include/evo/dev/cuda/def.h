@@ -23,10 +23,19 @@ extern "C" {
 
 #define EVO_CUDA_BLOCK 512
 
+// ==================================================================================== //
+//                                       cuda device
+// ==================================================================================== //
 
 device_t* device_reg_cuda();
-void cuda_sum_float32(float *a_h, float *b_h, float *res_h, int nElem);
-void cuda_relu_forward_float32(float *x, int n);
+
+// ==================================================================================== //
+//                                       cuda kernel
+// ==================================================================================== //
+
+void Sum_forward_float32_cuda(float *a, float *b, float *c, int nElem);
+void Gemm_forward_float32_cuda(float* A, float* B, float* C, float* Y, float alpha, float beta, unsigned M, unsigned N, unsigned K, int transA, int transB);
+void Relu_forward_float32_cuda(float *x, int n);
 
 #endif // EVO_ACC_CUDA
 
