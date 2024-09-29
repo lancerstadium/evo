@@ -78,10 +78,10 @@ COMMA			:=,
 ACC_ENB_LIST 	:= $(subst $(COMMA), ,$(ACC_ENB))
 ACC_ENB_RES		:=
 ACC_ENB_CUDA	:=
-ACC_ENB_X86_64	:=
+ACC_ENB_METAL	:=
 ACC_DEP 		:=
 ACC_DEP_CUDA	:=
-ACC_DEP_X86_64	:=
+ACC_DEP_METAL	:=
 ifneq ($(ACC_ENB),)
 define set_acc_dep
 	ifeq ($(strip $(1)),cuda)
@@ -91,10 +91,10 @@ define set_acc_dep
 						-gencode arch=compute_52,code=[sm_52,compute_52]
 		ACC_ENB_RES		+= cuda 
 		ACC_ENB_CUDA 	:= 1
-	else ifeq ($(strip $(1)),x86_64)
-		ACC_DEP_X86_64 	+= 
-		ACC_ENB_RES		+= x86_64 
-		ACC_ENB_X86_64	:= 1
+	else ifeq ($(strip $(1)),metal)
+		ACC_DEP_METAL 	+= 
+		ACC_ENB_RES		+= metal
+		ACC_ENB_METAL	:= 1
 	endif
 endef
 $(foreach arch,$(ACC_ENB_LIST),$(eval $(call set_acc_dep,$(arch))))
@@ -167,7 +167,7 @@ ifneq ($(ACC_ENB_RES),)
 ifeq ($(ACC_ENB_CUDA),1)
 	@echo "#define EVO_ACC_CUDA" >> $(CFGFILE)
 endif
-ifeq ($(ACC_ENB_X86_64),1)
+ifeq ($(ACC_ENB_METAL),1)
 	@echo "#define EVO_ACC_X86_64" >> $(CFGFILE)
 endif
 	@echo "  - acc:    \t\t\e[32;1m$(ACC_ENB_RES)\e[0m"

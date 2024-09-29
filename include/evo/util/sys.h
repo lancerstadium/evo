@@ -35,8 +35,6 @@ extern "C" {
 #include <malloc.h>
 #endif
 
-#include "lock.h"
-
 #include <evo/config.h>
 
 
