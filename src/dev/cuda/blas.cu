@@ -76,7 +76,18 @@ __global__ void cudaSumFloat32(float *a, float *b, float *res, int N) {
 // ==================================================================================== //
 
 
+__global__ void cudaGemmFloat32(float *A, float *B, float *C, int N) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;  
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
 
+    if (row < M && col < N) {  
+        float val = 0.;  
+        for (int k = 0; k < K; ++k) {  
+            val += A[OFFSET(row, k, K)] * B[OFFSET(k, col, N)];  
+        }  
+        C[OFFSET(row, col, N)] = alpha * val + beta * C[OFFSET(row, col, N)];  
+    }
+}
 
 
 
