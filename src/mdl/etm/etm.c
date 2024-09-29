@@ -104,6 +104,7 @@ model_t *load_etm(struct serializer *s, const void *buf, size_t len) {
     mdl = model_new(NULL);
     mdl->sez = s;
     mdl->cmodel = etm_Model_as_root(buf);
+    mdl->name = sys_strdup(etm_Model_name(mdl->cmodel));
     if (!mdl->cmodel) {
         if (mdl)
             sys_free(mdl);
@@ -227,9 +228,15 @@ graph_t *load_graph_etm(model_t *mdl) {
                 attribute_t * attr = attr_from_proto(s_attr);
                 vector_add(&nd->attr_vec, attr);
             }
+            // Add idx node
+            vector_add(&sg->ndx, j);
             sg->nodes[j] = nd;
         }
     }
+    g->ntensor = g->sub_vec[0]->ntensor;
+    g->tensors = g->sub_vec[0]->tensors;
+    g->nnode = g->sub_vec[0]->nnode;
+    g->nodes = g->sub_vec[0]->nodes;
     return g;
 }
 

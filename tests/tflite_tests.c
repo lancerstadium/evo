@@ -6,12 +6,12 @@ model_t* alexnet_model() {
     graph_add_input(mdl->graph, 4, (int[]){1, 4, 224, 224}, TENSOR_TYPE_FLOAT32);
     graph_add_conv2d(mdl->graph, 6, (int64_t[]){11, 11}, (int64_t[]){4, 4}, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
     graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
-    // graph_add_conv2d(mdl->graph, 256, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "relu");
-    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
-    // graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    // graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    // graph_add_conv2d(mdl->graph, 256, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
-    // graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
+    graph_add_conv2d(mdl->graph, 256, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "relu");
+    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
+    graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    graph_add_conv2d(mdl->graph, 384, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    graph_add_conv2d(mdl->graph, 256, (int64_t[]){3, 3}, NULL, (int64_t[]){1, 1, 1, 1}, NULL, 1, NULL, "relu");
+    graph_add_maxpool2d(mdl->graph, (int64_t[]){3, 3}, (int64_t[]){2, 2}, NULL, NULL, 0, 0);
     graph_add_flatten(mdl->graph);
     // graph_add_linear(mdl->graph, 4096, true, "relu");
     // graph_add_dropout(mdl->graph, 0.5);
@@ -38,7 +38,10 @@ UnitTest_fn_def(test_tflite_load) {
 
     serializer_t* esez = serializer_get("etm");
     model_t* emdl = esez->load_file(esez, "wuhu.etm");
-    graph_dump1(emdl->graph->sub_vec[0]);
+    
+    graph_prerun(emdl->graph);
+    graph_run(emdl->graph);
+    graph_dump1(emdl->graph);
 
     device_unreg("cpu");
     return NULL;
