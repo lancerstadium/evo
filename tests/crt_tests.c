@@ -114,7 +114,7 @@ UnitTest_fn_def(test_mnist_create) {
     // Train
     int nepoch = 10;
     int nbatch = 60000;
-    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_CROSS_ENTROPY, TRAINER_OPT_SGD);
+    optimizer_t* opt = optimizer_new(0.001, 1e-8, OPTIMIZER_LOSS_TYPE_CROSS_ENTROPY, OPTIMIZER_TYPE_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
     tensor_t *ts;
@@ -139,7 +139,7 @@ UnitTest_fn_def(test_mnist_create) {
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
-            trainer_step(trn, mdl, y_ts);
+            optimizer_step(opt, mdl, y_ts);
             // if(e == 3 && b >= 0 && b < 1) {
             //     fprintf(stderr, "<%u> ", label->bs[b]);
             //     // image_dump_raw(imgs, b);
@@ -150,10 +150,10 @@ UnitTest_fn_def(test_mnist_create) {
             //     tensor_dump1(ts->grad);
             //     fprintf(stderr, "--\n");
             // }
-            trainer_zero_grad(trn, mdl);
+            optimizer_zero_grad(opt, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             // tensor_dump2(sss);
-            sum_loss += trn->cur_loss;
+            sum_loss += opt->cur_loss;
         }
         loss_data[e] = sum_loss / nbatch;
         // Evaluate the model on the training and test set
@@ -161,7 +161,7 @@ UnitTest_fn_def(test_mnist_create) {
 
         }
         char bar_label[50];
-        sprintf(bar_label, "Train: %d/%d Loss: %.6f", e, nepoch, loss_data[e]);
+        sprintf(bar_label, "Loss: %.6f", loss_data[e]);
         progressbar_update_label(bar, bar_label);
         progressbar_update(bar, e);
         figure_update_plot_1d(fig, loss_vec, e);
@@ -314,20 +314,20 @@ UnitTest_fn_def(test_simple_create) {
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec, 2, (int[]){nepoch, 1});
     float* loss_data = loss_vec->datas;
-    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    optimizer_t* opt = optimizer_new(0.001, 1e-8, OPTIMIZER_LOSS_TYPE_MSE, OPTIMIZER_TYPE_SGD);
     tensor_t* X_ts, *y_ts;
     for(int e = 0; e < nepoch; e++) {
         for(int b = 0; b < sizeof(y)/sizeof(float); b++) {
             X_ts = tensor_new_float32("X", (int[]){1, X_off}, 2, X + b * X_off, X_off);
             y_ts = tensor_new_float32("y", (int[]){1, y_off}, 2, y + b, y_off);
             model_set_tensor(mdl, "Input0", X_ts);
-            trainer_step(trn, mdl, y_ts);
-            trainer_zero_grad(trn, mdl);
+            optimizer_step(opt, mdl, y_ts);
+            optimizer_zero_grad(opt, mdl);
             // model_eval(mdl, X_ts);
-            // fprintf(stderr, "<%.0f %2.2f> ", y[b], trn->cur_loss);
+            // fprintf(stderr, "<%.0f %2.2f> ", y[b], opt->cur_loss);
         }
-        // fprintf(stderr, "[%2d] Loss: %.8f\n", e, trn->cur_loss);
-        loss_data[e] = trn->cur_loss;
+        // fprintf(stderr, "[%2d] Loss: %.8f\n", e, opt->cur_loss);
+        loss_data[e] = opt->cur_loss;
     }
 
     figure_t* fig = figure_new_1d("Simple Loss", FIGURE_TYPE_VECTOR, FIGURE_PLOT_TYPE_LINE, loss_vec);
@@ -400,14 +400,14 @@ UnitTest_fn_def(test_dummy_create) {
     model_show_tensors(mdl);
 
     // Train
-    trainer_t* trn = trainer_new(0.1, 1e-8, TRAINER_LOSS_MSE, TRAINER_OPT_SGD);
+    optimizer_t* opt = optimizer_new(0.1, 1e-8, OPTIMIZER_LOSS_TYPE_MSE, OPTIMIZER_TYPE_SGD);
     x = tensor_new_float32("x", (int[]){1, 2}, 2, (float[]){0.5, 1.0} , 2);
     y = tensor_new_float32("y", (int[]){1, 1}, 2, (float[]){0.8}      , 1);
     model_set_tensor(mdl, "Input0", x);
-    float loss1 = trainer_step(trn, mdl, y);
+    float loss1 = optimizer_step(opt, mdl, y);
     fprintf(stderr, "Loss: %f\n", loss1);
     model_eval(mdl, x);
-    float loss2 = trainer_loss(trn, mdl, y, true);
+    float loss2 = optimizer_loss(opt, mdl, y, true);
     fprintf(stderr, "Loss: %f\n", loss2);
 
     ts = model_get_tensor(mdl, "Gemm1_out0");

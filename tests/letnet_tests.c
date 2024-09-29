@@ -48,7 +48,7 @@ UnitTest_fn_def(test_letnet) {
     // Train
     int nepoch = 10;
     int nbatch = 60000;
-    trainer_t* trn = trainer_new(0.001, 1e-8, TRAINER_LOSS_CROSS_ENTROPY, TRAINER_OPT_SGD);
+    optimizer_t* opt = optimizer_new(0.001, 1e-8, OPTIMIZER_LOSS_TYPE_CROSS_ENTROPY, OPTIMIZER_TYPE_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
     tensor_t *ts;
@@ -73,7 +73,7 @@ UnitTest_fn_def(test_letnet) {
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
             ((float*)y_ts->datas)[label->bs[b]] = 1;
-            trainer_step(trn, mdl, y_ts);
+            optimizer_step(opt, mdl, y_ts);
             // if(e == 0 && b >= 0 && b < 1) {
             //     // fprintf(stderr, "<%u> ", label->bs[b]);
             //     // image_dump_raw(imgs, b);
@@ -84,10 +84,10 @@ UnitTest_fn_def(test_letnet) {
             //     tensor_dump1(ts);
             //     fprintf(stderr, "--\n");
             // }
-            trainer_zero_grad(trn, mdl);
+            optimizer_zero_grad(opt, mdl);
             // tensor_t* sss = model_get_tensor(mdl, "Gemm1_out0");
             // tensor_dump2(sss);
-            sum_loss += trn->cur_loss;
+            sum_loss += opt->cur_loss;
         }
         loss_data[e] = sum_loss / nbatch;
         char bar_label[50];

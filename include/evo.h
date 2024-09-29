@@ -805,33 +805,33 @@ struct allocator {
 //                                  evo: typedef (train)
 // ==================================================================================== //
 
-typedef struct trainer trainer_t;
+typedef struct optimizer optimizer_t;
 
 typedef enum {
-    TRAINER_OPT_SGD,
-    TRAINER_OPT_ADAM
-} trainer_opt_type_t;
+    OPTIMIZER_TYPE_SGD,
+    OPTIMIZER_TYPE_ADAM
+} optimizer_type_t;
 
 typedef enum {
-    TRAINER_LOSS_MSE,
-    TRAINER_LOSS_CROSS_ENTROPY
-} trainer_loss_type_t;
+    OPTIMIZER_LOSS_TYPE_MSE,
+    OPTIMIZER_LOSS_TYPE_CROSS_ENTROPY
+} optimizer_loss_type_t;
 
 
 // ==================================================================================== //
-//                                  evo: trainer (train)
+//                                  evo: optimizer (train)
 // ==================================================================================== //
 
-struct trainer {
-    int cur_step;                                       /* Current Step of Trainer      */
-    float cur_loss;                                     /* Current loss of Trainer      */
+struct optimizer {
+    int cur_step;                                       /* Current Step of Optier       */
+    float cur_loss;                                     /* Current loss of Optier       */
 
-    float lr;                                           /* Learning Rate of Trainer     */
-    float lr_decay;                                     /* Learning Rate Dec of Trainer */
+    float lr;                                           /* Learning Rate of Optier      */
+    float lr_decay;                                     /* Learning Rate Dec of Optier  */
     float wt_decay;                                     /* Weight Dec, L2 Reg Coeff     */
-    float epsilon;                                      /* Little Constant of Trainer   */
-    trainer_opt_type_t opt_type;                        /* Optimizors Type: SGD,Adam... */
-    trainer_loss_type_t loss_type;                      /* Loss func Type: MSE,CE...    */
+    float epsilon;                                      /* Little Constant of Optier    */
+    optimizer_type_t type;                              /* Optimizors Type: SGD,Adam... */
+    optimizer_loss_type_t loss_type;                    /* Loss func Type: MSE,CE...    */
     void *priv;                                         /* Private Params of Optimizor  */
 
     union {
@@ -847,15 +847,15 @@ struct trainer {
     
     float (*loss)(float*, float*, int);                 /* Compute Loss Function        */
     void (*loss_grad)(float*, float*, float*, int);     /* Compute Loss Gradient Func   */
-    void (*update)(struct trainer*, tensor_t*);         /* Update A Tensor by Gradient  */
+    void (*update)(struct optimizer*, tensor_t*);       /* Update A Tensor by Gradient  */
 };
 
-EVO_API trainer_t * trainer_new(float, float, trainer_loss_type_t, trainer_opt_type_t);
-EVO_API float trainer_loss(trainer_t*, model_t*, tensor_t*, bool);
-EVO_API void trainer_update_grad(trainer_t*, model_t*);
-EVO_API void trainer_zero_grad(trainer_t*, model_t*);
-EVO_API float trainer_step(trainer_t*, model_t*, tensor_t*);
-EVO_API void trainer_free(trainer_t*);
+EVO_API optimizer_t * optimizer_new(float, float, optimizer_loss_type_t, optimizer_type_t);
+EVO_API float optimizer_loss(optimizer_t*, model_t*, tensor_t*, bool);
+EVO_API void optimizer_update_grad(optimizer_t*, model_t*);
+EVO_API void optimizer_zero_grad(optimizer_t*, model_t*);
+EVO_API float optimizer_step(optimizer_t*, model_t*, tensor_t*);
+EVO_API void optimizer_free(optimizer_t*);
 
 #endif  // EVO_TRAIN_ENB
 
@@ -875,17 +875,20 @@ typedef struct progressbar progressbar_t;
 // ==================================================================================== //
 
 
-struct progressbar {
-    size_t max;                                         /* maximum iter value           */
-    size_t value;                                       /* current iter value           */
-    time_t start;                                       /* time bar was started         */
-    char label[EVO_BAR_LABEL_LEN];                      /* labels show in bar           */            
-    struct {                                            /* E.g. |###    | has |#|       */
-        char begin;                                     /* char for the beginning       */
-        char fill;                                      /* char for the filling         */
-        char end;                                       /* char for the ending          */
+typedef struct progressbar {
+    size_t max;                                         /* maximum iter value */
+    size_t value;                                       /* current iter value */
+    time_t start;                                       /* time bar was started */
+    char label[EVO_BAR_LABEL_LEN];                      /* label to show in bar */
+    struct {
+        char begin;                                     /* char for the beginning */
+        char fill;                                      /* char for the filling */
+        char empty;                                     /* char for the empty space */
+        char end;                                       /* char for the ending */
     } format;
-};
+    time_t last_update_time;                            /* time of last update */
+    double avg_step_time;                               /* average step time */
+} progressbar_t;
 
 progressbar_t *progressbar_new(const char *label, size_t max);
 progressbar_t *progressbar_new_format(const char *label, size_t max, const char *format);
