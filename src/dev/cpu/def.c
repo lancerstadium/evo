@@ -148,7 +148,7 @@ static int cpu_posrun(device_t *dev, graph_t *g) {
     return 0;
 }
 
-static int cpu_release(device_t* dev) {
+static int cpu_exit(device_t* dev) {
     if(dev) {
         dev->rsv = NULL;
         return 0;
@@ -160,10 +160,16 @@ static int cpu_release(device_t* dev) {
 //                                       cpu: allocator
 // ==================================================================================== //
 
-void cpu_alloc(device_t *dev, graph_t *sg) {
-    (void)dev;
-    (void)sg;
-    return;
+void* cpu_alloc(size_t size) {
+    void* ptr = malloc(size);
+    if (!ptr) {
+        fprintf(stderr, "CPU memory allocation failed\n");
+    }
+    return ptr;
+}
+
+void cpu_release(void* ptr) {
+    free(ptr);
 }
 
 // ==================================================================================== //
@@ -181,27 +187,23 @@ void cpu_graph_spilte(graph_t *g) {
 // ==================================================================================== //
 
 static interface_t cpu_itf = {
-    .init = cpu_init,
-    .prerun = cpu_prerun,
-    .step = cpu_step,
-    .run = cpu_run,
-    .posrun = cpu_posrun,
-    .release = cpu_release
+    .init       = cpu_init,
+    .prerun     = cpu_prerun,
+    .step       = cpu_step,
+    .run        = cpu_run,
+    .posrun     = cpu_posrun,
+    .exit       = cpu_exit
 };
 
 static allocator_t cpu_alc = {
-    .alloc = cpu_alloc
-};
-
-static optimizer_t cpu_opt = {
-    .graph_spilte = cpu_graph_spilte
+    .alloc      = cpu_alloc,
+    .release    = cpu_release
 };
 
 static device_t cpu_dev = {
     .name = "cpu",
     .itf  = &cpu_itf,
     .alc  = &cpu_alc,
-    .opt  = &cpu_opt,
     .scd  = NULL
 };
 

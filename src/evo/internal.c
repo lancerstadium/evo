@@ -12,7 +12,7 @@ model_t* internal_model_init() {
         dft_dev = device_reg(EVO_DEVICE);
     }
     internal_context_info.mdl = malloc(sizeof(model_t));
-    internal_context_info.mdl->name = "internal_context_info.mdl",
+    internal_context_info.mdl->name = "internal_model",
     internal_context_info.mdl->dev = dft_dev,
     internal_context_info.mdl->scd = scheduler_get_default(),
     internal_context_info.mdl->sez = serializer_get("onnx"),
@@ -141,7 +141,7 @@ int device_unreg_dev(device_t* dev) {
         if (strcmp(internal_context_info.dev_vec[i]->name, dev->name) == 0) {
             vector_remove(internal_context_info.dev_vec, i);
             // interface release
-            if (dev->itf && dev->itf->release) dev->itf->release(dev);
+            if (dev->itf && dev->itf->exit) dev->itf->exit(dev);
             LOG_INFO("Device %s release success!\n", internal_context_info.dev_vec[i]->name);
             return 0;
         }
@@ -160,7 +160,7 @@ int device_unreg(const char* name) {
         if (strcmp(internal_context_info.dev_vec[i]->name, name) == 0) {
             vector_remove(internal_context_info.dev_vec, i);
             // interface release
-            if (internal_context_info.dev_vec[i]->itf && internal_context_info.dev_vec[i]->itf->release) internal_context_info.dev_vec[i]->itf->release(internal_context_info.dev_vec[i]);
+            if (internal_context_info.dev_vec[i]->itf && internal_context_info.dev_vec[i]->itf->exit) internal_context_info.dev_vec[i]->itf->exit(internal_context_info.dev_vec[i]);
             LOG_INFO("Device %s release success!\n", internal_context_info.dev_vec[i]->name);
             return 0;
         }

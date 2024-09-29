@@ -4,22 +4,6 @@
 #include <evo/dev/cpu/def.h>
 #include <string.h>
 
-
-device_t * device_new(const char *name) {
-    device_t *dev = (device_t *)malloc(sizeof(device_t));
-    if(name) {
-        dev->name = sys_strdup(name);
-    } else {
-        dev->name = sys_strdup("cpu");      /* Default: cpu */
-    }
-    dev->rsv = NULL;
-    dev->itf = NULL;
-    dev->alc = NULL;
-    dev->opt = NULL;
-    dev->scd = NULL;
-    return dev;
-}
-
 device_t* device_reg(const char* name) {
     if(strcmp(name, "cpu") == 0) {
         return device_reg_cpu();
@@ -28,7 +12,6 @@ device_t* device_reg(const char* name) {
         return NULL;
     }
 }
-
 
 op_t * device_find_op(device_t *dev, op_type_t t) {
     if(dev && dev->rsv) {

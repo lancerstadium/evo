@@ -23,10 +23,12 @@ extern "C" {
 
 #define EVO_CUDA_BLOCK 512
 
+
+device_t* device_reg_cuda();
 void cuda_sum_float32(float *a_h, float *b_h, float *res_h, int nElem);
 void cuda_relu_forward_float32(float *x, int n);
 
-#endif 
+#endif // EVO_ACC_CUDA
 
 #ifdef __cplusplus
 }

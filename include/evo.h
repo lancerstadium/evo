@@ -68,7 +68,6 @@ typedef struct runtime runtime_t;
 typedef struct resolver resolver_t;
 typedef struct profiler profiler_t;
 typedef struct scheduler scheduler_t;
-typedef struct optimizer optimizer_t;
 typedef struct interface interface_t;
 typedef struct allocator allocator_t;
 typedef struct attribute attribute_t;
@@ -763,11 +762,9 @@ struct device {
     resolver_t * rsv;                                   /* Device ops' Resolver         */
     interface_t* itf;                                   /* Device Interface: Main       */
     allocator_t* alc;                                   /* Device Mem Allocator         */
-    optimizer_t* opt;                                   /* Device Graph Optimizer       */
     scheduler_t* scd;                                   /* Device Own Scheduler         */
 };
 
-EVO_API device_t * device_new(const char*);
 EVO_API op_t * device_find_op(device_t*, op_type_t);
 EVO_API device_t* device_reg(const char*);
 EVO_API int device_unreg(const char*);
@@ -784,28 +781,18 @@ struct interface {
     int (*step)(device_t*, graph_t*, int);              /* Step Run Graph: True Entry   */
     int (*run)(device_t*, graph_t*);                    /* Run Graph: True Entry        */
     int (*posrun)(device_t*, graph_t*);                 /* Post Run Graph: True Entry   */
-    int (*release)(device_t*);                          /* Device Release: rsv ...      */
+    int (*exit)(device_t*);                             /* Device Exit: rsv ...         */
 };
 
 // ==================================================================================== //
 //                                  evo: allocator (device)
 // ==================================================================================== //
 
+
 struct allocator {
-    void (*alloc)(device_t*, graph_t*);                 /* Alloc resource               */
-    void (*release)(device_t*, graph_t*);               /* Release all allocated        */
+    void* (*alloc)(size_t);
+    void (*release)(void*);
 };
-
-
-// ==================================================================================== //
-//                                  evo: optimizer (device)
-// ==================================================================================== //
-
-struct optimizer {
-    void (*graph_spilte)(graph_t*);
-    void (*graph_optimize)(graph_t*);
-};
-
 
 
 #if defined(EVO_TRAIN_ENB)
