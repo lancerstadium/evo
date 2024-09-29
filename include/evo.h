@@ -22,8 +22,9 @@
 //                                       include
 // ==================================================================================== //
 
-#include "evo/util/map.h"
-#include "evo/util/vec.h"
+#include <evo/util/map.h>
+#include <evo/util/vec.h>
+#include <evo/util/sys.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +52,6 @@ extern "C" {
 #define EVO_ALIGN_SIZE      16
 #define EVO_BAR_LABEL_LEN   256
 
-#include "evo/config.h"
 
 
 // ==================================================================================== //

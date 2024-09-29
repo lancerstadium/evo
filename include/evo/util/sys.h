@@ -37,43 +37,66 @@ extern "C" {
 
 #include "lock.h"
 
+#include <evo/config.h>
+
+
 // ==================================================================================== //
 //                                      host sys port
 // ==================================================================================== //
 
-void* sys_malloc(size_t size);
-void sys_free(void* ptr);
-void* sys_realloc(void* ptr, size_t size);
-
-
-
-// ==================================================================================== //
-//                                      host cpu info
-// ==================================================================================== //
-
-int cpu_check();
-int cpu_get_mask(int mask);
-int cpu_set_affine(int mask);
-int cpu_get_cluster_mask(int cluster);
-
+void* sys_malloc        (size_t size);
+void  sys_free          (void* ptr);
+void* sys_realloc       (void* ptr, size_t size);
 
 
 // ==================================================================================== //
 //                                       string operate
 // ==================================================================================== //
 
-char* sys_strdup(const char* src);
-char* sys_get_file_ext(const char* path);
-char* sys_get_file_name(const char* path);
-char* sys_memory_size(int size);
+char* sys_strdup        (const char* src);
+char* sys_get_file_ext  (const char* path);
+char* sys_get_file_name (const char* path);
+char* sys_memory_size   (int size);
 
 // ==================================================================================== //
 //                                       system time
 // ==================================================================================== //
 
-double sys_time();
+double sys_time         ();
 
+// ==================================================================================== //
+//                                       system device
+// ==================================================================================== //
 
+int sys_has_avx         ();
+int sys_has_avx_vnni    ();
+int sys_has_avx2        ();
+int sys_has_avx512      ();
+int sys_has_avx512_vbmi ();
+int sys_has_avx512_vnni ();
+int sys_has_avx512_bf16 ();
+int sys_has_fma         ();
+int sys_has_neon        ();
+int sys_has_sve         ();
+int sys_has_arm_fma     ();
+int sys_has_metal       ();
+int sys_has_f16c        ();
+int sys_has_fp16_va     ();
+int sys_has_wasm_simd   ();
+int sys_has_blas        ();
+int sys_has_cuda        ();
+int sys_has_vulkan      ();
+int sys_has_kompute     ();
+int sys_has_gpublas     ();
+int sys_has_sse3        ();
+int sys_has_ssse3       ();
+int sys_has_riscv_v     ();
+int sys_has_sycl        ();
+int sys_has_rpc         ();
+int sys_has_vsx         ();
+int sys_has_matmul_int8 ();
+int sys_has_cann        ();
+int sys_has_llamafile   ();
 
 #ifdef __cplusplus
 }
