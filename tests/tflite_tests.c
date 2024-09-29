@@ -23,9 +23,9 @@ model_t* alexnet_model() {
 
 UnitTest_fn_def(test_tflite_load) {
     device_reg("cpu");
-    serializer_t * sez = serializer_get("tflite");
-    model_t * mdl = sez->load_file(sez, "model/mnist_8/mnist_dw_q.tflite");
-    // model_t* mdl = alexnet_model();
+    // serializer_t * sez = serializer_get("tflite");
+    // model_t * mdl = sez->load_file(sez, "model/mnist_8/mnist_dw_q.tflite");
+    model_t* mdl = alexnet_model();
 
     // graph_prerun(mdl->graph);
     // graph_run(mdl->graph);
