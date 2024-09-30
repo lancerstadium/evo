@@ -34,6 +34,6 @@ expr.txt
 tests/*_tests
 
 # test log
-tests/tests.log
+tests/*.log
 
 

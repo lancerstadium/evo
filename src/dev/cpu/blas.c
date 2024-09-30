@@ -1,78 +1,39 @@
 #include <evo/dev/cpu/def.h>
 
-void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta,
-                              unsigned M, unsigned N, unsigned K, int transA, int transB) {
+void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta, 
+                              unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type) {
     unsigned i, j, k;
     float sum;
-    int oa, ob, oy;  // 用于矩阵 A, B, Y 的索引
+    int oy = 0;
 
-    // 初始化索引
-    oa = ob = oy = 0;
+    // 根据转置情况计算矩阵元素
+    for (i = 0; i < M; i++) {
+        for (j = 0; j < N; j++) {
+            sum = 0;
+            for (k = 0; k < K; k++) {
+                // Handle different cases of transA and transB
+                float a_val = transA ? A[k * M + i] : A[i * K + k];  // Transpose A if transA is true
+                float b_val = transB ? B[j * K + k] : B[k * N + j];  // Transpose B if transB is true
+                sum += a_val * b_val;
+            }
 
-    // 处理矩阵 A 和 B 的转置情况
-    if (transA && transB) {
-        // A 和 B 都转置
-        for (i = 0; i < M; i++) {
-            for (j = 0; j < N; j++) {
-                sum = 0;
-                for (k = 0; k < K; k++) {
-                    sum += A[k * M + i] * B[j * K + k];
+            // Apply alpha and calculate the final result for Y
+            Y[oy] = alpha * sum;
+
+            // 运行时处理 C 的广播
+            if (C != NULL && beta != 0) {
+                if (broadcast_type == 1) {
+                    Y[oy] += beta * C[0];  // 标量广播
+                } else if (broadcast_type == 2) {
+                    Y[oy] += beta * C[j];  // 行向量广播
+                } else if (broadcast_type == 3) {
+                    Y[oy] += beta * C[i];  // 列向量广播
+                } else if (broadcast_type == 4) {
+                    Y[oy] += beta * C[oy];  // 完整矩阵，无需广播
                 }
-                Y[oy] = alpha * sum;
-                // 处理偏置 C
-                if (C != NULL && beta != 0) {
-                    Y[oy] += beta * C[oy];
-                }
-                oy++;
             }
-        }
-    } else if (transA) {
-        // 仅 A 转置
-        for (i = 0; i < M; i++) {
-            for (j = 0; j < N; j++) {
-                sum = 0;
-                for (k = 0; k < K; k++) {
-                    sum += A[k * M + i] * B[k * N + j];
-                }
-                Y[oy] = alpha * sum;
-                // 处理偏置 C
-                if (C != NULL && beta != 0) {
-                    Y[oy] += beta * C[oy];
-                }
-                oy++;
-            }
-        }
-    } else if (transB) {
-        // 仅 B 转置
-        for (i = 0; i < M; i++) {
-            for (j = 0; j < N; j++) {
-                sum = 0;
-                for (k = 0; k < K; k++) {
-                    sum += A[i * K + k] * B[j * K + k];
-                }
-                Y[oy] = alpha * sum;
-                // 处理偏置 C
-                if (C != NULL && beta != 0) {
-                    Y[oy] += beta * C[oy];
-                }
-                oy++;
-            }
-        }
-    } else {
-        // 无转置
-        for (i = 0; i < M; i++) {
-            for (j = 0; j < N; j++) {
-                sum = 0;
-                for (k = 0; k < K; k++) {
-                    sum += A[i * K + k] * B[k * N + j];
-                }
-                Y[oy] = alpha * sum;
-                // 处理偏置 C
-                if (C != NULL && beta != 0) {
-                    Y[oy] += beta * C[oy];
-                }
-                oy++;
-            }
+
+            oy++;  // Increment output matrix index
         }
     }
 }

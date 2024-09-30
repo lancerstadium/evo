@@ -85,10 +85,9 @@ ACC_DEP_METAL	:=
 ifneq ($(ACC_ENB),)
 define set_acc_dep
 	ifeq ($(strip $(1)),cuda)
-		ACC_DEP_CUDA 	+= -gencode arch=compute_30,code=sm_30 \
-						-gencode arch=compute_35,code=sm_35 \
-						-gencode arch=compute_50,code=[sm_50,compute_50] \
-						-gencode arch=compute_52,code=[sm_52,compute_52]
+		ACC_DEP_CUDA  	+= -gencode arch=compute_50,code=sm_50 \
+						-gencode arch=compute_52,code=sm_52 \
+						-gencode arch=compute_86,code=sm_86
 		ACC_ENB_RES		+= cuda 
 		ACC_ENB_CUDA 	:= 1
 	else ifeq ($(strip $(1)),metal)

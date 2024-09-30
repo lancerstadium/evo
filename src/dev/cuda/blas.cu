@@ -72,34 +72,41 @@ __global__ void cudaSumForwardFloat32(float *a, float *b, float *res, int N) {
 
 
 __global__ void cudaGemmForwardFloat32(float* A, float* B, float* C, float* Y, float alpha, float beta, 
-                                       unsigned M, unsigned N, unsigned K, int transA, int transB) {
-    unsigned int m = threadIdx.x + blockDim.x * blockIdx.x;  // Row index of Y (or A)
-    unsigned int n = threadIdx.y + blockDim.y * blockIdx.y;  // Column index of Y (or B)
-    
+                                       unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type) {
+    unsigned int m = blockIdx.x * blockDim.x + threadIdx.x;  // 行索引
+    unsigned int n = blockIdx.y * blockDim.y + threadIdx.y;  // 列索引
+
     if (m >= M || n >= N)
         return;
 
-    float c = 0;
-    for (unsigned k = 0; k < K; ++k) {
-        // Handle different cases of transA and transB
-        float a_val = transA ? A[k * M + m] : A[m * K + k]; // Transpose A if transA is true
-        float b_val = transB ? B[n * K + k] : B[k * N + n]; // Transpose B if transB is true
-        
-        c += a_val * b_val;
+    float sum = 0;
+    for (unsigned int k = 0; k < K; ++k) {
+        // 根据 transA 和 transB 处理转置逻辑
+        float a_val = transA ? A[k * M + m] : A[m * K + k];  // A 是否转置
+        float b_val = transB ? B[n * K + k] : B[k * N + n];  // B 是否转置
+
+        sum += a_val * b_val;
     }
 
-    // Apply alpha and calculate final result
-    float res = alpha * c;
-    
-    // Apply beta and add bias if C is not NULL
+    // 计算乘积结果并应用 alpha
+    float res = alpha * sum;
+
+    // 根据 broadcast_type 处理 C 的广播
     if (C != NULL && beta != 0) {
-        res += beta * C[m * N + n];
+        if (broadcast_type == 1) {  // 标量广播
+            res += beta * C[0];
+        } else if (broadcast_type == 2) {  // 行向量广播
+            res += beta * C[n];
+        } else if (broadcast_type == 3) {  // 列向量广播
+            res += beta * C[m];
+        } else if (broadcast_type == 4) {  // 完整矩阵，无需广播
+            res += beta * C[m * N + n];
+        }
     }
 
-    // Write result to output matrix Y
+    // 将结果写入输出矩阵 Y
     Y[m * N + n] = res;
 }
-
 
 // ==================================================================================== //
 //                                       cuda blas API
@@ -132,29 +139,54 @@ extern "C" void Sum_forward_float32_cuda(float *a, float *b, float *c, int nElem
 
 
 extern "C" void Gemm_forward_float32_cuda(float* A, float* B, float* C, float* Y, float alpha, float beta, 
-                                       unsigned M, unsigned N, unsigned K, int transA, int transB) {
+                                       unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type) {
 
-    float *A_d, *B_d, *C_d, *Y_d;
+
+    float *A_d, *B_d, *C_d = NULL, *Y_d;
+
+    // 分配 A 和 B 的内存
     cudaMalloc((void**)&A_d, M * K * sizeof(float));
     cudaMalloc((void**)&B_d, K * N * sizeof(float));
-    cudaMalloc((void**)&C_d, M * N * sizeof(float));
+    
+    // 分配 Y 的内存
     cudaMalloc((void**)&Y_d, M * N * sizeof(float));
+
+    // 将 A 和 B 复制到设备
     cudaMemcpy(A_d, A, M * K * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(B_d, B, K * N * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(C_d, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(Y_d, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
 
+    // 根据 broadcast_type 分配和复制 C，如果 C 不为 NULL
+    if (C != NULL) {
+        if (broadcast_type == 1) {  // 标量
+            cudaMalloc((void**)&C_d, sizeof(float));
+            cudaMemcpy(C_d, C, sizeof(float), cudaMemcpyHostToDevice);
+        } else if (broadcast_type == 2) {  // 行向量
+            cudaMalloc((void**)&C_d, N * sizeof(float));
+            cudaMemcpy(C_d, C, N * sizeof(float), cudaMemcpyHostToDevice);
+        } else if (broadcast_type == 3) {  // 列向量
+            cudaMalloc((void**)&C_d, M * sizeof(float));
+            cudaMemcpy(C_d, C, M * sizeof(float), cudaMemcpyHostToDevice);
+        } else if (broadcast_type == 4) {  // 完整矩阵
+            cudaMalloc((void**)&C_d, M * N * sizeof(float));
+            cudaMemcpy(C_d, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
+        }
+    }
 
+    // 设置 CUDA 网格和块的大小
     dim3 block(32, 32);
-    dim3 grid((M - 1)/ block.x + 1, (N - 1) / block.y + 1);
+    dim3 grid((M + block.x - 1) / block.x, (N + block.y - 1) / block.y);
 
-    cudaGemmForwardFloat32<<<grid, block>>>(A_d, B_d, C_d, Y_d, alpha, beta, M, N, K, transA, transB);
+    // 启动 CUDA 核函数
+    cudaGemmForwardFloat32<<<grid, block>>>(A_d, B_d, C_d, Y_d, alpha, beta, M, N, K, transA, transB, broadcast_type);
     cudaDeviceSynchronize();
+    cuda_check(cudaGetLastError());
+
+    // 将结果从设备复制到主机
     cudaMemcpy(Y, Y_d, M * N * sizeof(float), cudaMemcpyDeviceToHost);
 
-    // free
+    // 释放内存
     cudaFree(A_d);
     cudaFree(B_d);
-    cudaFree(C_d);
+    if (C_d != NULL) cudaFree(C_d);
     cudaFree(Y_d);
 }

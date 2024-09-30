@@ -34,7 +34,7 @@ device_t* device_reg_cuda();
 // ==================================================================================== //
 
 void Sum_forward_float32_cuda(float *a, float *b, float *c, int nElem);
-void Gemm_forward_float32_cuda(float* A, float* B, float* C, float* Y, float alpha, float beta, unsigned M, unsigned N, unsigned K, int transA, int transB);
+void Gemm_forward_float32_cuda(float* A, float* B, float* C, float* Y, float alpha, float beta, unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type);
 void Relu_forward_float32_cuda(float *x, int n);
 
 #endif // EVO_ACC_CUDA

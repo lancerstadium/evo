@@ -1,6 +1,8 @@
 #include "sob.h"
 #include <evo.h>
 
+int batch_size = 300;
+
 /**
  * ref: https://zh.d2l.ai/chapter_convolutional-neural-networks/lenet.html
  * 
@@ -8,7 +10,7 @@
  */
 model_t* letnet_model() {
     model_t* mdl = model_new("letnet_model");
-    graph_add_input(mdl->graph, 4, (int[]){1, 1, 28, 28}, TENSOR_TYPE_FLOAT32);
+    graph_add_input(mdl->graph, 4, (int[]){batch_size, 1, 28, 28}, TENSOR_TYPE_FLOAT32);
     graph_add_conv2d(mdl->graph, 6, (int64_t[]){5, 5}, NULL, (int64_t[]){2, 2, 2, 2}, NULL, 1, NULL, "tanh");
     graph_add_avgpool2d(mdl->graph, (int64_t[]){2, 2}, (int64_t[]){2, 2}, NULL, 0);
     graph_add_conv2d(mdl->graph, 16, (int64_t[]){5, 5}, NULL, NULL, NULL, 1, NULL, "tanh");
@@ -47,14 +49,14 @@ UnitTest_fn_def(test_letnet) {
 
     // Train
     int nepoch = 10;
-    int nbatch = 60000;
+    int nbatch = 60000 / batch_size;
     optimizer_t* opt = optimizer_new(0.001, 1e-8, OPTIMIZER_LOSS_TYPE_CROSS_ENTROPY, OPTIMIZER_TYPE_SGD);
     tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
     tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
     tensor_t *ts;
     tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
-    tensor_reshape(x_ts     , 4, (int[]){1, 1, 28, 28});
-    tensor_reshape(y_ts     , 2, (int[]){1, 10});
+    tensor_reshape(x_ts     , 4, (int[]){batch_size, 1, 28, 28});
+    tensor_reshape(y_ts     , 2, (int[]){batch_size, 10});
     tensor_reshape(loss_vec , 2, (int[]){nepoch, 1});
     float* xd = x_ts->datas;
     float* yd = y_ts->datas;
@@ -69,10 +71,12 @@ UnitTest_fn_def(test_letnet) {
         // Mini-batch training
         float sum_loss = 0.0f;
         for (int b = 0; b < nbatch; b++) {
-            tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+            tensor_apply(x_ts, imgs_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
             model_set_tensor(mdl, "Input0", x_ts);
             tensor_fill_zero(y_ts);
-            ((float*)y_ts->datas)[label->bs[b]] = 1;
+            for(int bb = 0; bb < batch_size; bb++) {
+                ((float*)y_ts->datas)[label->bs[b * batch_size + bb] + bb * 10] = 1;
+            }
             optimizer_step(opt, mdl, y_ts);
             // if(e == 0 && b >= 0 && b < 1) {
             //     // fprintf(stderr, "<%u> ", label->bs[b]);
@@ -106,13 +110,13 @@ UnitTest_fn_def(test_letnet) {
     float train_acc = 0.0;
     int acc_cnt = 0;
     for(int b = 0; b < nbatch; b++) {
-        tensor_apply(x_ts, imgs_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+        tensor_apply(x_ts, imgs_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
         model_set_tensor(mdl, "Input0", x_ts);
         tensor_t* y_res = model_eval(mdl, x_ts);
         tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
         tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
         int64_t yy = ((int64_t*)y_out->datas)[0];
-        acc_cnt += ((yy == (int64_t)label->bs[b]) ? 1 : 0);
+        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
         // fprintf(stderr, "<%u %ld> ", label->bs[b], yy);
         // tensor_dump2(y_out);
     }
@@ -138,13 +142,13 @@ UnitTest_fn_def(test_letnet) {
     acc_cnt = 0;
     nbatch = 10000;
     for(int b = 0; b < nbatch; b++) {
-        tensor_apply(x_ts, imgs_test_f32->datas + b * 784 * sizeof(float), 784 * sizeof(float));
+        tensor_apply(x_ts, imgs_test_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
         model_set_tensor(mdl, "Input0", x_ts);
         tensor_t* y_res = model_eval(mdl, x_ts);
         tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
         tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
         int64_t yy = ((int64_t*)y_out->datas)[0];
-        acc_cnt += ((yy == (int64_t)label_test->bs[b]) ? 1 : 0);
+        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
         if(b < 10) {
             fprintf(stderr, "<%u %ld> ", label_test->bs[b], yy);
             // tensor_dump2(y_out);

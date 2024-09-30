@@ -28,7 +28,7 @@ device_t* device_reg_cpu();
 // ==================================================================================== //
 
 
-void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta, unsigned M, unsigned N, unsigned K, int transA, int transB);
+void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta, unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type);
 
 
 #ifdef __cplusplus

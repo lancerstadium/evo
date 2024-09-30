@@ -3,6 +3,14 @@
 
 // Reference: https://zhuanlan.zhihu.com/p/642043155
 
+typedef enum {
+    BROADCAST_NONE,
+    BROADCAST_SCALAR,
+    BROADCAST_ROW_VECTOR,
+    BROADCAST_COL_VECTOR,
+    BROADCAST_MATRIX
+} broadcast_type_t;
+
 typedef struct {
     float alpha;
     float beta;
@@ -11,6 +19,7 @@ typedef struct {
     int m;
     int n;
     int k;
+    broadcast_type_t bc;
 } operator_pdata_t;
 
 static void Gemm_forward_int32(node_t *nd) {
@@ -655,7 +664,7 @@ static void Gemm_forward_float16(node_t *nd) {
     }
 }
 
-// #include <evo/dev/cpu/def.h>
+#include <evo/dev/cuda/def.h>
 
 static void Gemm_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -667,103 +676,104 @@ static void Gemm_forward_float32(node_t *nd) {
     float *pa = (float *)a->datas;
     float *pb = (float *)b->datas;
     float *pc = (c != NULL) ? (float *)c->datas : NULL;  // 偏置矩阵 C 的数据指针（如果存在）
-    float sum;
-    int oa = 0;
-    int ob = 0;
-    int oy = 0;
-    int i, j, k;
 
-    // Gemm_forward_float32_cpu(pa, pb, pc, py, pdat->alpha, pdat->beta, pdat->m, pdat->n, pdat->k, pdat->transA, pdat->transB);
+    // float sum;
+    // int oa = 0;
+    // int ob = 0;
+    // int oy = 0;
+    // int i, j, k;
 
-    if (pdat->transA && pdat->transB) {
-        for (i = 0; i < pdat->m; i++) {
-            for (j = 0; j < pdat->n; j++) {
-                sum = 0;
-                for (k = 0; k < pdat->k; k++) {
-                    sum += pa[oa] * pb[ob];
-                    oa += pdat->m;
-                    ob += 1;
-                }
-                oa -= pdat->m * pdat->k;
-                ob -= pdat->k;
-                if (c) {
-                    pc = tensor_broadcast_map_address(c, y, oy);
-                    py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
-                } else
-                    py[oy] = pdat->alpha * sum;
-                oy++;
-                ob += pdat->k;
-            }
-            ob -= pdat->n * pdat->k;
-            oa++;
-        }
-    } else if (pdat->transA) {
-        for (i = 0; i < pdat->m; i++) {
-            for (j = 0; j < pdat->n; j++) {
-                sum = 0;
-                for (k = 0; k < pdat->k; k++) {
-                    sum += pa[oa] * pb[ob];
-                    oa += pdat->m;
-                    ob += pdat->n;
-                }
-                oa -= pdat->m * pdat->k;
-                ob -= pdat->n * pdat->k;
-                if (c) {
-                    pc = tensor_broadcast_map_address(c, y, oy);
-                    py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
-                } else
-                    py[oy] = pdat->alpha * sum;
-                oy++;
-                ob++;
-            }
-            ob -= pdat->n;
-            oa++;
-        }
-    } else if (pdat->transB) {
-        for (i = 0; i < pdat->m; i++) {
-            for (j = 0; j < pdat->n; j++) {
-                sum = 0;
-                for (k = 0; k < pdat->k; k++) {
-                    sum += pa[oa] * pb[ob];
-                    oa += 1;
-                    ob += 1;
-                }
-                oa -= pdat->k;
-                ob -= pdat->k;
-                if (c) {
-                    pc = tensor_broadcast_map_address(c, y, oy);
-                    py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
-                } else
-                    py[oy] = pdat->alpha * sum;
-                oy++;
-                ob += pdat->k;
-            }
-            ob -= pdat->n * pdat->k;
-            oa += pdat->k;
-        }
-    } else {
-        for (i = 0; i < pdat->m; i++) {
-            for (j = 0; j < pdat->n; j++) {
-                sum = 0;
-                for (k = 0; k < pdat->k; k++) {
-                    sum += pa[oa] * pb[ob];
-                    oa += 1;
-                    ob += pdat->n;
-                }
-                oa -= pdat->k;
-                ob -= pdat->n * pdat->k;
-                if (c) {
-                    pc = tensor_broadcast_map_address(c, y, oy);
-                    py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
-                } else
-                    py[oy] = pdat->alpha * sum;
-                oy++;
-                ob++;
-            }
-            ob -= pdat->n;
-            oa += pdat->k;
-        }
-    }
+    Gemm_forward_float32_cuda(pa, pb, pc, py, pdat->alpha, pdat->beta, pdat->m, pdat->n, pdat->k, pdat->transA, pdat->transB, pdat->bc);
+
+    // if (pdat->transA && pdat->transB) {
+    //     for (i = 0; i < pdat->m; i++) {
+    //         for (j = 0; j < pdat->n; j++) {
+    //             sum = 0;
+    //             for (k = 0; k < pdat->k; k++) {
+    //                 sum += pa[oa] * pb[ob];
+    //                 oa += pdat->m;
+    //                 ob += 1;
+    //             }
+    //             oa -= pdat->m * pdat->k;
+    //             ob -= pdat->k;
+    //             if (c) {
+    //                 pc = tensor_broadcast_map_address(c, y, oy);
+    //                 py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
+    //             } else
+    //                 py[oy] = pdat->alpha * sum;
+    //             oy++;
+    //             ob += pdat->k;
+    //         }
+    //         ob -= pdat->n * pdat->k;
+    //         oa++;
+    //     }
+    // } else if (pdat->transA) {
+    //     for (i = 0; i < pdat->m; i++) {
+    //         for (j = 0; j < pdat->n; j++) {
+    //             sum = 0;
+    //             for (k = 0; k < pdat->k; k++) {
+    //                 sum += pa[oa] * pb[ob];
+    //                 oa += pdat->m;
+    //                 ob += pdat->n;
+    //             }
+    //             oa -= pdat->m * pdat->k;
+    //             ob -= pdat->n * pdat->k;
+    //             if (c) {
+    //                 pc = tensor_broadcast_map_address(c, y, oy);
+    //                 py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
+    //             } else
+    //                 py[oy] = pdat->alpha * sum;
+    //             oy++;
+    //             ob++;
+    //         }
+    //         ob -= pdat->n;
+    //         oa++;
+    //     }
+    // } else if (pdat->transB) {
+    //     for (i = 0; i < pdat->m; i++) {
+    //         for (j = 0; j < pdat->n; j++) {
+    //             sum = 0;
+    //             for (k = 0; k < pdat->k; k++) {
+    //                 sum += pa[oa] * pb[ob];
+    //                 oa += 1;
+    //                 ob += 1;
+    //             }
+    //             oa -= pdat->k;
+    //             ob -= pdat->k;
+    //             if (c) {
+    //                 pc = tensor_broadcast_map_address(c, y, oy);
+    //                 py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
+    //             } else
+    //                 py[oy] = pdat->alpha * sum;
+    //             oy++;
+    //             ob += pdat->k;
+    //         }
+    //         ob -= pdat->n * pdat->k;
+    //         oa += pdat->k;
+    //     }
+    // } else {
+    //     for (i = 0; i < pdat->m; i++) {
+    //         for (j = 0; j < pdat->n; j++) {
+    //             sum = 0;
+    //             for (k = 0; k < pdat->k; k++) {
+    //                 sum += pa[oa] * pb[ob];
+    //                 oa += 1;
+    //                 ob += pdat->n;
+    //             }
+    //             oa -= pdat->k;
+    //             ob -= pdat->n * pdat->k;
+    //             if (c) {
+    //                 pc = tensor_broadcast_map_address(c, y, oy);
+    //                 py[oy] = pdat->alpha * sum + pdat->beta * (*pc);
+    //             } else
+    //                 py[oy] = pdat->alpha * sum;
+    //             oy++;
+    //             ob++;
+    //         }
+    //         ob -= pdat->n;
+    //         oa += pdat->k;
+    //     }
+    // }
 }
 
 static void Gemm_backward_float32(node_t *nd) { 
@@ -989,8 +999,30 @@ void Gemm_reshape(node_t *nd) {
         return;
     if (pdat->m <= 0 || pdat->n <= 0 || pdat->k <= 0)
         return;
-    if ((nd->nin > 2) && !tensor_broadcast_is_valid(nd->in[2], (int[]){pdat->m, pdat->n}, 2))
-        return;
+    // if ((nd->nin > 2) && !tensor_broadcast_is_valid(nd->in[2], (int[]){pdat->m, pdat->n}, 2))
+    //     return;
+
+    // 检查 C 的广播规则
+    if (nd->nin > 2) {
+        tensor_t *c = nd->in[2];
+        if (!tensor_broadcast_is_valid(c, (int[]){pdat->m, pdat->n}, 2))
+            return;
+
+        // 在预处理阶段确定 C 的广播类型
+        if (c->ndim == 0) {
+            pdat->bc = BROADCAST_SCALAR;  // C 是标量
+        } else if (c->dims[0] == 1 && c->dims[1] == pdat->n) {
+            pdat->bc = BROADCAST_ROW_VECTOR;  // C 是行向量
+        } else if (c->dims[0] == pdat->m && c->dims[1] == 1) {
+            pdat->bc = BROADCAST_COL_VECTOR;  // C 是列向量
+        } else {
+            pdat->bc = BROADCAST_MATRIX;  // C 是完整矩阵
+        }
+    } else {
+        pdat->bc = BROADCAST_NONE;  // 没有 C
+    }
+
+
     y->type = a->type;
     tensor_reshape(y, 2, (int[]){pdat->m, pdat->n});
 }
