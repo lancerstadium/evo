@@ -8,7 +8,7 @@ LIBDIRS		:= -L../build
 LIBS 		:= -levo -lX11 -lcudart -lm
 LOG_TRG		:= tests.log
 LOG_ENB     := 1
-PERF_TOOL	:= /usr/bin/time -v
+# PERF_TOOL	:= /usr/bin/time -v
 
 all: $(TEST_TRG)
 
