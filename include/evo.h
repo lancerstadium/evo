@@ -953,7 +953,7 @@ EVO_API image_t* image_channel(image_t*, int);
 EVO_API image_t* image_extract_channel(image_t*, int);
 EVO_API int image_width(image_t*);
 EVO_API int image_height(image_t*);
-EVO_API void image_save_grey(image_t*, const char*, int);
+EVO_API void image_save_channel(image_t*, const char*, int);
 EVO_API void image_save(image_t*, const char*);
 EVO_API char* image_dump_shape(image_t*);
 EVO_API void image_dump_raw(image_t*, int);
@@ -968,6 +968,8 @@ EVO_API image_t* image_merge(image_t*, image_t*, float);
 EVO_API void image_push(image_t*, image_t*);
 EVO_API attribute_t* image_get_attr(image_t*, const char*);
 EVO_API void image_set_deloys(image_t*, int64_t*, int);
+EVO_API void image_to_grey(image_t*);
+EVO_API void image_dithering(image_t*);
 EVO_API void image_free(image_t*);
 
 // ==================================================================================== //

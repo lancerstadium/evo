@@ -31,10 +31,18 @@ canvas_t* canvas_from_image(image_t* img) {
         uint8_t* data = (uint8_t*)temp->datas;
         for (int h = 0; h < temp->dims[1]; ++h) {
             for (int w = 0; w < temp->dims[2]; ++w) {
-                uint32_t color = temp->dims[3] == 4 ? 0 : 0xFF000000;
-                for (int c = 0; c < temp->dims[3]; ++c) {
-                    int idx = c + (h * temp->dims[2] + w) * temp->dims[3];
-                    color |= data[idx] << (8 * c);
+                int idx;
+                uint32_t color;
+                if(temp->dims[3] == 1) {
+                    idx = h * temp->dims[2] + w;
+                    uint8_t grey = data[idx];
+                    color = (0xFF << 24) | (grey << 16) | (grey << 8) | grey;
+                } else {
+                    color = temp->dims[3] == 4 ? 0 : 0xFF000000;
+                    for (int c = 0; c < temp->dims[3]; ++c) {
+                        idx = c + (h * temp->dims[2] + w) * temp->dims[3];
+                        color |= data[idx] << (8 * c);
+                    }
                 }
                 canvas_pixel(cav, w, h) = color;
             }

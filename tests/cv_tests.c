@@ -69,7 +69,7 @@ UnitTest_fn_def(test_read_png) {
     image_save(r_img, "demo_r.jpg");
     image_save(g_img, "demo_g.jpg");
     image_save(b_img, "demo_b.jpg");
-    image_save_grey(img, "demo_grey.jpg", 0);
+    image_save_channel(img, "demo_grey.jpg", 0);
     image_resize(img, 244, 244);
     image_save(img, "demo_resize.jpg");
     return NULL;

@@ -366,7 +366,7 @@ int image_height(image_t* img) {
     return 0;
 }
 
-void image_save_grey(image_t* img, const char* name, int channel) {
+void image_save_channel(image_t* img, const char* name, int channel) {
     if(img && name && img->raw) {
         if(img->raw->type != TENSOR_TYPE_UINT8) {
             LOG_WARN("Image save warn: only support uint8 tensor!\n");
@@ -625,6 +625,71 @@ void image_push(image_t* a, image_t* b) {
             a->raw->ndata = ndata;
             if(a->raw->datas) free(a->raw->datas);
             a->raw->datas = datas;
+        }
+    }
+}
+
+void image_to_grey(image_t* img) {
+    if(!img || !img->raw || img->raw->layout != 1 || img->raw->type != TENSOR_TYPE_UINT8 || img->raw->ndim < 4 || img->raw->dims[3] != 3) return;
+
+    int width = image_width(img);
+    int height = image_height(img);
+    int channel = img->raw->dims[3];
+    uint8_t *grey_img = (uint8_t *)malloc(width * height * sizeof(uint8_t));
+    if (!grey_img) return;
+    uint8_t* org_img = img->raw->datas;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int idx = (y * width + x) * channel;
+            int r = org_img[idx];
+            int g = org_img[idx + 1];
+            int b = org_img[idx + 2];
+            int grey = (r * 77 + g * 150 + b * 29) / 256; // 转换为灰度值
+            grey_img[y * width + x] = grey;
+        }
+    }
+    
+    tensor_reshape(img->raw, 4, (int[]){1, height, width, 1});
+    uint8_t* new_img = img->raw->datas;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int idx = y * width + x;
+            new_img[idx] = grey_img[idx];
+        }
+    }
+
+    // 释放原始图像数据
+    free(grey_img);
+}
+
+void image_dithering(image_t* img) {
+    if(!img || !img->raw || img->raw->type != TENSOR_TYPE_UINT8 || img->raw->ndim < 4 || img->raw->dims[3] != 1) return;
+    int width = image_width(img);
+    int height = image_height(img);
+    uint8_t* org_img = img->raw->datas;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int idx = y * width + x;
+            int original = org_img[idx];
+            int quantized = original > 127 ? 255 : 0; // 阈值化处理
+            org_img[idx] = quantized;
+            // Floyd–Steinberg dithering error distribution
+            int error = original - quantized;
+
+            if (x < width - 1) {
+                org_img[idx + 1] += error * 7 / 16;
+            }
+            if (x > 0 && y < height - 1) {
+                org_img[idx - 1 + width] += error * 3 / 16;
+            }
+            if (y < height - 1) {
+                org_img[idx + width] += error * 5 / 16;
+            }
+            if (x < width - 1 && y < height - 1) {
+                org_img[idx + 1 + width] += error * 1 / 16;
+            }
         }
     }
 }
