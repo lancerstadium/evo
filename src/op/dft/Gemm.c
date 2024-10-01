@@ -664,7 +664,7 @@ static void Gemm_forward_float16(node_t *nd) {
     }
 }
 
-#include <evo/dev/cuda/def.h>
+#include <evo/dev/cpu/def.h>
 
 static void Gemm_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
@@ -683,7 +683,7 @@ static void Gemm_forward_float32(node_t *nd) {
     // int oy = 0;
     // int i, j, k;
 
-    Gemm_forward_float32_cuda(pa, pb, pc, py, pdat->alpha, pdat->beta, pdat->m, pdat->n, pdat->k, pdat->transA, pdat->transB, pdat->bc);
+    Gemm_forward_float32_cpu(pa, pb, pc, py, pdat->alpha, pdat->beta, pdat->m, pdat->n, pdat->k, pdat->transA, pdat->transB, pdat->bc);
 
     // if (pdat->transA && pdat->transB) {
     //     for (i = 0; i < pdat->m; i++) {

@@ -14,9 +14,9 @@ all: $(TEST_TRG)
 
 %: %.c
 	@echo [CC] $<
-ifeq ($(CROSS_COMPILE),riscv64-linux-gnu-)
+ifeq ($(CROSS_COMPILE),riscv32-unknown-elf-)
 	@echo [RV] $@
-	@$(CC) $(INCDIRS) $(LIBDIRS) -DSOB_CLR_OFF -ffreestanding -nostartfiles -Wl,-Tbare.ld -O2 -o $@ $< $(LIBS) -static
+	@$(CC) $(INCDIRS) -I/opt/riscv/riscv32-unknown-elf/include  $(LIBDIRS) -DSOB_CLR_OFF -ffreestanding -nostartfiles -Wl,-Tbare.ld -O2 -o $@ $< -levo -lm -static
 else
 	$(CC) $(INCDIRS) $< -o $@ $(LIBDIRS) $(LIBS)
 endif
