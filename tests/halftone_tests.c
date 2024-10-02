@@ -15,7 +15,8 @@ canvas_t* kitten(canvas_t* cav, float dt) {
     if(dt == 0.0) {
         image_t* cat = image_load("picture/kitten.jpg");
         image_to_grey(cat);
-        image_dithering(cat);
+        image_halftone_ordered_dithering(cat);
+        image_save(cat, "cat-ht.jpg");
         cat_cav = canvas_from_image(cat);
     }
 

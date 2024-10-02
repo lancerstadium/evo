@@ -663,7 +663,34 @@ void image_to_grey(image_t* img) {
     free(grey_img);
 }
 
-void image_dithering(image_t* img) {
+void image_halftone_ordered_dithering(image_t* img) {
+    if (!img || !img->raw || img->raw->type != TENSOR_TYPE_UINT8 || img->raw->ndim < 4 || img->raw->dims[3] != 1) return;
+
+    int width = image_width(img);
+    int height = image_height(img);
+    uint8_t* org_img = img->raw->datas;
+
+    // 定义一个4x4的Bayer矩阵
+    int bayer_matrix[4][4] = {
+        {  0,  8,  2, 10 },
+        { 12,  4, 14,  6 },
+        {  3, 11,  1,  9 },
+        { 15,  7, 13,  5 }
+    };
+
+    // 归一化Bayer矩阵的值
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int idx = y * width + x;
+            int threshold = bayer_matrix[y % 4][x % 4] * 16;
+            int original = org_img[idx];
+            int quantized = original > threshold ? 255 : 0;
+            org_img[idx] = quantized;
+        }
+    }
+}
+
+void image_halftone_floyd_steinberg(image_t* img) {
     if(!img || !img->raw || img->raw->type != TENSOR_TYPE_UINT8 || img->raw->ndim < 4 || img->raw->dims[3] != 1) return;
     int width = image_width(img);
     int height = image_height(img);
