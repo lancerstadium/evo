@@ -667,6 +667,7 @@ EVO_API tensor_t* model_get_tensor(model_t*, const char*);
 EVO_API void model_set_tensor(model_t*, const char*, tensor_t*);
 EVO_API tensor_t* model_eval(model_t*, tensor_t*);
 EVO_API void model_show_tensors(model_t*);
+EVO_API model_t* model_load(const char*);
 EVO_API void model_save(model_t*, const char*);
 EVO_API void model_free(model_t*);
 

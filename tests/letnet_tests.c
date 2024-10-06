@@ -1,7 +1,12 @@
 #include "sob.h"
 #include <evo.h>
 
-int batch_size = 300;
+const int batch_size = 1;
+const int nepoch = 10;
+int nbatch = 60000 / batch_size;
+tensor_t *x_ts, *y_ts;
+attribute_t* label;
+tensor_t* imgs_f32;
 
 /**
  * ref: https://zh.d2l.ai/chapter_convolutional-neural-networks/lenet.html
@@ -22,11 +27,8 @@ model_t* letnet_model() {
     return mdl;
 }
 
+UnitTest_fn_def(init_letnet) {
 
-UnitTest_fn_def(test_letnet) {
-
-    // Train Dataset
-    srand((unsigned)time(NULL));
     const char* image_filename = "picture/mnist/train-images-idx3-ubyte";
     const char* label_filename = "picture/mnist/train-labels-idx1-ubyte";
     image_t* imgs = image_load_mnist(image_filename, label_filename);
@@ -36,30 +38,93 @@ UnitTest_fn_def(test_letnet) {
     } else {
         fprintf(stderr, "Load Mnist Success!\n");
     }
-    attribute_t* label = image_get_attr(imgs, "label");
-    tensor_t* imgs_f32 = tensor_cast(imgs->raw, TENSOR_TYPE_FLOAT32);
+    label = image_get_attr(imgs, "label");
+    imgs_f32 = tensor_cast(imgs->raw, TENSOR_TYPE_FLOAT32);
     for(int i = 0; i < imgs_f32->ndata; i++) {
         ((float*)(imgs_f32->datas))[i] /= 255.0f;
     }
+
+    x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
+    y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(x_ts     , 4, (int[]){batch_size, 1, 28, 28});
+    tensor_reshape(y_ts     , 2, (int[]){batch_size, 10});
+
+    return NULL;
+}
+
+void eval_mnist(model_t* mdl) {
+    // Eval
+    float train_acc = 0.0;
+    int acc_cnt = 0;
+    for(int b = 0; b < nbatch; b++) {
+        tensor_apply(x_ts, imgs_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
+        model_set_tensor(mdl, "Input0", x_ts);
+        tensor_t* y_res = model_eval(mdl, x_ts);
+        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
+        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+        int64_t yy = ((int64_t*)y_out->datas)[0];
+        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
+        // fprintf(stderr, "<%u %ld> ", label->bs[b], yy);
+        // tensor_dump2(y_out);
+    }
+    train_acc += ((float)acc_cnt / (float)nbatch);
+
+    // Test Dataset
+    const char* image_test_filename = "picture/mnist/t10k-images-idx3-ubyte";
+    const char* label_test_filename = "picture/mnist/t10k-labels-idx1-ubyte";
+    image_t* imgs_test = image_load_mnist(image_test_filename, label_test_filename);
+    if(!imgs_test) {
+        fprintf(stderr, "Load mnist fail, please exec `download_mnist.sh` in Dir `picture`.\n");
+        return;
+    } else {
+        fprintf(stderr, "Load Mnist Success!\n");
+    }
+    attribute_t* label_test = image_get_attr(imgs_test, "label");
+    tensor_t* imgs_test_f32 = tensor_cast(imgs_test->raw, TENSOR_TYPE_FLOAT32);
+    for(int i = 0; i < imgs_test_f32->ndata; i++) {
+        ((float*)(imgs_test_f32->datas))[i] /= 255.0f;
+    }
+
+    float test_acc = 0.0;
+    acc_cnt = 0;
+    nbatch = 10000 / batch_size;
+    for(int b = 0; b < nbatch; b++) {
+        tensor_apply(x_ts, imgs_test_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
+        model_set_tensor(mdl, "Input0", x_ts);
+        tensor_t* y_res = model_eval(mdl, x_ts);
+        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
+        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
+        int64_t yy = ((int64_t*)y_out->datas)[0];
+        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
+        if(b < 10) {
+            fprintf(stderr, "<%u %ld> ", label_test->bs[b], yy);
+            // tensor_dump2(y_out);
+        }
+    }
+    test_acc += ((float)acc_cnt / (float)nbatch);
+
+    // Summary
+    fprintf(stderr, "Train acc: %.2f%%, Test acc: %.2f%%\n", train_acc * 100, test_acc * 100);
+}
+
+
+UnitTest_fn_def(train_letnet) {
+
+    // Train Dataset
+    srand((unsigned)time(NULL));
+    tensor_t *ts, *loss_vec;
 
     // Model
     model_t* mdl = letnet_model();
     graph_dump(mdl->graph);
     model_show_tensors(mdl);
+    ts = model_get_tensor(mdl, "Gemm7_kernel");
+    tensor_dump1(ts);
 
     // Train
-    int nepoch = 10;
-    int nbatch = 60000 / batch_size;
     optimizer_t* opt = optimizer_new(0.001, 1e-8, OPTIMIZER_LOSS_TYPE_CROSS_ENTROPY, OPTIMIZER_TYPE_SGD);
-    tensor_t *x_ts = tensor_new("x", TENSOR_TYPE_FLOAT32);
-    tensor_t *y_ts = tensor_new("y", TENSOR_TYPE_FLOAT32);
-    tensor_t *ts;
-    tensor_t* loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
-    tensor_reshape(x_ts     , 4, (int[]){batch_size, 1, 28, 28});
-    tensor_reshape(y_ts     , 2, (int[]){batch_size, 10});
+    loss_vec = tensor_new("loss", TENSOR_TYPE_FLOAT32);
     tensor_reshape(loss_vec , 2, (int[]){nepoch, 1});
-    float* xd = x_ts->datas;
-    float* yd = y_ts->datas;
     float* loss_data = loss_vec->datas;
 
     progressbar_t *bar = progressbar_new_format("Train:", nepoch, "[=]");
@@ -104,67 +169,28 @@ UnitTest_fn_def(test_letnet) {
     progressbar_finish(bar);
     progressbar_free(bar);
     figure_free(fig);
+    eval_mnist(mdl);
+    model_save(mdl, "letnet.etm");
+    return NULL;
+}
 
 
-    // Eval
-    float train_acc = 0.0;
-    int acc_cnt = 0;
-    for(int b = 0; b < nbatch; b++) {
-        tensor_apply(x_ts, imgs_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
-        model_set_tensor(mdl, "Input0", x_ts);
-        tensor_t* y_res = model_eval(mdl, x_ts);
-        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
-        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
-        int64_t yy = ((int64_t*)y_out->datas)[0];
-        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
-        // fprintf(stderr, "<%u %ld> ", label->bs[b], yy);
-        // tensor_dump2(y_out);
-    }
-    train_acc += ((float)acc_cnt / (float)nbatch);
+UnitTest_fn_def(eval_letnet) {
 
-    // Test Dataset
-    const char* image_test_filename = "picture/mnist/t10k-images-idx3-ubyte";
-    const char* label_test_filename = "picture/mnist/t10k-labels-idx1-ubyte";
-    image_t* imgs_test = image_load_mnist(image_test_filename, label_test_filename);
-    if(!imgs_test) {
-        fprintf(stderr, "Load mnist fail, please exec `download_mnist.sh` in Dir `picture`.\n");
-        return "Load Mnist Fail!";
-    } else {
-        fprintf(stderr, "Load Mnist Success!\n");
-    }
-    attribute_t* label_test = image_get_attr(imgs_test, "label");
-    tensor_t* imgs_test_f32 = tensor_cast(imgs_test->raw, TENSOR_TYPE_FLOAT32);
-    for(int i = 0; i < imgs_test_f32->ndata; i++) {
-        ((float*)(imgs_test_f32->datas))[i] /= 255.0f;
-    }
-
-    float test_acc = 0.0;
-    acc_cnt = 0;
-    nbatch = 10000;
-    for(int b = 0; b < nbatch; b++) {
-        tensor_apply(x_ts, imgs_test_f32->datas + batch_size * b * 784 * sizeof(float), batch_size * 784 * sizeof(float));
-        model_set_tensor(mdl, "Input0", x_ts);
-        tensor_t* y_res = model_eval(mdl, x_ts);
-        tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
-        tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
-        int64_t yy = ((int64_t*)y_out->datas)[0];
-        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
-        if(b < 10) {
-            fprintf(stderr, "<%u %ld> ", label_test->bs[b], yy);
-            // tensor_dump2(y_out);
-        }
-    }
-    test_acc += ((float)acc_cnt / (float)nbatch);
-
-    // Summary
-    fprintf(stderr, "Train acc: %.2f%%, Test acc: %.2f%%\n", train_acc * 100, test_acc * 100);
-
+    model_t* mdl = model_load("letnet.etm");
+    graph_dump(mdl->graph);
+    model_show_tensors(mdl);
+    // tensor_t* ts = model_get_tensor(mdl, "Gemm7_kernel");
+    // tensor_dump1(ts);
+    eval_mnist(mdl);
     return NULL;
 }
 
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
-    UnitTest_add(test_letnet);
+    UnitTest_add(init_letnet);
+    UnitTest_add(train_letnet);
+    UnitTest_add(eval_letnet);
     device_unreg("cpu");
     return NULL;
 }
