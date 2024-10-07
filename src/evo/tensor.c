@@ -496,8 +496,31 @@ tensor_t * tensor_argmax(tensor_t* ts, int axis, int keepdims, int select_last_i
 }
 
 /** TODO: upsample */
-tensor_t * tensor_resize(tensor_t* ts, int rz_w, int rz_h) {
-    return ts;
+tensor_t * tensor_resize(tensor_t* ts, int rz_w, int rz_h, char* mode) {
+    if(!ts || ts->ndim != 4) return ts;
+    node_t* nd = node_temp("resize", OP_TYPE_RESIZE);
+    nd->nin = 4;
+    nd->nout= 1;
+    nd->in = sys_malloc(nd->nin * sizeof(tensor_t*));
+    nd->out = sys_malloc(nd->nout * sizeof(tensor_t*));
+    nd->in[0] = ts;
+    nd->in[1] = tensor_new("gather_roi", TENSOR_TYPE_FLOAT32);
+    nd->in[2] = tensor_new("gather_scales", TENSOR_TYPE_FLOAT32);
+    nd->out[3] = tensor_new("gather_sizes", TENSOR_TYPE_INT64);
+    nd->out[0] = tensor_new("gather_out", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(nd->in[2], 2, (int[]){1, 4});
+    float dims[4] = {1, 1, (float)rz_h / ts->dims[2], (float)rz_w / ts->dims[3]};
+    tensor_apply(nd->in[2], dims, 4 * sizeof(float));
+    attribute_t* mode_attr = attribute_string("mode", mode, strlen(mode));
+    vector_add(&nd->attr_vec, mode_attr);
+    node_bind_op(nd);
+    if(nd->op && nd->op->init) {  
+        nd->op->init(nd);
+        nd->op->reshape(nd);
+        nd->op->forward(nd);
+        nd->op->exit(nd);
+    }
+    return nd->out[0];
 }
 
 tensor_t * tensor_cast(tensor_t* ts, tensor_type_t type) {

@@ -70,8 +70,30 @@ UnitTest_fn_def(test_read_png) {
     image_save(g_img, "demo_g.jpg");
     image_save(b_img, "demo_b.jpg");
     image_save_channel(img, "demo_grey.jpg", 0);
-    image_resize(img, 244, 244);
     image_save(img, "demo_resize.jpg");
+    return NULL;
+}
+
+UnitTest_fn_def(test_resize_ts) {
+    device_reg("cpu");
+    float heat[40] = {
+        0.1, 0.2, 0.3, 0.4,
+        0.5, 0.6, 0.7, 0.8,
+        0.9, 1.0, 0.9, 0.8,
+        0.7, 0.6, 0.5, 0.3,
+        0.3, 0.2, 0.5, 0.7,
+
+        0.2, 0.2, 0.3, 0.4,
+        0.2, 0.8, 0.3, 0.5,
+        0.2, 0.3, 1.0, 0.5,
+        0.2, 0.4, 0.9, 0.5,
+        0.2, 0.4, 0.6, 0.5,
+    };
+    tensor_t *ts = tensor_new_float32("heat", (int[]){1, 1, 10, 4}, 4, heat, 40);
+    tensor_t * out = tensor_resize(ts, 8, 20, "nearest");
+    tensor_dump2(out);
+    tensor_t * out2 = tensor_resize(ts, 12, 30, "nearest");
+    tensor_dump2(out2);
     return NULL;
 }
 
@@ -80,6 +102,7 @@ UnitTest_fn_def(test_all) {
     UnitTest_add(test_read_img);
     UnitTest_add(test_heat_img);
     UnitTest_add(test_read_png);
+    UnitTest_add(test_resize_ts);
     return NULL;
 }
 

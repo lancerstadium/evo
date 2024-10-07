@@ -39,23 +39,26 @@ void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alph
     }
 }
 
-void Resize_nearest_uint8_cpu(uint8_t *X, uint8_t* Y, int N, int C, int H, int W, float scale, bool is_forward) {
-    int i, j, k, b;
-    int new_h = H * scale;
-    int new_w = W * scale;
+void Resize_nearest_uint8_cpu(uint8_t *X, uint8_t* Y, int N, int C, int H, int W, int stride, float scale, bool is_forward) {
+    int new_H = is_forward ? (int)(H * scale) : (int)(H / scale);
+    int new_W = is_forward ? (int)(W * scale) : (int)(W / scale);
 
-    for (b = 0; b < N; ++b) {
-        for (k = 0; k < C; ++k) {
-            for (j = 0; j < new_h; ++j) {
-                for (i = 0; i < new_w; ++i) {
-                    int in_index = b * H * W * C + k * H * W + (j / scale) * W + (i / scale);
-                    int out_index = b * new_h * new_w * C + k * new_h * new_w + j * new_w + i;
-                    if (is_forward) {
-                        // 上采样
-                        Y[out_index] = X[in_index];
+    for (int n = 0; n < N; ++n) {
+        for (int c = 0; c < C; ++c) {
+            for (int i = 0; i < new_H; ++i) {
+                for (int j = 0; j < new_W; ++j) {
+                    int in_i = is_forward ? (int)(i / scale) : (int)(i * scale);
+                    int in_j = is_forward ? (int)(j / scale) : (int)(j * scale);
+                    
+                    // 确保索引在原始图像的范围内
+                    if (in_i >= 0 && in_i < H && in_j >= 0 && in_j < W) {
+                        int index = n * C * H * W + c * H * W + in_i * W + in_j;
+                        int new_index = n * C * new_H * new_W + c * new_H * new_W + i * new_W + j;
+                        Y[new_index] = X[index];
                     } else {
-                        // 下采样
-                        X[in_index] += Y[out_index];
+                        // 如果索引超出原始图像范围，则可以根据需要设置默认值，这里设置为0
+                        int new_index = n * C * new_H * new_W + c * new_H * new_W + i * new_W + j;
+                        Y[new_index] = 0.0f;
                     }
                 }
             }
@@ -63,23 +66,26 @@ void Resize_nearest_uint8_cpu(uint8_t *X, uint8_t* Y, int N, int C, int H, int W
     }
 }
 
-void Resize_nearest_float32_cpu(float *X, float* Y, int N, int C, int H, int W, float scale, bool is_forward) {
-    int i, j, k, b;
-    int new_h = H * scale;
-    int new_w = W * scale;
+void Resize_nearest_float32_cpu(float *X, float* Y, int N, int C, int H, int W, int stride, float scale, bool is_forward) {
+    int new_H = is_forward ? (int)(H * scale) : (int)(H / scale);
+    int new_W = is_forward ? (int)(W * scale) : (int)(W / scale);
 
-    for (b = 0; b < N; ++b) {
-        for (k = 0; k < C; ++k) {
-            for (j = 0; j < new_h; ++j) {
-                for (i = 0; i < new_w; ++i) {
-                    int in_index = b * H * W * C + k * H * W + (j / scale) * W + (i / scale);
-                    int out_index = b * new_h * new_w * C + k * new_h * new_w + j * new_w + i;
-                    if (is_forward) {
-                        // 上采样
-                        Y[out_index] = X[in_index];
+    for (int n = 0; n < N; ++n) {
+        for (int c = 0; c < C; ++c) {
+            for (int i = 0; i < new_H; ++i) {
+                for (int j = 0; j < new_W; ++j) {
+                    int in_i = is_forward ? (int)(i / scale) : (int)(i * scale);
+                    int in_j = is_forward ? (int)(j / scale) : (int)(j * scale);
+                    
+                    // 确保索引在原始图像的范围内
+                    if (in_i >= 0 && in_i < H && in_j >= 0 && in_j < W) {
+                        int index = n * C * H * W + c * H * W + in_i * W + in_j;
+                        int new_index = n * C * new_H * new_W + c * new_H * new_W + i * new_W + j;
+                        Y[new_index] = X[index];
                     } else {
-                        // 下采样
-                        X[in_index] += Y[out_index];
+                        // 如果索引超出原始图像范围，则可以根据需要设置默认值，这里设置为0
+                        int new_index = n * C * new_H * new_W + c * new_H * new_W + i * new_W + j;
+                        Y[new_index] = 0.0f;
                     }
                 }
             }

@@ -31,8 +31,8 @@ void Resize_init(node_t* nd) {
 void Resize_reshape(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
     if (!(nd->nin == 4) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type != TENSOR_TYPE_FLOAT32) {
+        || (nd->in[0]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
     tensor_t *x = nd->in[0];
@@ -42,7 +42,7 @@ void Resize_reshape(node_t* nd) {
     int new_dims[x->ndim];
     float* p = (float*)sc->datas;
     for (int i = 0; i < x->ndim; i++) {
-        new_dims[i] = x->dims[i] * (p[i]);
+        new_dims[i] = (float)x->dims[i] * (p[i]);
     }
     tensor_reshape(y, x->ndim, new_dims);
 }
@@ -53,7 +53,7 @@ void Resize_forward_uint8(node_t* nd) {
     float *sc = nd->in[2]->datas;
     tensor_t *y = nd->out[0];
     switch(shash(pdat->mode)) {
-        case 0x09fa48d7: Resize_nearest_float32_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], sc[0], true); break; /* nearest */
+        case 0x09fa48d7: Resize_nearest_uint8_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], 1, sc[3], true); break; /* nearest */
         case 0x8320f06b: break; /* linear */
         /* cubic */
         default: break;
@@ -66,7 +66,7 @@ void Resize_forward_float32(node_t* nd) {
     float *sc = nd->in[2]->datas;
     tensor_t *y = nd->out[0];
     switch(shash(pdat->mode)) {
-        case 0x09fa48d7: Resize_nearest_float32_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], sc[0], true); break; /* nearest */
+        case 0x09fa48d7: Resize_nearest_float32_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], 1, sc[3], true); break; /* nearest */
         case 0x8320f06b: break; /* linear */
         /* cubic */
         default: break;
@@ -76,8 +76,8 @@ void Resize_forward_float32(node_t* nd) {
 void Resize_forward(node_t* nd) {
     if(!nd || !nd->in || !nd->out) return;
     if (!(nd->nin == 4) || !(nd->nout == 1) 
-        || (nd->in[0]->ndim == 0) || (nd->in[1]->ndim == 0) 
-        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED || nd->in[1]->type != TENSOR_TYPE_FLOAT32) {
+        || (nd->in[0]->ndim == 0)
+        || nd->in[0]->type == TENSOR_TYPE_UNDEFINED) {
         return;
     }
 
