@@ -7,9 +7,6 @@
 // ref: https://onnx.ai/onnx/operators/onnx__Resize.html
 
 typedef struct {
-    int64_t antialias;                          /* 0 */
-    int64_t *axess;                             /* axes */
-    int64_t naxes;
     char* coordinate_transformation_mode;       /* half_pixel, half_pixel_symmetric, pytorch_half_pixel, align_corners, asymmetric, tf_crop_and_resize */
     float cubic_coeff_a;                        /* -0.75 */
     int64_t exclude_outside;                    /* 0 */
@@ -53,7 +50,7 @@ void Resize_reshape(node_t* nd) {
 void Resize_forward_uint8(node_t* nd) {
     operator_pdata_t* pdat = nd->priv;
     tensor_t *x = nd->in[0];
-    float *sc = nd->in[1]->datas;
+    float *sc = nd->in[2]->datas;
     tensor_t *y = nd->out[0];
     switch(shash(pdat->mode)) {
         case 0x09fa48d7: Resize_nearest_float32_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], sc[0], true); break; /* nearest */
@@ -66,7 +63,7 @@ void Resize_forward_uint8(node_t* nd) {
 void Resize_forward_float32(node_t* nd) {
     operator_pdata_t* pdat = nd->priv;
     tensor_t *x = nd->in[0];
-    float *sc = nd->in[1]->datas;
+    float *sc = nd->in[2]->datas;
     tensor_t *y = nd->out[0];
     switch(shash(pdat->mode)) {
         case 0x09fa48d7: Resize_nearest_float32_cpu(x->datas, y->datas, x->dims[0], x->dims[1], x->dims[2], x->dims[3], sc[0], true); break; /* nearest */
