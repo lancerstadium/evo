@@ -972,6 +972,7 @@ EVO_API void image_set_deloys(image_t*, int64_t*, int);
 EVO_API void image_to_grey(image_t*);
 EVO_API void image_halftone_ordered_dithering(image_t*);
 EVO_API void image_halftone_floyd_steinberg(image_t*);
+EVO_API void image_halftone_ostromoukhov(image_t*);
 EVO_API void image_free(image_t*);
 
 // ==================================================================================== //
