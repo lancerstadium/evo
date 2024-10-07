@@ -1,4 +1,5 @@
 #include <evo/dev/cpu/def.h>
+#include <math.h>
 
 void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta, 
                               unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type) {
@@ -34,6 +35,54 @@ void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alph
             }
 
             oy++;  // Increment output matrix index
+        }
+    }
+}
+
+void Resize_nearest_uint8_cpu(uint8_t *X, uint8_t* Y, int N, int C, int H, int W, float scale, bool is_forward) {
+    int i, j, k, b;
+    int new_h = H * scale;
+    int new_w = W * scale;
+
+    for (b = 0; b < N; ++b) {
+        for (k = 0; k < C; ++k) {
+            for (j = 0; j < new_h; ++j) {
+                for (i = 0; i < new_w; ++i) {
+                    int in_index = b * H * W * C + k * H * W + (j / scale) * W + (i / scale);
+                    int out_index = b * new_h * new_w * C + k * new_h * new_w + j * new_w + i;
+                    if (is_forward) {
+                        // 上采样
+                        Y[out_index] = X[in_index];
+                    } else {
+                        // 下采样
+                        X[in_index] += Y[out_index];
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Resize_nearest_float32_cpu(float *X, float* Y, int N, int C, int H, int W, float scale, bool is_forward) {
+    int i, j, k, b;
+    int new_h = H * scale;
+    int new_w = W * scale;
+
+    for (b = 0; b < N; ++b) {
+        for (k = 0; k < C; ++k) {
+            for (j = 0; j < new_h; ++j) {
+                for (i = 0; i < new_w; ++i) {
+                    int in_index = b * H * W * C + k * H * W + (j / scale) * W + (i / scale);
+                    int out_index = b * new_h * new_w * C + k * new_h * new_w + j * new_w + i;
+                    if (is_forward) {
+                        // 上采样
+                        Y[out_index] = X[in_index];
+                    } else {
+                        // 下采样
+                        X[in_index] += Y[out_index];
+                    }
+                }
+            }
         }
     }
 }
