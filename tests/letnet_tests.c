@@ -174,7 +174,6 @@ UnitTest_fn_def(train_letnet) {
     return NULL;
 }
 
-
 UnitTest_fn_def(eval_letnet) {
 
     model_t* mdl = model_load("letnet.etm");
