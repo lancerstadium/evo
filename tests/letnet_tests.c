@@ -185,6 +185,7 @@ UnitTest_fn_def(eval_letnet) {
     return NULL;
 }
 
+
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
     UnitTest_add(init_letnet);
