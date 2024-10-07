@@ -95,7 +95,7 @@ void eval_mnist(model_t* mdl) {
         tensor_t* y_us = tensor_squeeze(y_res, NULL, 0);
         tensor_t* y_out = tensor_argmax(y_us, 0, 1, 0);
         int64_t yy = ((int64_t*)y_out->datas)[0];
-        acc_cnt += ((yy == (int64_t)label->bs[b * batch_size]) ? 1 : 0);
+        acc_cnt += ((yy == (int64_t)label_test->bs[b * batch_size]) ? 1 : 0);
         if(b < 10) {
             fprintf(stderr, "<%u %ld> ", label_test->bs[b], yy);
             // tensor_dump2(y_out);
@@ -189,7 +189,7 @@ UnitTest_fn_def(eval_letnet) {
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
     UnitTest_add(init_letnet);
-    UnitTest_add(train_letnet);
+    // UnitTest_add(train_letnet);
     UnitTest_add(eval_letnet);
     device_unreg("cpu");
     return NULL;

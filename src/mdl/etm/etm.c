@@ -53,7 +53,10 @@ static tensor_t* tensor_from_proto(etm_Tensor_table_t tsp) {
         dims[i] = flatbuffers_int32_vec_at(tdims, i);
     }
     tensor_reshape(ts, ndim, dims);
-    ts->layout = 0; // default: NCHW
+    ts->layout = etm_Tensor_layout(tsp); // default: NCHW
+    flatbuffers_uint8_vec_t datas = etm_Tensor_datas(tsp);
+    size_t ndata = flatbuffers_uint8_vec_len(datas);
+    tensor_apply(ts, (void*)datas, ndata);
     return ts;
 }
 
