@@ -1,5 +1,6 @@
 #include <evo.h>
 #include <evo/util/sys.h>
+#include <evo/dev/cpu/kernel.h>
 
 // ==================================================================================== //
 //                                  resolver: default

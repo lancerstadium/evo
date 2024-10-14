@@ -664,7 +664,7 @@ static void Gemm_forward_float16(node_t *nd) {
     }
 }
 
-#include <evo/dev/cpu/def.h>
+
 
 static void Gemm_forward_float32(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;

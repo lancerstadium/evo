@@ -40,3 +40,28 @@ void PRelu_forward_float64_cpu(double *A, double*B, double *Y, unsigned N) {
         Y[i] = (A[i] < 0) ? A[i] * B[i] : A[i];
     }
 }
+
+
+void PRelu_backward_float32_cpu(float *A, float *B, float *dY, float *dA, float *dB, unsigned N) {
+    for (unsigned i = 0; i < N; i++) {
+        if (A[i] < 0) {
+            dA[i] = dY[i] * B[i];
+            dB[i] = dY[i] * A[i];
+        } else {
+            dA[i] = dY[i];
+            dB[i] = 0;
+        }
+    }
+}
+
+void PRelu_backward_float64_cpu(double *A, double *B, double *dY, double *dA, double *dB, unsigned N) {
+    for (unsigned i = 0; i < N; i++) {
+        if (A[i] < 0) {
+            dA[i] = dY[i] * B[i];
+            dB[i] = dY[i] * A[i];
+        } else {
+            dA[i] = dY[i];
+            dB[i] = 0;
+        }
+    }
+}
