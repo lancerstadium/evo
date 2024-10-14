@@ -44,6 +44,102 @@ void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alph
 }
 
 
+void Conv2d_forward_float32_cpu(float *X, float *K, float *Y, int X_H, int X_W, int K_H, int K_W, int Y_H, int Y_W) {
+    for (int i = 0; i < Y_H; i++) {
+        for (int j = 0; j < Y_W; j++) {
+            Y[i * Y_W + j] = 0; // 初始化输出
+            for (int m = 0; m < K_H; m++) {
+                for (int n = 0; n < K_W; n++) {
+                    Y[i * Y_W + j] += X[(i + m) * X_W + (j + n)] * K[m * K_W + n];
+                }
+            }
+        }
+    }
+}
+
+void Conv2d_backward_float32_cpu(float *X, float *K, float *dY, float *dX, float *dK, int X_H, int X_W, int K_H, int K_W, int Y_H, int Y_W) {
+    // 计算 dX 的梯度
+    for (int i = 0; i < X_H; i++) {
+        for (int j = 0; j < X_W; j++) {
+            dX[i * X_W + j] = 0; // 初始化 dX
+        }
+    }
+
+    for (int i = 0; i < Y_H; i++) {
+        for (int j = 0; j < Y_W; j++) {
+            for (int m = 0; m < K_H; m++) {
+                for (int n = 0; n < K_W; n++) {
+                    dX[(i + m) * X_W + (j + n)] += dY[i * Y_W + j] * K[m * K_W + n];
+                }
+            }
+        }
+    }
+
+    // 计算 dK 的梯度
+    for (int m = 0; m < K_H; m++) {
+        for (int n = 0; n < K_W; n++) {
+            dK[m * K_W + n] = 0; // 初始化 dK
+            for (int i = 0; i < Y_H; i++) {
+                for (int j = 0; j < Y_W; j++) {
+                    dK[m * K_W + n] += dY[i * Y_W + j] * X[(i + m) * X_W + (j + n)];
+                }
+            }
+        }
+    }
+}
+
+void Deconv2d_forward_float32_cpu(float *X, float *K, float *Y, int X_H, int X_W, int K_H, int K_W, int Y_H, int Y_W) {
+    for (int i = 0; i < Y_H; i++) {
+        for (int j = 0; j < Y_W; j++) {
+            Y[i * Y_W + j] = 0; // 初始化输出
+        }
+    }
+
+    for (int i = 0; i < X_H; i++) {
+        for (int j = 0; j < X_W; j++) {
+            for (int m = 0; m < K_H; m++) {
+                for (int n = 0; n < K_W; n++) {
+                    Y[(i + m) * Y_W + (j + n)] += X[i * X_W + j] * K[m * K_W + n];
+                }
+            }
+        }
+    }
+}
+
+
+void Deconv2d_backward_float32_cpu(float *X, float *K, float *dY, float *dX, float *dK, int X_H, int X_W, int K_H, int K_W, int Y_H, int Y_W) {
+    // 初始化梯度
+    for (int i = 0; i < X_H; i++) {
+        for (int j = 0; j < X_W; j++) {
+            dX[i * X_W + j] = 0; // 初始化 dX
+        }
+    }
+
+    for (int m = 0; m < K_H; m++) {
+        for (int n = 0; n < K_W; n++) {
+            dK[m * K_W + n] = 0; // 初始化 dK
+        }
+    }
+
+    // 反卷积的反向传播
+    for (int i = 0; i < Y_H; i++) {
+        for (int j = 0; j < Y_W; j++) {
+            for (int m = 0; m < K_H; m++) {
+                for (int n = 0; n < K_W; n++) {
+                    if ((i - m) >= 0 && (j - n) >= 0 && (i - m) < X_H && (j - n) < X_W) {
+                        dX[(i - m) * X_W + (j - n)] += dY[i * Y_W + j] * K[m * K_W + n];
+                        dK[m * K_W + n] += dY[i * Y_W + j] * X[(i - m) * X_W + (j - n)];
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
 // ==================================================================================== //
 //                                       blas: Resize
 // ==================================================================================== //
