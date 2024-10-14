@@ -1,5 +1,9 @@
-#include <evo/dev/cpu/def.h>
-#include <math.h>
+#include <evo/dev/cpu/kernel.h>
+
+
+// ==================================================================================== //
+//                                       blas: Gemm
+// ==================================================================================== //
 
 void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alpha, float beta, 
                               unsigned M, unsigned N, unsigned K, int transA, int transB, int broadcast_type) {
@@ -38,6 +42,11 @@ void Gemm_forward_float32_cpu(float *A, float *B, float *C, float *Y, float alph
         }
     }
 }
+
+
+// ==================================================================================== //
+//                                       blas: Resize
+// ==================================================================================== //
 
 void Resize_nearest_uint8_cpu(uint8_t *X, uint8_t* Y, int N, int C, int H, int W, int stride, float scale, bool is_forward) {
     int new_H = is_forward ? (int)(H * scale) : (int)(H / scale);
