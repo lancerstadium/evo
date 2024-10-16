@@ -66,6 +66,7 @@ void dot_node(char* buffer, node_t* nd) {
     }
 }
 
+
 void dot_link_in(char* buffer, int tdx, int ndx) {
     sprintf(buffer,
         "%s\nTensor%d ->  Node%d"
