@@ -74,7 +74,6 @@ void dot_link_in(char* buffer, int tdx, int ndx) {
 }
 
 
-
 void dot_link_out(char* buffer, int ndx, int tdx) {
     sprintf(buffer,
         "%s\nNode%d ->  Tensor%d"
