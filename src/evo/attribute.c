@@ -145,3 +145,21 @@ void attribute_dump(attribute_t *attr) {
         default: break;
     }
 }
+
+char* attribute_dump_value(attribute_t *attr) {
+    if(!attr) return NULL;
+    char* buf = malloc(48 * sizeof(char));
+    sprintf(buf, "%s : ", attr->name ? attr->name : "(attr)");
+    switch(attr->type) {
+        case ATTRIBUTE_TYPE_BYTES: {    sprintf(buf,"%s[", buf); for(int i=0; i<attr->nb;i++) {sprintf(buf,"%s%u%s", buf, attr->bs[i], (i == attr->nb - 1) ? "" : ",");} sprintf(buf,"%s]", buf); break; }
+        case ATTRIBUTE_TYPE_FLOATS: {   sprintf(buf,"%s[", buf); for(int i=0; i<attr->nf;i++) {sprintf(buf,"%s%.2f%s", buf, attr->fs[i], (i == attr->nf - 1) ? "" : ",");} sprintf(buf,"%s]", buf); break; }
+        case ATTRIBUTE_TYPE_INTS: {     sprintf(buf,"%s[", buf); for(int i=0; i<attr->ni;i++) {sprintf(buf,"%s%ld%s", buf, attr->is[i], (i == attr->ni - 1) ? "" : ",");} sprintf(buf,"%s]", buf); break; }
+        case ATTRIBUTE_TYPE_TENSOR:{    char* shape = tensor_dump_shape(attr->t); sprintf(buf,"%s%s", buf, shape); free(shape); break;}
+        case ATTRIBUTE_TYPE_INT:        sprintf(buf,"%s%ld", buf, attr->i);        break;
+        case ATTRIBUTE_TYPE_FLOAT:      sprintf(buf,"%s%.4f", buf, attr->f);      break;
+        case ATTRIBUTE_TYPE_UNDEFINED:  sprintf(buf,"%sundefined", buf);          break;
+        case ATTRIBUTE_TYPE_STRING:     sprintf(buf,"%s\"%s\"", buf, attr->ss);   break;
+        default: break;
+    }
+    return buf;
+}

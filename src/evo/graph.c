@@ -1,6 +1,7 @@
 #include <evo.h>
 #include <evo/util/log.h>
 #include <evo/util/sys.h>
+#include "../vis/dotenc.h"
 #include <string.h>
 
 static char* graph_status_tbl[] = {
@@ -524,6 +525,20 @@ void graph_exec_report_level(graph_t *g, int l) {
             graph_exec_report_level(g->sub_vec[i], l);
         }
     }
+}
+
+void graph_export_dot(graph_t *g, char *path) {
+    if(!g || !path) return;
+    FILE *f = fopen(path, "w");
+    if(!f) {
+        LOG_ERR("Write %s failed!\n", path);
+        return;
+    }
+    char dot_buf[1024 * 1024 * sizeof(char)];
+    memset(dot_buf, 0, 1024 * 1024 * sizeof(char));
+    dot_graph(dot_buf, g);
+    fprintf(f, "%s", dot_buf);
+    fclose(f);
 }
 
 void graph_free(graph_t *g) {

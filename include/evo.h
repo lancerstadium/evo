@@ -512,6 +512,7 @@ EVO_API attribute_t* attribute_ints(char*, int64_t*, size_t);
 EVO_API attribute_t* attribute_bytes(char*, uint8_t*, size_t);
 EVO_API attribute_t* attribute_tensor(char*, tensor_t*);
 EVO_API void attribute_dump(attribute_t*);
+EVO_API char* attribute_dump_value(attribute_t*);
 EVO_API void attribute_free(attribute_t*);
 
 // ==================================================================================== //
@@ -642,6 +643,7 @@ EVO_API void graph_dump1(graph_t*);
 EVO_API void graph_dump2(graph_t*);
 EVO_API void graph_exec_report(graph_t*);
 EVO_API void graph_exec_report_level(graph_t*, int);
+EVO_API void graph_export_dot(graph_t*, char*);
 EVO_API void graph_free(graph_t*);
 
 // ==================================================================================== //

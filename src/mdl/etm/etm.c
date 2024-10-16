@@ -191,6 +191,7 @@ graph_t *load_graph_etm(model_t *mdl) {
         for(size_t j = 0; j < sg->ntensor; j++) {
             etm_Tensor_table_t s_ts = etm_Tensor_vec_at(s_tss, j);
             sg->tensors[j] = tensor_from_proto(s_ts);
+            sg->tensors[j]->index = j;
             hashmap_set(mdl->tensor_map, hashmap_str_lit(sg->tensors[j]->name), (uintptr_t)sg->tensors[j]);
         }
         // Add Nodes
@@ -234,6 +235,7 @@ graph_t *load_graph_etm(model_t *mdl) {
             // Add idx node
             vector_add(&sg->ndx, j);
             sg->nodes[j] = nd;
+            sg->nodes[j]->index = j;
         }
     }
     g->ntensor = g->sub_vec[0]->ntensor;

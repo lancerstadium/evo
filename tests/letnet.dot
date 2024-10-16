@@ -1,0 +1,247 @@
+digraph letnet_model {
+compound = true
+ratio = 1.8
+ranksep = 0.25
+nodesep = 0.2
+splines = true
+graph [rankdir = TB, shape = record, charset = "UTF-8", color = cadetblue, fontcolor = black, fontname = "Consolas", fontsize = 20, style = "rounded,dashed,bold"]
+node [shape = record, charset = "UTF-8", color = black, fontcolor = black, fontname = "Consolas", fontsize = 16, style = "rounded,bold"]
+edge [shape = record, charset = "UTF-8", color = black, fontname = "Consolas", fontsize = 14, style = "bold"]
+
+Tensor0 [
+color = brown
+fontcolor = brown
+label = "{Input0 | [1,1,28,28]}"
+]
+
+Tensor1 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Conv0_kernel | [6,1,5,5]}"
+]
+
+Tensor2 [
+color = brown
+fontcolor = brown
+label = "{Conv0_out0 | [1,6,28,28]}"
+]
+
+Tensor3 [
+color = brown
+fontcolor = brown
+label = "{Tanh1_out0 | [1,6,28,28]}"
+]
+
+Tensor4 [
+color = brown
+fontcolor = brown
+label = "{AveragePool2_out0 | [1,6,14,14]}"
+]
+
+Tensor5 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Conv3_kernel | [16,6,5,5]}"
+]
+
+Tensor6 [
+color = brown
+fontcolor = brown
+label = "{Conv3_out0 | [1,16,10,10]}"
+]
+
+Tensor7 [
+color = brown
+fontcolor = brown
+label = "{Tanh4_out0 | [1,16,10,10]}"
+]
+
+Tensor8 [
+color = brown
+fontcolor = brown
+label = "{AveragePool5_out0 | [1,16,5,5]}"
+]
+
+Tensor9 [
+color = brown
+fontcolor = brown
+label = "{Flatten6_out0 | [1,400]}"
+]
+
+Tensor10 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm7_kernel | [400,120]}"
+]
+
+Tensor11 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm7_bias | [1,120]}"
+]
+
+Tensor12 [
+color = brown
+fontcolor = brown
+label = "{Gemm7_out0 | [1,120]}"
+]
+
+Tensor13 [
+color = brown
+fontcolor = brown
+label = "{Tanh8_out0 | [1,120]}"
+]
+
+Tensor14 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm9_kernel | [120,84]}"
+]
+
+Tensor15 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm9_bias | [1,84]}"
+]
+
+Tensor16 [
+color = brown
+fontcolor = brown
+label = "{Gemm9_out0 | [1,84]}"
+]
+
+Tensor17 [
+color = brown
+fontcolor = brown
+label = "{Tanh10_out0 | [1,84]}"
+]
+
+Tensor18 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm11_kernel | [84,10]}"
+]
+
+Tensor19 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{Gemm11_bias | [1,10]}"
+]
+
+Tensor20 [
+color = brown
+fontcolor = brown
+label = "{Gemm11_out0 | [1,10]}"
+]
+
+Tensor21 [
+color = brown
+fontcolor = brown
+label = "{Softmax12_out0 | [1,10]}"
+]
+
+subgraph cluster_subgraph0 {
+label = "letnet_model_0"
+
+Node0 [
+label = "{ Conv: Conv0 | {
+kernel_shape : [5,5]\n
+strides : [1,1]\n
+pads : [2,2,2,2]\n
+
+}}"
+]
+
+Tensor0 ->  Node0
+Tensor1 ->  Node0
+Node0 ->  Tensor2
+
+Node1 [ label = "{ Tanh: Tanh1 }" ]
+
+Tensor2 ->  Node1
+Node1 ->  Tensor3
+
+Node2 [
+label = "{ AveragePool: AveragePool2 | {
+kernel_shape : [2,2]\n
+strides : [2,2]\n
+
+}}"
+]
+
+Tensor3 ->  Node2
+Node2 ->  Tensor4
+
+Node3 [
+label = "{ Conv: Conv3 | {
+kernel_shape : [5,5]\n
+strides : [1,1]\n
+pads : [0,0,0,0]\n
+
+}}"
+]
+
+Tensor4 ->  Node3
+Tensor5 ->  Node3
+Node3 ->  Tensor6
+
+Node4 [ label = "{ Tanh: Tanh4 }" ]
+
+Tensor6 ->  Node4
+Node4 ->  Tensor7
+
+Node5 [
+label = "{ AveragePool: AveragePool5 | {
+kernel_shape : [2,2]\n
+strides : [2,2]\n
+
+}}"
+]
+
+Tensor7 ->  Node5
+Node5 ->  Tensor8
+
+Node6 [ label = "{ Flatten: Flatten6 }" ]
+
+Tensor8 ->  Node6
+Node6 ->  Tensor9
+
+Node7 [ label = "{ Gemm: Gemm7 }" ]
+
+Tensor9 ->  Node7
+Tensor10 ->  Node7
+Tensor11 ->  Node7
+Node7 ->  Tensor12
+
+Node8 [ label = "{ Tanh: Tanh8 }" ]
+
+Tensor12 ->  Node8
+Node8 ->  Tensor13
+
+Node9 [ label = "{ Gemm: Gemm9 }" ]
+
+Tensor13 ->  Node9
+Tensor14 ->  Node9
+Tensor15 ->  Node9
+Node9 ->  Tensor16
+
+Node10 [ label = "{ Tanh: Tanh10 }" ]
+
+Tensor16 ->  Node10
+Node10 ->  Tensor17
+
+Node11 [ label = "{ Gemm: Gemm11 }" ]
+
+Tensor17 ->  Node11
+Tensor18 ->  Node11
+Tensor19 ->  Node11
+Node11 ->  Tensor20
+
+Node12 [ label = "{ Softmax: Softmax12 }" ]
+
+Tensor20 ->  Node12
+Node12 ->  Tensor21
+
+}
+
+}

@@ -182,6 +182,7 @@ UnitTest_fn_def(eval_letnet) {
     // tensor_t* ts = model_get_tensor(mdl, "Gemm7_kernel");
     // tensor_dump1(ts);
     eval_mnist(mdl);
+    graph_export_dot(mdl->graph, "letnet.dot");
     return NULL;
 }
 
