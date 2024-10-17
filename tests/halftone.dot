@@ -11,1213 +11,1213 @@ edge [shape = record, charset = "UTF-8", color = black, fontname = "Consolas", f
 Tensor0 [
 color = brown
 fontcolor = brown
-label = "{input | [1,1,256,256]}"
+label = "{input | {\<float32\>\n[1,1,256,256]}}"
 ]
 
 Tensor1 [
 color = brown
 fontcolor = brown
-label = "{output | [1,2,256,256]}"
+label = "{output | {\<float32\>\n[1,2,256,256]}}"
 ]
 
 Tensor2 [
 color = brown
 fontcolor = brown
-label = "{/RandomUniformLike_output_0 | [1,1,256,256]}"
+label = "{/RandomUniformLike_output_0 | {\<float32\>\n[1,1,256,256]}}"
 ]
 
 Tensor3 [
 color = brown
 fontcolor = brown
-label = "{/Constant_output_0 | [1]}"
+label = "{/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor4 [
 color = brown
 fontcolor = brown
-label = "{/Mul_output_0 | [1,1,256,256]}"
+label = "{/Mul_output_0 | {\<float32\>\n[1,1,256,256]}}"
 ]
 
 Tensor5 [
 color = brown
 fontcolor = brown
-label = "{/Concat_output_0 | [1,2,256,256]}"
+label = "{/Concat_output_0 | {\<float32\>\n[1,2,256,256]}}"
 ]
 
 Tensor6 [
 color = brown
 fontcolor = brown
-label = "{/conv1/Conv_output_0 | []}"
+label = "{/conv1/Conv_output_0 | {\<float32\>\n[1,16,256,256]}}"
 ]
 
 Tensor7 [
 color = brown
 fontcolor = brown
-label = "{/relu/Relu_output_0 | []}"
+label = "{/relu/Relu_output_0 | {\<float32\>\n[1,16,256,256]}}"
 ]
 
 Tensor8 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.0/Conv_output_0 | []}"
+label = "{/layer1/block/block.0/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor9 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer1/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor10 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer1/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor11 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.2/Clip_output_0 | []}"
+label = "{/layer1/block/block.2/Clip_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor12 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.3/Conv_output_0 | []}"
+label = "{/layer1/block/block.3/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor13 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer1/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor14 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer1/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor15 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.5/Clip_output_0 | []}"
+label = "{/layer1/block/block.5/Clip_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor16 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.6/Conv_output_0 | []}"
+label = "{/layer1/block/block.6/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor17 [
 color = brown
 fontcolor = brown
-label = "{/layer1/residual_projection/residual_projection.0/Conv_output_0 | []}"
+label = "{/layer1/residual_projection/residual_projection.0/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor18 [
 color = brown
 fontcolor = brown
-label = "{/layer1/Add_output_0 | []}"
+label = "{/layer1/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor19 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.0/Conv_output_0 | []}"
+label = "{/layer2/block/block.0/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor20 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer2/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor21 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer2/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor22 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.2/Clip_output_0 | []}"
+label = "{/layer2/block/block.2/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor23 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.3/Conv_output_0 | []}"
+label = "{/layer2/block/block.3/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor24 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer2/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor25 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer2/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor26 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.5/Clip_output_0 | []}"
+label = "{/layer2/block/block.5/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor27 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.6/Conv_output_0 | []}"
+label = "{/layer2/block/block.6/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor28 [
 color = brown
 fontcolor = brown
-label = "{/layer2/Add_output_0 | []}"
+label = "{/layer2/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor29 [
 color = brown
 fontcolor = brown
-label = "{/Add_output_0 | []}"
+label = "{/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor30 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.0/Conv_output_0 | []}"
+label = "{/layer3/block/block.0/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor31 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer3/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor32 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer3/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor33 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.2/Clip_output_0 | []}"
+label = "{/layer3/block/block.2/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor34 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.3/Conv_output_0 | []}"
+label = "{/layer3/block/block.3/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor35 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer3/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor36 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer3/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor37 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.5/Clip_output_0 | []}"
+label = "{/layer3/block/block.5/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor38 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.6/Conv_output_0 | []}"
+label = "{/layer3/block/block.6/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor39 [
 color = brown
 fontcolor = brown
-label = "{/layer3/Add_output_0 | []}"
+label = "{/layer3/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor40 [
 color = brown
 fontcolor = brown
-label = "{/Concat_1_output_0 | []}"
+label = "{/Concat_1_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor41 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.0/Conv_output_0 | []}"
+label = "{/layer4/block/block.0/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor42 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer4/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor43 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer4/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor44 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.2/Clip_output_0 | []}"
+label = "{/layer4/block/block.2/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor45 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.3/Conv_output_0 | []}"
+label = "{/layer4/block/block.3/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor46 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer4/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor47 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer4/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor48 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.5/Clip_output_0 | []}"
+label = "{/layer4/block/block.5/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor49 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.6/Conv_output_0 | []}"
+label = "{/layer4/block/block.6/Conv_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor50 [
 color = brown
 fontcolor = brown
-label = "{/layer4/Add_output_0 | []}"
+label = "{/layer4/Add_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor51 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.0/Conv_output_0 | []}"
+label = "{/layer5/block/block.0/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor52 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer5/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor53 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer5/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor54 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.2/Clip_output_0 | []}"
+label = "{/layer5/block/block.2/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor55 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.3/Conv_output_0 | []}"
+label = "{/layer5/block/block.3/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor56 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer5/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor57 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer5/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor58 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.5/Clip_output_0 | []}"
+label = "{/layer5/block/block.5/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor59 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.6/Conv_output_0 | []}"
+label = "{/layer5/block/block.6/Conv_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor60 [
 color = brown
 fontcolor = brown
-label = "{/layer5/Add_output_0 | []}"
+label = "{/layer5/Add_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor61 [
 color = brown
 fontcolor = brown
-label = "{/Add_1_output_0 | []}"
+label = "{/Add_1_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor62 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.0/Conv_output_0 | []}"
+label = "{/layer6/block/block.0/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor63 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer6/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor64 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer6/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor65 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.2/Clip_output_0 | []}"
+label = "{/layer6/block/block.2/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor66 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.3/Conv_output_0 | []}"
+label = "{/layer6/block/block.3/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor67 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer6/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor68 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer6/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor69 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.5/Clip_output_0 | []}"
+label = "{/layer6/block/block.5/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor70 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.6/Conv_output_0 | []}"
+label = "{/layer6/block/block.6/Conv_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor71 [
 color = brown
 fontcolor = brown
-label = "{/layer6/Add_output_0 | []}"
+label = "{/layer6/Add_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor72 [
 color = brown
 fontcolor = brown
-label = "{/Concat_2_output_0 | []}"
+label = "{/Concat_2_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor73 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.0/Conv_output_0 | []}"
+label = "{/layer7/block/block.0/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor74 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer7/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor75 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer7/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor76 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.2/Clip_output_0 | []}"
+label = "{/layer7/block/block.2/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor77 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.3/Conv_output_0 | []}"
+label = "{/layer7/block/block.3/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor78 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer7/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor79 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer7/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor80 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.5/Clip_output_0 | []}"
+label = "{/layer7/block/block.5/Clip_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor81 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.6/Conv_output_0 | []}"
+label = "{/layer7/block/block.6/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor82 [
 color = brown
 fontcolor = brown
-label = "{/layer7/Add_output_0 | []}"
+label = "{/layer7/Add_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor83 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.0/Conv_output_0 | []}"
+label = "{/layer8/block/block.0/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor84 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer8/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor85 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer8/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor86 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.2/Clip_output_0 | []}"
+label = "{/layer8/block/block.2/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor87 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.3/Conv_output_0 | []}"
+label = "{/layer8/block/block.3/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor88 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer8/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor89 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer8/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor90 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.5/Clip_output_0 | []}"
+label = "{/layer8/block/block.5/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor91 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.6/Conv_output_0 | []}"
+label = "{/layer8/block/block.6/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor92 [
 color = brown
 fontcolor = brown
-label = "{/layer8/Add_output_0 | []}"
+label = "{/layer8/Add_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor93 [
 color = brown
 fontcolor = brown
-label = "{/Add_2_output_0 | []}"
+label = "{/Add_2_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor94 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.0/Conv_output_0 | []}"
+label = "{/layer9/block/block.0/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor95 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer9/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor96 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer9/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor97 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.2/Clip_output_0 | []}"
+label = "{/layer9/block/block.2/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor98 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.3/Conv_output_0 | []}"
+label = "{/layer9/block/block.3/Conv_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor99 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer9/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor100 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer9/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor101 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.5/Clip_output_0 | []}"
+label = "{/layer9/block/block.5/Clip_output_0 | {\<float32\>\n[1,256,256,256]}}"
 ]
 
 Tensor102 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.6/Conv_output_0 | []}"
+label = "{/layer9/block/block.6/Conv_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor103 [
 color = brown
 fontcolor = brown
-label = "{/layer9/Add_output_0 | []}"
+label = "{/layer9/Add_output_0 | {\<float32\>\n[1,128,256,256]}}"
 ]
 
 Tensor104 [
 color = brown
 fontcolor = brown
-label = "{/Concat_3_output_0 | []}"
+label = "{/Concat_3_output_0 | {\<float32\>\n[1,192,256,256]}}"
 ]
 
 Tensor105 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.0/Conv_output_0 | []}"
+label = "{/layer10/block/block.0/Conv_output_0 | {\<float32\>\n[1,192,256,256]}}"
 ]
 
 Tensor106 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer10/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor107 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer10/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor108 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.2/Clip_output_0 | []}"
+label = "{/layer10/block/block.2/Clip_output_0 | {\<float32\>\n[1,192,256,256]}}"
 ]
 
 Tensor109 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.3/Conv_output_0 | []}"
+label = "{/layer10/block/block.3/Conv_output_0 | {\<float32\>\n[1,192,256,256]}}"
 ]
 
 Tensor110 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer10/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor111 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer10/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor112 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.5/Clip_output_0 | []}"
+label = "{/layer10/block/block.5/Clip_output_0 | {\<float32\>\n[1,192,256,256]}}"
 ]
 
 Tensor113 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.6/Conv_output_0 | []}"
+label = "{/layer10/block/block.6/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor114 [
 color = brown
 fontcolor = brown
-label = "{/layer10/residual_projection/residual_projection.0/Conv_output_0 | []}"
+label = "{/layer10/residual_projection/residual_projection.0/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor115 [
 color = brown
 fontcolor = brown
-label = "{/layer10/Add_output_0 | []}"
+label = "{/layer10/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor116 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.0/Conv_output_0 | []}"
+label = "{/layer11/block/block.0/Conv_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor117 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.2/Constant_output_0 | [1]}"
+label = "{/layer11/block/block.2/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor118 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.2/Constant_1_output_0 | [1]}"
+label = "{/layer11/block/block.2/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor119 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.2/Clip_output_0 | []}"
+label = "{/layer11/block/block.2/Clip_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor120 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.3/Conv_output_0 | []}"
+label = "{/layer11/block/block.3/Conv_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor121 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.5/Constant_output_0 | [1]}"
+label = "{/layer11/block/block.5/Constant_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor122 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.5/Constant_1_output_0 | [1]}"
+label = "{/layer11/block/block.5/Constant_1_output_0 | {\<float32\>\n[1]}}"
 ]
 
 Tensor123 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.5/Clip_output_0 | []}"
+label = "{/layer11/block/block.5/Clip_output_0 | {\<float32\>\n[1,64,256,256]}}"
 ]
 
 Tensor124 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.6/Conv_output_0 | []}"
+label = "{/layer11/block/block.6/Conv_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor125 [
 color = brown
 fontcolor = brown
-label = "{/layer11/Add_output_0 | []}"
+label = "{/layer11/Add_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor126 [
 color = brown
 fontcolor = brown
-label = "{/Add_3_output_0 | []}"
+label = "{/Add_3_output_0 | {\<float32\>\n[1,32,256,256]}}"
 ]
 
 Tensor127 [
 color = brown
 fontcolor = brown
-label = "{/conv2/Conv_output_0 | []}"
+label = "{/conv2/Conv_output_0 | {\<float32\>\n[1,2,256,256]}}"
 ]
 
 Tensor128 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_383 | [16,2,3,3]}"
+label = "{onnx::Conv_383 | {\<float32\>\n[16,2,3,3]}}"
 ]
 
 Tensor129 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_384 | [16]}"
+label = "{onnx::Conv_384 | {\<float32\>\n[16]}}"
 ]
 
 Tensor130 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_386 | [32,16,1,1]}"
+label = "{onnx::Conv_386 | {\<float32\>\n[32,16,1,1]}}"
 ]
 
 Tensor131 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_387 | [32]}"
+label = "{onnx::Conv_387 | {\<float32\>\n[32]}}"
 ]
 
 Tensor132 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_389 | [32,1,3,3]}"
+label = "{onnx::Conv_389 | {\<float32\>\n[32,1,3,3]}}"
 ]
 
 Tensor133 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_390 | [32]}"
+label = "{onnx::Conv_390 | {\<float32\>\n[32]}}"
 ]
 
 Tensor134 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_392 | [32,32,1,1]}"
+label = "{onnx::Conv_392 | {\<float32\>\n[32,32,1,1]}}"
 ]
 
 Tensor135 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_393 | [32]}"
+label = "{onnx::Conv_393 | {\<float32\>\n[32]}}"
 ]
 
 Tensor136 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_395 | [32,16,1,1]}"
+label = "{onnx::Conv_395 | {\<float32\>\n[32,16,1,1]}}"
 ]
 
 Tensor137 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_396 | [32]}"
+label = "{onnx::Conv_396 | {\<float32\>\n[32]}}"
 ]
 
 Tensor138 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_398 | [128,32,1,1]}"
+label = "{onnx::Conv_398 | {\<float32\>\n[128,32,1,1]}}"
 ]
 
 Tensor139 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_399 | [128]}"
+label = "{onnx::Conv_399 | {\<float32\>\n[128]}}"
 ]
 
 Tensor140 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_401 | [128,1,3,3]}"
+label = "{onnx::Conv_401 | {\<float32\>\n[128,1,3,3]}}"
 ]
 
 Tensor141 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_402 | [128]}"
+label = "{onnx::Conv_402 | {\<float32\>\n[128]}}"
 ]
 
 Tensor142 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_404 | [32,128,1,1]}"
+label = "{onnx::Conv_404 | {\<float32\>\n[32,128,1,1]}}"
 ]
 
 Tensor143 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_405 | [32]}"
+label = "{onnx::Conv_405 | {\<float32\>\n[32]}}"
 ]
 
 Tensor144 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_407 | [128,32,1,1]}"
+label = "{onnx::Conv_407 | {\<float32\>\n[128,32,1,1]}}"
 ]
 
 Tensor145 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_408 | [128]}"
+label = "{onnx::Conv_408 | {\<float32\>\n[128]}}"
 ]
 
 Tensor146 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_410 | [128,1,3,3]}"
+label = "{onnx::Conv_410 | {\<float32\>\n[128,1,3,3]}}"
 ]
 
 Tensor147 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_411 | [128]}"
+label = "{onnx::Conv_411 | {\<float32\>\n[128]}}"
 ]
 
 Tensor148 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_413 | [32,128,1,1]}"
+label = "{onnx::Conv_413 | {\<float32\>\n[32,128,1,1]}}"
 ]
 
 Tensor149 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_414 | [32]}"
+label = "{onnx::Conv_414 | {\<float32\>\n[32]}}"
 ]
 
 Tensor150 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_416 | [128,64,1,1]}"
+label = "{onnx::Conv_416 | {\<float32\>\n[128,64,1,1]}}"
 ]
 
 Tensor151 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_417 | [128]}"
+label = "{onnx::Conv_417 | {\<float32\>\n[128]}}"
 ]
 
 Tensor152 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_419 | [128,1,3,3]}"
+label = "{onnx::Conv_419 | {\<float32\>\n[128,1,3,3]}}"
 ]
 
 Tensor153 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_420 | [128]}"
+label = "{onnx::Conv_420 | {\<float32\>\n[128]}}"
 ]
 
 Tensor154 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_422 | [64,128,1,1]}"
+label = "{onnx::Conv_422 | {\<float32\>\n[64,128,1,1]}}"
 ]
 
 Tensor155 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_423 | [64]}"
+label = "{onnx::Conv_423 | {\<float32\>\n[64]}}"
 ]
 
 Tensor156 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_425 | [256,64,1,1]}"
+label = "{onnx::Conv_425 | {\<float32\>\n[256,64,1,1]}}"
 ]
 
 Tensor157 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_426 | [256]}"
+label = "{onnx::Conv_426 | {\<float32\>\n[256]}}"
 ]
 
 Tensor158 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_428 | [256,1,3,3]}"
+label = "{onnx::Conv_428 | {\<float32\>\n[256,1,3,3]}}"
 ]
 
 Tensor159 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_429 | [256]}"
+label = "{onnx::Conv_429 | {\<float32\>\n[256]}}"
 ]
 
 Tensor160 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_431 | [64,256,1,1]}"
+label = "{onnx::Conv_431 | {\<float32\>\n[64,256,1,1]}}"
 ]
 
 Tensor161 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_432 | [64]}"
+label = "{onnx::Conv_432 | {\<float32\>\n[64]}}"
 ]
 
 Tensor162 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_434 | [256,64,1,1]}"
+label = "{onnx::Conv_434 | {\<float32\>\n[256,64,1,1]}}"
 ]
 
 Tensor163 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_435 | [256]}"
+label = "{onnx::Conv_435 | {\<float32\>\n[256]}}"
 ]
 
 Tensor164 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_437 | [256,1,3,3]}"
+label = "{onnx::Conv_437 | {\<float32\>\n[256,1,3,3]}}"
 ]
 
 Tensor165 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_438 | [256]}"
+label = "{onnx::Conv_438 | {\<float32\>\n[256]}}"
 ]
 
 Tensor166 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_440 | [64,256,1,1]}"
+label = "{onnx::Conv_440 | {\<float32\>\n[64,256,1,1]}}"
 ]
 
 Tensor167 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_441 | [64]}"
+label = "{onnx::Conv_441 | {\<float32\>\n[64]}}"
 ]
 
 Tensor168 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_443 | [128,128,1,1]}"
+label = "{onnx::Conv_443 | {\<float32\>\n[128,128,1,1]}}"
 ]
 
 Tensor169 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_444 | [128]}"
+label = "{onnx::Conv_444 | {\<float32\>\n[128]}}"
 ]
 
 Tensor170 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_446 | [128,1,3,3]}"
+label = "{onnx::Conv_446 | {\<float32\>\n[128,1,3,3]}}"
 ]
 
 Tensor171 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_447 | [128]}"
+label = "{onnx::Conv_447 | {\<float32\>\n[128]}}"
 ]
 
 Tensor172 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_449 | [128,128,1,1]}"
+label = "{onnx::Conv_449 | {\<float32\>\n[128,128,1,1]}}"
 ]
 
 Tensor173 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_450 | [128]}"
+label = "{onnx::Conv_450 | {\<float32\>\n[128]}}"
 ]
 
 Tensor174 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_452 | [256,128,1,1]}"
+label = "{onnx::Conv_452 | {\<float32\>\n[256,128,1,1]}}"
 ]
 
 Tensor175 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_453 | [256]}"
+label = "{onnx::Conv_453 | {\<float32\>\n[256]}}"
 ]
 
 Tensor176 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_455 | [256,1,3,3]}"
+label = "{onnx::Conv_455 | {\<float32\>\n[256,1,3,3]}}"
 ]
 
 Tensor177 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_456 | [256]}"
+label = "{onnx::Conv_456 | {\<float32\>\n[256]}}"
 ]
 
 Tensor178 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_458 | [128,256,1,1]}"
+label = "{onnx::Conv_458 | {\<float32\>\n[128,256,1,1]}}"
 ]
 
 Tensor179 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_459 | [128]}"
+label = "{onnx::Conv_459 | {\<float32\>\n[128]}}"
 ]
 
 Tensor180 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_461 | [256,128,1,1]}"
+label = "{onnx::Conv_461 | {\<float32\>\n[256,128,1,1]}}"
 ]
 
 Tensor181 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_462 | [256]}"
+label = "{onnx::Conv_462 | {\<float32\>\n[256]}}"
 ]
 
 Tensor182 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_464 | [256,1,3,3]}"
+label = "{onnx::Conv_464 | {\<float32\>\n[256,1,3,3]}}"
 ]
 
 Tensor183 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_465 | [256]}"
+label = "{onnx::Conv_465 | {\<float32\>\n[256]}}"
 ]
 
 Tensor184 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_467 | [128,256,1,1]}"
+label = "{onnx::Conv_467 | {\<float32\>\n[128,256,1,1]}}"
 ]
 
 Tensor185 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_468 | [128]}"
+label = "{onnx::Conv_468 | {\<float32\>\n[128]}}"
 ]
 
 Tensor186 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_470 | [192,192,1,1]}"
+label = "{onnx::Conv_470 | {\<float32\>\n[192,192,1,1]}}"
 ]
 
 Tensor187 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_471 | [192]}"
+label = "{onnx::Conv_471 | {\<float32\>\n[192]}}"
 ]
 
 Tensor188 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_473 | [192,1,3,3]}"
+label = "{onnx::Conv_473 | {\<float32\>\n[192,1,3,3]}}"
 ]
 
 Tensor189 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_474 | [192]}"
+label = "{onnx::Conv_474 | {\<float32\>\n[192]}}"
 ]
 
 Tensor190 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_476 | [32,192,1,1]}"
+label = "{onnx::Conv_476 | {\<float32\>\n[32,192,1,1]}}"
 ]
 
 Tensor191 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_477 | [32]}"
+label = "{onnx::Conv_477 | {\<float32\>\n[32]}}"
 ]
 
 Tensor192 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_479 | [32,192,1,1]}"
+label = "{onnx::Conv_479 | {\<float32\>\n[32,192,1,1]}}"
 ]
 
 Tensor193 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_480 | [32]}"
+label = "{onnx::Conv_480 | {\<float32\>\n[32]}}"
 ]
 
 Tensor194 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_482 | [64,32,1,1]}"
+label = "{onnx::Conv_482 | {\<float32\>\n[64,32,1,1]}}"
 ]
 
 Tensor195 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_483 | [64]}"
+label = "{onnx::Conv_483 | {\<float32\>\n[64]}}"
 ]
 
 Tensor196 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_485 | [64,1,3,3]}"
+label = "{onnx::Conv_485 | {\<float32\>\n[64,1,3,3]}}"
 ]
 
 Tensor197 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_486 | [64]}"
+label = "{onnx::Conv_486 | {\<float32\>\n[64]}}"
 ]
 
 Tensor198 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_488 | [32,64,1,1]}"
+label = "{onnx::Conv_488 | {\<float32\>\n[32,64,1,1]}}"
 ]
 
 Tensor199 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{onnx::Conv_489 | [32]}"
+label = "{onnx::Conv_489 | {\<float32\>\n[32]}}"
 ]
 
 Tensor200 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{conv2.weight | [2,32,1,1]}"
+label = "{conv2.weight | {\<float32\>\n[2,32,1,1]}}"
 ]
 
 Tensor201 [
 color = darkslategrey
 fontcolor = darkslategrey
-label = "{conv2.bias | [2]}"
+label = "{conv2.bias | {\<float32\>\n[2]}}"
 ]
 
 subgraph cluster_subgraph0 {

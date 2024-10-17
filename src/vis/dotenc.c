@@ -22,17 +22,17 @@ void dot_tensor(char* buffer, tensor_t* ts) {
             "%s\nTensor%d [\n"
             "color = brown\n"
             "fontcolor = brown\n"
-            "label = \"{%s | %s}\"\n"
+            "label = \"{%s | {\\<%s\\>\\n%s}}\"\n"
             "]\n"
-            ,buffer, ts->index, ts->name, shape);
+            ,buffer, ts->index, ts->name, tensor_type_tostring(ts->type), shape);
     } else {
         sprintf(buffer,
             "%s\nTensor%d [\n"
             "color = darkslategrey\n"
             "fontcolor = darkslategrey\n"
-            "label = \"{%s | %s}\"\n"
+            "label = \"{%s | {\\<%s\\>\\n%s}}\"\n"
             "]\n"
-            ,buffer, ts->index, ts->name, shape);
+            ,buffer, ts->index, ts->name, tensor_type_tostring(ts->type), shape);
     }
 
     free(shape);

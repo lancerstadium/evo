@@ -902,6 +902,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                             }
                             t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                             if (t) {
+                                t->type = o->data_type;
                                 tensor_reshape(t, ndim, dims);
                                 tensor_copy_proto_onnx(t, o);
                                 t->index = hashmap_size(mdl->tensor_map);
@@ -921,24 +922,6 @@ graph_t *load_graph_onnx(model_t *mdl) {
                     g = NULL;
                     return NULL;
                 }
-            }
-        }
-    }
-
-    // Initial
-    for (k = 0; k < graph->n_initializer; k++) {
-        o = graph->initializer[k];
-        if (o) {
-            int ndim = o->n_dims;
-            int dims[ndim];
-            for (l = 0; l < ndim; l++) {
-                dims[l] = o->dims[l];
-            }
-            t = model_get_tensor(mdl, o->name);
-            if (t) {
-                t->is_param = 1;
-                tensor_reshape(t, ndim, dims);
-                tensor_copy_proto_onnx(t, o);
             }
         }
     }
