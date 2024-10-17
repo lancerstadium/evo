@@ -1,6 +1,4 @@
 #include <evo/resolver.h>
-#include <evo/util/math.h>
-#include <string.h>
 
 
 static void PRelu_forward_int32(node_t *nd) {

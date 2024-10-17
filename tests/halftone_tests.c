@@ -37,8 +37,25 @@ UnitTest_fn_def(test_floyd_steinberg) {
     return NULL;
 }
 
+UnitTest_fn_def(test_model) {
+    model_t* mdl = model_load("model/halftone_v1/model.onnx");
+    
+    graph_dump(mdl->graph);
+    graph_prerun(mdl->graph);
+    // graph_run(mdl->graph);
+    model_save(mdl, "halftone.dot");
+    
+    // graph_exec_report_level(mdl->graph, 1); // Exec dump
+    
+
+    return NULL;
+}
+
 UnitTest_fn_def(test_all) {
-    UnitTest_add(test_floyd_steinberg);
+    device_reg("cpu");
+    // UnitTest_add(test_floyd_steinberg);
+    UnitTest_add(test_model);
+    device_unreg("cpu");
     return NULL;
 }
 

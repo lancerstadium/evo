@@ -788,6 +788,13 @@ tensor_t *load_tensor_onnx(const char *path) {
     return t;
 }
 
+static int tensor_map_set(const void* key, size_t ksize, uintptr_t value, void* usr) {
+    tensor_t** tensors = usr;
+    tensor_t* ts = (tensor_t*)value;
+    tensors[ts->index] = ts;
+    return 0;
+}
+
 graph_t *load_graph_onnx(model_t *mdl) {
     if (!mdl || !mdl->vmodel) {
         return NULL;
@@ -829,6 +836,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                         break;
                     }
                 }
+                t->index = hashmap_size(mdl->tensor_map);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -839,6 +847,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
         if (!model_get_tensor(mdl, v->name)) {
             t = tensor_from_value_info(v);
             if (t) {
+                t->index = hashmap_size(mdl->tensor_map);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -849,6 +858,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
         if (!model_get_tensor(mdl, v->name)) {
             t = tensor_from_value_info(v);
             if (t) {
+                t->index = hashmap_size(mdl->tensor_map);
                 hashmap_set(mdl->tensor_map, hashmap_str_lit(t->name), (uintptr_t)t);
             }
         }
@@ -860,6 +870,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
             if (!model_get_tensor(mdl, name)) {
                 t = tensor_new(name, TENSOR_TYPE_UNDEFINED);
                 if (t) {
+                    t->index = hashmap_size(mdl->tensor_map);
                     hashmap_set(mdl->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                 }
             }
@@ -887,6 +898,7 @@ graph_t *load_graph_onnx(model_t *mdl) {
                             if (t) {
                                 tensor_reshape(t, ndim, dims);
                                 tensor_copy_proto_onnx(t, o);
+                                t->index = hashmap_size(mdl->tensor_map);
                                 hashmap_set(mdl->tensor_map, hashmap_str_lit(name), (uintptr_t)t);
                             }
                             break;
@@ -952,7 +964,15 @@ graph_t *load_graph_onnx(model_t *mdl) {
                 }
             }
         }
+        n->index = i;
+    }
+
+    g->ntensor = hashmap_size(mdl->tensor_map);
+    g->tensors = malloc(g->ntensor * sizeof(tensor_t*));
+    for(int i = 0; i < g->ntensor; i++) {
+        hashmap_iterate(mdl->tensor_map, tensor_map_set, g->tensors);
     }
 
     return g;
 }
+

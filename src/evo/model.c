@@ -76,7 +76,7 @@ model_t* model_load(const char* path) {
     char* ext = sys_get_file_ext(path);
     serializer_t* sez = NULL;
     sez = serializer_get(ext);
-    if(sez && sez->save) {
+    if(sez && sez->load_file) {
         return sez->load_file(sez, path);
     }
     return NULL;
@@ -86,6 +86,10 @@ void model_save(model_t *mdl, const char* path) {
     if(!mdl) return;
     char* ext = sys_get_file_ext(path);
     serializer_t* sez = NULL;
+    if(strcmp(ext, "dot") == 0) {
+        graph_export_dot(mdl->graph, (char*)path);
+        return;
+    }
     sez = serializer_get(ext);
     if(sez && sez->save) {
         sez->save(mdl, path);
