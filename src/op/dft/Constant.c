@@ -41,7 +41,11 @@ void Constant_init(node_t *nd) {
                 break;
             // case ATTRIBUTE_TYPE_STRINGS:
             case ATTRIBUTE_TYPE_TENSOR:
-                y = node_get_attr_tensor(nd, "value", y);
+                tensor_t* ts = node_get_attr_tensor(nd, "value", y);
+                y->type = ts->type;
+                tensor_reshape(y, ts->ndim, ts->dims);
+                tensor_apply(y, ts->datas, ts->ndata * tensor_type_sizeof(ts->type));
+                tensor_dump2(y);
                 break;
             default:
                 break;

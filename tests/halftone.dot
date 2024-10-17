@@ -23,25 +23,25 @@ label = "{output | [1,2,256,256]}"
 Tensor2 [
 color = brown
 fontcolor = brown
-label = "{/RandomUniformLike_output_0 | []}"
+label = "{/RandomUniformLike_output_0 | [1,1,256,256]}"
 ]
 
 Tensor3 [
 color = brown
 fontcolor = brown
-label = "{/Constant_output_0 | []}"
+label = "{/Constant_output_0 | [1]}"
 ]
 
 Tensor4 [
 color = brown
 fontcolor = brown
-label = "{/Mul_output_0 | []}"
+label = "{/Mul_output_0 | [1,1,256,256]}"
 ]
 
 Tensor5 [
 color = brown
 fontcolor = brown
-label = "{/Concat_output_0 | []}"
+label = "{/Concat_output_0 | [1,2,256,256]}"
 ]
 
 Tensor6 [
@@ -65,13 +65,13 @@ label = "{/layer1/block/block.0/Conv_output_0 | []}"
 Tensor9 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.2/Constant_output_0 | []}"
+label = "{/layer1/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor10 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer1/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor11 [
@@ -89,13 +89,13 @@ label = "{/layer1/block/block.3/Conv_output_0 | []}"
 Tensor13 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.5/Constant_output_0 | []}"
+label = "{/layer1/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor14 [
 color = brown
 fontcolor = brown
-label = "{/layer1/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer1/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor15 [
@@ -131,13 +131,13 @@ label = "{/layer2/block/block.0/Conv_output_0 | []}"
 Tensor20 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.2/Constant_output_0 | []}"
+label = "{/layer2/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor21 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer2/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor22 [
@@ -155,13 +155,13 @@ label = "{/layer2/block/block.3/Conv_output_0 | []}"
 Tensor24 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.5/Constant_output_0 | []}"
+label = "{/layer2/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor25 [
 color = brown
 fontcolor = brown
-label = "{/layer2/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer2/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor26 [
@@ -197,13 +197,13 @@ label = "{/layer3/block/block.0/Conv_output_0 | []}"
 Tensor31 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.2/Constant_output_0 | []}"
+label = "{/layer3/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor32 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer3/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor33 [
@@ -221,13 +221,13 @@ label = "{/layer3/block/block.3/Conv_output_0 | []}"
 Tensor35 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.5/Constant_output_0 | []}"
+label = "{/layer3/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor36 [
 color = brown
 fontcolor = brown
-label = "{/layer3/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer3/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor37 [
@@ -263,13 +263,13 @@ label = "{/layer4/block/block.0/Conv_output_0 | []}"
 Tensor42 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.2/Constant_output_0 | []}"
+label = "{/layer4/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor43 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer4/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor44 [
@@ -287,13 +287,13 @@ label = "{/layer4/block/block.3/Conv_output_0 | []}"
 Tensor46 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.5/Constant_output_0 | []}"
+label = "{/layer4/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor47 [
 color = brown
 fontcolor = brown
-label = "{/layer4/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer4/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor48 [
@@ -323,13 +323,13 @@ label = "{/layer5/block/block.0/Conv_output_0 | []}"
 Tensor52 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.2/Constant_output_0 | []}"
+label = "{/layer5/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor53 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer5/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor54 [
@@ -347,13 +347,13 @@ label = "{/layer5/block/block.3/Conv_output_0 | []}"
 Tensor56 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.5/Constant_output_0 | []}"
+label = "{/layer5/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor57 [
 color = brown
 fontcolor = brown
-label = "{/layer5/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer5/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor58 [
@@ -389,13 +389,13 @@ label = "{/layer6/block/block.0/Conv_output_0 | []}"
 Tensor63 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.2/Constant_output_0 | []}"
+label = "{/layer6/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor64 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer6/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor65 [
@@ -413,13 +413,13 @@ label = "{/layer6/block/block.3/Conv_output_0 | []}"
 Tensor67 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.5/Constant_output_0 | []}"
+label = "{/layer6/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor68 [
 color = brown
 fontcolor = brown
-label = "{/layer6/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer6/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor69 [
@@ -455,13 +455,13 @@ label = "{/layer7/block/block.0/Conv_output_0 | []}"
 Tensor74 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.2/Constant_output_0 | []}"
+label = "{/layer7/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor75 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer7/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor76 [
@@ -479,13 +479,13 @@ label = "{/layer7/block/block.3/Conv_output_0 | []}"
 Tensor78 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.5/Constant_output_0 | []}"
+label = "{/layer7/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor79 [
 color = brown
 fontcolor = brown
-label = "{/layer7/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer7/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor80 [
@@ -515,13 +515,13 @@ label = "{/layer8/block/block.0/Conv_output_0 | []}"
 Tensor84 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.2/Constant_output_0 | []}"
+label = "{/layer8/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor85 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer8/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor86 [
@@ -539,13 +539,13 @@ label = "{/layer8/block/block.3/Conv_output_0 | []}"
 Tensor88 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.5/Constant_output_0 | []}"
+label = "{/layer8/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor89 [
 color = brown
 fontcolor = brown
-label = "{/layer8/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer8/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor90 [
@@ -581,13 +581,13 @@ label = "{/layer9/block/block.0/Conv_output_0 | []}"
 Tensor95 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.2/Constant_output_0 | []}"
+label = "{/layer9/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor96 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer9/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor97 [
@@ -605,13 +605,13 @@ label = "{/layer9/block/block.3/Conv_output_0 | []}"
 Tensor99 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.5/Constant_output_0 | []}"
+label = "{/layer9/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor100 [
 color = brown
 fontcolor = brown
-label = "{/layer9/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer9/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor101 [
@@ -647,13 +647,13 @@ label = "{/layer10/block/block.0/Conv_output_0 | []}"
 Tensor106 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.2/Constant_output_0 | []}"
+label = "{/layer10/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor107 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer10/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor108 [
@@ -671,13 +671,13 @@ label = "{/layer10/block/block.3/Conv_output_0 | []}"
 Tensor110 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.5/Constant_output_0 | []}"
+label = "{/layer10/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor111 [
 color = brown
 fontcolor = brown
-label = "{/layer10/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer10/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor112 [
@@ -713,13 +713,13 @@ label = "{/layer11/block/block.0/Conv_output_0 | []}"
 Tensor117 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.2/Constant_output_0 | []}"
+label = "{/layer11/block/block.2/Constant_output_0 | [1]}"
 ]
 
 Tensor118 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.2/Constant_1_output_0 | []}"
+label = "{/layer11/block/block.2/Constant_1_output_0 | [1]}"
 ]
 
 Tensor119 [
@@ -737,13 +737,13 @@ label = "{/layer11/block/block.3/Conv_output_0 | []}"
 Tensor121 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.5/Constant_output_0 | []}"
+label = "{/layer11/block/block.5/Constant_output_0 | [1]}"
 ]
 
 Tensor122 [
 color = brown
 fontcolor = brown
-label = "{/layer11/block/block.5/Constant_1_output_0 | []}"
+label = "{/layer11/block/block.5/Constant_1_output_0 | [1]}"
 ]
 
 Tensor123 [
@@ -777,447 +777,447 @@ label = "{/conv2/Conv_output_0 | []}"
 ]
 
 Tensor128 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_383 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_383 | [16,2,3,3]}"
 ]
 
 Tensor129 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_384 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_384 | [16]}"
 ]
 
 Tensor130 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_386 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_386 | [32,16,1,1]}"
 ]
 
 Tensor131 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_387 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_387 | [32]}"
 ]
 
 Tensor132 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_389 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_389 | [32,1,3,3]}"
 ]
 
 Tensor133 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_390 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_390 | [32]}"
 ]
 
 Tensor134 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_392 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_392 | [32,32,1,1]}"
 ]
 
 Tensor135 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_393 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_393 | [32]}"
 ]
 
 Tensor136 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_395 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_395 | [32,16,1,1]}"
 ]
 
 Tensor137 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_396 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_396 | [32]}"
 ]
 
 Tensor138 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_398 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_398 | [128,32,1,1]}"
 ]
 
 Tensor139 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_399 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_399 | [128]}"
 ]
 
 Tensor140 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_401 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_401 | [128,1,3,3]}"
 ]
 
 Tensor141 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_402 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_402 | [128]}"
 ]
 
 Tensor142 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_404 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_404 | [32,128,1,1]}"
 ]
 
 Tensor143 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_405 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_405 | [32]}"
 ]
 
 Tensor144 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_407 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_407 | [128,32,1,1]}"
 ]
 
 Tensor145 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_408 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_408 | [128]}"
 ]
 
 Tensor146 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_410 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_410 | [128,1,3,3]}"
 ]
 
 Tensor147 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_411 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_411 | [128]}"
 ]
 
 Tensor148 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_413 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_413 | [32,128,1,1]}"
 ]
 
 Tensor149 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_414 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_414 | [32]}"
 ]
 
 Tensor150 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_416 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_416 | [128,64,1,1]}"
 ]
 
 Tensor151 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_417 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_417 | [128]}"
 ]
 
 Tensor152 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_419 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_419 | [128,1,3,3]}"
 ]
 
 Tensor153 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_420 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_420 | [128]}"
 ]
 
 Tensor154 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_422 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_422 | [64,128,1,1]}"
 ]
 
 Tensor155 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_423 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_423 | [64]}"
 ]
 
 Tensor156 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_425 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_425 | [256,64,1,1]}"
 ]
 
 Tensor157 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_426 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_426 | [256]}"
 ]
 
 Tensor158 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_428 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_428 | [256,1,3,3]}"
 ]
 
 Tensor159 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_429 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_429 | [256]}"
 ]
 
 Tensor160 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_431 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_431 | [64,256,1,1]}"
 ]
 
 Tensor161 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_432 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_432 | [64]}"
 ]
 
 Tensor162 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_434 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_434 | [256,64,1,1]}"
 ]
 
 Tensor163 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_435 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_435 | [256]}"
 ]
 
 Tensor164 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_437 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_437 | [256,1,3,3]}"
 ]
 
 Tensor165 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_438 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_438 | [256]}"
 ]
 
 Tensor166 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_440 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_440 | [64,256,1,1]}"
 ]
 
 Tensor167 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_441 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_441 | [64]}"
 ]
 
 Tensor168 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_443 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_443 | [128,128,1,1]}"
 ]
 
 Tensor169 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_444 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_444 | [128]}"
 ]
 
 Tensor170 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_446 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_446 | [128,1,3,3]}"
 ]
 
 Tensor171 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_447 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_447 | [128]}"
 ]
 
 Tensor172 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_449 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_449 | [128,128,1,1]}"
 ]
 
 Tensor173 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_450 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_450 | [128]}"
 ]
 
 Tensor174 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_452 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_452 | [256,128,1,1]}"
 ]
 
 Tensor175 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_453 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_453 | [256]}"
 ]
 
 Tensor176 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_455 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_455 | [256,1,3,3]}"
 ]
 
 Tensor177 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_456 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_456 | [256]}"
 ]
 
 Tensor178 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_458 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_458 | [128,256,1,1]}"
 ]
 
 Tensor179 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_459 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_459 | [128]}"
 ]
 
 Tensor180 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_461 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_461 | [256,128,1,1]}"
 ]
 
 Tensor181 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_462 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_462 | [256]}"
 ]
 
 Tensor182 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_464 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_464 | [256,1,3,3]}"
 ]
 
 Tensor183 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_465 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_465 | [256]}"
 ]
 
 Tensor184 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_467 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_467 | [128,256,1,1]}"
 ]
 
 Tensor185 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_468 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_468 | [128]}"
 ]
 
 Tensor186 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_470 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_470 | [192,192,1,1]}"
 ]
 
 Tensor187 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_471 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_471 | [192]}"
 ]
 
 Tensor188 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_473 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_473 | [192,1,3,3]}"
 ]
 
 Tensor189 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_474 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_474 | [192]}"
 ]
 
 Tensor190 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_476 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_476 | [32,192,1,1]}"
 ]
 
 Tensor191 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_477 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_477 | [32]}"
 ]
 
 Tensor192 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_479 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_479 | [32,192,1,1]}"
 ]
 
 Tensor193 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_480 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_480 | [32]}"
 ]
 
 Tensor194 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_482 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_482 | [64,32,1,1]}"
 ]
 
 Tensor195 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_483 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_483 | [64]}"
 ]
 
 Tensor196 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_485 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_485 | [64,1,3,3]}"
 ]
 
 Tensor197 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_486 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_486 | [64]}"
 ]
 
 Tensor198 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_488 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_488 | [32,64,1,1]}"
 ]
 
 Tensor199 [
-color = brown
-fontcolor = brown
-label = "{onnx::Conv_489 | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{onnx::Conv_489 | [32]}"
 ]
 
 Tensor200 [
-color = brown
-fontcolor = brown
-label = "{conv2.weight | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{conv2.weight | [2,32,1,1]}"
 ]
 
 Tensor201 [
-color = brown
-fontcolor = brown
-label = "{conv2.bias | []}"
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{conv2.bias | [2]}"
 ]
 
 subgraph cluster_subgraph0 {
@@ -1235,7 +1235,7 @@ Node0 ->  Tensor2
 
 Node1 [
 label = "{ Constant: /Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1298,7 +1298,7 @@ Node6 ->  Tensor8
 
 Node7 [
 label = "{ Constant: /layer1/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1307,7 +1307,7 @@ Node7 ->  Tensor9
 
 Node8 [
 label = "{ Constant: /layer1/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1339,7 +1339,7 @@ Node10 ->  Tensor12
 
 Node11 [
 label = "{ Constant: /layer1/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1348,7 +1348,7 @@ Node11 ->  Tensor13
 
 Node12 [
 label = "{ Constant: /layer1/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1418,7 +1418,7 @@ Node17 ->  Tensor19
 
 Node18 [
 label = "{ Constant: /layer2/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1427,7 +1427,7 @@ Node18 ->  Tensor20
 
 Node19 [
 label = "{ Constant: /layer2/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1459,7 +1459,7 @@ Node21 ->  Tensor23
 
 Node22 [
 label = "{ Constant: /layer2/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1468,7 +1468,7 @@ Node22 ->  Tensor24
 
 Node23 [
 label = "{ Constant: /layer2/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1528,7 +1528,7 @@ Node28 ->  Tensor30
 
 Node29 [
 label = "{ Constant: /layer3/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1537,7 +1537,7 @@ Node29 ->  Tensor31
 
 Node30 [
 label = "{ Constant: /layer3/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1569,7 +1569,7 @@ Node32 ->  Tensor34
 
 Node33 [
 label = "{ Constant: /layer3/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1578,7 +1578,7 @@ Node33 ->  Tensor35
 
 Node34 [
 label = "{ Constant: /layer3/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1643,7 +1643,7 @@ Node39 ->  Tensor41
 
 Node40 [
 label = "{ Constant: /layer4/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1652,7 +1652,7 @@ Node40 ->  Tensor42
 
 Node41 [
 label = "{ Constant: /layer4/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1684,7 +1684,7 @@ Node43 ->  Tensor45
 
 Node44 [
 label = "{ Constant: /layer4/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1693,7 +1693,7 @@ Node44 ->  Tensor46
 
 Node45 [
 label = "{ Constant: /layer4/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1747,7 +1747,7 @@ Node49 ->  Tensor51
 
 Node50 [
 label = "{ Constant: /layer5/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1756,7 +1756,7 @@ Node50 ->  Tensor52
 
 Node51 [
 label = "{ Constant: /layer5/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1788,7 +1788,7 @@ Node53 ->  Tensor55
 
 Node54 [
 label = "{ Constant: /layer5/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1797,7 +1797,7 @@ Node54 ->  Tensor56
 
 Node55 [
 label = "{ Constant: /layer5/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1857,7 +1857,7 @@ Node60 ->  Tensor62
 
 Node61 [
 label = "{ Constant: /layer6/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1866,7 +1866,7 @@ Node61 ->  Tensor63
 
 Node62 [
 label = "{ Constant: /layer6/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1898,7 +1898,7 @@ Node64 ->  Tensor66
 
 Node65 [
 label = "{ Constant: /layer6/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1907,7 +1907,7 @@ Node65 ->  Tensor67
 
 Node66 [
 label = "{ Constant: /layer6/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1972,7 +1972,7 @@ Node71 ->  Tensor73
 
 Node72 [
 label = "{ Constant: /layer7/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -1981,7 +1981,7 @@ Node72 ->  Tensor74
 
 Node73 [
 label = "{ Constant: /layer7/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2013,7 +2013,7 @@ Node75 ->  Tensor77
 
 Node76 [
 label = "{ Constant: /layer7/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2022,7 +2022,7 @@ Node76 ->  Tensor78
 
 Node77 [
 label = "{ Constant: /layer7/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2076,7 +2076,7 @@ Node81 ->  Tensor83
 
 Node82 [
 label = "{ Constant: /layer8/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2085,7 +2085,7 @@ Node82 ->  Tensor84
 
 Node83 [
 label = "{ Constant: /layer8/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2117,7 +2117,7 @@ Node85 ->  Tensor87
 
 Node86 [
 label = "{ Constant: /layer8/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2126,7 +2126,7 @@ Node86 ->  Tensor88
 
 Node87 [
 label = "{ Constant: /layer8/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2186,7 +2186,7 @@ Node92 ->  Tensor94
 
 Node93 [
 label = "{ Constant: /layer9/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2195,7 +2195,7 @@ Node93 ->  Tensor95
 
 Node94 [
 label = "{ Constant: /layer9/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2227,7 +2227,7 @@ Node96 ->  Tensor98
 
 Node97 [
 label = "{ Constant: /layer9/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2236,7 +2236,7 @@ Node97 ->  Tensor99
 
 Node98 [
 label = "{ Constant: /layer9/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2301,7 +2301,7 @@ Node103 ->  Tensor105
 
 Node104 [
 label = "{ Constant: /layer10/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2310,7 +2310,7 @@ Node104 ->  Tensor106
 
 Node105 [
 label = "{ Constant: /layer10/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2342,7 +2342,7 @@ Node107 ->  Tensor109
 
 Node108 [
 label = "{ Constant: /layer10/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2351,7 +2351,7 @@ Node108 ->  Tensor110
 
 Node109 [
 label = "{ Constant: /layer10/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2421,7 +2421,7 @@ Node114 ->  Tensor116
 
 Node115 [
 label = "{ Constant: /layer11/block/block.2/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2430,7 +2430,7 @@ Node115 ->  Tensor117
 
 Node116 [
 label = "{ Constant: /layer11/block/block.2/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2462,7 +2462,7 @@ Node118 ->  Tensor120
 
 Node119 [
 label = "{ Constant: /layer11/block/block.5/Constant | {
-value : []\n
+value : [1]\n
 
 }}"
 ]
@@ -2471,7 +2471,7 @@ Node119 ->  Tensor121
 
 Node120 [
 label = "{ Constant: /layer11/block/block.5/Constant_1 | {
-value : []\n
+value : [1]\n
 
 }}"
 ]

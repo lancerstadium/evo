@@ -109,7 +109,6 @@ static int cpu_run(device_t *dev, graph_t *g) {
             LOG_ERR("CPU Run Fail: Node %s no operator!\n", nd->name);
             return -1;
         }
-
         if(g->mode == 0 && nd->op->forward) {
             nd->op->reshape(nd);                    // --- Reshape Operator
             time_st = sys_time();                   // --- Clock up

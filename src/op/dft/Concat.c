@@ -15,6 +15,7 @@ void Concat_init(node_t *nd) {
     }
     operator_pdata_t *pdat = malloc(sizeof(operator_pdata_t));
     if (pdat) {
+        memset(pdat, 0, sizeof(operator_pdata_t));
         pdat->axis = node_get_attr_int(nd, "axis", 1);
         nd->priv = pdat;
     }
@@ -42,6 +43,9 @@ void Concat_reshape(node_t *nd) {
     s = x->dims[pdat->caxis];
     for (i = 1; i < nd->nin; i++) {
         pdims = nd->in[i]->dims;
+        if(x->type != nd->in[i]->type || x->ndim != nd->in[i]->ndim) {
+            return;
+        }
         for (j = 0; j < ndim; j++) {
             if (j == pdat->caxis)
                 s += pdims[j];
@@ -72,13 +76,19 @@ void Concat_forward(node_t *nd) {
     int idx;
     size_t o, l;
 
-    if (nd->in[0]->type == TENSOR_TYPE_STRING) {
+    tensor_type_t org_type = nd->in[0]->type;
+    int org_ndim = nd->in[0]->ndim;
+    if(y->ndim == 0) return;
+    if (org_type == TENSOR_TYPE_STRING) {
         char **py = (char **)y->datas;
         char **px;
         for (i = y->ndim - 1, ypitch = 1; i >= pdat->caxis; i--)
             ypitch *= y->dims[i];
         for (idx = 0, ybase = 0; idx < nd->nin; idx++) {
             x = nd->in[idx];
+            if(x->type != org_type || x->ndim != org_ndim) {
+                return;
+            }
             px = (char **)x->datas;
             for (i = x->ndim - 1, xpitch = 1; i >= pdat->caxis; i--)
                 xpitch *= x->dims[i];
@@ -101,6 +111,9 @@ void Concat_forward(node_t *nd) {
             ypitch *= y->dims[i];
         for (idx = 0, ybase = 0; idx < nd->nin; idx++) {
             x = nd->in[idx];
+            if(x->type != org_type || x->ndim != org_ndim) {
+                return;
+            }
             px = (char *)x->datas;
             for (i = x->ndim - 1, xpitch = 1; i >= pdat->caxis; i--)
                 xpitch *= x->dims[i];

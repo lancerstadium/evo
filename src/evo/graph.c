@@ -554,6 +554,7 @@ void graph_free(graph_t *g) {
         if(g->tensors) sys_free(g->tensors);
         g->tensors = NULL;
     }
+    g->ntensor = 0;
     // free nodes
     if(g->nodes) {
         for(int i = 0; i < g->nnode; i++){
@@ -565,6 +566,7 @@ void graph_free(graph_t *g) {
         if(g->nodes) sys_free(g->nodes);
         g->nodes = NULL;
     }
+    g->nnode = 0;
     if(g->name) sys_free(g->name);
     if(g->is_sub) {
         if(g->prof) profiler_free(g->prof);

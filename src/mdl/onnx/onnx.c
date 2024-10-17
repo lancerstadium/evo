@@ -358,10 +358,16 @@ static attribute_t* attr_map_onnx(Onnx__AttributeProto *attr) {
             tensor_t *t = tensor_new(attr->t->name, attr->t->data_type);
             int dims[attr->t->n_dims];
             int ndim;
-            for (int i = 0; i < attr->t->n_dims; i++)
-                dims[i] = attr->t->dims[i];
             ndim = attr->t->n_dims;
-            tensor_reshape(t, ndim, dims);
+            for (int i = 0; i < attr->t->n_dims; i++) {
+                dims[i] = attr->t->dims[i];
+            }
+            if(ndim == 0 && attr->t->raw_data.len > 0) {
+                tensor_reshape(t, 1, (int[]){attr->t->raw_data.len/tensor_type_sizeof(t->type)});
+            } else {
+                tensor_reshape(t, ndim, dims);
+            }
+            t->is_param = 1;
             tensor_copy_proto_onnx(t, attr->t);
             return attribute_tensor(attr->name, t);
         }
@@ -788,12 +794,12 @@ tensor_t *load_tensor_onnx(const char *path) {
     return t;
 }
 
-static int tensor_map_set(const void* key, size_t ksize, uintptr_t value, void* usr) {
-    tensor_t** tensors = usr;
-    tensor_t* ts = (tensor_t*)value;
-    tensors[ts->index] = ts;
-    return 0;
-}
+// static int tensor_map_set(const void* key, size_t ksize, uintptr_t value, void* usr) {
+//     tensor_t** tensors = usr;
+//     tensor_t* ts = (tensor_t*)value;
+//     tensors[ts->index] = ts;
+//     return 0;
+// }
 
 graph_t *load_graph_onnx(model_t *mdl) {
     if (!mdl || !mdl->vmodel) {
@@ -919,6 +925,24 @@ graph_t *load_graph_onnx(model_t *mdl) {
         }
     }
 
+    // Initial
+    for (k = 0; k < graph->n_initializer; k++) {
+        o = graph->initializer[k];
+        if (o) {
+            int ndim = o->n_dims;
+            int dims[ndim];
+            for (l = 0; l < ndim; l++) {
+                dims[l] = o->dims[l];
+            }
+            t = model_get_tensor(mdl, o->name);
+            if (t) {
+                t->is_param = 1;
+                tensor_reshape(t, ndim, dims);
+                tensor_copy_proto_onnx(t, o);
+            }
+        }
+    }
+
     // deal with node
     for (i = 0; i < g->nnode; i++) {
         Onnx__NodeProto *node_proto = graph->node[i];
@@ -967,11 +991,12 @@ graph_t *load_graph_onnx(model_t *mdl) {
         n->index = i;
     }
 
-    g->ntensor = hashmap_size(mdl->tensor_map);
-    g->tensors = malloc(g->ntensor * sizeof(tensor_t*));
-    for(int i = 0; i < g->ntensor; i++) {
-        hashmap_iterate(mdl->tensor_map, tensor_map_set, g->tensors);
-    }
+    // g->ntensor = hashmap_size(mdl->tensor_map);
+    // g->tensors = malloc(g->ntensor * sizeof(tensor_t*));
+    // fprintf(stderr, "ntensors: %d - 1\n", g->ntensor);
+    // hashmap_iterate(mdl->tensor_map, tensor_map_set, g->tensors);
+    // fprintf(stderr, "ntensors: %d - 2\n", g->ntensor);
+    
 
     return g;
 }

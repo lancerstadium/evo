@@ -40,9 +40,13 @@ UnitTest_fn_def(test_floyd_steinberg) {
 UnitTest_fn_def(test_model) {
     model_t* mdl = model_load("model/halftone_v1/model.onnx");
     
-    graph_dump(mdl->graph);
+    
     graph_prerun(mdl->graph);
-    // graph_run(mdl->graph);
+    graph_run(mdl->graph);
+    graph_posrun(mdl->graph);
+    graph_dump(mdl->graph);
+    // tensor_t* ts = model_get_tensor(mdl, "/Constant");
+    // tensor_dump1(ts);
     model_save(mdl, "halftone.dot");
     
     // graph_exec_report_level(mdl->graph, 1); // Exec dump

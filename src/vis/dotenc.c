@@ -106,12 +106,25 @@ void dot_subgraph(char* buffer, graph_t* sg) {
         ,buffer);   
 }
 
+static int tensor_map_dot(const void* key, size_t ksize, uintptr_t value, void* usr) {
+    char* buffer = usr;
+    tensor_t* ts = (tensor_t*)value;
+    dot_tensor(buffer, ts);
+    return 0;
+}
+
+
 void dot_graph(char* buffer, graph_t* g) {
     if(!buffer || !g || g->is_sub) return;
     dot_header(buffer, g->name);
-    for(int i = 0; i < g->ntensor; i++) {
-        dot_tensor(buffer, g->tensors[i]);
+    if(g->mdl) {
+        hashmap_iterate(g->mdl->tensor_map, tensor_map_dot, buffer);
+    } else {
+        for(int i = 0; i < g->ntensor; i++) {
+            dot_tensor(buffer, g->tensors[i]);
+        }
     }
+
     for(int i = 0; i < vector_size(g->sub_vec); i++) {
         dot_subgraph(buffer, g->sub_vec[i]);
     }
