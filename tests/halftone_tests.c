@@ -59,13 +59,11 @@ UnitTest_fn_def(test_model) {
     tensor_t* out_f = model_get_tensor(mdl, "output");
     tensor_dump(out_f);
     for(int i = 0; i < out_f->ndata; i++) {
-        ((float*)(out_f->datas))[i] *= 255.0f;
+        ((float*)(out_f->datas))[i] = (((float*)(out_f->datas))[i] > 0.5 ? 1 : 0) * 255.0f;
     }
-    tensor_t* out = tensor_cast(out_f, TENSOR_TYPE_UINT8);
-    tensor_t* out_nhwc = tensor_nchw2nhwc(out);
-    image_t* out_img = image_from_tensor(out);
+    image_t* out_img = image_from_tensor(out_f);
     image_save(out_img, "kitten-dl.jpg");
-    // model_save(mdl, "halftone.dot");
+    model_save(mdl, "halftone.dot");
     
     // graph_exec_report_level(mdl->graph, 1); // Exec dump
     
