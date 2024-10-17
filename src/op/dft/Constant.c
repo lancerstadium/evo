@@ -45,7 +45,6 @@ void Constant_init(node_t *nd) {
                 y->type = ts->type;
                 tensor_reshape(y, ts->ndim, ts->dims);
                 tensor_apply(y, ts->datas, ts->ndata * tensor_type_sizeof(ts->type));
-                tensor_dump2(y);
                 break;
             default:
                 break;
