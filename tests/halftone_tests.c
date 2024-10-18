@@ -41,12 +41,11 @@ UnitTest_fn_def(test_model) {
     model_t* mdl = model_load("model/halftone_v1/model.onnx");
     
     // load
-    image_t* cat = image_load("picture/kitten.jpg");
+    image_t* cat = image_load("picture/VOC2012/00008.png");
     image_to_grey(cat);
-    image_crop_center(cat, 256, 256);
+    // image_crop_center(cat, 256, 256);
 
-    tensor_t* ts_nchw = tensor_nhwc2nchw(cat->raw);
-    tensor_t* ts_f = tensor_cast(ts_nchw, TENSOR_TYPE_FLOAT32);
+    tensor_t* ts_f = tensor_cast(cat->raw, TENSOR_TYPE_FLOAT32);
     for(int i = 0; i < ts_f->ndata; i++) {
         ((float*)(ts_f->datas))[i] /= 255.0f;
     }
@@ -57,12 +56,15 @@ UnitTest_fn_def(test_model) {
     graph_posrun(mdl->graph);
     // graph_dump(mdl->graph);
     tensor_t* out_f = model_get_tensor(mdl, "output");
-    tensor_dump(out_f);
-    for(int i = 0; i < out_f->ndata; i++) {
-        ((float*)(out_f->datas))[i] = (((float*)(out_f->datas))[i] > 0.5 ? 1 : 0) * 255.0f;
+    tensor_t* out_hf = tensor_new("halftone", TENSOR_TYPE_FLOAT32);
+    tensor_reshape(out_hf, 4, (int[]){1,1,256,256});
+    for(int i = 0; i < out_hf->ndata; i++) {
+        ((float*)(out_hf->datas))[i] = (((float*)(out_f->datas))[i + 256 * 256]) * 255.0f;
     }
-    image_t* out_img = image_from_tensor(out_f);
-    image_save(out_img, "kitten-dl.jpg");
+    tensor_dump(out_hf);
+    image_t* out_img = image_from_tensor(out_hf);
+    image_save(cat, "halftone-gray.jpg");
+    image_save_channel(out_img, "halftone-out.jpg", 0);
     model_save(mdl, "halftone.dot");
     
     // graph_exec_report_level(mdl->graph, 1); // Exec dump

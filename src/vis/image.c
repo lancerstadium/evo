@@ -165,10 +165,12 @@ image_t* image_from_tensor(tensor_t *ts) {
             dims[1] = ts->dims[0];
             dims[2] = ts->dims[1];
             dims[3] = ts->dims[2];
+        } else {
+            dims[1] = ts->dims[1];
+            dims[2] = ts->dims[2];
+            dims[3] = ts->dims[3];
         }
-        dims[1] = ts->dims[1];
-        dims[2] = ts->dims[2];
-        dims[3] = ts->dims[3];
+
         tensor_reshape(new_ts, ndim, dims);
         new_ts->ndata = ts->dims[1] * ts->dims[2] * ts->dims[3];
         new_ts->datas = malloc(new_ts->ndata);
@@ -303,7 +305,7 @@ image_t* image_load(const char* name) {
 
 image_t* image_extract_channel(image_t* img, int channel) {
     image_t* new_img = (image_t*)malloc(sizeof(image_t));
-    if(new_img && img) {
+    if(new_img && img && img->raw->layout == 1) {
         if(channel >= img->raw->dims[3]) channel = 0;
         new_img->name = sys_strdup(img->name);
         new_img->attr_vec = vector_create();
