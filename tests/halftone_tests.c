@@ -68,7 +68,7 @@ UnitTest_fn_def(test_model) {
     model_save(mdl, "halftone.dot");
     tensor_dump2(model_get_tensor(mdl, "input"));
     
-    // graph_exec_report_level(mdl->graph, 1); // Exec dump
+    graph_exec_report_level(mdl->graph, 1); // Exec dump
     
 
     return NULL;
