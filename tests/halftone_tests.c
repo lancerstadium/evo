@@ -66,6 +66,7 @@ UnitTest_fn_def(test_model) {
     image_save(cat, "halftone-gray.jpg");
     image_save_channel(out_img, "halftone-out.jpg", 0);
     model_save(mdl, "halftone.dot");
+    tensor_dump2(model_get_tensor(mdl, "input"));
     
     // graph_exec_report_level(mdl->graph, 1); // Exec dump
     
