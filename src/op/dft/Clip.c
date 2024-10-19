@@ -270,14 +270,9 @@ void Clip_reshape(node_t *nd) {
     operator_pdata_t *pdat = (operator_pdata_t *)nd->priv;
     tensor_t *y = nd->out[0];
     tensor_t *x = nd->in[0];
-    for (int i = 1; i < nd->nin; i++) {
-        if (nd->in[i]->ndim == 0) {
-            if (strcmp(nd->in[i]->name, "min") == 0)
-                pdat->pmin = (union onnx_scalar_t *)nd->in[i]->datas;
-            else if (strcmp(nd->in[i]->name, "max") == 0)
-                pdat->pmax = (union onnx_scalar_t *)nd->in[i]->datas;
-        }
-    }
+    if(nd->nin >= 2) pdat->pmin = (union onnx_scalar_t *)nd->in[1]->datas;
+    if(nd->nin >= 3) pdat->pmax = (union onnx_scalar_t *)nd->in[2]->datas;
+
     tensor_reshape_ident(y, x, x->type);
 }
 
