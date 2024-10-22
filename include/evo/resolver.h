@@ -21,6 +21,7 @@ void op_Concat_dft(node_t*);
 void op_Constant_dft(node_t*);
 void op_ConstantOfShape_dft(node_t*);
 void op_Conv_dft(node_t*);
+void op_DepthToSpace_dft(node_t*);
 void op_Div_dft(node_t*);
 void op_Dropout_dft(node_t*);
 void op_Equal_dft(node_t*);
