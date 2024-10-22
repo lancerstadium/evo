@@ -134,7 +134,7 @@ endif
 CURTIME 	:= $(shell date +"%Y-%m-%d %H:%M:%S")
 
 
-.PHONY: all config clean test line tool
+.PHONY: all config clean test release line tool
 
 all : $(LIBTRG)
 	@$(MAKE) -s -C tests all
@@ -220,6 +220,13 @@ commit:
 	git add .
 	git commit -m '$(CURTIME)'
 	git push
+
+release:
+	@mkdir -p $(TRGDIR)/evo-release-$(VERSION)/
+	@cp -r src/ $(TRGDIR)/evo-release-$(VERSION)/
+	@cp -r include/ $(TRGDIR)/evo-release-$(VERSION)/
+	@cp -r Makefile $(TRGDIR)/evo-release-$(VERSION)/
+	@tar -zcvf $(TRGDIR)/evo-release-$(VERSION).tar.gz $(TRGDIR)/evo-release-$(VERSION)/
 
 clean:
 	@$(RM) $(DEPS) $(OBJS) $(LIBTRG)
