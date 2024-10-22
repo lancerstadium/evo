@@ -221,6 +221,7 @@ commit:
 	git commit -m '$(CURTIME)'
 	git push
 
+
 release:
 	@mkdir -p $(TRGDIR)/evo-release-$(VERSION)/
 	@cp -r src/ $(TRGDIR)/evo-release-$(VERSION)/
