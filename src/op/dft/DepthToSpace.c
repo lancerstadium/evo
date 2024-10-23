@@ -24,15 +24,18 @@ void DepthToSpace_reshape(node_t *nd) {
     if (!(nd->nin == 1) || !(nd->nout == 1) 
         || (nd->in[0]->ndim == 0)
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED
-        || nd->in[0]->ndim != 4
-        || nd->in[0]->layout == 1) {
+        || nd->in[0]->ndim != 4) {
         return;
     }
     tensor_t* y = nd->out[0];
     tensor_t* x = nd->in[0];
     operator_pdata_t* pdat = nd->priv;
     y->type = x->type;
-    tensor_reshape(y, 4, (int[]){x->dims[0], x->dims[1] / (int)(pdat->blocksize * pdat->blocksize), x->dims[2] * (int)pdat->blocksize, x->dims[3] * (int)pdat->blocksize});
+    if(nd->in[0]->layout == 0) {
+        tensor_reshape(y, 4, (int[]){x->dims[0], x->dims[1] / (int)(pdat->blocksize * pdat->blocksize), x->dims[2] * (int)pdat->blocksize, x->dims[3] * (int)pdat->blocksize});
+    } else if(nd->in[0]->layout == 1) {
+        tensor_reshape(y, 4, (int[]){x->dims[0], x->dims[1] * (int)pdat->blocksize, x->dims[2] * (int)pdat->blocksize, x->dims[3] / (int)(pdat->blocksize * pdat->blocksize)});
+    }
 }
 
 void DepthToSpace_forward(node_t *nd) {
@@ -40,8 +43,7 @@ void DepthToSpace_forward(node_t *nd) {
     if (!(nd->nin == 1) || !(nd->nout == 1) 
         || (nd->in[0]->ndim == 0)
         || nd->in[0]->type == TENSOR_TYPE_UNDEFINED
-        || nd->in[0]->ndim != 4
-        || nd->in[0]->layout == 1) {
+        || nd->in[0]->ndim != 4) {
         return;
     }
     tensor_t* y = nd->out[0];
@@ -55,19 +57,39 @@ void DepthToSpace_forward(node_t *nd) {
         memcpy(py, px, x->ndata * sz);
         return;
     }
-    // other
-    int H = x->dims[2];     // Height
-    int W = x->dims[3];     // Width
-    int bsz = pdat->blocksize;
-    int step1 = y->dims[1];                         // Step1: for small block
-    int step2 = x->dims[1];                         // Step2: for middle block, Step3 = 1
-    int stride1 = y->strides[1];
-    for(int i = 0; i < step1; i++) {                // Big Iter: New Channel
-        for(int j = 0; j < W; j++) {                // W
-            for(int k = 0; k < H; k++) {            // H
-                for(int l = 0; l < bsz; l++) {      // W
-                    for(int m = 0; m < bsz; m++) {  // H
-                        memcpy(py + (i * stride1 + ((k * W * bsz + m) + j) * bsz + l) * sz, px + (i + (k * W + j) * step2 + (m * bsz + l) * step1) * sz, sz);
+    int bsz = pdat->blocksize;                          // Block Size
+    if(nd->in[0]->layout == 1) {                        // NHWC
+        int H = x->dims[1];                             // Height
+        int W = x->dims[2];                             // Width
+        int step1 = y->dims[3];                         // Step1: for small block
+        int step2 = x->dims[3];                         // Step2: for middle block
+        int step3 = 1;                                  // Step3: for channel block
+        int stride = H * W * bsz * bsz;                 // Channel Stride
+        for(int i = 0; i < step1; i++) {                // Big Iter: New Channel
+            for(int j = 0; j < W; j++) {                // W
+                for(int k = 0; k < H; k++) {            // H
+                    for(int l = 0; l < bsz; l++) {      // W
+                        for(int m = 0; m < bsz; m++) {  // H
+                            memcpy(py + (i * stride + ((k * W * bsz + m) + j) * bsz + l) * sz, px + (i * step3 + (k * W + j) * step2 + (m * bsz + l) * step1) * sz, sz);
+                        }
+                    }
+                }
+            }
+        }
+    } else if(nd->in[0]->layout == 0) {                 // NCHW
+        int H = x->dims[2];                             // Height
+        int W = x->dims[3];                             // Width
+        int step1 = H * W * y->dims[1];                 // Step1: for small block
+        int step2 = 1;                                  // Step2: for middle block
+        int step3 = x->strides[1];                      // Step3: for channel block
+        int stride = H * W * bsz * bsz;                 // Channel Stride
+        for(int i = 0; i < y->dims[1]; i++) {           // Big Iter: New Channel
+            for(int j = 0; j < W; j++) {
+                for(int k = 0; k < H; k++) {
+                    for(int l = 0; l < bsz; l++) {
+                        for(int m = 0; m < bsz; m++) {
+                            memcpy(py + (i * stride + ((k * W * bsz + m) + j) * bsz + l) * sz, px + (i * step3 + (k * W + j) * step2 + (m * bsz + l) * step1) * sz, sz);
+                        }
                     }
                 }
             }

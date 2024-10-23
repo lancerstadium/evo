@@ -212,6 +212,7 @@ static resolver_t default_resolver = {
         OP_REG_DFT(CONSTANT                 , Constant              ),
         OP_REG_DFT(CONSTANT_OF_SHAPE        , ConstantOfShape       ),
         OP_REG_DFT(CONV                     , Conv                  ),
+        OP_REG_DFT(DEPTH_TO_SPACE           , DepthToSpace          ),
         OP_REG_DFT(DIV                      , Div                   ),
         OP_REG_DFT(DROPOUT                  , Dropout               ),
         OP_REG_DFT(EQUAL                    , Equal                 ),
