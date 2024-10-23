@@ -40,6 +40,7 @@ UnitTest_fn_def(test_floyd_steinberg) {
 UnitTest_fn_def(test_model) {
     model_t* mdl = model_load("model/halftone_v1/model.onnx");
     
+
     // load
     image_t* cat = image_load("picture/DIV2K/00004.png");
     image_to_grey(cat);
