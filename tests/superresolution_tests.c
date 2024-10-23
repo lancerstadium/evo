@@ -12,9 +12,6 @@ UnitTest_fn_def(test_model) {
 
     tensor_t* ts_w = tensor_nhwc2nchw(cat->raw);
     tensor_t* ts_f = tensor_cast(ts_w, TENSOR_TYPE_FLOAT32);
-    // for(int i = 0; i < ts_f->ndata; i++) {
-    //     ((float*)(ts_f->datas))[i] /= 255.0f;
-    // }
 
     // tensor_dump(ts_f);
     model_set_tensor(mdl, "input", ts_f);
@@ -47,7 +44,6 @@ UnitTest_fn_def(test_model) {
 
 UnitTest_fn_def(test_all) {
     device_reg("cpu");
-    // UnitTest_add(test_floyd_steinberg);
     UnitTest_add(test_model);
     device_unreg("cpu");
     return NULL;
