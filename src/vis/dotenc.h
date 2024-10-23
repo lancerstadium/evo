@@ -6,7 +6,7 @@ extern "C" {
 #endif
 #include <evo.h>
 
-void dot_header(char* buffer, char* name);
+void dot_header(char* buffer);
 void dot_node(char* buffer, node_t* nd);
 void dot_link_in(char* buffer, int tdx, int ndx);
 void dot_link_out(char* buffer, int ndx, int tdx);

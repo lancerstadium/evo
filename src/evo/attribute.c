@@ -141,7 +141,7 @@ void attribute_dump(attribute_t *attr) {
         case ATTRIBUTE_TYPE_INT:        LOG_INFO("%d", attr->i);        break;
         case ATTRIBUTE_TYPE_FLOAT:      LOG_INFO("%.4f", attr->f);      break;
         case ATTRIBUTE_TYPE_UNDEFINED:  LOG_INFO("undefined");          break;
-        case ATTRIBUTE_TYPE_STRING:     LOG_INFO("\"%s\"", attr->ss);   break;
+        case ATTRIBUTE_TYPE_STRING:     LOG_INFO("\'%s\'", attr->ss);   break;
         default: break;
     }
 }
@@ -158,7 +158,7 @@ char* attribute_dump_value(attribute_t *attr) {
         case ATTRIBUTE_TYPE_INT:        sprintf(buf,"%s%ld", buf, attr->i);        break;
         case ATTRIBUTE_TYPE_FLOAT:      sprintf(buf,"%s%.4f", buf, attr->f);      break;
         case ATTRIBUTE_TYPE_UNDEFINED:  sprintf(buf,"%sundefined", buf);          break;
-        case ATTRIBUTE_TYPE_STRING:     sprintf(buf,"%s\"%s\"", buf, attr->ss);   break;
+        case ATTRIBUTE_TYPE_STRING:     sprintf(buf,"%s\'%s\'", buf, attr->ss);   break;
         default: break;
     }
     return buf;

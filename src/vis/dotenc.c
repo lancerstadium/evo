@@ -1,8 +1,8 @@
 #include "dotenc.h"
 
-void dot_header(char* buffer, char* name) {
+void dot_header(char* buffer) {
     sprintf(buffer,
-        "digraph %s {\n"
+        "digraph Graph {\n"
         "compound = true\n"
         "ratio = 1.8\n"
         "ranksep = 0.25\n"
@@ -10,8 +10,7 @@ void dot_header(char* buffer, char* name) {
         "splines = true\n"
         "graph [rankdir = TB, shape = record, charset = \"UTF-8\", color = cadetblue, fontcolor = black, fontname = \"Consolas\", fontsize = 20, style = \"rounded,dashed,bold\"]\n"
         "node [shape = record, charset = \"UTF-8\", color = black, fontcolor = black, fontname = \"Consolas\", fontsize = 16, style = \"rounded,bold\"]\n"
-        "edge [shape = record, charset = \"UTF-8\", color = black, fontname = \"Consolas\", fontsize = 14, style = \"bold\"]\n"
-        ,name);
+        "edge [shape = record, charset = \"UTF-8\", color = black, fontname = \"Consolas\", fontsize = 14, style = \"bold\"]\n");
 }
 
 void dot_tensor(char* buffer, tensor_t* ts) {
@@ -116,7 +115,7 @@ static int tensor_map_dot(const void* key, size_t ksize, uintptr_t value, void* 
 
 void dot_graph(char* buffer, graph_t* g) {
     if(!buffer || !g || g->is_sub) return;
-    dot_header(buffer, g->name);
+    dot_header(buffer);
     if(g->mdl) {
         hashmap_iterate(g->mdl->tensor_map, tensor_map_dot, buffer);
     } else {

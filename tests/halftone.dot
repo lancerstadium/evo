@@ -1,4 +1,4 @@
-digraph main_graph {
+digraph Graph {
 compound = true
 ratio = 1.8
 ranksep = 0.25
