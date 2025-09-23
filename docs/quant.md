@@ -10,8 +10,10 @@
     </script>
 </head>
 
+
+
 # Quantization
-在 ONNX（Open Neural Network Exchange）标准中，量化（Quantization）和反量化（Dequantization）是用于减少模型大小和提高推理效率的重要操作。ONNX 提供了一些专门用于量化和反量化的算子，它们可以帮助将浮点数值映射到整数范围，并在推理时将其转换回浮点表示。
+在 ONNX（Open Neural Network Exchange）标准中，量化（Quantization）和反量化（Dequantization）是用于减少模型大小和提高推理效率的重要操作。ONNX 提供了一些专门用于量化和反量化的算子，它们可以帮助将浮点数值映射到整数范围，并在推理时将其转换回浮点表示。 是的
 
 ONNX 的常见量化/反量化算子有：
 QuantizeLinear
