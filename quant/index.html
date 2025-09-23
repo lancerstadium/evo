@@ -1,0 +1,2101 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://lancerstadium.github.io/evo/quant/">
+      
+      
+        <link rel="prev" href="../profile/">
+      
+      
+        <link rel="next" href="../reference/">
+      
+      
+      <link rel="icon" href="../public/logo-bare.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Quant - Evo - Evolvable Inference Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.e53b48f4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quantization" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="Evo - Evolvable Inference Framework" class="md-header__button md-logo" aria-label="Evo - Evolvable Inference Framework" data-md-component="logo">
+      
+  <img src="../public/logo-bare-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Evo - Evolvable Inference Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quant
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lancerstadium/evo" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../bind/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Bind
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../build/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Build
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../earlyexit/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Earlyexit
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../memory/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Memory
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../model/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Model
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../optimize/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Optimize
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../profile/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Profile
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quant
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tool/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tool
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../operator/" class="md-tabs__link">
+          
+  
+  
+  Operator
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ppt/ppt-01/" class="md-tabs__link">
+          
+  
+  
+  Ppt
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Evo - Evolvable Inference Framework" class="md-nav__button md-logo" aria-label="Evo - Evolvable Inference Framework" data-md-component="logo">
+      
+  <img src="../public/logo-bare-white.svg" alt="logo">
+
+    </a>
+    Evo - Evolvable Inference Framework
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lancerstadium/evo" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bind/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bind
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../earlyexit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Earlyexit
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Memory
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../optimize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Optimize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Quant
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quant
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      量化/反量化流程的示例
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-of-quantizing-and-dequantizing-in-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example of quantizing and dequantizing in ONNX:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-float-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example float tensor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantize-the-float-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantize the float tensor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dequantize-back-to-float" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dequantize back to float
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      常见量化方法
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="常见量化方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 对称量化 (Symmetric Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 对称量化 (Symmetric Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-asymmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 非对称量化 (Asymmetric Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 非对称量化 (Asymmetric Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dynamic-range-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 动态范围量化 (Dynamic Range Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 动态范围量化 (Dynamic Range Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-logarithmic-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 对数量化 (Logarithmic Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 对数量化 (Logarithmic Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      总结
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-min-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 简单 Min-Max 对称量化
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-min-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 简单 Min-Max 非对称量化
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-max-abs-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 最大绝对值对称量化（Max-Abs Symmetric Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-per-channel-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 逐通道量化（Per-Channel Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-mean-std-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 均值-标准差量化（Mean-Std Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dynamic-range-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 动态范围量化（Dynamic Range Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-kl-kl-divergence-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. KL 散度量化（KL-Divergence Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-logarithmic-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. 对数量化（Logarithmic Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-perceptual-quantization-pq" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. 感知量化（Perceptual Quantization, PQ）
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operator
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Operator
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator/pool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Ppt
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            Ppt
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-01/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 01
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-02/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 02
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-03/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 03
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-04/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 04
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 05
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-06/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 06
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-07/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 07
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-08/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 08
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-09/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 09
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 10
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      量化/反量化流程的示例
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-of-quantizing-and-dequantizing-in-onnx" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example of quantizing and dequantizing in ONNX:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-float-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example float tensor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantize-the-float-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantize the float tensor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dequantize-back-to-float" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dequantize back to float
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      常见量化方法
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="常见量化方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 对称量化 (Symmetric Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 对称量化 (Symmetric Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-asymmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 非对称量化 (Asymmetric Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 非对称量化 (Asymmetric Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dynamic-range-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 动态范围量化 (Dynamic Range Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 动态范围量化 (Dynamic Range Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-logarithmic-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 对数量化 (Logarithmic Quantization)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 对数量化 (Logarithmic Quantization)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      优点：
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      缺点：
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      总结
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-min-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 简单 Min-Max 对称量化
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-min-max" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 简单 Min-Max 非对称量化
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-max-abs-symmetric-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 最大绝对值对称量化（Max-Abs Symmetric Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-per-channel-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 逐通道量化（Per-Channel Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-mean-std-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 均值-标准差量化（Mean-Std Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dynamic-range-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 动态范围量化（Dynamic Range Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-kl-kl-divergence-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. KL 散度量化（KL-Divergence Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-logarithmic-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. 对数量化（Logarithmic Quantization）
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-perceptual-quantization-pq" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. 感知量化（Perceptual Quantization, PQ）
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<p><head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']]
+            }
+        });
+    </script>
+</head></p>
+<h1 id="quantization">Quantization</h1>
+<p>在 ONNX（Open Neural Network Exchange）标准中，量化（Quantization）和反量化（Dequantization）是用于减少模型大小和提高推理效率的重要操作。ONNX 提供了一些专门用于量化和反量化的算子，它们可以帮助将浮点数值映射到整数范围，并在推理时将其转换回浮点表示。 是的</p>
+<p>ONNX 的常见量化/反量化算子有：
+QuantizeLinear
+这是用于将浮点数量化为整数（如 INT8 或 UINT8）的 ONNX 算子。</p>
+<p>输入：
+- 输入张量（浮点数）
+- scale：量化比例系数（浮点数）
+- zero_point：零点，用于表示在量化范围内的零（可选，整数，默认值为 0）</p>
+<p>输出：
+- 量化后的整数张量（如 INT8 或 UINT8）</p>
+<p>用途：将浮点数值映射到一个整数值区间，用于量化推理。
+示例：
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">quantized_tensor</span> <span class="o">=</span> <span class="n">QuantizeLinear</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">)</span>
+</span></code></pre></div>
+DequantizeLinear 是用于将量化的整数数据反量化回浮点数值的 ONNX 算子。</p>
+<p>输入：</p>
+<p>输入张量（量化后的整数张量）
+scale：量化比例系数（浮点数）
+zero_point：量化零点（可选，整数）
+输出：</p>
+<p>反量化后的浮点数张量
+用途：</p>
+<p>将量化整数值转换回原始的浮点数值，用于模型推理中的精度恢复。
+示例：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">dequantized_tensor</span> <span class="o">=</span> <span class="n">DequantizeLinear</span><span class="p">(</span><span class="n">quantized_tensor</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="_1">量化/反量化流程的示例</h2>
+<p>在 ONNX 模型中，量化/反量化的常见操作如下：</p>
+<p>量化：在推理开始之前，将输入的浮点数张量通过 QuantizeLinear 算子转换为整数张量。
+反量化：在推理中间或结束时，将整数张量通过 DequantizeLinear 算子恢复为浮点数。</p>
+<h2 id="example-of-quantizing-and-dequantizing-in-onnx">Example of quantizing and dequantizing in ONNX:</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">onnxruntime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ort</span>
+</span></code></pre></div>
+<h2 id="example-float-tensor">Example float tensor</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.02</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">zero_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="quantize-the-float-tensor">Quantize the float tensor</h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">quantized_tensor</span> <span class="o">=</span> <span class="n">QuantizeLinear</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="dequantize-back-to-float">Dequantize back to float</h2>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">dequantized_tensor</span> <span class="o">=</span> <span class="n">DequantizeLinear</span><span class="p">(</span><span class="n">quantized_tensor</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">)</span>
+</span></code></pre></div>
+其他相关的 ONNX 算子
+虽然 QuantizeLinear 和 DequantizeLinear 是最常用的量化/反量化算子，但在具体模型中可能还会使用其他与量化相关的操作，例如：</p>
+<p>MatMulInteger 和 ConvInteger：</p>
+<p>这些是量化推理中常用的算子，用于整数矩阵乘法和卷积运算。
+这些算子接受量化后的整数张量作为输入，而不是浮点数。
+QLinearMatMul 和 QLinearConv：</p>
+<p>这是支持量化数据的线性矩阵乘法和卷积运算的专用量化版本。它们支持直接在量化的数据上进行操作，避免反量化回浮点数进行计算。</p>
+<p>总结：
+- QuantizeLinear：用于将浮点数值量化为整数（如 INT8）。
+- DequantizeLinear：用于将量化的整数数据恢复为浮点数。
+- MatMulInteger、ConvInteger、QLinearMatMul 和 QLinearConv：提供了对量化数据的操作支持，常用于推理中的矩阵乘法和卷积计算。</p>
+<h2 id="_2">常见量化方法</h2>
+<p>在实现不同的量化方法时，每种方法都有其适用的场景和优缺点。以下是 <strong>对称量化</strong>、<strong>非对称量化</strong>、<strong>动态范围量化</strong> 和 <strong>对数量化</strong> 的优缺点分析：</p>
+<h3 id="1-symmetric-quantization">1. <strong>对称量化 (Symmetric Quantization)</strong></h3>
+<h4 id="_3"><strong>优点</strong>：</h4>
+<ul>
+<li><strong>简单易用</strong>：对称量化只需要缩放因子（scale），不需要零点（zero point），实现起来简单。</li>
+<li><strong>计算高效</strong>：计算过程中仅需进行乘法和除法，硬件实现比较容易。</li>
+<li><strong>对称数据适用</strong>：对于分布大致对称的数据（如零均值的数据分布），对称量化表现良好。</li>
+</ul>
+<h4 id="_4"><strong>缺点</strong>：</h4>
+<ul>
+<li><strong>对非对称数据效果较差</strong>：当数据分布不对称时（例如数据的正负范围不一致），对称量化会浪费较多的表示空间，使得精度下降。</li>
+<li><strong>不适合零点偏移</strong>：当数据有较大的偏移（如数据集中在某个正或负区域），会造成量化范围不平衡，影响精度。</li>
+</ul>
+<h3 id="2-asymmetric-quantization">2. <strong>非对称量化 (Asymmetric Quantization)</strong></h3>
+<h4 id="_5"><strong>优点</strong>：</h4>
+<ul>
+<li><strong>适应不对称数据</strong>：非对称量化通过引入零点 <code>zero_point</code>，可以适应数据的偏移，使得量化表示范围更加合理。</li>
+<li><strong>更精确</strong>：可以更好地处理数据的偏移情况，避免量化过程中浪费大量表示空间。</li>
+</ul>
+<h4 id="_6"><strong>缺点</strong>：</h4>
+<ul>
+<li><strong>实现复杂</strong>：相比对称量化，非对称量化增加了零点的计算和使用，复杂度略高。</li>
+<li><strong>计算代价略高</strong>：在计算时需要引入零点偏移，虽然相比对称量化略显复杂，但通常对性能影响不大。</li>
+</ul>
+<h3 id="3-dynamic-range-quantization">3. <strong>动态范围量化 (Dynamic Range Quantization)</strong></h3>
+<h4 id="_7"><strong>优点</strong>：</h4>
+<ul>
+<li><strong>自适应数据范围</strong>：动态范围量化能够根据数据的最大值和最小值自适应缩放因子，确保使用最合适的量化范围。</li>
+<li><strong>适合全局缩放</strong>：对于全局数据分布跨度较大的情况，动态范围量化能够充分利用整数空间，提高表示精度。</li>
+<li><strong>适用于较宽数据分布</strong>：尤其适用于数据分布较广泛的情况，比如有些数据可能跨越多个数量级。</li>
+</ul>
+<h4 id="_8"><strong>缺点</strong>：</h4>
+<ul>
+<li><strong>动态计算开销</strong>：在量化前需要对数据进行扫描以找到最大值和最小值，额外引入了计算开销。</li>
+<li><strong>对局部动态变化不敏感</strong>：如果数据在不同区域的分布差异较大，单一的动态范围量化无法很好地处理局部数据的变化，可能会损失局部精度。</li>
+</ul>
+<h3 id="4-logarithmic-quantization">4. <strong>对数量化 (Logarithmic Quantization)</strong></h3>
+<h4 id="_9"><strong>优点</strong>：</h4>
+<ul>
+<li><strong>适合跨度大的数据</strong>：对于分布跨度较大的数据（如数据范围在多个数量级上变化），对数量化表现优异。它可以压缩大范围的数据到较小的整数范围。</li>
+<li><strong>更均匀分布表示空间</strong>：对数缩放使得数据在较大范围内的变化更加均匀，适合处理有指数增长或对数分布的数据。</li>
+</ul>
+<h4 id="_10"><strong>缺点</strong>：</h4>
+<ul>
+<li><strong>低精度数据问题</strong>：对于较小范围的数据（如接近零的数据），对数量化可能丢失较多的精度，因为对数缩放会把较小的值压缩得过小。</li>
+<li><strong>计算复杂性</strong>：对数量化需要使用对数和指数运算，这些运算在某些硬件上可能更昂贵，尤其是对于嵌入式系统或硬件推理来说。</li>
+<li><strong>需要特殊处理 0</strong>：因为 <code>log(0)</code> 是未定义的，通常需要对 0 做特殊处理（如添加小偏移值），这可能引入额外的复杂性。</li>
+</ul>
+<hr />
+<h3 id="_11">总结</h3>
+<table>
+<thead>
+<tr>
+<th><strong>量化方法</strong></th>
+<th><strong>优点</strong></th>
+<th><strong>缺点</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>对称量化</strong></td>
+<td>简单易实现，适合对称分布的数据，计算高效</td>
+<td>不适合偏移较大的数据，难以处理非对称数据</td>
+</tr>
+<tr>
+<td><strong>非对称量化</strong></td>
+<td>能处理非对称数据，引入零点增加精度，适合偏移数据</td>
+<td>实现稍复杂，需计算零点</td>
+</tr>
+<tr>
+<td><strong>动态范围量化</strong></td>
+<td>动态适应数据分布范围，适合全局数据分布跨度大的情况</td>
+<td>动态计算开销大，无法适应局部分布变化</td>
+</tr>
+<tr>
+<td><strong>对数量化</strong></td>
+<td>适合数据范围跨度大的情况，对指数分布或变化快速的数据效果好</td>
+<td>低精度时效果差，计算较复杂，需要处理 0 的特殊情况</td>
+</tr>
+</tbody>
+</table>
+<p>不同的量化方法适用于不同的场景：对称量化和非对称量化通常用于神经网络推理优化，而动态范围量化和对数量化则更适用于跨越大范围或指数变化的数据。在实际应用中，可以根据具体的任务需求选择合适的量化方法。</p>
+<p>以下是从易到难列举的具体量化算法，每种算法均附有公式，并且涵盖了从简单到复杂的量化方法：</p>
+<h3 id="1-min-max">1. <strong>简单 Min-Max 对称量化</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：假设数据是对称分布的，仅使用 Scale，不考虑 Zero Point。</li>
+<li><strong>公式</strong>：
+     [
+     \text{scale} = \frac{\max(|\text{float_min}|, |\text{float_max}|)}{127}
+     ]</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right)
+     ]</li>
+<li><strong>适用范围</strong>：对称权重量化、分布较均匀的数据。</li>
+</ul>
+<h3 id="2-min-max">2. <strong>简单 Min-Max 非对称量化</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：适用于数据分布不对称的情况，增加了 Zero Point 的计算。</li>
+<li><strong>公式</strong>：
+     [
+     \text{scale} = \frac{\text{float_max} - \text{float_min}}{255}
+     ]
+     [
+     \text{zero_point} = \text{round}\left(-\frac{\text{float_min}}{\text{scale}}\right)
+     ]</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero_point}
+     ]</li>
+<li><strong>适用范围</strong>：激活量化、非对称数据。</li>
+</ul>
+<h3 id="3-max-abs-symmetric-quantization">3. <strong>最大绝对值对称量化（Max-Abs Symmetric Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：通过找到数据的最大绝对值，假设数据在 <code>[-\text{abs\_max}, \text{abs\_max}]</code> 对称分布。</li>
+<li><strong>公式</strong>：
+     [
+     \text{scale} = \frac{\text{abs_max}}{127}
+     ]
+     其中 (\text{abs_max} = \max(|\text{float_min}|, |\text{float_max}|))。</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right)
+     ]</li>
+<li><strong>适用范围</strong>：对称分布的激活量化，适合对称分布。</li>
+</ul>
+<h3 id="4-per-channel-quantization">4. <strong>逐通道量化（Per-Channel Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：对每个通道单独量化，计算每个通道的 Scale 和 Zero Point。</li>
+<li><strong>公式</strong>：
+     [
+     \text{scale}_i = \frac{\text{float_max}_i - \text{float_min}_i}{255}
+     ]
+     [
+     \text{zero_point}_i = \text{round}\left(-\frac{\text{float_min}_i}{\text{scale}_i}\right)
+     ]</li>
+<li><strong>映射</strong>：对于通道 ( i ) 上的浮点数 ( x )，转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}_i}\right) + \text{zero_point}_i
+     ]</li>
+<li><strong>适用范围</strong>：权重量化，特别适合卷积层。</li>
+</ul>
+<h3 id="5-mean-std-quantization">5. <strong>均值-标准差量化（Mean-Std Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：通过均值和标准差调整量化范围，减少极值影响。</li>
+<li><strong>公式</strong>：<ul>
+<li>量化范围为 ([ \text{mean} - k \times \text{std}, \text{mean} + k \times \text{std} ])，其中 ( k ) 是可调参数。</li>
+<li><strong>Scale</strong>：
+   [
+   \text{scale} = \frac{(\text{mean} + k \times \text{std}) - (\text{mean} - k \times \text{std})}{255}
+   ]</li>
+<li><strong>Zero Point</strong>：
+   [
+   \text{zero_point} = \text{round}\left(-\frac{\text{mean} - k \times \text{std}}{\text{scale}}\right)
+   ]</li>
+</ul>
+</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero_point}
+     ]</li>
+<li><strong>适用范围</strong>：减小极值影响的数据量化。</li>
+</ul>
+<h3 id="6-dynamic-range-quantization">6. <strong>动态范围量化（Dynamic Range Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：推理时根据输入数据的动态范围实时调整 Scale 和 Zero Point。</li>
+<li><strong>公式</strong>：对于每次推理输入计算 <code>float_min</code> 和 <code>float_max</code>，按非对称量化方式计算 Scale 和 Zero Point：
+     [
+     \text{scale} = \frac{\text{float_max} - \text{float_min}}{255}
+     ]
+     [
+     \text{zero_point} = \text{round}\left(-\frac{\text{float_min}}{\text{scale}}\right)
+     ]</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero_point}
+     ]</li>
+<li><strong>适用范围</strong>：推理过程中输入数据分布变化大的情况。</li>
+</ul>
+<h3 id="7-kl-kl-divergence-quantization">7. <strong>KL 散度量化（KL-Divergence Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：基于最小化量化分布与原始数据分布的 KL 散度，找到最优量化范围。</li>
+<li><strong>公式</strong>：<ol>
+<li>构建直方图，将数据分布划分为 ( n ) 个 bin。</li>
+<li>计算截断点，依次尝试多个截断范围 ( T )，计算量化直方图 ( Q ) 和原始直方图 ( P ) 的 KL 散度：
+    [
+    D_{KL}(P || Q) = \sum_{i=1}^n P(i) \log\left(\frac{P(i)}{Q(i)}\right)
+    ]</li>
+<li>选择 KL 散度最小的截断范围，生成量化 Scale 和 Zero Point。</li>
+</ol>
+</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero_point}
+     ]</li>
+<li><strong>适用范围</strong>：适合复杂数据分布的激活量化。</li>
+</ul>
+<h3 id="8-logarithmic-quantization">8. <strong>对数量化（Logarithmic Quantization）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：将数据按对数刻度量化，适合处理动态范围大的数据。</li>
+<li><strong>公式</strong>：<ul>
+<li>对数刻度量化范围：
+   [
+   \text{scale} = \frac{\log(\text{float_max}) - \log(\text{float_min})}{255}
+   ]
+   [
+   \text{zero_point} = \text{round}\left(-\frac{\log(\text{float_min})}{\text{scale}}\right)
+   ]</li>
+</ul>
+</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{\log(x)}{\text{scale}}\right) + \text{zero_point}
+     ]</li>
+<li><strong>适用范围</strong>：适合动态范围跨度大的数据，如音频和亮度。</li>
+</ul>
+<h3 id="9-perceptual-quantization-pq">9. <strong>感知量化（Perceptual Quantization, PQ）</strong></h3>
+<ul>
+<li><strong>方法描述</strong>：根据人类视觉或听觉的感知非线性分布进行量化。</li>
+<li><strong>公式</strong>：<ul>
+<li>按感知函数（例如对数、幂律等）计算量化范围，使得每个 bin 更符合人类感知的敏感性。</li>
+<li>假设采用对数函数，则 Scale 计算为：
+   [
+   \text{scale} = \frac{\log(\text{float_max} + 1)}{255}
+   ]
+   [
+   \text{zero_point} = 0
+   ]</li>
+</ul>
+</li>
+<li><strong>映射</strong>：将浮点数 ( x ) 转换为量化整数 ( q )：
+     [
+     q = \text{round}\left(\frac{\log(x +</li>
+</ul>
+<p>1)}{\text{scale}}\right)
+     ]
+   - <strong>适用范围</strong>：人类感知相关的数据量化，例如图像和音频数据。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

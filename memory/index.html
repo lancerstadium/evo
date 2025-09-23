@@ -1,0 +1,1328 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://lancerstadium.github.io/evo/memory/">
+      
+      
+        <link rel="prev" href="../earlyexit/">
+      
+      
+        <link rel="next" href="../model/">
+      
+      
+      <link rel="icon" href="../public/logo-bare.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Memory - Evo - Evolvable Inference Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.e53b48f4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#memory" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="Evo - Evolvable Inference Framework" class="md-header__button md-logo" aria-label="Evo - Evolvable Inference Framework" data-md-component="logo">
+      
+  <img src="../public/logo-bare-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Evo - Evolvable Inference Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Memory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lancerstadium/evo" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../bind/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Bind
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../build/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Build
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../earlyexit/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Earlyexit
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Memory
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../model/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Model
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../optimize/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Optimize
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../profile/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Profile
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quant/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quant
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tool/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tool
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../operator/" class="md-tabs__link">
+          
+  
+  
+  Operator
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ppt/ppt-01/" class="md-tabs__link">
+          
+  
+  
+  Ppt
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Evo - Evolvable Inference Framework" class="md-nav__button md-logo" aria-label="Evo - Evolvable Inference Framework" data-md-component="logo">
+      
+  <img src="../public/logo-bare-white.svg" alt="logo">
+
+    </a>
+    Evo - Evolvable Inference Framework
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lancerstadium/evo" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bind/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bind
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../earlyexit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Earlyexit
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Memory
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Memory
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../optimize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Optimize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quant
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operator
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Operator
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator/pool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Ppt
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            Ppt
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-01/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 01
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-02/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 02
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-03/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 03
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-04/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 04
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 05
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-06/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 06
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-07/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 07
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-08/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 08
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-09/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 09
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppt/ppt-10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ppt 10
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Memory</h1>
+
+<h2 id="memory">Memory</h2>
+<p>TensorFlow Lite for Microcontrollers（TFLM）以及其他轻量级推理引擎（如 Arm’s CMSIS-NN、uTensor、MicroTVM）在内存控制方面有许多关键策略，专门为资源受限的设备（如微控制器）优化。以下是它们如何控制内存的主要方式：</p>
+<ol>
+<li>静态内存分配
+预先分配内存池：TFLM 和其他轻量推理引擎通常会在初始化时分配一个固定大小的内存池，而不是在推理过程中动态分配内存。这样可以避免内存碎片化问题，同时减少实时计算的内存压力。
+模型所需的内存静态计算：在模型部署之前，推理引擎会分析每层操作的需求，确定最小的内存池大小。然后，模型初始化时就会为所有中间激活值分配足够的内存，从而确保整个推理过程不需要额外的内存分配。</li>
+<li>层级内存复用
+复用中间张量：在前向传播中，TFLM 会复用不再需要的中间激活值的内存。例如，当某一层的输出张量在后续层不再需要时，它的内存空间会被复用。这样可以有效减少中间激活张量所占用的内存。
+时间调度和内存复用表：TFLM 会构建内存复用表，确保在推理的每个阶段中，层与层之间合理复用内存资源。这种内存复用方法在大多数轻量化推理引擎中是标配技术，尤其在神经网络中间层数较多时尤为有效。</li>
+<li>支持 int8 量化
+量化模型的权重和激活：为了减少内存和存储占用，TFLM 支持 int8 量化。量化模型将权重和激活值从浮点数（如 float32）转换为低比特精度（如 int8），从而减少约 75% 的内存占用。
+量化后的操作优化：量化不仅减少了内存占用，还加快了推理速度。引擎中的算子（如卷积、全连接）通常会专门优化以支持 int8 运算，这进一步减少了计算时间和内存需求。</li>
+<li>以 Arena Allocator 控制内存
+TFLM 中采用了 Arena Allocator 管理内存池，Arena Allocator 提供了一块固定大小的内存区域，用于所有的模型权重、中间激活张量等。
+Arena Allocator 不会进行复杂的动态内存分配，而是像栈一样分配和释放内存，以减少内存碎片化的问题。</li>
+<li>模型结构优化和操作融合
+算子融合：一些推理引擎会将多个操作合并为一个操作，例如将卷积和激活函数或卷积和批量归一化（BatchNorm）融合成单一操作。这种融合可以减少数据在不同层之间的中间存储需求，从而节省内存。
+模型优化：在部署之前，模型通常会使用优化工具进行图级优化，以减少不必要的计算和内存使用。例如，常见的优化包括移除冗余层、常量折叠、剪枝和算子替换等。</li>
+<li>最小化模型和参数存储
+模型存储压缩：TFLM 支持通过模型压缩技术，如权重剪枝和稀疏化，将模型存储占用降到最低。
+参数分片加载：对于较大的模型，一些推理引擎可以分段加载权重，只在需要时加载到内存中。例如，将模型分片，并在推理过程中按需加载以避免占用过多内存。</li>
+<li>延迟加载和惰性计算
+延迟加载：有些推理引擎会在推理时根据需求动态加载模型的权重或部分网络，从而避免模型加载时的一次性大内存占用。
+惰性计算：惰性计算可以确保只在需要时进行计算，从而避免不必要的内存分配。例如，只有当某些中间结果确实需要时，才会进行计算和存储。</li>
+<li>支持裁剪模型
+稀疏矩阵存储：模型中通过权重剪枝或稀疏化后，推理引擎可以存储和计算稀疏矩阵结构，仅对非零部分进行计算，从而减少内存需求。
+稀疏张量格式：一些推理引擎会支持稀疏张量格式，以避免存储和计算零值部分的数据，进一步优化内存使用。
+总结
+在资源受限的 TinyML 环境中，TFLM 和其他推理引擎通过以下方法控制内存：</li>
+</ol>
+<p>使用 静态内存分配，避免运行时的内存分配和碎片化。
+利用 层级内存复用 和 量化，显著减少内存占用。
+采用 Arena Allocator 管理内存池，避免复杂的内存管理开销。
+支持 模型结构优化、操作融合 和 稀疏化技术，以减少模型的存储和中间激活的内存需求。
+这些技术确保了推理引擎在微控制器等资源受限的设备上高效运行，实现了在极低内存条件下的实时推理。</p>
+<p>内存静态分配算法（CSP, Meta-CSP, MixedILP, TelaMalloc, MiniMalloc）主要用于深度学习推理中的内存管理。它们的目标是通过有效地分配和管理内存资源，减少内存占用和提高执行效率。以下是这些算法的原理和区别的详细介绍：</p>
+<ol>
+<li>CSP (Conflict-free Space Placement)
+CSP算法，即无冲突空间分配算法，通过减少内存碎片和避免内存冲突来优化内存利用率。其关键思想是使用图模型来描述操作符（如卷积、全连接等）之间的依赖关系，并根据这些依赖关系分配内存。CSP的工作流程如下：</li>
+</ol>
+<p>构建依赖图：对所有操作符构建一个依赖图，节点表示操作符，边表示数据依赖。
+分配内存空间：在分配时，尽可能避免不同操作符间的内存区域重叠，以防止冲突。
+回收和复用：当操作符执行完后，回收其内存空间并用于接下来的操作符。
+CSP适合较为简单的神经网络结构，但在复杂结构中，其内存冲突控制较弱，导致分配效率有限。</p>
+<ol>
+<li>Meta-CSP
+Meta-CSP是对CSP的改进版本，主要通过在图模型上应用更复杂的搜索算法来改进内存分配的效率。Meta-CSP的改进之处在于使用了更细粒度的约束处理：</li>
+</ol>
+<p>元约束添加：添加额外的约束条件，使内存分配更适应复杂的网络结构，如循环神经网络（RNN）和卷积神经网络（CNN）。
+动态调整分配策略：基于实际负载情况调整分配策略，减少不必要的冲突。
+通过改进的算法设计，Meta-CSP可以在处理大型复杂模型时提供更好的内存利用率和更低的延迟。</p>
+<ol>
+<li>MixedILP (Mixed Integer Linear Programming)
+MixedILP是一种使用混合整数线性规划（ILP）进行内存分配的算法，它通过数学优化方法来实现最优内存分配。MixedILP将内存分配问题建模为整数线性规划问题，并求解内存的最优解。主要流程如下：</li>
+</ol>
+<p>数学建模：将每个操作符和数据块定义为一个变量，并对这些变量施加线性约束，以确保分配的内存满足所有操作需求。
+线性求解器优化：使用线性求解器优化目标函数（通常是最小化内存总量），找到最优内存分配方案。
+求解和分配：根据求解结果进行内存块的分配和复用。
+MixedILP因使用数学优化方法，可以获得接近全局最优的分配结果，但在大型网络上求解时间较长，适合偏静态的内存需求场景。</p>
+<ol>
+<li>TelaMalloc
+TelaMalloc是一种专门为深度学习设计的内存分配器，它以高效地满足推理过程中频繁的内存请求为目标。TelaMalloc的关键在于：</li>
+</ol>
+<p>分块与复用：将内存分块为不同大小的小块，以便快速分配和复用。
+自动内存释放：当某个内存块使用完毕后立即释放，从而在推理过程中动态释放和复用内存。
+分配策略优化：根据操作符的需求动态调整分配策略，例如优先分配较小块，减少大块分配的频率。
+TelaMalloc在深度学习推理中表现出色，适合需要频繁小块内存请求的推理场景，特别适合模型层次较多且频繁交替使用内存的网络。</p>
+<ol>
+<li>MiniMalloc
+MiniMalloc是一个轻量级的内存分配算法，设计上更倾向于内存高效性。MiniMalloc的核心思路是：</li>
+</ol>
+<p>预分配池：将内存划分为多个预定义大小的池，每个池包含固定大小的内存块，避免动态申请和释放带来的额外开销。
+小块复用：小块内存块的复用率高，对于固定大小的小数据请求可以快速响应。
+分配策略简化：MiniMalloc仅对少数几种大小进行分配，减少了复杂的分配管理逻辑。
+MiniMalloc对内存的空间利用率高，适合内存需求简单且数据请求大小固定的推理场景，尤其适合在资源受限的嵌入式系统中使用。</p>
+<p>总结对比
+|算法|    原理| 优势| 适用场景|
+|:--:|:--:|:--:|:--:|
+|CSP        |无冲突内存分配            |适合较简单网络结构，避免内存冲突   |简单模型、依赖关系明确的网络|
+|Meta-CSP   |增强CSP，增加约束条件   |适合复杂网络，减少冲突，优化利用率  |复杂模型、循环结构较多的网络|
+|MixedILP   |使用整数线性规划进行内存分配 |全局最优分配结果   |偏静态分配需求的大型网络|
+|TelaMalloc |动态块分配与复用       |高效满足小块请求，自动释放与复用   |频繁小块请求的推理过程|
+|MiniMalloc |轻量级内存池分配       |高复用率，简化管理逻辑    |嵌入式系统、小请求固定场景|</p>
+<p>每种算法都有其独特的优势和适用场景，在深度学习推理中可以根据需求选择合适的内存分配方案，以获得最佳的性能和内存利用效率。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
