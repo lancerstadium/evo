@@ -1,0 +1,82 @@
+#include <evo/mdl/json/json.h>
+#include <evo/mdl/onnx/onnx.h>
+#include <evo/mdl/tflite/tflite.h>
+#include <evo/mdl/etm/etm.h>
+#include <evo/util/log.h>
+#include <string.h>
+
+// ==================================================================================== //
+//                                      json
+// ==================================================================================== //
+
+static serializer_t json_serializer = {
+    .fmt = "json",
+    .load = load_json,
+    .load_file = load_model_json,
+    .load_tensor = load_tensor_bin,
+    .unload = unload_json,
+    .load_graph = load_graph_json,
+    .save = save_json,
+};
+
+// ==================================================================================== //
+//                                      onnx
+// ==================================================================================== //
+
+static serializer_t onnx_serializer = {
+    .fmt = "onnx",
+    .load = load_onnx,
+    .load_file = load_model_onnx,
+    .load_tensor = load_tensor_onnx,
+    .unload = unload_onnx,
+    .load_graph = load_graph_onnx,
+    .save = NULL,
+};
+
+// ==================================================================================== //
+//                                      tflite
+// ==================================================================================== //
+
+static serializer_t tflite_serializer = {
+    .fmt = "tflite",
+    .load = load_tflite,
+    .load_file = load_model_tflite,
+    .load_tensor = NULL,
+    .unload = unload_tflite,
+    .load_graph = load_graph_tflite,
+    .save = NULL,
+};
+
+// ==================================================================================== //
+//                                      etm
+// ==================================================================================== //
+
+static serializer_t etm_serializer = {
+    .fmt = "etm",
+    .load = load_etm,
+    .load_file = load_model_etm,
+    .load_tensor = NULL,
+    .unload = unload_etm,
+    .load_graph = load_graph_etm,
+    .save = save_etm,
+};
+
+// ==================================================================================== //
+//                                    serializer API
+// ==================================================================================== //
+
+serializer_t *serializer_get(const char *fmt) {
+    if(!fmt) return &onnx_serializer;
+    if (strcmp(fmt, "json") == 0) {
+        return &json_serializer;
+    } else if (strcmp(fmt, "onnx") == 0) {
+        return &onnx_serializer;
+    } else if(strcmp(fmt, "tflite") == 0) {
+        return &tflite_serializer;
+    } else if(strcmp(fmt, "etm") == 0) {
+        return &etm_serializer;
+    } else {  // default load by onnx
+        LOG_WARN("Unsupport model format %s , use onnx as default\n", fmt);
+        return &onnx_serializer;
+    }
+}

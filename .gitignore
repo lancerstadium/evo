@@ -1,0 +1,44 @@
+# dir
+build/
+bin/*
+
+# Gen
+/.cproject
+/.project
+/.settings/
+
+# elf
+*.elf
+*.out
+*.bin
+*.drawio
+*.drawio.bkp
+*.Identifier
+
+# txt
+expr.txt
+
+# Vscode
+.vscode/
+
+bind/paper/*
+
+# lib
+*.o
+*.d
+*.o.d
+*.a
+*.so
+*~
+*.tar.gz
+
+# MacOS Cache
+.DS_Store
+
+# test
+tests/*_tests
+
+# test log
+tests/*.log
+
+

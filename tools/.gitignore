@@ -1,0 +1,7 @@
+
+
+
+# edb
+edb/build
+obj_dir
+*.vcd

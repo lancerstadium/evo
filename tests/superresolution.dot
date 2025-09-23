@@ -1,0 +1,708 @@
+digraph InferGraph {
+compound = true
+ratio = 1.8
+ranksep = 0.25
+nodesep = 0.2
+splines = true
+graph [rankdir = TB, shape = record, charset = "UTF-8", color = cadetblue, fontcolor = black, fontname = "Consolas", fontsize = 20, style = "rounded,dashed,bold"]
+node [shape = record, charset = "UTF-8", color = black, fontcolor = black, fontname = "Consolas", fontsize = 16, style = "rounded,bold"]
+edge [shape = record, charset = "UTF-8", color = black, fontname = "Consolas", fontsize = 14, style = "bold"]
+
+Tensor0 [
+color = brown
+fontcolor = brown
+label = "{input | {\<float32\>\n[1,3,16,16]}}"
+]
+
+Tensor1 [
+color = brown
+fontcolor = brown
+label = "{output | {\<float32\>\n[1,3,32,32]}}"
+]
+
+Tensor2 [
+color = brown
+fontcolor = brown
+label = "{29 | {\<float32\>\n[1,3,16,16]}}"
+]
+
+Tensor3 [
+color = brown
+fontcolor = brown
+label = "{30 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor4 [
+color = brown
+fontcolor = brown
+label = "{31 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor5 [
+color = brown
+fontcolor = brown
+label = "{32 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor6 [
+color = brown
+fontcolor = brown
+label = "{33 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor7 [
+color = brown
+fontcolor = brown
+label = "{34 | {\<float32\>\n[1]}}"
+]
+
+Tensor8 [
+color = brown
+fontcolor = brown
+label = "{35 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor9 [
+color = brown
+fontcolor = brown
+label = "{36 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor10 [
+color = brown
+fontcolor = brown
+label = "{37 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor11 [
+color = brown
+fontcolor = brown
+label = "{38 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor12 [
+color = brown
+fontcolor = brown
+label = "{39 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor13 [
+color = brown
+fontcolor = brown
+label = "{40 | {\<float32\>\n[1]}}"
+]
+
+Tensor14 [
+color = brown
+fontcolor = brown
+label = "{41 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor15 [
+color = brown
+fontcolor = brown
+label = "{42 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor16 [
+color = brown
+fontcolor = brown
+label = "{43 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor17 [
+color = brown
+fontcolor = brown
+label = "{44 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor18 [
+color = brown
+fontcolor = brown
+label = "{45 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor19 [
+color = brown
+fontcolor = brown
+label = "{46 | {\<float32\>\n[1]}}"
+]
+
+Tensor20 [
+color = brown
+fontcolor = brown
+label = "{47 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor21 [
+color = brown
+fontcolor = brown
+label = "{48 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor22 [
+color = brown
+fontcolor = brown
+label = "{49 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor23 [
+color = brown
+fontcolor = brown
+label = "{50 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor24 [
+color = brown
+fontcolor = brown
+label = "{51 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor25 [
+color = brown
+fontcolor = brown
+label = "{52 | {\<float32\>\n[1]}}"
+]
+
+Tensor26 [
+color = brown
+fontcolor = brown
+label = "{53 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor27 [
+color = brown
+fontcolor = brown
+label = "{54 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor28 [
+color = brown
+fontcolor = brown
+label = "{55 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor29 [
+color = brown
+fontcolor = brown
+label = "{56 | {\<float32\>\n[1,16,16,16]}}"
+]
+
+Tensor30 [
+color = brown
+fontcolor = brown
+label = "{57 | {\<float32\>\n[1,64,16,16]}}"
+]
+
+Tensor31 [
+color = brown
+fontcolor = brown
+label = "{58 | {\<float32\>\n[1,16,32,32]}}"
+]
+
+Tensor32 [
+color = brown
+fontcolor = brown
+label = "{59 | {\<float32\>\n[1,3,32,32]}}"
+]
+
+Tensor33 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{sub_mean.weight | {\<float32\>\n[3,3,1,1]}}"
+]
+
+Tensor34 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{sub_mean.bias | {\<float32\>\n[3]}}"
+]
+
+Tensor35 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{head.0.weight | {\<float32\>\n[16,3,3,3]}}"
+]
+
+Tensor36 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{head.0.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor37 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.0.body.0.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor38 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.0.body.0.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor39 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.0.body.2.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor40 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.0.body.2.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor41 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.1.body.0.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor42 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.1.body.0.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor43 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.1.body.2.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor44 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.1.body.2.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor45 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.2.body.0.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor46 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.2.body.0.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor47 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.2.body.2.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor48 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.2.body.2.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor49 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.3.body.0.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor50 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.3.body.0.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor51 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.3.body.2.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor52 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.3.body.2.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor53 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.4.weight | {\<float32\>\n[16,16,3,3]}}"
+]
+
+Tensor54 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{body.4.bias | {\<float32\>\n[16]}}"
+]
+
+Tensor55 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{tail.0.0.weight | {\<float32\>\n[64,16,3,3]}}"
+]
+
+Tensor56 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{tail.0.0.bias | {\<float32\>\n[64]}}"
+]
+
+Tensor57 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{tail.1.weight | {\<float32\>\n[3,16,3,3]}}"
+]
+
+Tensor58 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{tail.1.bias | {\<float32\>\n[3]}}"
+]
+
+Tensor59 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{add_mean.weight | {\<float32\>\n[3,3,1,1]}}"
+]
+
+Tensor60 [
+color = darkslategrey
+fontcolor = darkslategrey
+label = "{add_mean.bias | {\<float32\>\n[3]}}"
+]
+
+subgraph cluster_subgraph0 {
+label = "torch-jit-export_0"
+
+Node0 [
+label = "{ Conv: Conv_0 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [1,1]\n
+pads : [0,0,0,0]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor0 ->  Node0
+Tensor33 ->  Node0
+Tensor34 ->  Node0
+Node0 ->  Tensor2
+
+Node1 [
+label = "{ Conv: Conv_1 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor2 ->  Node1
+Tensor35 ->  Node1
+Tensor36 ->  Node1
+Node1 ->  Tensor3
+
+Node2 [
+label = "{ Conv: Conv_2 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor3 ->  Node2
+Tensor37 ->  Node2
+Tensor38 ->  Node2
+Node2 ->  Tensor4
+
+Node3 [ label = "{ Relu: Relu_3 }" ]
+
+Tensor4 ->  Node3
+Node3 ->  Tensor5
+
+Node4 [
+label = "{ Conv: Conv_4 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor5 ->  Node4
+Tensor39 ->  Node4
+Tensor40 ->  Node4
+Node4 ->  Tensor6
+
+Node5 [
+label = "{ Constant: Constant_5 | {
+value : [1]\n
+}}"
+]
+
+Node5 ->  Tensor7
+
+Node6 [ label = "{ Mul: Mul_6 }" ]
+
+Tensor6 ->  Node6
+Tensor7 ->  Node6
+Node6 ->  Tensor8
+
+Node7 [ label = "{ Add: Add_7 }" ]
+
+Tensor8 ->  Node7
+Tensor3 ->  Node7
+Node7 ->  Tensor9
+
+Node8 [
+label = "{ Conv: Conv_8 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor9 ->  Node8
+Tensor41 ->  Node8
+Tensor42 ->  Node8
+Node8 ->  Tensor10
+
+Node9 [ label = "{ Relu: Relu_9 }" ]
+
+Tensor10 ->  Node9
+Node9 ->  Tensor11
+
+Node10 [
+label = "{ Conv: Conv_10 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor11 ->  Node10
+Tensor43 ->  Node10
+Tensor44 ->  Node10
+Node10 ->  Tensor12
+
+Node11 [
+label = "{ Constant: Constant_11 | {
+value : [1]\n
+}}"
+]
+
+Node11 ->  Tensor13
+
+Node12 [ label = "{ Mul: Mul_12 }" ]
+
+Tensor12 ->  Node12
+Tensor13 ->  Node12
+Node12 ->  Tensor14
+
+Node13 [ label = "{ Add: Add_13 }" ]
+
+Tensor14 ->  Node13
+Tensor9 ->  Node13
+Node13 ->  Tensor15
+
+Node14 [
+label = "{ Conv: Conv_14 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor15 ->  Node14
+Tensor45 ->  Node14
+Tensor46 ->  Node14
+Node14 ->  Tensor16
+
+Node15 [ label = "{ Relu: Relu_15 }" ]
+
+Tensor16 ->  Node15
+Node15 ->  Tensor17
+
+Node16 [
+label = "{ Conv: Conv_16 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor17 ->  Node16
+Tensor47 ->  Node16
+Tensor48 ->  Node16
+Node16 ->  Tensor18
+
+Node17 [
+label = "{ Constant: Constant_17 | {
+value : [1]\n
+}}"
+]
+
+Node17 ->  Tensor19
+
+Node18 [ label = "{ Mul: Mul_18 }" ]
+
+Tensor18 ->  Node18
+Tensor19 ->  Node18
+Node18 ->  Tensor20
+
+Node19 [ label = "{ Add: Add_19 }" ]
+
+Tensor20 ->  Node19
+Tensor15 ->  Node19
+Node19 ->  Tensor21
+
+Node20 [
+label = "{ Conv: Conv_20 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor21 ->  Node20
+Tensor49 ->  Node20
+Tensor50 ->  Node20
+Node20 ->  Tensor22
+
+Node21 [ label = "{ Relu: Relu_21 }" ]
+
+Tensor22 ->  Node21
+Node21 ->  Tensor23
+
+Node22 [
+label = "{ Conv: Conv_22 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor23 ->  Node22
+Tensor51 ->  Node22
+Tensor52 ->  Node22
+Node22 ->  Tensor24
+
+Node23 [
+label = "{ Constant: Constant_23 | {
+value : [1]\n
+}}"
+]
+
+Node23 ->  Tensor25
+
+Node24 [ label = "{ Mul: Mul_24 }" ]
+
+Tensor24 ->  Node24
+Tensor25 ->  Node24
+Node24 ->  Tensor26
+
+Node25 [ label = "{ Add: Add_25 }" ]
+
+Tensor26 ->  Node25
+Tensor21 ->  Node25
+Node25 ->  Tensor27
+
+Node26 [
+label = "{ Conv: Conv_26 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor27 ->  Node26
+Tensor53 ->  Node26
+Tensor54 ->  Node26
+Node26 ->  Tensor28
+
+Node27 [ label = "{ Add: Add_27 }" ]
+
+Tensor28 ->  Node27
+Tensor3 ->  Node27
+Node27 ->  Tensor29
+
+Node28 [
+label = "{ Conv: Conv_28 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor29 ->  Node28
+Tensor55 ->  Node28
+Tensor56 ->  Node28
+Node28 ->  Tensor30
+
+Node29 [
+label = "{ DepthToSpace: DepthToSpace_29 | {
+blocksize : 2\n
+mode : 'CRD'\n
+}}"
+]
+
+Tensor30 ->  Node29
+Node29 ->  Tensor31
+
+Node30 [
+label = "{ Conv: Conv_30 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [3,3]\n
+pads : [1,1,1,1]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor31 ->  Node30
+Tensor57 ->  Node30
+Tensor58 ->  Node30
+Node30 ->  Tensor32
+
+Node31 [
+label = "{ Conv: Conv_31 | {
+dilations : [1,1]\n
+group : 1\n
+kernel_shape : [1,1]\n
+pads : [0,0,0,0]\n
+strides : [1,1]\n
+}}"
+]
+
+Tensor32 ->  Node31
+Tensor59 ->  Node31
+Tensor60 ->  Node31
+Node31 ->  Tensor1
+
+}
+
+}

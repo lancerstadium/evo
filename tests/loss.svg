@@ -1,0 +1,41 @@
+<svg class="charter" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" viewbox="0 0 720 480">
+<defs><clipPath id="plot-area"><rect x="70.00" y="25.00" width="615.00" height="405.00"/>
+</clipPath></defs><text  x="377.50" y="15.00" text-anchor="middle"  font-weight="bold">LeNet Loss</text>
+<rect  x="70.00" y="25.00" width="615.00" height="405.00" style="fill:none; fill-opacity:1.00; stroke:black; stroke-width:0.50;" />
+<text  x="377.50" y="467.00" text-anchor="middle"  font-weight="regular">n</text>
+<text  transform="rotate(270, 5.00, 227.50) translate(0, 10)"  x="5.00" y="227.50" text-anchor="middle"  font-weight="regular">loss</text>
+<line clip-path="url(#plot-area)"  x1="70.00" y1="25.00" x2="70.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="70.00" y1="431.00" x2="70.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="70.00" y="450.00" text-anchor="middle"  font-weight="regular">0</text>
+<line clip-path="url(#plot-area)"  x1="275.00" y1="25.00" x2="275.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="275.00" y1="431.00" x2="275.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="275.00" y="450.00" text-anchor="middle"  font-weight="regular">1.00</text>
+<line clip-path="url(#plot-area)"  x1="480.00" y1="25.00" x2="480.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="480.00" y1="431.00" x2="480.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="480.00" y="450.00" text-anchor="middle"  font-weight="regular">2.00</text>
+<line clip-path="url(#plot-area)"  x1="685.00" y1="25.00" x2="685.00" y2="430.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="685.00" y1="431.00" x2="685.00" y2="436.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="685.00" y="450.00" text-anchor="middle"  font-weight="regular">3.00</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="393.18" x2="685.00" y2="393.18"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="393.18" x2="69.00" y2="393.18"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="397.18" text-anchor="end"  font-weight="regular">0</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="319.55" x2="685.00" y2="319.55"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="319.55" x2="69.00" y2="319.55"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="323.55" text-anchor="end"  font-weight="regular">0.02</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="245.91" x2="685.00" y2="245.91"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="245.91" x2="69.00" y2="245.91"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="249.91" text-anchor="end"  font-weight="regular">0.04</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="172.27" x2="685.00" y2="172.27"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="172.27" x2="69.00" y2="172.27"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="176.27" text-anchor="end"  font-weight="regular">0.06</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="98.64" x2="685.00" y2="98.64"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="98.64" x2="69.00" y2="98.64"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="102.64" text-anchor="end"  font-weight="regular">0.08</text>
+<line clip-path="url(#plot-area)"  x1="25.00" y1="25.00" x2="685.00" y2="25.00"  style="stroke: #ccc;stroke-width:0.50"/>
+<line  x1="64.00" y1="25.00" x2="69.00" y2="25.00"  style="stroke: black;stroke-width:1.00"/>
+<text  x="60.00" y="29.00" text-anchor="end"  font-weight="regular">0.10</text>
+<polyline clip-path="url(#plot-area)" style="fill:none; stroke:#db5f57; stroke-width:2.00;"  points="70.00,270.29 275.00,354.06 480.00,366.55 685.00,371.98 " /><rect  x="575.00" y="35.00" width="100.00" height="21.00" style="fill:white; fill-opacity:0.50; stroke:#333; stroke-width:0.50;" />
+<defs><clipPath id="leg-area"><rect x="615.00" y="35.00" width="58.00" height="21.00"/>
+</clipPath></defs><line  x1="585.00" y1="46.00" x2="615.00" y2="46.00"  style="stroke: #db5f57;stroke-width:2.00"/>
+<text clip-path="url(#leg-area)"  x="645.00" y="50.00" text-anchor="middle"  font-weight="regular">loss</text>
+</svg>
