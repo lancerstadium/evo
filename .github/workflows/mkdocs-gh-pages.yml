@@ -2,7 +2,7 @@ name: Deploy MKdocs with GitHub Pages
 on:
   push:
     branches:
-      - ml
+      - main
 permissions:
   contents: write
 jobs:
